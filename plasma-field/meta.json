@@ -1,0 +1,21 @@
+{
+  "slug": "plasma-field",
+  "title": "Cosmos Plasma Field — classic per-pixel plasma of shifting colour bands",
+  "title_vi": "Cosmos Plasma Field — plasma cổ điển per-pixel với dải màu chuyển động",
+  "W": 480,
+  "H": 340,
+  "LOOP": 7000,
+  "N": 64,
+  "tags": [
+    "plasma",
+    "demoscene",
+    "per-pixel",
+    "sine",
+    "colour-bands",
+    "canvas2d"
+  ],
+  "summary": "A classic demoscene plasma: smoothly shifting colour bands generated per-pixel by summing several sine waves (horizontal, vertical, diagonal, and a moving radial source), colour-mapped through the Cosmos accent palette. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: rendered to a small ~220px offscreen ImageData then scaled up with smoothing for speed; each pixel's plasma value v is a sum of sines of fx/fy/diagonal plus a radial term whose centre orbits, every term using an integer multiple of ph=u*2PI so frame(0)==frame(LOOP); v is remapped to a 256-entry LUT pre-built by interpolating the six Cosmos accents into a looping gradient, with a slow integer hue drift added. Drawn additively ('lighter') over the Phantom background. CAPTURE: ?auto=1 + window.__seek(t). TUNE: RW resolution, sine frequencies (8.0/9.0/5.0/22.0), v scale (0.125), orbit radius 0.18, AC palette.",
+  "summary_vi": "Plasma demoscene cổ điển: các dải màu chuyển mượt sinh ra theo từng pixel bằng tổng nhiều sóng sin (ngang, dọc, chéo và một nguồn xuyên tâm di chuyển), ánh xạ màu qua bảng màu Cosmos. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Mỗi số hạng sin dùng bội số nguyên của ph=u*2PI nên frame(0)==frame(LOOP); LUT 256 nội suy 6 accent thành gradient vòng."
+}

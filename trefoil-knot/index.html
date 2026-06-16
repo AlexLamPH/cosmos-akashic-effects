@@ -1,0 +1,53 @@
+<!-- Cosmos Trefoil Knot: the (2,3) torus-knot drawn as a glowing thick tube of additive dots, spinning one full turn per LOOP about a tilted axis; hand-rolled 3D rotate + perspective scale=F/(F+z), depth-shaded, accent gradient along the curve. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Trefoil Knot</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+const LOOP=8400,F=560,P=2,Q=3,NSEG=420,NRING=7;
+const COL=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]]; // violet,cosmic,nebula,aurora,solaris,sacred
+let W,H,DPR,cx,cy,SC;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;SC=Math.min(W,H)*0.165;}
+rs();addEventListener('resize',rs);
+// accent gradient along the curve: lerp around the 6-colour wheel by parameter f in [0,1)
+function accent(f){const g=f*6,i=g|0,fr=g-i,a=COL[i%6],b=COL[(i+1)%6];return[a[0]+(b[0]-a[0])*fr,a[1]+(b[1]-a[1])*fr,a[2]+(b[2]-a[2])*fr];}
+// trefoil (2,3) torus-knot parametric point at angle ph
+function knot(ph){const r=2+Math.cos(Q*ph);return[r*Math.cos(P*ph),-Math.sin(Q*ph),r*Math.sin(P*ph)];}
+function blob(X,Y,R,c,a){const g=x.createRadialGradient(X,Y,0,X,Y,R*3);
+  g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')');
+  g.addColorStop(0.35,'rgba('+c[0]+','+c[1]+','+c[2]+','+(a*0.5)+')');
+  g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.beginPath();x.arc(X,Y,R*3,0,TAU);x.fill();}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const spin=TAU*u, cs=Math.cos(spin),sn=Math.sin(spin), tilt=0.55,ct=Math.cos(tilt),st=Math.sin(tilt);
+  // backdrop halo
+  blob(cx,cy,SC*0.9,[80,60,160],0.22);
+  const TUBE=SC*0.16, pts=[];
+  for(let i=0;i<NSEG;i++){
+    const f=i/NSEG, ph=f*TAU;
+    const c0=knot(ph), c1=knot(ph+0.012);                      // centre + lookahead for tangent frame
+    let T=[c1[0]-c0[0],c1[1]-c0[1],c1[2]-c0[2]];const tl=Math.hypot(T[0],T[1],T[2])||1;T=[T[0]/tl,T[1]/tl,T[2]/tl];
+    let Nn=[T[1],-T[0],0];const nl=Math.hypot(Nn[0],Nn[1],Nn[2])||1;Nn=[Nn[0]/nl,Nn[1]/nl,Nn[2]/nl];
+    const B=[T[1]*Nn[2]-T[2]*Nn[1],T[2]*Nn[0]-T[0]*Nn[2],T[0]*Nn[1]-T[1]*Nn[0]]; // binormal
+    const col=accent((f+u)%1);                                  // accent gradient flows along curve
+    for(let k=0;k<NRING;k++){
+      const ang= k? (k-1)/(NRING-1)*TAU : 0, rr= k?TUBE:0;      // k=0 = bright centre core
+      let X=(c0[0]+ (Nn[0]*Math.cos(ang)+B[0]*Math.sin(ang))*rr/SC)*SC;
+      let Y=(c0[1]+ (Nn[1]*Math.cos(ang)+B[1]*Math.sin(ang))*rr/SC)*SC;
+      let Z=(c0[2]+ (Nn[2]*Math.cos(ang)+B[2]*Math.sin(ang))*rr/SC)*SC;
+      let x1=X*cs+Z*sn, z1=-X*sn+Z*cs;                          // spin about Y
+      let y2=Y*ct-z1*st, z2=Y*st+z1*ct;                         // constant tilt about X
+      pts.push([x1,y2,z2,col,k===0]);
+    }
+  }
+  pts.sort((a,b)=>b[2]-a[2]);                                   // far first
+  for(const p of pts){const s=F/(F+p[2]);if(s<=0)continue;
+    const X=cx+p[0]*s,Y=cy+p[1]*s;
+    const depth=Math.max(0,Math.min(1,(SC*3-p[2])/(SC*6)));     // 1 near .. 0 far
+    if(p[4]){blob(X,Y,(1.1+depth*1.7)*s*DPR,[255,255,255],0.5+depth*0.45);} // core highlight
+    else{blob(X,Y,(1.5+depth*2.4)*s*DPR,p[3],0.30+depth*0.55);}
+  }
+  x.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

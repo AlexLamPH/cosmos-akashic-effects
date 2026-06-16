@@ -1,0 +1,14 @@
+{
+  "slug": "barcode-scan",
+  "title": "Cosmos Barcode Scan — laser line sweeping a seeded barcode",
+  "title_vi": "Quét Mã Vạch Cosmos",
+  "W": 760,
+  "H": 540,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": ["canvas2d", "generative", "scan", "barcode", "laser", "glow"],
+  "summary": "A seeded barcode of variable-width bars sits on a light panel while a red laser line sweeps top-to-bottom, glowing and flashing a little beep at each end of travel. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: mulberry32-seeded bar widths/ink computed once at setup; scan line y=(u mod 1)*panelHeight driven from u=t%LOOP; additive 'lighter' glow band around the core line; beep flash via edge=min(u,1-u) radial burst at the ends. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for sweep speed, bar density via rng threshold (0.42), glow band width (18*DPR).",
+  "summary_vi": "Một mã vạch gieo hạt với các thanh độ rộng khác nhau nằm trên bảng sáng, trong khi tia laser đỏ quét từ trên xuống dưới, phát sáng và nháy 'bíp' ở mỗi đầu hành trình. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và liền mạch.",
+  "notes": "Vị trí tia quét y=(u mod 1)*chiều cao bảng; nháy đầu hành trình tính qua edge=min(u,1-u)."
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Particle Text</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Particle Text — seeded glowing dots scatter, then assemble into the word "COSMOS", then disperse, ping-ponging seamlessly.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=8000,TAU=6.28318530718,WORD="COSMOS";
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]]; // violet cosmic nebula aurora solaris sacred
+let W,H,DPR,cx,cy,parts=[];
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Render "COSMOS" to a small offscreen and sample filled pixels as target points (no external image).
+function sampleTargets(){
+  const OW=220, OH=Math.round(OW*WORD.length>0?70:70), oc=document.createElement('canvas');
+  oc.width=OW;oc.height=OH;const o=oc.getContext('2d');
+  o.fillStyle='#000';o.fillRect(0,0,OW,OH);
+  o.fillStyle='#fff';o.textAlign='center';o.textBaseline='middle';
+  o.font='800 '+Math.round(OH*0.78)+'px "Arial Black",Arial,sans-serif';
+  o.fillText(WORD,OW/2,OH/2+1);
+  const d=o.getImageData(0,0,OW,OH).data, pts=[];
+  for(let py=0;py<OH;py+=2)for(let px=0;px<OW;px+=2){ if(d[(py*OW+px)*4]>120) pts.push([px/OW,py/OH]); }
+  return pts;
+}
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;
+  const pts=sampleTargets();const r=mul(7);
+  // map normalized text box to a centered region of the canvas
+  const tw=Math.min(W*0.86,H*2.6), th=tw*0.30, ox=cx-tw/2, oy=cy-th/2;
+  parts=[];
+  for(let i=0;i<pts.length;i++){
+    const tx=ox+pts[i][0]*tw, ty=oy+pts[i][1]*th;          // assembled target position
+    const ang=r()*TAU, rad=(0.25+r()*0.85)*Math.min(W,H)*0.62;
+    const hx=cx+Math.cos(ang)*rad*(0.7+r()*0.6);           // seeded scattered "home"
+    const hy=cy+Math.sin(ang)*rad*(0.5+r()*0.7);
+    const col=AC[(r()*AC.length)|0];
+    parts.push({tx,ty,hx,hy,col,ph:r(),sz:0.6+r()*1.6,sp:r()});
+  }}
+rs();addEventListener('resize',rs);
+function ease(p){return p<0.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;} // smooth ease-in-out
+function frame(t){const u=(((t%LOOP)+LOOP)%LOOP/LOOP+0.25)%1; // +0.25 so frame 0 is mid-assembly (rich)
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // ping-pong assembly amount: 0=scattered, 1=word; triangle wave -> frame(0)==frame(LOOP)
+  const tri=1-Math.abs(2*u-1);          // 0..1..0
+  const a=ease(tri);                    // eased assembly fraction
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<parts.length;i++){const p=parts[i];
+    // per-particle stagger so dots converge in a flowing wave
+    const la=Math.max(0,Math.min(1,(a-0.18*p.sp)/0.82));
+    const ea=ease(la);
+    const swirl=(1-ea)*0.5*Math.sin(TAU*(u+p.ph));         // periodic swirl while scattered (returns at u=1)
+    const px=p.hx+(p.tx-p.hx)*ea + swirl*Math.cos(p.ph*TAU)*40*DPR;
+    const py=p.hy+(p.ty-p.hy)*ea + swirl*Math.sin(p.ph*TAU)*40*DPR;
+    const c=p.col, br=0.35+0.65*ea;                         // dots brighten as they lock into the word
+    const rad=(p.sz*(1.1-0.3*ea))*DPR;
+    x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.10+0.18*br})`;
+    x.beginPath();x.arc(px,py,rad*3.2,0,TAU);x.fill();      // soft glow halo
+    x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.55*br+0.2})`;
+    x.beginPath();x.arc(px,py,rad,0,TAU);x.fill();
+    x.fillStyle=`rgba(240,244,255,${0.25+0.6*ea})`;         // bright core
+    x.beginPath();x.arc(px,py,rad*0.45,0,TAU);x.fill();
+  }
+  // a few drifting accent sparkles for life (seamless, seeded phase)
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

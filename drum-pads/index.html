@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Drum Pads</title>
+<style>
+  :root{ --bg:#0a0816; --solaris:#ff6a3d; --ink:#e8e3f5; --dim:#8a83a8; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); height:100%;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif; color:var(--ink);
+    display:flex; align-items:center; justify-content:center; min-height:100%; user-select:none;}
+  #app{width:660px; height:640px; padding:20px; display:flex; flex-direction:column; gap:16px;
+    background:linear-gradient(165deg,#141026,#0c0918); border:1px solid #221a3a;
+    border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);}
+  header{display:flex; align-items:center; gap:16px;}
+  .title{font-size:18px; font-weight:700; letter-spacing:.5px;}
+  .title b{color:var(--solaris);}
+  .hint{font-size:12px; color:var(--dim); transition:opacity .4s; margin-left:auto;}
+  .meter{display:flex; gap:3px; align-items:flex-end; height:30px; padding:0 4px;}
+  .meter i{width:5px; height:4px; border-radius:2px; background:#2a2342;
+    transition:height .04s linear, background .04s linear;}
+  .grid{flex:1; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(4,1fr); gap:12px;}
+  .pad{position:relative; border-radius:14px; overflow:hidden; cursor:pointer;
+    background:linear-gradient(160deg,#1c1633,#15102a); border:1px solid #2a2142;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 4px 12px rgba(0,0,0,.3);
+    display:flex; flex-direction:column; justify-content:space-between; padding:10px 12px;
+    transition:transform .08s, box-shadow .12s;}
+  .pad:active{transform:scale(.97);}
+  .pad .name{font-size:12px; font-weight:600; color:var(--ink); z-index:2;}
+  .pad .key{font-size:11px; color:var(--dim); align-self:flex-end; font-weight:600;
+    letter-spacing:.5px; z-index:2;}
+  .pad .glow{position:absolute; inset:0; background:radial-gradient(circle at 50% 40%, var(--solaris), transparent 70%);
+    opacity:0; z-index:1; pointer-events:none;}
+  .ring{position:absolute; left:50%; top:45%; width:20px; height:20px; margin:-10px 0 0 -10px;
+    border-radius:50%; border:2px solid var(--solaris); opacity:0; z-index:1; pointer-events:none;}
+  .pad.lit{box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 0 22px rgba(255,106,61,.55);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">Cosmos <b>Drum Pads</b></div>
+    <div class="meter" id="meter"></div>
+    <div class="hint" id="hint">▶ click / press a key</div>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+// ---- deterministic RNG ----
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---- voice definitions (16 pads) ----
+// type drives both synthesis (LIVE) and decay length (visual)
+const KEYS=['1','2','3','4','Q','W','E','R','A','S','D','F','Z','X','C','V'];
+const VOICES=[
+  {n:'Kick',  t:'kick', f:120, dec:.42},
+  {n:'Sub Kick',t:'kick',f:80,  dec:.55},
+  {n:'Snare', t:'snare',f:190, dec:.22},
+  {n:'Rim Snr',t:'snare',f:260, dec:.16},
+  {n:'CL Hat', t:'hat',  f:8000,dec:.06},
+  {n:'OP Hat', t:'ohat', f:7000,dec:.30},
+  {n:'Lo Tom', t:'tom',  f:110, dec:.34},
+  {n:'Mid Tom',t:'tom',  f:165, dec:.30},
+  {n:'Hi Tom', t:'tom',  f:240, dec:.26},
+  {n:'Clap',   t:'clap', f:0,   dec:.20},
+  {n:'Rimshot',t:'rim',  f:1700,dec:.10},
+  {n:'Cowbell',t:'cow',  f:540, dec:.30},
+  {n:'Zap',    t:'zap',  f:880, dec:.18},
+  {n:'Laser',  t:'zap',  f:1400,dec:.14},
+  {n:'Perc',   t:'perc', f:520, dec:.16},
+  {n:'Shaker', t:'hat',  f:6000,dec:.05}
+];
+
+// ---- audio engine (LIVE only) ----
+let actx=null, master=null;
+function audio(){
+  if(!actx){
+    actx=new(window.AudioContext||window.webkitAudioContext)();
+    const comp=actx.createDynamicsCompressor();
+    comp.threshold.value=-14; comp.ratio.value=4; comp.attack.value=.002; comp.release.value=.2;
+    master=actx.createGain(); master.gain.value=0.2;
+    master.connect(comp); comp.connect(actx.destination);
+  }
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+function noiseBuf(){
+  const len=actx.sampleRate*0.5, b=actx.createBuffer(1,len,actx.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  return b;
+}
+function env(g,t,peak,dec){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.004);g.gain.setTargetAtTime(0.0001,t+.006,dec/3.5);}
+function play(i,vel){
+  if(!actx) return; const t=actx.currentTime, V=VOICES[i], v=vel||1;
+  function noise(){const s=actx.createBufferSource();s.buffer=noiseBuf();return s;}
+  if(V.t==='kick'){
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.frequency.setValueAtTime(V.f*2.6,t); o.frequency.exponentialRampToValueAtTime(V.f*.4,t+V.dec*.6);
+    env(g,t,.9*v,V.dec); o.connect(g); g.connect(master); o.start(t); o.stop(t+V.dec+.05);
+  }else if(V.t==='snare'||V.t==='clap'){
+    const taps=V.t==='clap'?[0,.012,.024,.05]:[0];
+    taps.forEach(off=>{const s=noise(),f=actx.createBiquadFilter(),g=actx.createGain();
+      f.type='bandpass'; f.frequency.value=V.t==='clap'?1100:1800; f.Q.value=.8;
+      env(g,t+off,.55*v,V.t==='clap'?.06:V.dec); s.connect(f);f.connect(g);g.connect(master);
+      s.start(t+off); s.stop(t+off+.2);});
+    if(V.t==='snare'){const o=actx.createOscillator(),g=actx.createGain();
+      o.type='triangle'; o.frequency.setValueAtTime(V.f,t); o.frequency.exponentialRampToValueAtTime(V.f*.7,t+V.dec);
+      env(g,t,.4*v,V.dec*.8); o.connect(g);g.connect(master); o.start(t);o.stop(t+V.dec+.05);}
+  }else if(V.t==='hat'||V.t==='ohat'){
+    const s=noise(),hp=actx.createBiquadFilter(),g=actx.createGain();
+    hp.type='highpass'; hp.frequency.value=V.f*.8;
+    env(g,t,.32*v,V.dec); s.connect(hp);hp.connect(g);g.connect(master); s.start(t);s.stop(t+V.dec+.05);
+  }else if(V.t==='tom'){
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.frequency.setValueAtTime(V.f*1.8,t); o.frequency.exponentialRampToValueAtTime(V.f*.7,t+V.dec*.7);
+    env(g,t,.7*v,V.dec); o.connect(g);g.connect(master); o.start(t);o.stop(t+V.dec+.05);
+  }else if(V.t==='rim'){
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type='square'; o.frequency.value=V.f; env(g,t,.4*v,V.dec); o.connect(g);g.connect(master);
+    o.start(t);o.stop(t+V.dec+.02);
+  }else if(V.t==='cow'){
+    const g=actx.createGain(),bp=actx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=V.f; bp.Q.value=3;
+    [540,800].forEach(fr=>{const o=actx.createOscillator(); o.type='square'; o.frequency.value=fr; o.connect(bp); o.start(t); o.stop(t+V.dec+.02);});
+    env(g,t,.4*v,V.dec); bp.connect(g); g.connect(master);
+  }else if(V.t==='zap'){
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type='sawtooth'; o.frequency.setValueAtTime(V.f*2,t); o.frequency.exponentialRampToValueAtTime(V.f*.25,t+V.dec);
+    env(g,t,.4*v,V.dec); o.connect(g);g.connect(master); o.start(t);o.stop(t+V.dec+.04);
+  }else{ // perc: bandpassed click
+    const o=actx.createOscillator(),bp=actx.createBiquadFilter(),g=actx.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(V.f*1.5,t); o.frequency.exponentialRampToValueAtTime(V.f,t+V.dec);
+    bp.type='bandpass'; bp.frequency.value=V.f*1.4; bp.Q.value=2;
+    env(g,t,.45*v,V.dec); o.connect(bp);bp.connect(g);g.connect(master); o.start(t);o.stop(t+V.dec+.04);
+  }
+}
+
+// ---- DOM build ----
+const grid=document.getElementById('grid'), meterEl=document.getElementById('meter'), hintEl=document.getElementById('hint');
+const pads=[], glows=[], rings=[];
+VOICES.forEach((V,i)=>{
+  const p=document.createElement('div'); p.className='pad';
+  p.innerHTML=`<div class="glow"></div><div class="ring"></div><div class="name">${V.n}</div><div class="key">${KEYS[i]}</div>`;
+  p.addEventListener('pointerdown',e=>{e.preventDefault(); hit(i,1);});
+  grid.appendChild(p);
+  pads.push(p); glows.push(p.querySelector('.glow')); rings.push(p.querySelector('.ring'));
+});
+const BARS=24, bars=[];
+for(let i=0;i<BARS;i++){const b=document.createElement('i'); meterEl.appendChild(b); bars.push(b);}
+
+// ---- seeded 16-step groove ----
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=6400, STEPS=16, STEP=LOOP/STEPS;
+const rnd=mulberry32(20260615);
+// pattern[step] = array of pad indices firing on that step (deterministic)
+const pattern=[];
+for(let s=0;s<STEPS;s++){
+  const fires=[];
+  if(s%4===0) fires.push(s%8===0?0:1);            // kicks on downbeats
+  if(s===4||s===12) fires.push(2);                // snare backbeat
+  if(s%2===0) fires.push(rnd()<.5?4:15);          // hats/shaker on 8ths
+  if(s===14) fires.push(5);                        // open hat lead-in
+  if(rnd()<.22) fires.push(6+(Math.floor(rnd()*3))); // sprinkle toms
+  if(s===10) fires.push(9);                        // clap
+  if(rnd()<.14) fires.push(11+Math.floor(rnd()*5)); // cowbell/zap/perc accents
+  pattern.push(fires);
+}
+// precompute, for each pad, the step indices where it fires
+const padSteps=pads.map(()=>[]);
+pattern.forEach((fires,s)=>fires.forEach(p=>padSteps[p].push(s)));
+
+// frame-0 phase offset so u=0 lands mid-performance
+const PHASE=0.41;
+
+// ---- deterministic render(u) ----  u in [0,1)
+function render(u){
+  const pos=((u+PHASE)%1)*STEPS;              // continuous step position
+  let level=0;
+  for(let i=0;i<pads.length;i++){
+    // age = steps since this pad last fired (wrapped)
+    let age=99;
+    for(const s of padSteps[i]){
+      let d=pos-s; if(d<0) d+=STEPS;
+      if(d<age) age=d;
+    }
+    const dec=Math.max(2.2, VOICES[i].dec*8);   // how many steps the flash lasts
+    const k=Math.max(0,1-age/dec);              // 1 just-fired -> 0 faded
+    const e=k*k;
+    glows[i].style.opacity=(e*0.9).toFixed(3);
+    pads[i].classList.toggle('lit',e>0.25);
+    // ripple ring: scale out + fade based on age
+    const prog=Math.min(1,age/dec);
+    rings[i].style.opacity=(Math.max(0,(1-prog))*0.8).toFixed(3);
+    rings[i].style.transform='scale('+(0.4+prog*5).toFixed(3)+')';
+    level+=e;
+  }
+  // meter: sum-of-sines wobble * envelope from level
+  const amp=Math.min(1, level*0.5);
+  for(let b=0;b<BARS;b++){
+    const phase=b/BARS;
+    const w=(Math.sin((u*6.283+phase*9.0))*0.5+0.5)*0.55 + (Math.sin(u*25.13+phase*20)*0.5+0.5)*0.25;
+    const h=2 + (amp*0.8+0.05)*w*26;
+    bars[b].style.height=h.toFixed(1)+'px';
+    bars[b].style.background = h>14 ? '#ff6a3d' : (h>7?'#b8542f':'#3a2a4a');
+  }
+}
+
+// ---- LIVE flash (non-deterministic, transient) ----
+function flash(i){
+  const gl=glows[i], rg=rings[i], p=pads[i];
+  gl.style.transition='none'; gl.style.opacity='0.95'; p.classList.add('lit');
+  rg.style.transition='none'; rg.style.opacity='0.85'; rg.style.transform='scale(0.4)';
+  requestAnimationFrame(()=>{
+    gl.style.transition='opacity .35s'; gl.style.opacity='0';
+    rg.style.transition='opacity .5s, transform .5s'; rg.style.opacity='0'; rg.style.transform='scale(5)';
+    setTimeout(()=>p.classList.remove('lit'),140);
+  });
+  liveLevel=Math.min(1.4,liveLevel+0.6);
+}
+let liveLevel=0;
+function hit(i,vel){ if(!AUTO){ audio(); play(i,vel); } flash(i); hideHint(); }
+function hideHint(){ hintEl.style.opacity='0'; }
+
+// keyboard mapping
+const keyMap={}; KEYS.forEach((k,i)=>keyMap[k.toLowerCase()]=i);
+window.addEventListener('keydown',e=>{ if(e.repeat) return; const i=keyMap[e.key.toLowerCase()]; if(i!==undefined){ e.preventDefault(); hit(i,1);} });
+
+// ---- contract tail ----
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  // idle attract-loop: animate the seeded groove visually until/while interacting,
+  // overlaid with live-hit meter decay.
+  const s=performance.now();
+  (function l(n){
+    const u=((((n-s)%LOOP)+LOOP)%LOOP)/LOOP;
+    render(u);
+    // live meter boost decays independently
+    if(liveLevel>0){
+      liveLevel*=0.92;
+      for(let b=0;b<BARS;b++){
+        const extra=liveLevel*(0.4+0.6*Math.abs(Math.sin(b*1.3+n*0.01)))*26;
+        const cur=parseFloat(bars[b].style.height)||2;
+        const h=Math.max(cur, 2+extra);
+        bars[b].style.height=h.toFixed(1)+'px';
+        if(h>14) bars[b].style.background='#ff6a3d';
+        else if(h>7) bars[b].style.background='#b8542f';
+      }
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script>
+</body>
+</html>

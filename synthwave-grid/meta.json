@@ -1,0 +1,11 @@
+{
+  "slug": "synthwave-grid",
+  "title": "Cosmos Synthwave Grid — neon perspective horizon",
+  "title_vi": "Cosmos Synthwave Grid — lưới neon phối cảnh",
+  "W": 760, "H": 540, "LOOP": 6000, "N": 75,
+  "tags": ["synthwave","grid","retro","neon","perspective","background","canvas2d"],
+  "summary": "A retro synthwave scene: a slit-banded sun over a violet sky, with a neon perspective grid whose horizontal lines scroll toward the viewer and vertical lines converge to the vanishing point. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. The sun is a clipped gradient circle with destination-out slits; the ground grid uses perspective: horizontal line depth d=p*p with p=((u+k/K) mod 1) so lines accelerate toward the camera and loop, vertical lines fan from the vanishing point. Additive neon glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: horizon, line counts, colours.",
+  "summary_vi": "Cảnh synthwave hoài cổ: mặt trời kẻ sọc trên nền tím, lưới neon phối cảnh với các đường ngang trôi về phía người xem và đường dọc hội tụ về điểm tụ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Batch factory #4. Lưới phối cảnh d=p*p, p=((u+k/K)mod1) → loop; mặt trời clip gradient + slit bằng destination-out. B-tier."
+}

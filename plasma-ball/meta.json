@@ -1,0 +1,14 @@
+{
+  "slug": "plasma-ball",
+  "title": "Cosmos Plasma Ball — a Tesla globe crackling with electric filaments",
+  "title_vi": "Quả Cầu Plasma Cosmos — quả cầu Tesla nổ lách tách với những sợi điện",
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "plasma", "generative", "glow", "electric"],
+  "summary": "A Tesla plasma globe: a bright pulsing core sends seeded crackling electric filaments writhing out to the glass sphere edge, each strobing on integer-harmonic beats with a violet/cosmic electric glow. The whole scene is a deterministic function of normalized time. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: recursive midpoint-displacement filament geometry in polar (radius,angle) space seeded with mulberry32 once on resize; each filament strobes via exp-decay of phase=(u*harmonic+seedPhase) mod 1 with INTEGER harmonics and writhes via sin(2pi*u*k) with integer k so frame(0)==frame(LOOP); additive 'lighter' compositing, white cores over colored filament halos, radial-gradient core and bulb glow, glass rim highlight arc. CAPTURE: ?auto=1 + window.__seek(t). TUNE: NF filament count, harm/wk harmonics, swirl writhe amplitude, core radius/pulse, R sphere size.",
+  "summary_vi": "Một quả cầu plasma Tesla: lõi sáng đập nhịp phóng ra những sợi điện gieo hạt nổ lách tách uốn lượn tới mép cầu thủy tinh, mỗi sợi nhấp nháy theo nhịp hài số nguyên với ánh tím/vũ trụ. Toàn cảnh là hàm tất định của thời gian. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Hình học sợi gieo bằng mulberry32 trong tọa độ cực, tính một lần; pha nhấp nháy và uốn lượn dùng hài số nguyên nên frame(0) trùng frame(LOOP)."
+}

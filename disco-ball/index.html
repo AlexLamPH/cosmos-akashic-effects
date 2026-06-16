@@ -1,0 +1,80 @@
+<!-- Cosmos Disco Ball: a faceted mirror sphere (grid of little mirror tiles, hand-rolled 3D) spins one turn per LOOP, glinting; throws a field of rotating coloured light spots around the dark room. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Disco Ball</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0xD15C0B);
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const CRGB=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+// faceted sphere: a grid of mirror tiles by (lat,lon). centre dir + size precomputed once.
+const ROWS=14,T=[];
+for(let r=0;r<ROWS;r++){const lat=(r+0.5)/ROWS*Math.PI-Math.PI/2, cl=Math.cos(lat);
+  const cols=Math.max(4,Math.round(ROWS*1.9*cl));
+  for(let cI=0;cI<cols;cI++){const lon=(cI+0.5)/cols*TAU;
+    T.push([Math.cos(lat)*Math.cos(lon),Math.sin(lat),Math.cos(lat)*Math.sin(lon),0.5/ROWS+rnd()*0.12,rnd()]);}}
+// floor/room light-spots: each rides on a tile's reflected direction -> spread around the room.
+const SPOTS=[];for(let i=0;i<46;i++)SPOTS.push({a:rnd()*TAU,d:0.55+rnd()*1.25,sx:0.85+rnd()*0.5,sy:0.78+rnd()*0.45,c:i%6,ph:rnd(),sz:14+rnd()*30});
+const F=3.2;
+function frame(t){
+  const LOOP=8000,u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.setTransform(DPR,0,0,DPR,0,0);x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H*0.46,R=Math.min(W,H)*0.27;
+  const phi=TAU*u, cf=Math.cos(phi), sf=Math.sin(phi);
+  const tilt=0.32, ct=Math.cos(tilt), st=Math.sin(tilt);
+  x.globalCompositeOperation='lighter';
+  // 1) rotating coloured light-spots filling the dark room
+  for(const s of SPOTS){
+    const ang=s.a+phi*(s.d>1?1:-1);                       // spots sweep with the ball's spin
+    const rad=R*(1.35+s.d*1.55);
+    const px=cx+Math.cos(ang)*rad*1.18, py=cy+Math.sin(ang)*rad*0.82;
+    const tw=0.45+0.55*Math.sin(TAU*(2*u+s.ph));          // glint flicker (integer harmonic)
+    const c=CRGB[s.c], rr=s.sz*(0.7+tw*0.6);
+    let g=x.createRadialGradient(px,py,0,px,py,rr);
+    g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+','+(0.06+tw*0.16)+')');
+    g.addColorStop(0.5,'rgba('+c[0]+','+c[1]+','+c[2]+','+(0.025+tw*0.06)+')');
+    g.addColorStop(1,'rgba(5,3,13,0)');
+    x.fillStyle=g;x.save();x.translate(px,py);x.scale(s.sx,s.sy);
+    x.beginPath();x.arc(0,0,rr,0,TAU);x.fill();x.restore();}
+  // 2) soft halo behind the ball
+  let hg=x.createRadialGradient(cx,cy,R*0.3,cx,cy,R*1.9);
+  hg.addColorStop(0,'rgba(139,92,255,0.16)');hg.addColorStop(0.5,'rgba(70,180,255,0.05)');hg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=hg;x.beginPath();x.arc(cx,cy,R*1.9,0,TAU);x.fill();
+  // 3) the faceted mirror ball: project each tile, light by facing toward camera+key light
+  const Lx=-0.45,Ly=-0.6,Lz=0.66;                          // key light direction
+  const tiles=[];
+  for(const tl of T){
+    let X=tl[0]*cf+tl[2]*sf, Z=-tl[0]*sf+tl[2]*cf, Y=tl[1];
+    const Y2=Y*ct-Z*st, Z2=Y*st+Z*ct;                      // tilt
+    if(Z2>0.18)continue;                                   // cull back hemisphere
+    const sc=F/(F+Z2), px=cx+X*R*sc, py=cy+Y2*R*sc;
+    const nz=-Z2;                                          // toward camera component
+    const spec=Math.max(0,X*Lx+Y2*Ly+nz*Lz);              // specular facing the key light
+    const glint=0.5+0.5*Math.sin(TAU*(3*u+tl[4]));         // per-tile twinkle, integer harmonic
+    tiles.push([px,py,Z2,tl[3]*R*sc,nz,spec,glint,tl[4]]);}
+  tiles.sort((a,b)=>b[2]-a[2]);                            // far first
+  for(const ti of tiles){
+    const ts=ti[3], nz=ti[4], spec=ti[5], gl=ti[6];
+    const base=0.10+nz*0.30;                               // mirror tint, brighter near centre
+    const ci=((ti[7]*6)|0)%6, c=CRGB[ci];
+    x.globalAlpha=1;x.fillStyle='rgba('+c[0]+','+c[1]+','+c[2]+','+(base*(0.5+gl*0.5)).toFixed(3)+')';
+    x.fillRect(ti[0]-ts,ti[1]-ts,ts*2,ts*2);
+    const hot=Math.pow(spec,3.2)*gl;                       // sparkly accent highlight
+    if(hot>0.16){const hr=ts*(1.4+hot*2.2);
+      let g=x.createRadialGradient(ti[0],ti[1],0,ti[0],ti[1],hr);
+      g.addColorStop(0,'rgba(255,255,255,'+(0.7*hot).toFixed(3)+')');
+      g.addColorStop(0.4,'rgba('+c[0]+','+c[1]+','+c[2]+','+(0.5*hot).toFixed(3)+')');
+      g.addColorStop(1,'rgba(5,3,13,0)');
+      x.fillStyle=g;x.beginPath();x.arc(ti[0],ti[1],hr,0,TAU);x.fill();}}
+  // 4) overall sphere sheen so it reads as a ball
+  let sh=x.createRadialGradient(cx-R*0.35,cy-R*0.4,R*0.1,cx,cy,R*1.05);
+  sh.addColorStop(0,'rgba(200,220,255,0.22)');sh.addColorStop(0.5,'rgba(120,150,255,0.05)');sh.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=sh;x.beginPath();x.arc(cx,cy,R*1.02,0,TAU);x.fill();
+  x.globalCompositeOperation='source-over';x.globalAlpha=1;
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

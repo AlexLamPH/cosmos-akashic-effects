@@ -1,0 +1,140 @@
+<!-- Cosmos Navbar: a top navigation bar — brand logo left, centre nav links with a violet pill indicator that glides to the active/hovered link (each brightening), a search icon + primary CTA right (gently pulsing), and a scroll-shrink/blur state. Real hover live; deterministic looping auto-demo via render(u)/__seek. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Navbar</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:flex-start;justify-content:center;padding-top:64px}
+.page{position:absolute;inset:0;
+  background:radial-gradient(120% 80% at 50% -20%,rgba(139,92,255,.10),transparent 60%)}
+.nav{position:relative;width:660px;display:flex;align-items:center;gap:18px;
+  padding:14px 18px;border-radius:18px;
+  background:rgba(14,10,28,.72);border:1px solid rgba(255,255,255,.07);
+  backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.05),0 24px 60px -24px rgba(0,0,0,.85);
+  will-change:transform,padding;transform-origin:top center}
+/* brand */
+.brand{display:flex;align-items:center;gap:10px;flex:none;font-weight:700;font-size:16px;letter-spacing:.2px}
+.logo{width:28px;height:28px;border-radius:9px;flex:none;
+  background:linear-gradient(135deg,#8b5cff,#6a3ff0);
+  box-shadow:0 4px 16px -4px rgba(139,92,255,.7),inset 0 1px 1px rgba(255,255,255,.4);
+  display:flex;align-items:center;justify-content:center}
+.logo svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.brand b{background:linear-gradient(90deg,#fff,#c9bdff);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* links */
+.links{position:relative;display:flex;align-items:center;gap:4px;margin:0 auto}
+.pill{position:absolute;top:50%;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(139,92,255,.28),rgba(106,63,240,.18));
+  border:1px solid rgba(139,92,255,.45);
+  box-shadow:0 6px 20px -6px rgba(139,92,255,.6);
+  transform:translateY(-50%);will-change:left,width,opacity;pointer-events:none;z-index:0}
+.link{position:relative;z-index:1;padding:7px 15px;border-radius:10px;font-size:14px;font-weight:600;
+  color:#8f88ad;cursor:pointer;white-space:nowrap;will-change:color;transition:color .2s}
+.link:hover{color:#d8d2f5}
+/* actions */
+.actions{display:flex;align-items:center;gap:10px;flex:none}
+.icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);cursor:pointer;
+  transition:background .2s,border-color .2s}
+.icon:hover{background:rgba(255,255,255,.09);border-color:rgba(139,92,255,.4)}
+.icon svg{width:16px;height:16px;fill:none;stroke:#bcb5dd;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cta{padding:9px 18px;border-radius:11px;font-size:14px;font-weight:650;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#8b5cff,#6a3ff0);border:1px solid rgba(139,92,255,.6);
+  will-change:transform,box-shadow}
+</style></head>
+<body>
+<div class="page"></div>
+<nav class="nav" id="nav">
+  <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg></span><b>Nebula</b></div>
+  <div class="links" id="links">
+    <span class="pill" id="pill"></span>
+    <span class="link">Product</span>
+    <span class="link">Features</span>
+    <span class="link">Pricing</span>
+    <span class="link">Docs</span>
+  </div>
+  <div class="actions">
+    <span class="icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+    <span class="cta" id="cta">Get started</span>
+  </div>
+</nav>
+<script>
+const LOOP=6400;
+const nav=document.getElementById('nav'),links=document.getElementById('links'),
+  pill=document.getElementById('pill'),cta=document.getElementById('cta');
+const items=[...links.querySelectorAll('.link')];
+const N_LINKS=items.length;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>{t=clamp(t,0,1);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}; // easeInOutCubic
+// measure link geometry relative to .links
+let geo=[];
+function measure(){
+  const base=links.getBoundingClientRect().left;
+  geo=items.map(el=>{const r=el.getBoundingClientRect();return{left:r.left-base,w:r.width};});
+}
+measure();
+function paint(pos,bright,shrink,pulse){
+  // pos: fractional link index (e.g. 1.5 = between link 1 and 2)
+  const i=clamp(Math.floor(pos),0,N_LINKS-1), j=clamp(i+1,0,N_LINKS-1), f=pos-i;
+  const left=lerp(geo[i].left,geo[j].left,f), w=lerp(geo[i].w,geo[j].w,f);
+  pill.style.left=left.toFixed(1)+'px';
+  pill.style.width=w.toFixed(1)+'px';
+  pill.style.opacity=clamp(0.4+0.6*(1-Math.abs(f-0.5)*2*0+1),0,1); // always visible
+  // brighten links by proximity to the indicator centre
+  items.forEach((el,k)=>{
+    const prox=clamp(1-Math.abs(k-pos)*1.4,0,1);
+    const c=lerp(143,255,prox*bright);
+    el.style.color=`rgb(${c|0},${(c-12)|0},${(c+0)|0})`;
+  });
+  // scroll-shrink/blur state: nav scales down + tightens padding
+  nav.style.transform=`scale(${(1-0.045*shrink).toFixed(3)})`;
+  nav.style.padding=`${lerp(14,10,shrink).toFixed(1)}px ${lerp(18,16,shrink).toFixed(1)}px`;
+  nav.style.boxShadow=`inset 0 1px 2px rgba(255,255,255,${(.05-.02*shrink).toFixed(3)}),0 ${lerp(24,16,shrink)|0}px ${lerp(60,40,shrink)|0}px -24px rgba(0,0,0,${(.85+.1*shrink).toFixed(2)})`;
+  // CTA gentle pulse
+  const p=Math.sin(pulse*Math.PI*2)*0.5+0.5;
+  cta.style.transform=`scale(${(1+0.035*p).toFixed(3)})`;
+  cta.style.boxShadow=`0 ${(8+8*p)|0}px ${(22+10*p)|0}px -8px rgba(139,92,255,${(.5+.3*p).toFixed(2)})`;
+}
+// indicator glides across links in sequence; shrink ramps in then out; CTA pulses continuously
+function render(u){
+  const uu=(u+0.22)%1;   // frame 0: indicator mid-glide between two links
+  // path through link indices: 0 ->1 ->2 ->3 ->0, with brief holds at each
+  const seq=[0,1,2,3,0];
+  const segs=seq.length-1;
+  const sp=uu*segs;                 // 0..segs
+  const si=clamp(Math.floor(sp),0,segs-1);
+  const sf=sp-si;
+  // ease within each segment, with a short hold (sf in [0,.45] move, [.45,1] hold)
+  const mv=ease(clamp(sf/0.55,0,1));
+  const pos=lerp(seq[si],seq[si+1],mv);
+  // scroll-shrink: ramp in over first 30%, out over last 20%, full in middle
+  let shrink;
+  if(uu<0.30) shrink=ease(uu/0.30);
+  else if(uu<0.80) shrink=1;
+  else shrink=1-ease((uu-0.80)/0.20);
+  paint(pos,1,shrink,uu);
+}
+window.addEventListener('resize',()=>{measure();});
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  // live: hovering a link glides the pill to it; idle autoplay drives the demo
+  let hover=null;
+  items.forEach((el,k)=>{
+    el.addEventListener('mouseenter',()=>hover=k);
+    el.addEventListener('mouseleave',()=>hover=null);
+  });
+  const s=performance.now();
+  (function l(n){
+    const u=(((n-s)%LOOP)+LOOP)%LOOP/LOOP;
+    if(hover!==null){ paint(hover,1,0,u); }
+    else render(u);
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

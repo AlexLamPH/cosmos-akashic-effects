@@ -1,0 +1,11 @@
+{
+  "slug": "remix-blob",
+  "title": "Cosmos Remix — Noise Blob you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "blob", "noise", "sphere", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle noise blob: particles spread over a Fibonacci-sphere surface, each displaced outward by seeded 3D value-noise (radius = 1 + amp·noise(dir + u-drift)) so the surface morphs like a living organic blob; it rotates with time and is depth-shaded front-to-back. Live glass panel: palette (brand theme tokens), shape, density, speed, dot size, plus a Wobble knob driving the noise displacement amplitude. Reskins to any brand colour in one click. Self-contained, zero deps; the ?auto=1 capture hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot size, drag Wobble to make the surface bulge and ripple more, press ↻ Seed to cycle palettes, ⧉ Copy to copy your config. KEY TECHNIQUES: points are placed evenly on a sphere with the Fibonacci/golden-angle spiral, then each is pushed along its own direction by a seeded 3D value-noise field (hashed lattice corners + smoothstep interpolation) sampled at the point's direction plus a time-drift, giving radius = 1 + wobble·noise(...) — a continuously morphing organic blob; the blob rotates about the Y axis with u and each particle is depth-shaded (alpha + size scale with front-to-back Z) so it reads as a solid sphere; all time enters via u·2π so the loop is seamless. PARAMS convention = window.__params + setParam(key,value), the contract a generic remix harness reads to auto-build panels; theme tokens = a PALETTES map driving a CSS accent var and the per-particle colour ramp; SHAPES + drawShape render the chosen glyph cheaply and additively. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: add palettes to PALETTES, raise count for a denser shell, push Wobble up for a more turbulent blob.",
+  "summary_vi": "",
+  "notes": ""
+}

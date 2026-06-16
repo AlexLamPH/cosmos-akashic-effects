@@ -1,0 +1,124 @@
+<!-- Cosmos Breadcrumb: an animated breadcrumb trail (Home / Section / Subsection / Page) whose segments slide+fade in one by one with chevron separators, the last highlighted; demo builds the trail up, navigates (a segment highlights), then resets. Real hover live; deterministic looping auto-demo via render(u)/__seek. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Breadcrumb</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:26px}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:24px}
+.crumbs{display:flex;align-items:center;padding:13px 20px;border-radius:16px;
+  background:rgba(12,9,26,.85);border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 14px 40px -14px rgba(0,0,0,.7)}
+.seg{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:600;
+  color:#8f88ad;white-space:nowrap;will-change:transform,opacity;cursor:pointer;
+  padding:5px 10px;border-radius:9px;transition:color .2s,background .2s}
+.seg:hover{color:#cfc8ef;background:rgba(255,255,255,.04)}
+.seg svg{width:15px;height:15px;flex:none}
+.seg.active{color:#fff}
+.chev{display:flex;align-items:center;color:#4f4870;will-change:opacity,transform;padding:0 2px}
+.chev svg{width:14px;height:14px}
+.pill{position:relative}
+.pill::after{content:"";position:absolute;inset:0;border-radius:9px;
+  background:linear-gradient(135deg,rgba(139,92,255,.22),rgba(106,63,240,.14));
+  border:1px solid rgba(139,92,255,.45);
+  box-shadow:0 4px 16px -4px rgba(139,92,255,.5);
+  opacity:var(--lit,0);transition:opacity .2s;pointer-events:none;z-index:-1}
+.caption{font-size:13px;color:#6f6890;letter-spacing:.3px}
+.caption b{color:#b9b2dc;font-weight:600}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="crumbs" id="crumbs">
+    <div class="seg pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</div>
+    <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    <div class="seg pill">Section</div>
+    <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    <div class="seg pill">Subsection</div>
+    <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    <div class="seg pill">Page</div>
+  </div>
+  <div class="caption" id="cap">Navigating…</div>
+</div>
+<script>
+const LOOP=6800,N=4;
+const crumbs=document.getElementById('crumbs'),cap=document.getElementById('cap');
+const segs=[...crumbs.querySelectorAll('.seg')];
+const chevs=[...crumbs.querySelectorAll('.chev')];
+const LABELS=['Home','Section','Subsection','Page'];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function smooth(t){t=clamp(t,0,1);return t*t*(3-2*t);}
+function ease(t){t=clamp(t,0,1);return 1-Math.pow(1-t,3);} // easeOutCubic
+// per-segment reveal: returns 0..1 visibility for segment i given build progress p (0..N)
+function segVis(i,p){return clamp(p-i,0,1);}
+function paint(p,activeLit){
+  segs.forEach((s,i)=>{
+    const v=ease(segVis(i,p));
+    s.style.opacity=v.toFixed(3);
+    // slide up + slight left as it fades in
+    s.style.transform=`translate(${(1-v)*-10}px,${(1-v)*9}px)`;
+    const isLast=i===N-1;
+    // highlight pill: last segment always lit while present; activeLit can pulse a chosen seg
+    const lit=Math.max(isLast?v:0, activeLit[i]||0);
+    s.style.setProperty('--lit',lit.toFixed(3));
+    s.classList.toggle('active',lit>0.5);
+    if(!isLast && lit<=0.5){
+      const c=lerp(143,207,v); // muted -> lighter as it settles
+      s.style.color=`rgb(${c|0},${(c-7)|0},${(c+37)|0})`;
+    }else s.style.color='';
+  });
+  chevs.forEach((c,i)=>{
+    // chevron between seg i and i+1 appears with the right-hand segment
+    const v=ease(clamp((p-(i+1))/0.6+0.4,0,1));
+    c.style.opacity=v.toFixed(3);
+    c.style.transform=`translateX(${(1-v)*-6}px)`;
+  });
+}
+// phases of u: BUILD (segments appear) -> HOLD -> NAVIGATE (a segment pulses) -> HOLD -> RESET(fade out)
+function render(u){
+  // offset so frame 0 is mid-build (a couple segments already in)
+  const uu=(u + 0.18) % 1;
+  const lit=[0,0,0,0];
+  let p, msg;
+  if(uu<0.42){                       // BUILD: p goes 0 -> N
+    const t=uu/0.42; p=ease(t)*N;
+    msg='Building trail…';
+  }else if(uu<0.56){                 // HOLD full
+    p=N; msg='Phantom UI / Components / Breadcrumb / Page';
+  }else if(uu<0.80){                 // NAVIGATE: pulse-highlight 'Section' then 'Subsection'
+    p=N;
+    const t=(uu-0.56)/0.24;          // 0..1
+    // two sequential pulses: idx1 then idx2
+    const pulse=x=>Math.sin(clamp(x,0,1)*Math.PI);
+    lit[1]=pulse((t-0.05)/0.40);
+    lit[2]=pulse((t-0.50)/0.40);
+    msg = t<0.5 ? 'Navigate ▸ Section' : 'Navigate ▸ Subsection';
+  }else{                             // RESET: fade the trail back out (p N -> 0)
+    const t=(uu-0.80)/0.20; p=N*(1-smooth(t));
+    msg='Resetting…';
+  }
+  cap.textContent=msg;
+  paint(p,lit);
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  // live: hover pulses a pill; idle autoplay drives the building demo
+  let hoverLit=null,hoverUntil=0;
+  segs.forEach((s,i)=>s.addEventListener('mouseenter',()=>{if(i<N-1){hoverLit=i;hoverUntil=performance.now()+1400;}}));
+  const s=performance.now();
+  (function l(n){
+    render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);
+    if(hoverLit!==null && n<hoverUntil){
+      const k=1-(hoverUntil-n)/1400; const v=Math.sin(clamp(k,0,1)*Math.PI);
+      segs[hoverLit].style.setProperty('--lit',v.toFixed(3));
+      segs[hoverLit].classList.toggle('active',v>0.5);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

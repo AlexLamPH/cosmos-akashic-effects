@@ -1,0 +1,206 @@
+<!doctype html><meta charset=utf8><title>Cosmos Beat Looper</title>
+<!-- Cosmos Beat Looper — 4-track live loop station: drums/bass/chord/melody one-bar phrases you arm to layer a groove; real Web Audio on click; AUTO is a silent seeded arrangement that layers tracks in over time. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font:12px/1.4 system-ui,sans-serif;color:#b9a8ff}
+canvas{position:fixed;inset:0;touch-action:none}
+#hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);padding:7px 14px;border:1px solid #8b5cff55;border-radius:20px;background:#120c28cc;color:#c9bcff;letter-spacing:.3px;pointer-events:none;transition:opacity .4s}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ press SPACE to start · click a lane to arm/mute it</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=8000, TAU=Math.PI*2, STEPS=16, TRACKS=4;
+const PAL=['#ff6a3d','#46b4ff','#8b5cff','#36d39a'];   // drums, bass, chord, melody
+const NAMES=['DRUMS','BASS','CHORD','MELODY'];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+
+// --- seeded 1-bar phrases, minor pentatonic ---
+const SCALE=[0,3,5,7,10], ROOT=33;          // A minor-ish region
+const CHORD=[[0,3,7],[0,5,10],[-2,3,7]];    // chord voicings (semitone sets)
+let phrase=[[],[],[],[]];   // per-track per-step note data
+(function(){ const r=mulberry32(20260615);
+  // drums: kick/snare/hat pattern
+  for(let i=0;i<STEPS;i++){ const kick=(i%4===0), snare=(i%8===4), hat=(i%2===0)||r()<0.3;
+    phrase[0].push({kick,snare,hat}); }
+  // bass: root-driven pentatonic line
+  for(let i=0;i<STEPS;i++){ const on=(i%2===0)||r()<0.25; const semi=SCALE[(r()*SCALE.length)|0]-12;
+    phrase[1].push({on,semi}); }
+  // chord: stabs on the beat
+  for(let i=0;i<STEPS;i++){ const on=(i%8===0)||(i%8===3); const ci=(r()*CHORD.length)|0;
+    phrase[2].push({on,ci}); }
+  // melody: syncopated pentatonic
+  for(let i=0;i<STEPS;i++){ const on=r()<0.55; const semi=SCALE[(r()*SCALE.length)|0]+12*(r()<0.4?1:0);
+    phrase[3].push({on,semi}); }
+})();
+
+// live armed state (AUTO computes its own per-u)
+let armed=[true,true,false,false];
+
+// deterministic AUTO arrangement: tracks fade in one by one then reset
+function autoArm(t){               // t in steps (0..STEPS over the bar) — use loop phase for fade
+  const u=t/STEPS;                 // 0..1 within one displayed cycle
+  // 4 bars total in LOOP -> use a longer arrangement phase from absolute u
+  return null;
+}
+// per-track fade-in amount across the whole LOOP (8 "bars")
+function trackGain(k,U){           // U in [0,1) over LOOP
+  // arrangement: drums in @0, bass @0.18, chord @0.40, melody @0.62, all reset near loop end
+  const ins=[0.0,0.18,0.40,0.62][k];
+  const out=0.92;                  // everything fades for a clean loop seam
+  let g;
+  if(U<ins) g=0;
+  else if(U<ins+0.10) g=(U-ins)/0.10;        // fade in
+  else if(U<out) g=1;
+  else g=1-(U-out)/(1-out);                   // fade all out at the end -> seamless reset
+  return Math.max(0,Math.min(1,g));
+}
+
+function laneActive(k,U){ return AUTO ? trackGain(k,U) : (armed[k]?1:0); }
+
+function render(u){
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const pad=22*DPR;
+  const top=pad+26*DPR;
+  const laneH=(H-top-pad)/TRACKS;
+  const labW=92*DPR;
+  const gridX=pad+labW, gridW=W-gridX-pad;
+  const sw=gridW/STEPS;
+  // bar phase: 8 sub-bars within LOOP so the playhead sweeps each bar; U overall for arrangement
+  const U=u;                       // arrangement phase
+  const barU=(u*8)%1;              // playhead sweeps one bar 8 times across LOOP
+  const cur=barU*STEPS, curI=(cur|0)%STEPS;
+
+  // title
+  ctx.globalAlpha=0.85;ctx.fillStyle='#c9bcff';ctx.font=(13*DPR)+'px system-ui';ctx.textBaseline='top';
+  ctx.fillText('LOOP STATION · 4 tracks · 1 bar', gridX, pad);
+
+  for(let k=0;k<TRACKS;k++){
+    const y=top+k*laneH, col=PAL[k];
+    const g=laneActive(k,U);                 // 0..1 active amount
+    // lane background
+    ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=0.10+0.10*g;ctx.fillStyle='#14102a';
+    ctx.fillRect(gridX,y+2*DPR,gridW,laneH-4*DPR);
+    // label tile
+    ctx.globalAlpha=0.85;ctx.fillStyle=g>0.05?col:'#241c40';
+    ctx.beginPath();ctx.roundRect?ctx.roundRect(pad,y+laneH*0.18,labW-10*DPR,laneH*0.64,6*DPR):ctx.rect(pad,y+laneH*0.18,labW-10*DPR,laneH*0.64);ctx.fill();
+    ctx.globalAlpha=g>0.05?1:0.5;ctx.fillStyle=g>0.05?'#0a0816':'#9b8aff';
+    ctx.font=(12*DPR)+'px system-ui';ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.fillText(NAMES[k], pad+10*DPR, y+laneH*0.5);
+    ctx.textBaseline='top';
+
+    // grid step ticks
+    ctx.globalCompositeOperation='lighter';
+    for(let i=0;i<STEPS;i++){ ctx.globalAlpha=(i%4===0)?0.12:0.05;ctx.fillStyle=col;
+      ctx.fillRect(gridX+i*sw+1*DPR,y+laneH*0.2,sw-2*DPR,laneH*0.6); }
+
+    // synthetic waveform lane that lights with playback (sum-of-sines shaped by activity)
+    const mid=y+laneH*0.5, amp=laneH*0.32*g;
+    ctx.globalAlpha=0.35+0.5*g;ctx.strokeStyle=col;ctx.lineWidth=1.6*DPR;ctx.beginPath();
+    for(let i=0;i<=180;i++){ const tt=i/180; const ph=tt*STEPS;
+      // energy from this track's phrase at the playhead window
+      let s=0;
+      if(k===0){ const d=phrase[0][(ph|0)%STEPS]; s=(d.kick?Math.sin(tt*TAU*4):0)*0.7+(d.hat?Math.sin(tt*TAU*40):0)*0.25+(d.snare?Math.sin(tt*TAU*18):0)*0.4; }
+      else if(k===1){ s=Math.sin(tt*TAU*3+u*TAU)*0.8; }
+      else if(k===2){ s=(Math.sin(tt*TAU*2)+Math.sin(tt*TAU*3))*0.4; }
+      else { s=Math.sin(tt*TAU*6+Math.sin(tt*TAU*2)*2)*0.7; }
+      // gate by how close to the moving playhead (lights as it passes)
+      const dist=Math.abs(((tt-barU+1)%1)-0); const gate=0.5+0.5*Math.cos(Math.min(Math.PI,dist*TAU));
+      const yy=mid - s*amp*(0.5+0.5*gate);
+      const xx=gridX+tt*gridW; if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy); }
+    ctx.stroke();
+
+    // note/hit markers lighting at the playhead
+    for(let i=0;i<STEPS;i++){
+      const x=gridX+i*sw+sw*0.5; let hit=false;
+      if(k===0){ const d=phrase[0][i]; hit=d.kick||d.snare; }
+      else hit=phrase[k][i].on;
+      if(!hit)continue;
+      const passed=((i+0.5)/STEPS); const near=1-Math.min(1,Math.abs(((passed-barU+1)%1))*STEPS*0.6);
+      const fl=(i===curI)?1:Math.max(0,near);
+      ctx.globalCompositeOperation='lighter';
+      ctx.globalAlpha=(0.25+0.65*fl)*g;
+      const rr=(3+5*fl)*DPR;
+      let rg=ctx.createRadialGradient(x,mid,0,x,mid,rr*2.2);
+      rg.addColorStop(0,'#ffffff');rg.addColorStop(0.3,col);rg.addColorStop(1,col+'00');
+      ctx.fillStyle=rg;ctx.beginPath();ctx.arc(x,mid,rr*2.2,0,TAU);ctx.fill();
+    }
+    // lane separator
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.18;ctx.strokeStyle='#2a2350';ctx.lineWidth=1*DPR;
+    ctx.strokeRect(gridX,y+2*DPR,gridW,laneH-4*DPR);
+  }
+
+  // bar playhead across all lanes
+  const phx=gridX+barU*gridW;
+  ctx.globalCompositeOperation='lighter';
+  let pg=ctx.createLinearGradient(phx-sw,0,phx+sw,0);pg.addColorStop(0,'#8b5cff00');pg.addColorStop(0.5,'#8b5cff77');pg.addColorStop(1,'#8b5cff00');
+  ctx.globalAlpha=0.85;ctx.fillStyle=pg;ctx.fillRect(phx-sw,top,sw*2,H-top-pad);
+  ctx.globalAlpha=0.95;ctx.strokeStyle='#fff';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(phx,top-4*DPR);ctx.lineTo(phx,H-pad);ctx.stroke();
+
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.textAlign='left';
+}
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx, master, playing=false, schedTimer=null, step16=0, nextTime=0;
+const STEP_DUR=((LOOP/8)/STEPS)/1000;   // seconds per step (one bar = LOOP/8)
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function ensureMaster(){ if(master)return; const a=audio();
+  master=a.createGain();master.gain.value=0.2;
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);
+}
+function f(note){ return 27.5*Math.pow(2,(note-21)/12); }
+function env(g,when,peak,a,d){ g.gain.setValueAtTime(0.0001,when);
+  g.gain.exponentialRampToValueAtTime(peak,when+a);
+  g.gain.exponentialRampToValueAtTime(0.0001,when+a+d); }
+function kick(when){ const a=actx;const o=a.createOscillator();o.type='sine';
+  o.frequency.setValueAtTime(140,when);o.frequency.exponentialRampToValueAtTime(45,when+0.12);
+  const g=a.createGain();env(g,when,0.9,0.004,0.18);o.connect(g);g.connect(master);o.start(when);o.stop(when+0.25); }
+function snare(when){ const a=actx;const len=0.2;const buf=a.createBuffer(1,a.sampleRate*len,a.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+  const n=a.createBufferSource();n.buffer=buf;const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1800;bp.Q.value=0.8;
+  const g=a.createGain();env(g,when,0.5,0.003,0.14);n.connect(bp);bp.connect(g);g.connect(master);n.start(when); }
+function hat(when){ const a=actx;const len=0.05;const buf=a.createBuffer(1,a.sampleRate*len,a.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+  const n=a.createBufferSource();n.buffer=buf;const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=7000;
+  const g=a.createGain();env(g,when,0.18,0.002,0.04);n.connect(hp);hp.connect(g);g.connect(master);n.start(when); }
+function bassNote(when,semi){ const a=actx;const o=a.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(f(ROOT+semi),when);
+  const filt=a.createBiquadFilter();filt.type='lowpass';filt.frequency.setValueAtTime(120,when);filt.frequency.linearRampToValueAtTime(900,when+0.03);filt.Q.value=6;
+  const g=a.createGain();env(g,when,0.5,0.006,STEP_DUR*0.9);o.connect(filt);filt.connect(g);g.connect(master);o.start(when);o.stop(when+STEP_DUR*1.2); }
+function chordStab(when,ci){ const a=actx;for(const s of CHORD[ci]){const o=a.createOscillator();o.type='triangle';o.frequency.setValueAtTime(f(ROOT+12+s),when);
+  const g=a.createGain();env(g,when,0.16,0.01,0.4);o.connect(g);g.connect(master);o.start(when);o.stop(when+0.5);} }
+function melodyNote(when,semi){ const a=actx;const o=a.createOscillator();o.type='square';o.frequency.setValueAtTime(f(ROOT+24+semi),when);
+  const filt=a.createBiquadFilter();filt.type='lowpass';filt.frequency.value=2500;
+  const g=a.createGain();env(g,when,0.14,0.005,STEP_DUR*0.7);o.connect(filt);filt.connect(g);g.connect(master);o.start(when);o.stop(when+STEP_DUR);}
+function playStep(i,when){
+  if(armed[0]){ const d=phrase[0][i]; if(d.kick)kick(when); if(d.snare)snare(when); if(d.hat)hat(when); }
+  if(armed[1]){ const d=phrase[1][i]; if(d.on)bassNote(when,d.semi); }
+  if(armed[2]){ const d=phrase[2][i]; if(d.on)chordStab(when,d.ci); }
+  if(armed[3]){ const d=phrase[3][i]; if(d.on)melodyNote(when,d.semi); }
+}
+function scheduler(){ const a=actx;
+  while(nextTime<a.currentTime+0.12){ playStep(step16,nextTime); nextTime+=STEP_DUR; step16=(step16+1)%STEPS; }
+  schedTimer=setTimeout(scheduler,25);
+}
+function togglePlay(){ ensureMaster();
+  if(playing){ playing=false; clearTimeout(schedTimer); }
+  else { playing=true; step16=0; nextTime=actx.currentTime+0.06; scheduler(); hint.style.opacity='0'; }
+}
+function hitLane(e){
+  const pad=22,top=pad+26,laneH=(innerHeight-top-pad)/TRACKS;
+  const y=e.clientY-top; if(y<0)return; const k=(y/laneH)|0; if(k<0||k>=TRACKS)return;
+  armed[k]=!armed[k];
+}
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  cv.addEventListener('pointerdown',e=>{ audio(); hitLane(e); });
+  addEventListener('keydown',e=>{ if(e.code==='Space'){ e.preventDefault(); audio(); togglePlay(); } });
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script>

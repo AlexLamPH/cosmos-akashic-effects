@@ -1,0 +1,89 @@
+<!doctype html><meta charset="utf-8"><!-- Cosmos Seven-Segment — glowing digital clock counting up, red/cyan segment glow on dark, pure Canvas 2D -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=1,W=0,H=0;
+const LOOP=8000;
+const ON1='#ff5cc2', ON2='#46b4ff', OFF='#1a1430';
+// segment map per digit (a,b,c,d,e,f,g)
+const SEG={
+ 0:[1,1,1,1,1,1,0],1:[0,1,1,0,0,0,0],2:[1,1,0,1,1,0,1],3:[1,1,1,1,0,0,1],
+ 4:[0,1,1,0,0,1,1],5:[1,0,1,1,0,1,1],6:[1,0,1,1,1,1,1],7:[1,1,1,0,0,0,0],
+ 8:[1,1,1,1,1,1,1],9:[1,1,1,1,0,1,1]};
+let CX=0,CY=0,SC=1;
+function layout(){
+ cv.width=(W=innerWidth)*DPR; cv.height=(H=innerHeight)*DPR;
+ cv.style.width=W+'px'; cv.style.height=H+'px';
+ CX=W/2; CY=H/2; SC=Math.min(W/620,H/300);
+}
+// draw one segment as a glowing rounded bar. orientation: 'h' or 'v'
+function seg(x,y,len,th,horiz,col,on){
+ ctx.save();ctx.translate(x*DPR,y*DPR);
+ const L=(horiz?len:th)*SC*DPR, T=(horiz?th:len)*SC*DPR;
+ const r=Math.min(L,T)/2;
+ ctx.beginPath();
+ ctx.moveTo(-L/2+r,-T/2);ctx.lineTo(L/2-r,-T/2);ctx.arcTo(L/2,-T/2,L/2,0,r);ctx.arcTo(L/2,T/2,L/2-r,T/2,r);
+ ctx.lineTo(-L/2+r,T/2);ctx.arcTo(-L/2,T/2,-L/2,0,r);ctx.arcTo(-L/2,-T/2,-L/2+r,-T/2,r);ctx.closePath();
+ if(on){
+   ctx.globalCompositeOperation='lighter';
+   ctx.shadowColor=col;ctx.shadowBlur=18*SC*DPR;
+   ctx.fillStyle=col;ctx.globalAlpha=0.95;ctx.fill();
+   ctx.shadowBlur=0;ctx.globalAlpha=0.5;ctx.fill();
+ } else {
+   ctx.globalCompositeOperation='source-over';
+   ctx.fillStyle=OFF;ctx.globalAlpha=0.55;ctx.fill();
+ }
+ ctx.restore();
+}
+// draw a digit at cell origin (cx,cy) center
+function digit(cx,cy,d,col){
+ const w=46,h=92,th=10; // unit space
+ const s=SEG[d];
+ const T=h/2, hw=w/2;
+ // a top, b top-right, c bot-right, d bottom, e bot-left, f top-left, g middle
+ seg(cx, cy-T+th/2, w-th, th, true, col, s[0]);          // a
+ seg(cx+hw-th/2, cy-h/4, h/2-th, th, false, col, s[1]);  // b
+ seg(cx+hw-th/2, cy+h/4, h/2-th, th, false, col, s[2]);  // c
+ seg(cx, cy+T-th/2, w-th, th, true, col, s[3]);          // d
+ seg(cx-hw+th/2, cy+h/4, h/2-th, th, false, col, s[4]);  // e
+ seg(cx-hw+th/2, cy-h/4, h/2-th, th, false, col, s[5]);  // f
+ seg(cx, cy, w-th, th, true, col, s[6]);                 // g
+}
+function dotPair(cx,cy,on){
+ ctx.globalCompositeOperation='lighter';
+ const r=6*SC*DPR;
+ for(const dy of [-24,24]){
+   ctx.beginPath();ctx.arc(cx*DPR,(cy+dy*SC)*DPR,r,0,7);
+   ctx.fillStyle=ON2;ctx.globalAlpha=on?0.95:0.18;
+   if(on){ctx.shadowColor=ON2;ctx.shadowBlur=16*SC*DPR;}else ctx.shadowBlur=0;
+   ctx.fill();ctx.shadowBlur=0;
+ }
+ ctx.globalAlpha=1;
+}
+function frame(t){
+ const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+ ctx.globalCompositeOperation='source-over';
+ ctx.fillStyle='#05030d';ctx.fillRect(0,0,cv.width,cv.height);
+ // counter ticks up over 100 steps across the loop, looping seamlessly (00 -> 99 -> wraps to 00)
+ const total=100;
+ const idx=Math.floor(u*total)%total; // 0..99
+ // mm:ss style — minutes 0..1 cycling, but keep it a counter MM:SS that loops
+ const secs=idx; // 0..99 -> show as MM:SS where total seconds = idx counting
+ const mm=Math.floor((idx)/60)%100;
+ const ss=idx%60;
+ const cw=70; // cell width in unit space
+ const x0=CX - cw*1.7;
+ const colA=ON1, colB=ON2;
+ digit(x0,            CY, Math.floor(mm/10)%10, colB);
+ digit(x0+cw,         CY, mm%10,                colB);
+ // blinking colon: integer 4 blinks per loop
+ const blink=Math.sin(Math.PI*2*4*u)>0;
+ dotPair(x0+cw*1.55,  CY, blink);
+ digit(x0+cw*2.1,     CY, Math.floor(ss/10)%10, colA);
+ digit(x0+cw*3.1,     CY, ss%10,                colA);
+}
+addEventListener('resize',()=>{DPR=Math.max(1,Math.min(2,window.devicePixelRatio||1));layout();});
+DPR=Math.max(1,Math.min(2,window.devicePixelRatio||1));layout();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

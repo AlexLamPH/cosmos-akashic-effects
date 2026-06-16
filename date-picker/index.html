@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Date Picker</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:center;justify-content:center}
+#scrim{position:fixed;inset:0;background:radial-gradient(120% 90% at 50% 8%,rgba(70,180,255,.10),transparent 60%)}
+.cal{position:relative;width:332px;border-radius:18px;padding:18px;
+  background:linear-gradient(180deg,rgba(28,24,46,.86),rgba(18,15,32,.9));
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 30px 70px -18px rgba(0,0,0,.72),0 0 0 1px rgba(70,180,255,.07),inset 0 1px 0 rgba(255,255,255,.06)}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.title{font-size:15.5px;font-weight:700;color:#ece9f5;letter-spacing:.2px}
+.nav{display:flex;gap:8px}
+.arrow{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#b3acce}
+.arrow:hover{background:rgba(70,180,255,.14);border-color:rgba(70,180,255,.35);color:#cfe6ff}
+.arrow svg{width:15px;height:15px}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
+.dow span{text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;color:#6f6890;padding:6px 0}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.day{position:relative;height:38px;border-radius:10px;display:grid;place-items:center;
+  font-size:13.5px;font-weight:500;color:#cfcae0;cursor:pointer}
+.day.out{color:#4c4767}
+.day .hl{position:absolute;inset:2px;border-radius:9px;opacity:0;
+  background:rgba(70,180,255,.14);border:1px solid rgba(70,180,255,.3)}
+.day .pick{position:absolute;inset:2px;border-radius:9px;opacity:0;transform:scale(.6);
+  background:linear-gradient(135deg,#46b4ff,#8b5cff);
+  box-shadow:0 6px 18px -4px rgba(70,180,255,.6),inset 0 1px 0 rgba(255,255,255,.25)}
+.day .num{position:relative;z-index:2}
+.day.today .num{color:#46b4ff;font-weight:800}
+.day.today::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:#46b4ff;z-index:2}
+.day.sel .num{color:#fff;font-weight:700}
+.day.sel.today .num{color:#fff}
+.foot{margin-top:14px;display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:#857ea2}
+.foot .val{color:#cfe6ff;font-weight:600}
+</style></head>
+<body><div id="scrim"></div>
+<div class="cal">
+  <div class="head">
+    <div class="title" id="title">June 2026</div>
+    <div class="nav">
+      <div class="arrow" id="prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></div>
+      <div class="arrow" id="next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+  </div>
+  <div class="dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+  <div class="grid" id="grid"></div>
+  <div class="foot"><span>Selected</span><span class="val" id="val">—</span></div>
+</div>
+<script>
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const TODAY={y:2026,m:5,d:15};   // June 15 2026 (m 0-based)
+const titleEl=document.getElementById('title'),gridEl=document.getElementById('grid'),valEl=document.getElementById('val');
+function dim(y,m){return new Date(y,m+1,0).getDate();}
+function firstDow(y,m){return new Date(y,m,1).getDay();}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function lerp(a,b,t){return a+(b-a)*t;}
+
+// build 42-cell grid once (6 weeks). We re-fill content per month.
+const cells=[];
+for(let i=0;i<42;i++){const d=document.createElement('div');d.className='day';
+  d.innerHTML='<span class="hl"></span><span class="pick"></span><span class="num"></span>';
+  gridEl.appendChild(d);cells.push(d);}
+
+// month state: 0 = June 2026, 1 = July 2026
+function monthInfo(off){let y=TODAY.y,m=TODAY.m+off; while(m>11){m-=12;y++;} while(m<0){m+=12;y--;} return {y,m};}
+function fillMonth(off){
+  const {y,m}=monthInfo(off); titleEl.textContent=MONTHS[m]+' '+y;
+  const fd=firstDow(y,m), nd=dim(y,m), pd=dim(y,(m+11)%12);
+  const days=[]; // {label, out, isToday}
+  for(let i=0;i<fd;i++) days.push({label:pd-fd+1+i,out:true});
+  for(let i=1;i<=nd;i++) days.push({label:i,out:false,day:i});
+  while(days.length<42){const li=days.length-(fd+nd)+1; days.push({label:li,out:true});}
+  cells.forEach((c,i)=>{const dd=days[i];
+    c.querySelector('.num').textContent=dd.label;
+    c.classList.toggle('out',!!dd.out);
+    const isToday = !dd.out && y===TODAY.y && m===TODAY.m && dd.day===TODAY.d;
+    c.classList.toggle('today',isToday);
+    c._day=dd.out?null:dd.day;
+  });
+  return {y,m,fd,nd};
+}
+
+let curOff=null;
+function render(u){
+  // phases: open -> hover walk across days -> select(pop) -> hold -> flip next month -> hover -> hold -> close/pause
+  let openP, monthOff, hoverIdx=-1, selIdx=-1, pickPop=0;
+  // selectable cell indices computed after fill; precompute lazily
+  if(u<0.10){ openP=ease(u/0.10); monthOff=0; }
+  else if(u<0.50){ openP=1; monthOff=0;
+    if(u<0.34){ const p=(u-0.10)/0.24; hoverIdx=Math.floor(lerp(8,19,p)); } // hover across early days
+    else if(u<0.40){ hoverIdx=22; selIdx=22; pickPop=ease((u-0.34)/0.06); } // select day 22
+    else { hoverIdx=22; selIdx=22; pickPop=1; }                            // hold selection
+  }
+  else if(u<0.56){ openP=1; monthOff=lerp(0,1,ease((u-0.50)/0.06)); selIdx=22; pickPop=1; } // flip to next month
+  else if(u<0.90){ openP=1; monthOff=1;
+    if(u<0.80){ const p=(u-0.56)/0.24; hoverIdx=Math.floor(lerp(10,25,p)); } // hover across next month
+    else { hoverIdx=20; }                                                    // hold
+  }
+  else { openP=1-ease((u-0.90)/0.10); monthOff=1; }  // close/pause
+
+  // container open
+  const cal=document.querySelector('.cal');
+  cal.style.opacity=openP.toFixed(3);
+  cal.style.transform='translateY('+lerp(-8,0,openP).toFixed(2)+'px) scale('+lerp(.95,1,openP).toFixed(3)+')';
+
+  const off=Math.round(monthOff);
+  if(off!==curOff){ fillMonth(off); curOff=off; }
+
+  // determine which cell index is "day 22" of current month for selection persistence
+  const {y,m}=monthInfo(off); const fd=firstDow(y,m);
+  // map: requested selIdx/hoverIdx are absolute cell indices (0..41) already
+  cells.forEach((c,i)=>{
+    const hl=c.querySelector('.hl'),pk=c.querySelector('.pick');
+    const isOut=c.classList.contains('out');
+    // hover highlight
+    const hov = (i===hoverIdx && !isOut && openP>0.5);
+    hl.style.opacity = hov?'1':'0';
+    // selection (only on month 0 where we selected; persists visually only there)
+    const isSel = (off===0 && i===selIdx && !isOut);
+    c.classList.toggle('sel', isSel);
+    if(isSel){ pk.style.opacity='1'; const s=lerp(.6,1,pickPop); const ov=1+0.12*Math.sin(Math.min(1,pickPop)*Math.PI); pk.style.transform='scale('+(s*ov).toFixed(3)+')'; }
+    else { pk.style.opacity='0'; pk.style.transform='scale(.6)'; }
+  });
+  // footer value
+  valEl.textContent = (selIdx>=0 && off===0) ? ('Jun 22, 2026') : (off===0?'—':'—');
+}
+
+const LOOP=7600, OFF=0.22;  // frame-0: open, hovering across June days mid-walk
+function frame(u){render(((u+OFF)%1+1)%1);}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ frame((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mic Oscilloscope</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+  font:600 13px/1.4 system-ui,sans-serif;color:#cdb8ff;letter-spacing:.04em;
+  padding:8px 16px;border:1px solid rgba(139,92,255,.45);border-radius:20px;
+  background:rgba(20,8,40,.55);cursor:pointer;user-select:none;
+  transition:opacity .8s;backdrop-filter:blur(4px);z-index:2}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div id="hint">🎤 enable mic</div>
+<script>
+// Cosmos Mic Oscilloscope — a glowing time-domain waveform line driven by the mic
+// (analyser time-domain data live; spectrum-shaped amplitude in synth). Soft trails,
+// a center glow that pulses on beats, and multiple stacked harmonics-tinted traces.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const hint=document.getElementById('hint');
+const TAU=6.283185307179586, LOOP=8400, N=64;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d'];
+
+let W,H,DPR,cx,cy;
+function rs(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=cv.width=Math.round(innerWidth*DPR);
+  H=cv.height=Math.round(innerHeight*DPR);
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  cx=W/2;cy=H/2;
+}
+rs();addEventListener('resize',rs);
+
+// ---- deterministic synthetic generator ----------------------------------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x05030d);
+const SEED=[];for(let i=0;i<N;i++)SEED.push({ph:rnd()*TAU,a:0.55+0.6*rnd(),f:1+((rnd()*3)|0)});
+
+// synthSpectrum(u): 64-bin normalised spectrum + level. Moving formant bumps + beat kick.
+function synthSpectrum(u){
+  const spec=new Float32Array(N);
+  const beats=4, bp=(u*beats)%1;
+  const kick=Math.pow(1-bp,3.2);                 // sharp decaying kick each beat
+  const f1=0.10+0.06*Math.sin(TAU*u);            // moving formants (low/mid/high)
+  const f2=0.42+0.10*Math.sin(TAU*2*u+1.3);
+  const f3=0.74+0.07*Math.sin(TAU*3*u+2.1);
+  let sum=0;
+  for(let i=0;i<N;i++){
+    const p=i/(N-1);
+    const s=SEED[i];
+    const bump=Math.exp(-Math.pow((p-f1)/0.10,2))*1.0
+              +Math.exp(-Math.pow((p-f2)/0.09,2))*0.75
+              +Math.exp(-Math.pow((p-f3)/0.07,2))*0.55;
+    const tone=0.5+0.5*Math.sin(TAU*s.f*u+s.ph);
+    const lowBoost=(1-p)*0.45*kick;              // kick energises the lows
+    let v=bump*(0.45+0.55*tone)+lowBoost;
+    v*=(1-0.45*p);                               // gentle high rolloff
+    v=Math.max(0,Math.min(1,v));
+    spec[i]=v;sum+=v;
+  }
+  const level=Math.max(0,Math.min(1,(sum/N)*1.5*(0.7+0.5*kick)));
+  return {spec,level};
+}
+
+// ---- the renderer -------------------------------------------------------
+// Draws an oscilloscope: stacked, harmonics-tinted time-domain traces whose
+// amplitude is shaped by the spectrum+level, with a soft trail + pulsing core.
+function render(spec,level,t){
+  const M=spec.length;
+  // soft trailing fade instead of hard clear
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='rgba(5,3,13,0.30)';
+  x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+
+  // overall energy + a spectrum-weighted amplitude envelope across screen width
+  const ampBase=(0.16+0.30*level)*H;
+  const cols=160;
+
+  // center glow that pulses on beats (driven by level)
+  const beat=Math.min(1,level*1.3);
+  const cr=Math.min(W,H)*(0.05+0.16*beat);
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,cr);
+  g.addColorStop(0,'rgba(255,255,255,'+(0.55+0.4*beat)+')');
+  g.addColorStop(0.35,'rgba(139,92,255,0.55)');
+  g.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=g;x.beginPath();x.arc(cx,cy,cr,0,TAU);x.fill();
+
+  // helper: spectrum value at horizontal position p[0..1] (mirrored for symmetry)
+  function specAt(p){
+    const q=p<0.5?p*2:(1-p)*2;            // mirror so both edges sample the lows
+    const fi=q*(M-1), i0=fi|0, fr=fi-i0;
+    const a=spec[i0], b=spec[Math.min(M-1,i0+1)];
+    return a+(b-a)*fr;
+  }
+
+  // multiple stacked harmonics-tinted traces
+  const TRACES=5;
+  for(let tr=0;tr<TRACES;tr++){
+    const harm=tr+1;                                   // harmonic multiplier
+    const tint=COL[tr%COL.length];
+    const yoff=(tr-(TRACES-1)/2)*ampBase*0.20;          // vertical stacking
+    const phase=t*TAU*(0.6+0.2*tr)+tr*1.3;
+    const aScale=ampBase*(1.0-tr*0.12);
+    x.lineWidth=(2.6-tr*0.32)*DPR;
+    x.strokeStyle=tint;
+    x.globalAlpha=0.85-tr*0.12;
+    x.lineJoin='round';x.lineCap='round';
+    x.beginPath();
+    for(let c=0;c<=cols;c++){
+      const p=c/cols;
+      const sx=p*W;
+      const env=0.25+specAt(p);                          // amplitude shaped by spectrum
+      // time-domain-style wiggle: harmonic sines, windowed by the spectrum envelope
+      const w=Math.sin(p*TAU*harm*3+phase)
+             +0.5*Math.sin(p*TAU*harm*7-phase*1.3)
+             +0.3*Math.sin(p*TAU*harm*13+phase*0.5);
+      const window=Math.sin(p*Math.PI);                  // taper to flat at edges
+      const sy=cy+yoff+w*env*aScale*window;
+      c?x.lineTo(sx,sy):x.moveTo(sx,sy);
+    }
+    x.stroke();
+  }
+
+  // bright zero-line scanline for the scope feel
+  x.globalAlpha=0.20;x.strokeStyle='#46b4ff';x.lineWidth=1*DPR;
+  x.beginPath();x.moveTo(0,cy);x.lineTo(W,cy);x.stroke();
+
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+
+// ---
+// LIVE pipeline (mic with synthetic fallback) — never runs in AUTO.
+let useSynth=true, analyser=null, timeBuf=null, freqBuf=null;
+async function mic(){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const s=await navigator.mediaDevices.getUserMedia({audio:true});
+  const src=ctx.createMediaStreamSource(s);
+  const an=ctx.createAnalyser();an.fftSize=128;an.smoothingTimeConstant=0.7;
+  src.connect(an);
+  analyser=an;
+  timeBuf=new Uint8Array(an.fftSize);
+  freqBuf=new Uint8Array(an.frequencyBinCount);
+  useSynth=false;
+}
+function liveSpectrum(){
+  // from live analyser: spectrum + level from frequency-band energy
+  analyser.getByteFrequencyData(freqBuf);
+  const spec=new Float32Array(N);
+  let e=0;
+  for(let i=0;i<N;i++){const v=(freqBuf[Math.min(freqBuf.length-1,i)]||0)/255;spec[i]=v;e+=v;}
+  const level=Math.min(1,(e/N)*2.4);
+  return {spec,level};
+}
+function startLiveLoop(){
+  const t0=performance.now();
+  let armed=false;
+  hint.addEventListener('pointerdown',async()=>{
+    if(armed)return;armed=true;
+    try{await mic();hint.style.opacity='0';setTimeout(()=>hint.remove(),900);}
+    catch(e){useSynth=true;hint.style.opacity='0';setTimeout(()=>hint.remove(),900);}
+  },{passive:true});
+  (function loop(now){
+    const t=(now-t0)/1000;
+    if(useSynth){const u=((t*1000%LOOP)+LOOP)%LOOP/LOOP;const s=synthSpectrum(u);render(s.spec,s.level,u);}
+    else{const s=liveSpectrum();render(s.spec,s.level,t);}
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  if(hint)hint.remove();
+  window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP; const s=synthSpectrum(u); render(s.spec,s.level,u);};
+  window.__seek(0); window.__ready=true;
+} else {
+  let useSynthAttract=true; // attract loop uses synth; first gesture tries mic()->success drives analyser, failure keeps synth
+  startLiveLoop();
+}
+</script></body></html>

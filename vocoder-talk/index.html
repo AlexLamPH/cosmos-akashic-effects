@@ -1,0 +1,155 @@
+<!-- Cosmos Vocoder-Talk: a robotic vocoder/talkbox synth. LIVE: click/hold the grille or press Z,X,C,V,B,N,M (different pitches) to trigger the talking phrase — a sawtooth carrier through a bank of bandpass filters whose gains follow a seeded "modulator" envelope, producing rhythmic robotic timbres; a multi-band EQ bar display dances with the bands. AUTO: a seeded phrase "speaks" SILENTLY — the band bars dance in the talk rhythm and a mouth/grille glows — pure function of u, loops seamlessly. Frame 0 mid-phrase with bands tall. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Vocoder-Talk</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.top{display:flex;align-items:center;gap:12px}
+.title{font-size:13px;font-weight:680;color:#ffd9f0;letter-spacing:1px}
+.dot{width:8px;height:8px;border-radius:50%;background:#ff5cc2;box-shadow:0 0 10px #ff5cc2}
+.hint{font-size:11.5px;color:#9a708c;transition:opacity .35s}
+.panel{position:relative;width:660px;height:380px;border-radius:18px;cursor:pointer;
+  background:linear-gradient(165deg,#1a0f1e,#0c0814);
+  border:1px solid rgba(255,120,200,.16);
+  box-shadow:0 30px 70px rgba(0,0,0,.6),inset 0 1px 10px rgba(255,150,210,.1)}
+svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+</style></head>
+<body><div id="stage">
+  <div class="top"><span class="dot"></span><span class="title">VOCODER-TALK</span>
+    <span class="hint" id="hint">▶ click / hold / press Z X C V B N M</span></div>
+  <div class="panel" id="panel"><svg id="svg" viewBox="0 0 660 380"></svg></div>
+</div>
+<script>
+const LOOP=5200, N=65;
+const SVGNS="http://www.w3.org/2000/svg";
+const svg=document.getElementById('svg'),hintE=document.getElementById('hint');
+const TAU=Math.PI*2;
+const NBANDS=16;
+// bandpass center frequencies, logarithmically spaced ~180Hz..6kHz (vocoder bank)
+const FC=[];for(let i=0;i<NBANDS;i++)FC.push(180*Math.pow(6000/180,i/(NBANDS-1)));
+// pitch keys (carrier base pitch), minor-ish so it sounds good
+const KEYS=['z','x','c','v','b','n','m'], KEYSEMI=[-5,-3,0,2,3,7,10];
+const BASE=110; // A2 carrier base
+// band display geometry
+const BX0=70, BW=26, BGAP=35, BBOT=300, BMAXH=210;
+const bandsEl=[];
+for(let i=0;i<NBANDS;i++){
+  const x=BX0+i*BGAP;
+  const r=document.createElementNS(SVGNS,'rect');
+  r.setAttribute('x',x);r.setAttribute('width',BW);r.setAttribute('rx',4);
+  r.setAttribute('y',BBOT);r.setAttribute('height',2);
+  svg.appendChild(r); bandsEl.push({x,el:r});
+}
+// mouth / grille at top
+svg.insertAdjacentHTML('afterbegin',
+ '<defs>'+
+ '<linearGradient id="bg" x1="0" y1="1" x2="0" y2="0">'+
+ '<stop offset="0" stop-color="#8b5cff"/><stop offset=".5" stop-color="#ff5cc2"/><stop offset="1" stop-color="#46b4ff"/></linearGradient>'+
+ '<radialGradient id="mg"><stop offset="0" stop-color="#ff5cc2"/><stop offset="1" stop-color="#ff5cc2" stop-opacity="0"/></radialGradient>'+
+ '<filter id="gl" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4" result="b"/>'+
+ '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>');
+// baseline
+svg.insertAdjacentHTML('beforeend','<line x1="60" y1="300" x2="630" y2="300" stroke="rgba(255,150,210,.25)" stroke-width="1"/>');
+// grille: a glowing oval mouth with vertical slats
+const mouth=document.createElementNS(SVGNS,'g');
+let slats='';for(let i=0;i<11;i++){const sx=270+i*12;slats+='<line x1="'+sx+'" y1="40" x2="'+sx+'" y2="78" stroke="#ff8fd4" stroke-width="2" opacity=".5"/>';}
+mouth.innerHTML='<ellipse id="mglow" cx="330" cy="59" rx="92" ry="34" fill="url(#mg)" opacity="0"/>'+
+ '<rect x="258" y="34" width="144" height="50" rx="22" fill="none" stroke="#ff5cc2" stroke-width="2"/>'+slats;
+svg.appendChild(mouth);
+const mglow=mouth.querySelector('#mglow');
+bandsEl.forEach(b=>b.el.setAttribute('fill','url(#bg)'));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(23);
+// seeded "modulator" pattern: STEPS syllables; each syllable has a per-band target gain
+// pattern[s][band] in 0..1 emulates the spectral envelope of a spoken syllable
+const STEPS=12, PAT=[];
+for(let s=0;s<STEPS;s++){
+  const row=[]; const f1=2+Math.floor(rnd()*4), f2=8+Math.floor(rnd()*6); // two formant peaks
+  const w1=1.4+rnd()*1.6, w2=1.4+rnd()*1.8;
+  for(let i=0;i<NBANDS;i++){
+    const g=Math.exp(-(((i-f1)/w1)**2))+0.7*Math.exp(-(((i-f2)/w2)**2));
+    row.push(Math.min(1,g*(0.55+rnd()*0.5)));
+  }
+  // some syllables are "silent" gaps for speech rhythm
+  PAT.push(rnd()<0.18?row.map(()=>0.03):row);
+}
+const OFF=0.22; // frame-0 offset so phrase is mid-utterance with bands tall
+
+// smooth interp between syllable rows with an articulation envelope
+function bandTarget(band,fpos){
+  const s0=Math.floor(fpos)%STEPS, s1=(s0+1)%STEPS, fr=fpos-Math.floor(fpos);
+  // each syllable rises then falls (articulation), so bars pulse rhythmically
+  const art=Math.sin(Math.min(fr,0.85)/0.85*Math.PI);
+  const v0=PAT[s0][band], v1=PAT[s1][band];
+  const blend=v0*(1-fr)+v1*fr;
+  return blend*(0.35+0.65*art);
+}
+function render(u){
+  const fpos=((u+OFF)%1)*STEPS;
+  let energy=0;
+  for(let i=0;i<NBANDS;i++){
+    const v=bandTarget(i,fpos);
+    const h=4+v*BMAXH;
+    const b=bandsEl[i];
+    b.el.setAttribute('y',(BBOT-h).toFixed(2));
+    b.el.setAttribute('height',h.toFixed(2));
+    b.el.setAttribute('opacity',(0.4+0.6*v).toFixed(2));
+    b.el.setAttribute('filter',v>0.55?'url(#gl)':'');
+    energy+=v;
+  }
+  energy/=NBANDS;
+  mglow.setAttribute('opacity',(energy*1.3).toFixed(2));
+  mglow.setAttribute('rx',(78+energy*40).toFixed(1));
+}
+
+// ---- LIVE audio: sawtooth carrier through bandpass bank, gains = modulator pattern ----
+let actx,master,limiter;
+function audio(){if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain();master.gain.value=0.2;
+  limiter=actx.createDynamicsCompressor();limiter.threshold.value=-10;limiter.ratio.value=12;
+  master.connect(limiter);limiter.connect(actx.destination);}
+  if(actx.state==='suspended')actx.resume();return actx;}
+let voice=null;
+function speak(semi){
+  const a=audio(); stop(); const t=a.currentTime;
+  const f=BASE*Math.pow(2,semi/12);
+  // carrier: two detuned sawtooths for a rich robotic buzz
+  const oscs=[a.createOscillator(),a.createOscillator()];
+  oscs[0].type='sawtooth';oscs[0].frequency.value=f;
+  oscs[1].type='sawtooth';oscs[1].frequency.value=f*1.005;
+  const car=a.createGain();car.gain.value=0.5;oscs.forEach(o=>{o.connect(car);o.start(t);});
+  const out=a.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+0.02);
+  out.connect(master);
+  // bandpass bank with per-band controllable gain
+  const bandGains=[];
+  FC.forEach((fc,i)=>{const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fc;bp.Q.value=6;
+    const bg=a.createGain();bg.gain.value=0; car.connect(bp);bp.connect(bg);bg.connect(out);bandGains.push(bg);});
+  // schedule the modulator pattern as syllables over a phrase (~2s), ramped (no clicks)
+  const SYL=0.16; const phrase=STEPS*SYL;
+  for(let s=0;s<STEPS;s++){const ts=t+s*SYL;
+    for(let i=0;i<NBANDS;i++){const v=PAT[s][i];const bg=bandGains[i].gain;
+      bg.setValueAtTime(bg.value!==undefined?Math.max(0.0001,v*0.0+0.0001):0.0001,ts);
+      bg.linearRampToValueAtTime(Math.max(0.0001,v),ts+SYL*0.35);
+      bg.linearRampToValueAtTime(Math.max(0.0001,v*0.25),ts+SYL*0.92);}}
+  out.gain.setValueAtTime(1,t+phrase-0.05);out.gain.linearRampToValueAtTime(0,t+phrase);
+  const stopAt=t+phrase+0.05;oscs.forEach(o=>o.stop(stopAt));
+  voice={oscs,out,stopAt};
+}
+function stop(){if(voice){try{const t=actx.currentTime;voice.out.gain.cancelScheduledValues(t);
+  voice.out.gain.setValueAtTime(voice.out.gain.value,t);voice.out.gain.linearRampToValueAtTime(0,t+0.04);
+  voice.oscs.forEach(o=>{try{o.stop(t+0.06);}catch(e){}});}catch(e){}voice=null;}}
+function hideHint(){hintE.style.opacity='0';}
+const panel=document.getElementById('panel');
+panel.addEventListener('pointerdown',e=>{e.preventDefault();audio();speak(0);hideHint();});
+const KEYMAP={};KEYS.forEach((k,i)=>KEYMAP[k]=KEYSEMI[i]);
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k in KEYMAP&&!e.repeat){speak(KEYMAP[k]);hideHint();}});
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

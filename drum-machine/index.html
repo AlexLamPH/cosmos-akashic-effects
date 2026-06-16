@@ -1,0 +1,134 @@
+<!-- Cosmos Drum Machine: a 16-step x 4-track (kick/snare/hat/clap) step sequencer. LIVE: click cells to toggle steps, press space to start; a playhead sweeps and triggers synthesized drum voices (kick=pitched sine drop, snare/hat/clap=filtered noise) on lit steps; lit cells glow on the beat. AUTO: a seeded classic pattern plays silently — the playhead sweeps, lit cells flash as it crosses them — looping. Frame 0 has the playhead mid-grid with cells flashing. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Drum Machine</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.panel{--acc:#46b4ff;width:660px;padding:20px;border-radius:20px;
+  background:linear-gradient(165deg,rgba(26,22,42,.96),rgba(14,11,24,.97));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.2)}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:0 2px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc)}
+.title{font-size:14px;font-weight:680;color:#f2f0fa;letter-spacing:.4px}
+.bpm{margin-left:auto;font-size:11.5px;color:#8e89ad;font-variant-numeric:tabular-nums}
+.hint{font-size:11.5px;color:#8e89ad;transition:opacity .3s}
+.grid{display:grid;grid-template-columns:64px 1fr;gap:10px}
+.row{display:contents}
+.lbl{display:flex;align-items:center;font-size:12px;font-weight:600;color:#cfcbe6;
+  --c:var(--acc)}
+.lbl b{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;background:var(--c);box-shadow:0 0 8px var(--c)}
+.cells{display:grid;grid-template-columns:repeat(16,1fr);gap:5px;position:relative}
+.cell{aspect-ratio:1/1.05;border-radius:6px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);
+  transition:transform .05s,box-shadow .08s,background .08s}
+.cell.q{background:rgba(255,255,255,.075)}
+.cell.on{background:linear-gradient(160deg,var(--c),color-mix(in srgb,var(--c) 50%,#1a1430));
+  border-color:color-mix(in srgb,var(--c) 60%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 35%,transparent)}
+.cell.hit{transform:scale(1.12);box-shadow:0 0 16px 2px var(--c),0 0 0 1px #fff}
+.cells .head{position:absolute;top:-4px;bottom:-4px;width:calc((100% - 75px)/16);border-radius:7px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);pointer-events:none;z-index:5;
+  box-shadow:0 0 18px rgba(255,255,255,.12)}
+</style></head>
+<body><div id="stage">
+  <div class="panel" id="panel">
+    <div class="top">
+      <span class="dot"></span><span class="title">DRUM MACHINE</span>
+      <span class="bpm">120 BPM · 16 STEPS</span>
+      <span class="hint" id="hint">▶ press space / click cells</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+<script>
+const LOOP=4800, STEPS=16, NT=4;
+const TRACKS=[{n:'KICK',c:'#ff6a3d'},{n:'SNARE',c:'#ff5cc2'},{n:'HAT',c:'#46b4ff'},{n:'CLAP',c:'#36d39a'}];
+// seeded classic 4-on-the-floor-ish pattern (1 = lit)
+const PAT=[
+  [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0],   // kick
+  [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,1],   // snare
+  [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1],   // hat
+  [0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,0]    // clap
+];
+const gridE=document.getElementById('grid'),hintE=document.getElementById('hint');
+const cellEls=[],headEls=[];
+let headRef=null;
+TRACKS.forEach((tr,ti)=>{
+  const row=document.createElement('div');row.className='row';
+  const lbl=document.createElement('div');lbl.className='lbl';lbl.style.setProperty('--c',tr.c);
+  lbl.innerHTML='<b></b>'+tr.n;row.appendChild(lbl);
+  const cells=document.createElement('div');cells.className='cells';cells.style.setProperty('--c',tr.c);
+  const arr=[];
+  for(let s=0;s<STEPS;s++){const c=document.createElement('div');
+    c.className='cell'+((Math.floor(s/4)%2)?' q':'')+(PAT[ti][s]?' on':'');
+    cells.appendChild(c);arr.push(c);}
+  if(ti===0){const h=document.createElement('div');h.className='head';cells.appendChild(h);headRef=h;}
+  gridE.appendChild(lbl);gridE.appendChild(cells);
+  cellEls.push(arr);
+});
+const TAU=Math.PI*2;
+
+function render(u){
+  // playhead sweeps the grid; offset +0.30 so frame 0 is mid-grid
+  const p=(u+0.30)%1, fpos=p*STEPS, step=Math.floor(fpos)%STEPS, frac=fpos-Math.floor(fpos);
+  // position the playhead column (left within the cells track, accounting for gaps)
+  headRef.style.left='calc('+(step/STEPS*100)+'% + 0px)';
+  headRef.style.left='calc((100% - 75px) * '+(step/STEPS)+' + '+(step*5)+'px - 2px)';
+  // flash lit cells the playhead is crossing; clear last frame's hits
+  for(let ti=0;ti<NT;ti++){for(let s=0;s<STEPS;s++){
+    const c=cellEls[ti][s];
+    if(s===step && PAT[ti][s] && frac<0.55){c.classList.add('hit');}
+    else c.classList.remove('hit');
+  }}
+}
+
+// ---- LIVE audio (synthesis) ----
+let actx,master,noiseBuf;
+function audio(){if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain();master.gain.value=0.24;
+  const comp=actx.createDynamicsCompressor();master.connect(comp);comp.connect(actx.destination);
+  // generated noise buffer for snare/hat/clap (no sample files)
+  const n=actx.sampleRate*0.5;noiseBuf=actx.createBuffer(1,n,actx.sampleRate);
+  const d=noiseBuf.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;}
+  if(actx.state==='suspended')actx.resume();return actx;}
+function kick(){const a=audio(),t=a.currentTime;const o=a.createOscillator(),g=a.createGain();
+  o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(50,t+0.12);  // pitch drop
+  g.gain.setValueAtTime(1.0,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.32);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+0.34);}
+function noise(dur,hp,lp,gain,sus){const a=audio(),t=a.currentTime;
+  const src=a.createBufferSource();src.buffer=noiseBuf;
+  const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=hp;f.Q.value=lp;
+  const g=a.createGain();g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  src.connect(f);f.connect(g);g.connect(master);src.start(t);src.stop(t+dur+0.02);}
+const VOICE=[kick,()=>noise(0.18,1800,1.2,0.7),()=>noise(0.05,9000,1.5,0.4),
+  ()=>{noise(0.12,1400,2,0.6);setTimeout(()=>noise(0.12,1400,2,0.5),18);}]; // clap = double burst
+function hitCell(ti,s){const c=cellEls[ti][s];c.classList.add('hit');setTimeout(()=>c.classList.remove('hit'),110);}
+
+// click to toggle a step
+cellEls.forEach((arr,ti)=>arr.forEach((c,s)=>c.addEventListener('pointerdown',e=>{e.preventDefault();
+  PAT[ti][s]=PAT[ti][s]?0:1;c.classList.toggle('on',!!PAT[ti][s]);})));
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  let playing=false,start=0,lastStep=-1;
+  function tick(n){
+    if(playing){
+      const u=(((n-start)%LOOP)+LOOP)%LOOP/LOOP;
+      const step=Math.floor(u*STEPS)%STEPS;
+      if(step!==lastStep){lastStep=step;                 // trigger voices on the beat
+        for(let ti=0;ti<NT;ti++)if(PAT[ti][step]){VOICE[ti]();hitCell(ti,step);}
+      }
+      render(((u-0.30+1)%1));                             // undo render's frame-0 offset for live sync
+    } else { render((((n)%LOOP)+LOOP)%LOOP/LOOP); }       // idle attract-loop
+    requestAnimationFrame(tick);
+  }
+  window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();
+    audio();playing=!playing;if(playing){start=performance.now();lastStep=-1;}
+    hintE.style.opacity='0';}});
+  requestAnimationFrame(tick);
+}
+</script></body></html>

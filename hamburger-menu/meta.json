@@ -1,0 +1,11 @@
+{
+  "slug": "hamburger-menu",
+  "title": "Cosmos Hamburger Menu — a menu icon morphing into an X and back",
+  "title_vi": "Cosmos Hamburger Menu — biểu tượng menu biến thành dấu X rồi quay lại",
+  "W": 600, "H": 600, "LOOP": 6500, "N": 81,
+  "tags": ["hamburger","menu","morph","icon","toggle","canvas2d"],
+  "summary": "Three glowing accent strokes morph from a hamburger menu icon into a crossing X and back: the top and bottom lines rotate to plus and minus forty-five degrees while translating to centre, the middle line fades and shrinks away, and a burst of sparkles flares at the moment of the cross. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a ping-pong driver pp=0.5-0.5*cos(2*PI*u) (one integer cycle) goes menu->X->menu so frame(0)==frame(LOOP); a smoothstep ease m=pp*pp*(3-2*pp) snaps the morph; each bar is drawn three times (wide soft glow underlay, crisp coloured core, white centerline) with rotation lerped 0->±45deg and vertical offset lerped ±0.55*S->0; the middle bar's alpha and length lerp to 0; bar colours lerp across cosmos accents; mulberry32 seeds 14 sparkles ONCE that flare only as the X completes (flare = max(0,m-0.45)). Drawn additively ('lighter'). CAPTURE: ?auto=1 + window.__seek(t). TUNE: bar thickness, X angle aX, line spacing 0.55, sparkle count, LOOP speed.",
+  "summary_vi": "Ba nét accent phát sáng biến hình từ biểu tượng menu ba gạch thành dấu X rồi quay lại: gạch trên và dưới xoay tới ±45 độ và dồn về tâm, gạch giữa mờ và co lại, kèm chùm tia lóe lên đúng lúc thành chữ X. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Driver ping-pong pp=0.5-0.5*cos(2*PI*u) và smoothstep m đảm bảo frame(0)==frame(LOOP); 14 sparkle seed bằng mulberry32 một lần."
+}

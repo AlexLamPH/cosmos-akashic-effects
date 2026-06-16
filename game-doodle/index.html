@@ -1,0 +1,177 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Ascent</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;touch-action:none;}
+  #wrap{position:relative;width:460px;height:640px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(70,180,255,.06) inset;}
+  #hud{position:absolute;top:14px;left:0;right:0;display:flex;justify-content:space-between;
+    padding:0 22px;pointer-events:none;font-weight:700;letter-spacing:.5px;}
+  #score{font-size:30px;color:#fff;text-shadow:0 0 14px rgba(54,211,154,.8);}
+  #best{font-size:14px;color:#8b5cff;align-self:center;opacity:.85;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:26px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#36d39a,#8b5cff);box-shadow:0 0 24px rgba(54,211,154,.5);}
+  #tap{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+  .pad{position:absolute;bottom:46px;width:74px;height:74px;border-radius:50%;border:0;
+    background:rgba(139,92,255,.14);color:#cdbcff;font-size:30px;font-weight:700;
+    box-shadow:0 0 0 1px rgba(139,92,255,.3);backdrop-filter:blur(2px);}
+  #padL{left:18px;} #padR{right:18px;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="460" height="640"></canvas>
+  <div id="hud"><div id="score">0</div><div id="best">BEST 0</div></div>
+  <button class="pad" id="padL">◄</button><button class="pad" id="padR">►</button>
+  <div id="over"><h1>FELL INTO THE VOID</h1><p id="fin">Height 0</p><button id="btn">Climb again ▸</button></div>
+  <div id="tap">◄ ► / A D to tilt · touch pads · R restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=460,H=640;
+const VIO='139,92,255',COS='70,180,255',NEB='255,92,194',AUR='54,211,154',SOL='255,106,61',SAC='224,178,74';
+// sim constants
+const GRAV=1500, JUMP=-720, MOVE=300, R=16, PW=72, PH=15, GAPY=78;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// platform i: deterministic x and y (rising = decreasing y in world space). y0 = world y of platform 0.
+function platX(i){const r=mul(9001+i*131);return 40+r()*(W-80-PW);}
+function platY(i){return 540 - i*GAPY;}  // world y, higher index = higher up (smaller y)
+// ---- deterministic sim state ----
+let S;
+function reset(){
+  S={t:0, x:W*0.5, y:platY(0)-R-2, vy:JUMP*0.4, camY:0, score:0, dead:false, best:S?S.best:0, lastPlat:0, dir:0};
+}
+reset();
+// auto-player: pick the next platform above current and steer x toward its center
+function autoSteer(st){
+  // find lowest platform that is above the orb (world y less than orb y)
+  let target=null, bestI=-1;
+  for(let i=0;i<400;i++){ const py=platY(i); if(py < st.y-4){ // above orb in world
+      if(target===null){ target=i; bestI=i; break; } } }
+  if(target===null) return 0;
+  const cx=platX(target)+PW/2;
+  const dx=cx-st.x;
+  if(dx> 6) return 1; if(dx<-6) return -1; return 0;
+}
+const DT=16;
+function step(st,auto){
+  const dt=DT/1000;
+  let dir = auto? autoSteer(st) : st.dir;
+  st.x += dir*MOVE*dt;
+  // wrap horizontally
+  if(st.x<-R) st.x=W+R; if(st.x>W+R) st.x=-R;
+  st.vy += GRAV*dt; st.y += st.vy*dt;
+  // platform collisions: only when falling, bounce off top
+  if(st.vy>0){
+    for(let i=Math.max(0,st.lastPlat-2);i<st.lastPlat+8;i++){
+      const px=platX(i), py=platY(i);
+      if(st.x> px-R && st.x< px+PW+R && st.y+R> py-6 && st.y+R< py+PH+10){
+        st.vy=JUMP; st.lastPlat=Math.max(st.lastPlat,i);
+        break;
+      }
+    }
+  }
+  // camera follows up; score = height climbed
+  const camTarget = st.y - H*0.55;
+  if(camTarget < st.camY) st.camY = camTarget;
+  const climbed = Math.max(0, Math.floor((540 - st.y)/6));
+  if(climbed>st.score) st.score=climbed;
+  // death: fell below camera bottom
+  if(st.y - st.camY > H+40) st.dead=true;
+  st.t+=DT;
+}
+// AUTO sim: seeded AI climbs forever; START offset puts frame 0 mid-climb with score>0.
+function simTo(ms){ reset(); const START=4200; const target=START+ms;
+  let guard=0;
+  while(S.t<target && guard<200000){ if(S.dead){ reset(); } step(S,true); guard++; }
+  return S;
+}
+// drawing
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function draw(st){
+  const cam=st.camY;
+  x.clearRect(0,0,W,H);
+  const bg=x.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#140d30');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  // parallax stars (deterministic by world band)
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<60;i++){const r=mul(31+i*17); const sx=r()*W;
+    const sy=((r()*4000 - cam*0.4)%H+H)%H; const tw=0.25+0.5*r(); const rad=0.5+1.5*r();
+    x.fillStyle=`rgba(${COS},${tw*0.45})`; x.beginPath();x.arc(sx,sy,rad,0,7);x.fill();}
+  x.globalCompositeOperation='source-over';
+  // platforms in view
+  for(let i=0;i<800;i++){ const py=platY(i)-cam; if(py>H+30)continue; if(py<-30)continue;
+    const px=platX(i); drawPlat(px,py,i<=st.lastPlat);
+  }
+  // orb
+  drawOrb(st.x, st.y-cam, st.dead, st.t);
+  // HUD
+  document.getElementById('score').textContent=st.score;
+  document.getElementById('best').textContent='BEST '+Math.max(st.best,st.score);
+}
+function drawPlat(px,py,passed){
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${AUR},.12)`; rr(px-6,py-5,PW+12,PH+12,11); x.fill();
+  x.globalCompositeOperation='source-over';
+  const g=x.createLinearGradient(px,py,px,py+PH);
+  g.addColorStop(0,`rgba(${AUR},.95)`); g.addColorStop(1,'rgba(20,60,48,1)');
+  x.fillStyle=g; rr(px,py,PW,PH,7); x.fill();
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(255,255,255,.5)`; rr(px+6,py+2,PW-12,3,2); x.fill();
+  x.globalCompositeOperation='source-over';
+}
+function drawOrb(ox,oy,dead,t){
+  const c= dead? NEB: VIO;
+  x.save(); x.translate(ox,oy);
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(0,0,0,0,0,R*3);
+  gg.addColorStop(0,'rgba(255,255,255,.9)');gg.addColorStop(.3,`rgba(${c},.7)`);gg.addColorStop(1,`rgba(${c},0)`);
+  x.fillStyle=gg; x.beginPath();x.arc(0,0,R*3,0,7);x.fill();
+  // trail downward
+  for(let k=1;k<6;k++){const a=(1-k/6)*0.35; x.fillStyle=`rgba(${COS},${a})`;
+    x.beginPath();x.arc(0,k*7,R*(1-k*0.1),0,7);x.fill();}
+  x.globalCompositeOperation='source-over';
+  const cg=x.createRadialGradient(-4,-5,1,0,0,R);
+  cg.addColorStop(0,'#ffffff');cg.addColorStop(.5,`rgba(${c},1)`);cg.addColorStop(1,`rgba(${dead?NEB:COS},1)`);
+  x.fillStyle=cg; x.beginPath();x.arc(0,0,R,0,7);x.fill();
+  // eyes
+  x.fillStyle='rgba(10,8,22,.9)'; x.beginPath();x.arc(-5,-3,2.4,0,7);x.arc(5,-3,2.4,0,7);x.fill();
+  x.restore();
+}
+const LOOP=11000;
+function drawAt(ms){ const st=simTo(ms); draw(st); }
+// ---- live game ----
+let live, raf, last, acc=0;
+function initGame(){
+  reset(); S.t=0; live=true;
+  const over=document.getElementById('over'), btn=document.getElementById('btn');
+  function restart(){ const b=S.best; reset(); S.best=b; S.t=0; acc=0; live=true; over.style.display='none'; }
+  function loop(now){ if(!last)last=now; let d=now-last; last=now; if(d>60)d=60;
+    if(live && !S.dead){ acc+=d; while(acc>=DT){ step(S,false); acc-=DT; } }
+    draw(S);
+    if(S.dead && live){ live=false; if(S.score>S.best)S.best=S.score;
+      document.getElementById('fin').textContent='Height '+S.score+'  ·  Best '+S.best;
+      over.style.display='flex'; }
+    raf=requestAnimationFrame(loop); }
+  addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){S.dir=-1;}
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){S.dir=1;}
+    if(e.key==='r'||e.key==='R'){restart();}});
+  addEventListener('keyup',e=>{
+    if((e.key==='ArrowLeft'||e.key==='a'||e.key==='A')&&S.dir===-1)S.dir=0;
+    if((e.key==='ArrowRight'||e.key==='d'||e.key==='D')&&S.dir===1)S.dir=0;});
+  const L=document.getElementById('padL'),Rp=document.getElementById('padR');
+  const hold=(el,v)=>{ el.addEventListener('pointerdown',e=>{e.preventDefault();S.dir=v;});
+    const up=()=>{ if(S.dir===v)S.dir=0; }; el.addEventListener('pointerup',up); el.addEventListener('pointerleave',up); };
+  hold(L,-1); hold(Rp,1);
+  btn.addEventListener('click',e=>{e.stopPropagation();restart();});
+  raf=requestAnimationFrame(loop);
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

@@ -1,0 +1,194 @@
+<!doctype html><meta charset=utf8><title>Cosmos Arpeggiator</title>
+<!-- Cosmos Arpeggiator — pick a chord, it arps up/down through the notes via plucky oscillators making REAL sound; a ring of dots lights in sequence. AUTO: seeded silent arp, seamless. -->
+<style>
+html,body{margin:0;background:#0a0816;overflow:hidden;font-family:ui-monospace,Menlo,monospace;color:#cfd6ff}
+#wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center}
+canvas{display:block}
+#bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+button{background:#15122a;color:#cfd6ff;border:1px solid #2a2350;border-radius:8px;
+  padding:6px 12px;font:inherit;font-size:12px;cursor:pointer;transition:.15s}
+button.on{background:#8b5cff;border-color:#8b5cff;color:#fff;box-shadow:0 0 14px #8b5cff88}
+button:hover{border-color:#8b5cff}
+#hint{margin-top:8px;font-size:12px;color:#8b5cff;opacity:.85}
+.sep{width:1px;height:20px;background:#2a2350;margin:0 4px}
+</style>
+<div id=wrap>
+<canvas id=c></canvas>
+<div id=bar>
+  <span style="font-size:12px;opacity:.6">CHORD</span>
+  <button data-ch=maj>maj</button><button data-ch=min>min</button><button data-ch=sus>sus</button><button data-ch=maj7>maj7</button>
+  <span class=sep></span>
+  <span style="font-size:12px;opacity:.6">PATTERN</span>
+  <button data-pt=up>up</button><button data-pt=down>down</button><button data-pt=updown>updown</button>
+  <span class=sep></span>
+  <span style="font-size:12px;opacity:.6">TEMPO</span>
+  <button data-bpm=-1>−</button><span id=bpm>120</span><button data-bpm=1>+</button>
+</div>
+<div id=hint>▶ press SPACE to start · click chord / pattern</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const bpmEl=document.getElementById('bpm'),hint=document.getElementById('hint'),bar=document.getElementById('bar');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1));
+const CW=560,CH=420; let W,H;
+const LOOP=6400, TAU=Math.PI*2;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const ACC='#8b5cff';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// chord semitone sets (relative to root)
+const CHORDS={maj:[0,4,7,12],min:[0,3,7,12],sus:[0,5,7,12],maj7:[0,4,7,11]};
+const ROOT=261.63; // C4
+function semiToFreq(s){return ROOT*Math.pow(2,s/12);}
+function resize(){W=cv.width=CW*DPR;H=cv.height=CH*DPR;cv.style.width=CW+'px';cv.style.height=CH+'px';}
+resize();
+
+// state (used by both AUTO render & live)
+let chord='maj', pattern='updown', bpm=120, playing=false;
+// build the playback note sequence for a chord+pattern
+function buildSeq(ch,pt){ const base=CHORDS[ch]; let seq=base.slice();
+  if(pt==='down') seq=base.slice().reverse();
+  else if(pt==='updown') seq=base.concat(base.slice(1,-1).reverse());
+  return seq; } // array of semitone offsets, in play order
+// steps per loop (auto) — derive from a fixed seeded tempo so loop is seamless
+const AUTO_STEPS=16;
+
+function render(u){
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  ctx.fillStyle='#0a0816';ctx.fillRect(0,0,W,H);
+  const seq=buildSeq(chord,pattern);
+  const n=seq.length;
+  // which step is active. AUTO: u maps over AUTO_STEPS, cycling the seq; pulse on each step
+  const totalSteps=AUTO_STEPS;
+  const stepF=u*totalSteps;               // continuous step position
+  const step=Math.floor(stepF)%n;         // index into seq
+  const stepFrac=stepF-Math.floor(stepF); // 0..1 within current step (for pulse)
+  const activeSemi=seq[step];
+  const cx=W*0.5, cy=H*0.46, R=Math.min(W,H)*0.32;
+  // ---- background glow ----
+  ctx.globalCompositeOperation='lighter';
+  let bg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*2.2);
+  bg.addColorStop(0,ACC+'18');bg.addColorStop(1,'rgba(0,0,0,0)');ctx.globalAlpha=1;ctx.fillStyle=bg;
+  ctx.beginPath();ctx.arc(cx,cy,R*2.2,0,TAU);ctx.fill();
+  // ---- ring guide ----
+  ctx.globalAlpha=0.18;ctx.strokeStyle=ACC;ctx.lineWidth=1.4*DPR;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.stroke();
+  // ---- note dots arranged on a ring (one per note in chord, in pitch order) ----
+  const base=CHORDS[chord];
+  // map each dot's position to a ring angle (low note bottom -> high note top, clockwise)
+  for(let i=0;i<base.length;i++){
+    const ang=-Math.PI/2 + (i/base.length)*TAU; // start at top, go clockwise
+    const dx=cx+Math.cos(ang)*R, dy=cy+Math.sin(ang)*R;
+    const isActive=(base[i]===activeSemi);
+    const col=PAL[i%PAL.length];
+    // pulse scale for active
+    const pulse=isActive?(1+(1-stepFrac)*0.6):1;
+    const rad=(isActive?16:9)*DPR*pulse;
+    if(isActive){
+      ctx.globalAlpha=0.5*(1-stepFrac);ctx.fillStyle=col;
+      ctx.beginPath();ctx.arc(dx,dy,rad*2.4,0,TAU);ctx.fill();
+    }
+    let g=ctx.createRadialGradient(dx,dy,0,dx,dy,rad);
+    g.addColorStop(0,'#fff');g.addColorStop(0.4,col);g.addColorStop(1,col+'33');
+    ctx.globalAlpha=isActive?1:0.55;ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(dx,dy,rad,0,TAU);ctx.fill();
+    ctx.globalAlpha=isActive?0.9:0.3;ctx.strokeStyle=col;ctx.lineWidth=1.6*DPR;
+    ctx.beginPath();ctx.arc(dx,dy,rad,0,TAU);ctx.stroke();
+  }
+  // ---- playhead pulse: a rotating tick at the current step's note angle ----
+  const ai=base.indexOf(activeSemi);
+  const phAng=-Math.PI/2 + (ai/base.length)*TAU;
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=0.85;ctx.strokeStyle='#fff';ctx.lineWidth=2.6*DPR;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(phAng)*R,cy+Math.sin(phAng)*R);ctx.stroke();
+  // central pulse ring on each step
+  const pr=R*0.5*stepFrac;
+  ctx.globalAlpha=0.4*(1-stepFrac);ctx.strokeStyle=ACC;ctx.lineWidth=3*DPR;
+  ctx.beginPath();ctx.arc(cx,cy,pr+6*DPR,0,TAU);ctx.stroke();
+  // central freq dot
+  ctx.globalAlpha=0.9;ctx.fillStyle=ACC;ctx.beginPath();ctx.arc(cx,cy,5*DPR,0,TAU);ctx.fill();
+  // ---- step column (bottom): lights the sequence as a horizontal bar ----
+  ctx.globalCompositeOperation='source-over';
+  const colY=H*0.9, colW=W*0.7, colX=cx-colW/2;
+  for(let i=0;i<n;i++){
+    const sx=colX+(i+0.5)/n*colW, on=(i===step);
+    const col=PAL[base.indexOf(seq[i])%PAL.length];
+    ctx.globalAlpha=on?1:0.3;ctx.fillStyle=on?col:'#2a2350';
+    const bh=(on?22:10)*DPR;
+    ctx.beginPath();ctx.arc(sx,colY,(on?7:4)*DPR,0,TAU);ctx.fill();
+    if(on){ctx.globalAlpha=0.6;ctx.shadowBlur=14*DPR;ctx.shadowColor=col;
+      ctx.beginPath();ctx.arc(sx,colY,7*DPR,0,TAU);ctx.fill();ctx.shadowBlur=0;}
+  }
+  // ---- readout ----
+  ctx.globalAlpha=1;ctx.fillStyle=ACC;ctx.textBaseline='top';ctx.textAlign='left';
+  ctx.font=(15*DPR)+'px ui-monospace,monospace';
+  ctx.fillText(chord.toUpperCase()+' · '+pattern,14*DPR,12*DPR);
+  ctx.globalAlpha=0.7;ctx.font=(12*DPR)+'px ui-monospace,monospace';
+  ctx.fillText(semiToFreq(activeSemi).toFixed(0)+' Hz',14*DPR,32*DPR);
+  ctx.textAlign='right';
+  ctx.fillText(bpm+' BPM',W-14*DPR,12*DPR);
+  ctx.textAlign='left';ctx.globalAlpha=1;
+}
+
+// ================= LIVE AUDIO (gated) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+function syncButtons(){ bar.querySelectorAll('button').forEach(b=>{
+  if(b.dataset.ch) b.classList.toggle('on',b.dataset.ch===chord);
+  if(b.dataset.pt) b.classList.toggle('on',b.dataset.pt===pattern); }); bpmEl.textContent=bpm; }
+
+if(AUTO){
+  // seed a chord/pattern for the silent demo
+  const r=mulberry32(20260615);
+  chord=['maj','min','sus','maj7'][(r()*4)|0];
+  pattern=['up','down','updown'][(r()*3)|0];
+  bpm=110+((r()*40)|0);
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  syncButtons();
+  let actx,master,comp;
+  function audio(){ if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();master.gain.value=0.2;
+    comp=actx.createDynamicsCompressor();
+    master.connect(comp);comp.connect(actx.destination); }
+    if(actx.state==='suspended')actx.resume(); return actx; }
+  // plucky note: oscillator -> lowpass -> gain envelope
+  function pluck(freq,t0){ const o=actx.createOscillator();o.type='triangle';
+    const f=actx.createBiquadFilter();f.type='lowpass';
+    f.frequency.setValueAtTime(4000,t0);f.frequency.exponentialRampToValueAtTime(800,t0+0.18);
+    const g=actx.createGain();
+    g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.9,t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+0.32);
+    o.frequency.value=freq; o.connect(f);f.connect(g);g.connect(master);
+    o.start(t0);o.stop(t0+0.35); }
+  // scheduler
+  let stepIdx=0, nextTime=0, timer=null;
+  function stepDur(){ return 60/bpm/2; } // eighth notes
+  function schedule(){ if(!actx)return; const ahead=0.1;
+    while(nextTime<actx.currentTime+ahead){
+      const seq=buildSeq(chord,pattern); const semi=seq[stepIdx%seq.length];
+      pluck(semiToFreq(semi),nextTime); stepIdx++; nextTime+=stepDur(); } }
+  let playStart=0;
+  function start(){ audio(); if(playing)return; playing=true; stepIdx=0;
+    nextTime=actx.currentTime+0.05; playStart=actx.currentTime+0.05; timer=setInterval(schedule,25);
+    hint.style.opacity='0'; }
+  function stop(){ playing=false; if(timer)clearInterval(timer);timer=null; }
+  // controls
+  bar.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; audio();
+    if(b.dataset.ch){chord=b.dataset.ch;}
+    else if(b.dataset.pt){pattern=b.dataset.pt;}
+    else if(b.dataset.bpm){bpm=Math.max(60,Math.min(220,bpm+ (+b.dataset.bpm)*10));}
+    syncButtons(); });
+  addEventListener('keydown',e=>{ if(e.code==='Space'){e.preventDefault(); playing?stop():start(); } });
+  // live visual loop: when playing, derive step phase from audio clock & current bpm
+  // so the lit dot tracks the heard note; else idle attract loop over LOOP.
+  const s=performance.now();
+  (function l(n){
+    if(playing){ const elapsed=Math.max(0,actx.currentTime - playStart);
+      const stepPos=elapsed/stepDur();           // continuous step count since start
+      const u=((stepPos%AUTO_STEPS)+AUTO_STEPS)%AUTO_STEPS/AUTO_STEPS;
+      render(u); }
+    else { render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script>

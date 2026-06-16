@@ -1,0 +1,65 @@
+<!doctype html><!-- Cosmos op-art: hypnotic warping concentric rings + bulging wavy grid, high-contrast accent-on-dark, Canvas 2D, zero deps -->
+<meta charset="utf-8"><title>op-art</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0;width:100vw;height:100vh}</style>
+<canvas id="c"></canvas>
+<script>
+const LOOP=7000;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,dpr,cx,cy;
+const PAL=[[139,92,255],[70,180,255],[255,92,194],[54,211,154]];
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP,T=2*Math.PI*u;
+  cx=W/2;cy=H/2;
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const R=Math.hypot(W,H)/2;
+  // --- warping concentric rings: radius modulated by an inward-traveling integer-harmonic wave ---
+  // brightness band cycles -> illusion of pulsing depth tunnel
+  const rings=46, dr=R/rings;
+  for(let i=rings;i>=1;i--){
+    const rr=i*dr;
+    // angular bulge: ring distorted into a rotating lobed shape (integer petals)
+    const petals=3;
+    // phase travels inward with i (integer multiplier) + global rotation
+    const ph=T*2 - i*0.5;
+    // high-contrast on/off banding (square-ish via smooth then threshold-ish)
+    const band=0.5+0.5*Math.sin(i*0.9 - T*3);
+    const c=PAL[i%PAL.length];
+    const lvl=band*band; // sharpen contrast
+    const col=[55+(c[0]-55)*lvl, 35+(c[1]-35)*lvl, 60+(c[2]-60)*lvl];
+    ctx.beginPath();
+    const seg=64;
+    for(let s=0;s<=seg;s++){const a=s/seg*6.2832;
+      const bulge=1+0.16*Math.sin(petals*a+ph)+0.08*Math.sin(2*a - T*2);
+      const x=cx+Math.cos(a)*rr*bulge, y=cy+Math.sin(a)*rr*bulge*0.92;
+      if(s===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+    ctx.closePath();
+    ctx.lineWidth=dr*0.62;
+    ctx.strokeStyle='rgb('+(col[0]|0)+','+(col[1]|0)+','+(col[2]|0)+')';
+    ctx.stroke();}
+  // --- overlay bulging wavy-line grid for moiré shimmer (additive, accent) ---
+  ctx.globalCompositeOperation='lighter';
+  const gc=PAL[(Math.floor(u*4))%PAL.length];
+  // bulge factor radiates from centre, breathing on integer harmonic
+  const breathe=0.5+0.5*Math.sin(T*1);
+  const NL=26, gap=H/NL, amp=10+14*breathe;
+  ctx.lineWidth=1.1;
+  ctx.strokeStyle='rgba('+gc[0]+','+gc[1]+','+gc[2]+',0.28)';
+  const step=Math.max(4,W/180);
+  for(let j=0;j<=NL;j++){const by=j*gap;
+    ctx.beginPath();let first=true;
+    for(let x=0;x<=W;x+=step){
+      const dx=x-cx,dy=by-cy,d=Math.hypot(dx,dy);
+      const lens=Math.exp(-d*d/(2*Math.pow(R*0.45,2))); // central bulge
+      const y=by + amp*lens*Math.sin(d*0.06 - T*3) + 4*Math.sin(x*0.02 + T*2 + j);
+      if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}
+    ctx.stroke();}
+  // central focus glow to pull the eye in
+  const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*0.5);
+  cg.addColorStop(0,'rgba(255,92,194,'+(0.10+0.08*breathe).toFixed(3)+')');
+  cg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=cg;ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';}
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener('resize',resize);resize();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

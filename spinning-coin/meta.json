@@ -1,0 +1,11 @@
+{
+  "slug": "spinning-coin",
+  "title": "Cosmos Spinning Coin — a metallic star coin flipping about its vertical axis",
+  "title_vi": "Cosmos Spinning Coin — đồng xu kim loại in sao xoay quanh trục dọc",
+  "W": 600, "H": 600, "LOOP": 7000, "N": 88,
+  "tags": ["coin","3d","metallic","spin","loader","canvas2d"],
+  "summary": "A 3D gold coin embossed with a star emblem spins one full turn per loop about a vertical axis, its faces foreshortening into ellipses and flashing a bright rim glint when edge-on. The front gold face flips to a violet back face every half turn, with a moving specular sheen for a metallic read. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: rotation phi=2*pi*u gives one full turn per loop; the face is drawn as an ellipse whose half-width is R*|cos(phi)| (hand-rolled foreshortening, no WebGL); sign(cos) selects which face shows (gold star front vs violet back) and the star emblem is horizontally squashed by the same |cos| factor; an offset rim slab fakes coin thickness when turning side-on; a sin(2*phi) specular band and an edge-on white glint sell the metal; sin/cos of integer multiples of 2*pi*u keep frame(0)==frame(LOOP); a mulberry32-seeded sparkle field sits behind. CAPTURE: ?auto=1 + window.__seek(t). TUNE: R, thick (rim depth), LOOP, sheen speed, face palette stops, star emblem scale.",
+  "summary_vi": "Đồng xu vàng 3D in ngôi sao xoay đúng một vòng mỗi loop quanh trục dọc, các mặt co lại thành hình ellipse và lóe sáng viền khi xoay nghiêng cạnh. Mặt vàng lật sang mặt tím sau mỗi nửa vòng, kèm vệt sáng kim loại chạy ngang. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Nửa bề rộng mặt = R*|cos(phi)| với phi=2*pi*u nên co cảnh đúng; dấu cos chọn mặt; vệt sáng sin(2*phi) và viền lóe cạnh tạo cảm giác kim loại."
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "micviz-radial",
+  "title": "Cosmos Mic Radial — mic-reactive circular spectrum with bars radiating around a breathing glow ring",
+  "title_vi": "",
+  "W": 640, "H": 420, "LOOP": 9000, "N": 100,
+  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "summary": "A circular spectrum visualizer: spectrum bars radiate outward around a glowing ring from a central pulse, with the frequency bins wrapped around 360° and the ring radius breathing with the overall level. It reacts to the MICROPHONE live (and gracefully falls back to a synthetic signal if the mic is unavailable or denied), plus a deterministic synthetic demo for capture. Self-contained, zero dependencies.",
+  "usage_notes": "RUN: open & click \"enable mic\" to react to your voice/music; falls back to a built-in beat if no mic. KEY TECHNIQUES: an AnalyserNode (fftSize 128) feeds getByteFrequencyData into a 64-bin spectrum + RMS level which drive render(spec,level,t); render maps the bins around the circle via a symmetric fold so they wrap seamlessly at 0/360°, draws a radial center-pulse glow, a stroked ring whose radius and width breathe with level, and per-spoke gradient bars with bright tip caps that brighten with level. synthSpectrum(u) is a seeded (mulberry32) sum of moving Gaussian formant bumps plus a low-bin beat kick, normalised and looping at u=1, used for auto capture and as the live fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: SPOKES (bar count), R0/barMax (ring + bar scale), formant table, rotation speed, glow scaling, LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

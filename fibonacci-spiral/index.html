@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Fibonacci Spiral</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Fibonacci Spiral — nested golden-ratio squares with the quarter-arc golden spiral threading through them, glowing, slowly rotating with a colour wave sweeping outward by index. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318530718,HP=Math.PI/2;
+const PHI=1.61803398875;                                   // golden ratio
+let W,H,DPR,cx,cy,base,sq=[];
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+const N=11;                                                // number of nested squares / arcs
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;base=Math.min(W,H)*0.42;
+  const r=mul(73);sq=[];
+  // Build the golden spiral as a chain of quarter arcs. Each arc has a pivot (arc centre) and
+  // radius R; consecutive squares shrink by PHI. Walk arcs so each starts where the last ended.
+  // Arc k spans angle [k*90, k*90+90] deg; its pivot is offset so the spiral stays continuous.
+  let R=base;                                              // current (largest) radius
+  let pivx=0,pivy=0;                                       // pivot of current arc (in centred coords)
+  // place arc 0 pivot so construction roughly centres
+  pivx=R*0.30; pivy=R*0.10;
+  for(let i=0;i<N;i++){
+    const a0=i*HP, a1=a0+HP;                               // quarter-arc angular span
+    // square aligned to this arc: top-left derived from pivot & quadrant
+    const dir=i&3;
+    let qx,qy;
+    if(dir===0){qx=pivx-R; qy=pivy-R;} else if(dir===1){qx=pivx; qy=pivy-R;}
+    else if(dir===2){qx=pivx; qy=pivy;} else {qx=pivx-R; qy=pivy;}
+    sq.push({pivx,pivy,R,a0,a1,qx,qy,idx:i,norm:i/(N-1),col:AC[i%AC.length],tw:r()*TAU});
+    // advance: the next pivot sits at the END point of this arc, then radius shrinks by PHI
+    const ex=pivx+R*Math.cos(a1), ey=pivy+R*Math.sin(a1);
+    const nR=R/PHI;
+    // next pivot chosen so its arc (starting at a1) begins exactly at this end point
+    pivx=ex-nR*Math.cos(a1); pivy=ey-nR*Math.sin(a1);
+    R=nR;
+  }}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);                // full repaint, pure of t
+  x.globalCompositeOperation='lighter';
+  const spin=u*TAU;                                         // one rotation per loop -> seamless
+  x.save();x.translate(cx,cy);x.rotate(spin);
+  // sacred core glow at spiral eye (last, smallest pivot)
+  const eye=sq[N-1];
+  const cg=x.createRadialGradient(eye.pivx,eye.pivy,0,eye.pivx,eye.pivy,base*0.5);
+  cg.addColorStop(0,'rgba(224,178,74,0.32)');cg.addColorStop(0.55,'rgba(255,106,61,0.08)');cg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=cg;x.fillRect(-W,-H,2*W,2*H);
+  for(const q of sq){
+    // colour wave sweeping outward by index: brightness pulses by norm & time (integer harmonics)
+    const wave=0.5+0.5*Math.sin(TAU*(u*2 - q.norm*3));
+    const tw=0.65+0.35*Math.sin(q.tw+spin*2);
+    const a=(0.30+0.60*wave)*tw;
+    const c=q.col, lw=(1.2+(1-q.norm)*2.0)*DPR;
+    // nested golden square outline (subtle)
+    x.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${a*0.5})`;x.lineWidth=lw;
+    x.strokeRect(q.qx,q.qy,q.R,q.R);
+    // the quarter-arc golden spiral segment threading the square
+    x.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${Math.min(1,a*1.2)})`;x.lineWidth=lw*1.7;
+    x.beginPath();x.arc(q.pivx,q.pivy,q.R,q.a0,q.a1);x.stroke();
+    x.strokeStyle=`rgba(255,255,255,${a*0.22})`;x.lineWidth=lw*0.55;
+    x.beginPath();x.arc(q.pivx,q.pivy,q.R,q.a0,q.a1);x.stroke();
+    // pivot node
+    x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    x.beginPath();x.arc(q.pivx,q.pivy,(1.4+(1-q.norm)*2.4)*DPR,0,TAU);x.fill();
+  }
+  x.restore();
+  x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

@@ -1,0 +1,83 @@
+<!doctype html><meta charset=utf8><title>Cosmos Lens Flare</title>
+<!-- Cosmos Lens Flare — an anamorphic flare: horizontal streak, iris ghosts on the optical axis & starburst spikes sweep a looping path, deterministic & seamless. -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=8000, TWO=Math.PI*2;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let ghosts=[];
+function build(){
+  ghosts=[];
+  const rnd=mulberry32(424242);
+  const NG=9;                                   // iris ghosts along the optical axis
+  for(let i=0;i<NG;i++){
+    // axial position: fraction along the line from source through frame center (and beyond)
+    const pos=-0.4+i*0.34;                        // negative & positive => both sides of center
+    const rad=(0.018+rnd()*0.055)*(1+Math.abs(pos)*0.5);
+    const col=PAL[i%PAL.length];
+    const ring=rnd()<0.5;                         // some ghosts are rings (iris), some discs
+    const alpha=0.16+rnd()*0.20;
+    ghosts.push({pos,rad,col,ring,alpha});
+  }
+}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;build();}
+addEventListener('resize',resize);resize();
+function radial(x,y,r,c0,c1){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,c0);g.addColorStop(1,c1);return g;}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  // looping sweep path for the light source (Lissajous, integer harmonics => seamless)
+  const sx=W*(0.5+0.40*Math.cos(TWO*u));
+  const sy=H*(0.5+0.28*Math.sin(TWO*u*2));
+  const cx=W/2, cy=H/2;
+  const dx=cx-sx, dy=cy-sy;                       // optical axis: source -> center
+  const flick=0.85+0.15*Math.sin(TWO*u*5);        // brightness flicker
+  const Wd=Math.hypot(W,H);
+  // iris ghosts along the optical axis
+  for(const g of ghosts){
+    const gx=sx+dx*(1+g.pos), gy=sy+dy*(1+g.pos);
+    const r=g.rad*Wd;
+    ctx.globalAlpha=g.alpha*flick;
+    if(g.ring){
+      ctx.strokeStyle=g.col;ctx.lineWidth=Math.max(1.5,r*0.18);
+      ctx.beginPath();ctx.arc(gx,gy,r,0,7);ctx.stroke();
+      ctx.globalAlpha=g.alpha*0.4*flick;ctx.fillStyle=radial(gx,gy,r,g.col,'rgba(0,0,0,0)');
+      ctx.beginPath();ctx.arc(gx,gy,r,0,7);ctx.fill();
+    }else{
+      ctx.fillStyle=radial(gx,gy,r,g.col,'rgba(0,0,0,0)');
+      ctx.beginPath();ctx.arc(gx,gy,r,0,7);ctx.fill();
+    }
+  }
+  // anamorphic horizontal streak through the source
+  const sw=W*0.95;
+  let st=ctx.createLinearGradient(sx-sw,sy,sx+sw,sy);
+  st.addColorStop(0,'rgba(70,180,255,0)');st.addColorStop(0.5,'rgba(120,200,255,'+(0.55*flick)+')');st.addColorStop(1,'rgba(70,180,255,0)');
+  ctx.globalAlpha=1;ctx.fillStyle=st;ctx.fillRect(0,sy-3*DPR,W,6*DPR);
+  let st2=ctx.createLinearGradient(sx-sw,sy,sx+sw,sy);
+  st2.addColorStop(0,'rgba(139,92,255,0)');st2.addColorStop(0.5,'rgba(180,160,255,'+(0.30*flick)+')');st2.addColorStop(1,'rgba(139,92,255,0)');
+  ctx.fillStyle=st2;ctx.fillRect(0,sy-12*DPR,W,24*DPR);
+  // starburst spikes
+  ctx.save();ctx.translate(sx,sy);ctx.rotate(TWO*u);
+  const NS=12;
+  for(let i=0;i<NS;i++){
+    ctx.rotate(TWO/NS);
+    const len=(i%2?0.18:0.30)*Math.min(W,H)*flick;
+    let sg=ctx.createLinearGradient(0,0,len,0);
+    sg.addColorStop(0,'rgba(255,255,255,'+(0.5*flick)+')');sg.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.moveTo(0,-2.5*DPR);ctx.lineTo(len,0);ctx.lineTo(0,2.5*DPR);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+  // bright source core
+  ctx.globalAlpha=1;ctx.fillStyle=radial(sx,sy,W*0.16,'rgba(255,255,255,'+flick+')','rgba(0,0,0,0)');
+  ctx.beginPath();ctx.arc(sx,sy,W*0.16,0,7);ctx.fill();
+  ctx.fillStyle=radial(sx,sy,W*0.06,'rgba(255,255,255,1)','rgba(180,200,255,0)');
+  ctx.beginPath();ctx.arc(sx,sy,W*0.06,0,7);ctx.fill();
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

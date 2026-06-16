@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Helix</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0816;display:flex;align-items:center;justify-content:center;
+  min-height:100vh;font-family:system-ui,sans-serif;overflow:hidden;touch-action:none}
+#wrap{position:relative;width:460px;height:640px;background:#0d0a1f;
+  border-radius:18px;box-shadow:0 0 40px #8b5cff44,0 0 80px #46b4ff22;
+  overflow:hidden;flex-shrink:0}
+canvas{display:block;position:absolute;top:0;left:0}
+#hud{position:absolute;top:0;left:0;right:0;text-align:center;padding:12px 0 0;pointer-events:none}
+#score-label{font-size:12px;color:#8b5cff;letter-spacing:3px;text-transform:uppercase;opacity:.7}
+#score{font-size:54px;font-weight:800;color:#fff;line-height:1.05;
+  text-shadow:0 0 24px #8b5cff,0 0 48px #8b5cff55}
+#over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
+  justify-content:center;background:#0d0a1fcc;backdrop-filter:blur(6px)}
+#over h2{font-size:38px;font-weight:800;color:#ff5cc2;
+  text-shadow:0 0 24px #ff5cc2;margin-bottom:6px}
+#over p{color:#8888aa;font-size:14px;margin-bottom:24px}
+#btn-restart{background:linear-gradient(135deg,#8b5cff,#46b4ff);color:#fff;
+  border:none;border-radius:40px;padding:13px 40px;font-size:16px;font-weight:700;
+  cursor:pointer;letter-spacing:1px;box-shadow:0 0 24px #8b5cff66}
+#btn-restart:hover{filter:brightness(1.15)}
+#ctrl{position:absolute;bottom:16px;left:0;right:0;display:flex;
+  justify-content:space-between;padding:0 22px}
+.cbtn{width:66px;height:66px;border-radius:50%;
+  background:rgba(139,92,255,0.18);border:2px solid #8b5cff88;
+  color:#fff;font-size:28px;font-weight:700;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;
+  touch-action:none}
+.cbtn:active{background:rgba(139,92,255,0.5)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="460" height="640"></canvas>
+  <div id="hud">
+    <div id="score-label">SCORE</div>
+    <div id="score">0</div>
+  </div>
+  <div id="over">
+    <h2>GAME OVER</h2>
+    <p>Press R or tap Restart</p>
+    <button id="btn-restart">RESTART</button>
+  </div>
+  <div id="ctrl">
+    <button class="cbtn" id="bl">&#9664;</button>
+    <button class="cbtn" id="br">&#9654;</button>
+  </div>
+</div>
+<script>
+// ───────────────────── Constants ─────────────────────────────────────────────
+const W=460, H=640, CX=W/2;
+const LOOP=12000, DT=16, N=109;       // N = round(12000/110)
+const START=6000;                      // AUTO pre-offset → mid-descent at t=0
+const RING_SPACING=58;
+const RING_R=76, RING_LW=16;
+const COL_W=20;
+const BALL_R=11;
+const GRAV=0.36;
+const BOUNCE_VY=-7.5;
+const BALL_SY=Math.round(H*0.32);     // ball fixed screen Y ≈ 204
+const SEED=0xC0571C;
+const TAU=Math.PI*2;
+
+// ───────────────────── RNG ───────────────────────────────────────────────────
+function mulberry32(s){
+  return()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+}
+
+// ───────────────────── Ring generation (seeded, deterministic) ───────────────
+// Each ring: gc (gap center world angle), ghw (gap half-width), danger or null
+// IMPORTANT: consume the SAME number of RNG calls per ring regardless of danger
+const RINGS=(()=>{
+  const rng=mulberry32(SEED), rs=[];
+  for(let i=0;i<N;i++){
+    const gc=rng()*TAU;
+    const ghw=0.44+rng()*0.22;         // 0.44-0.66 rad half-width (generous)
+    const dangerRoll=rng();             // always consumed
+    const daOffset=rng();              // always consumed
+    const daWidth=rng();               // always consumed
+    let danger=null;
+    if(i>4 && dangerRoll<0.38){
+      // Danger arc placed on opposite side from gap
+      const da=gc+Math.PI+(daOffset-0.5)*0.9;
+      danger={a:da, hw:0.22+daWidth*0.12};
+    }
+    rs.push({gc, ghw, danger});
+  }
+  return rs;
+})();
+
+// ───────────────────── Angle helpers ─────────────────────────────────────────
+function normAng(a){return((a%TAU)+TAU)%TAU;}
+function angDiff(a,b){let d=normAng(a-b);return d>Math.PI?d-TAU:d;}
+function inArc(angle,center,hw){return Math.abs(angDiff(angle,center))<=hw;}
+
+// ───────────────────── State factory ─────────────────────────────────────────
+function mkState(){
+  return{towerAng:0, ballY:0, ballVY:0, score:0, dead:false, maxRing:-1};
+}
+
+// ───────────────────── Simulation step ───────────────────────────────────────
+function simStep(s, dAngle){
+  if(s.dead) return s;
+  const newAng = s.towerAng + dAngle;
+  let newY = s.ballY + s.ballVY + GRAV;
+  let newVY = s.ballVY + GRAV;
+  let newScore = s.score;
+  let newMax = s.maxRing;
+  let dead = false;
+
+  // Ball world angle: the ball is fixed at screen 0°, tower rotates
+  const ballWA = normAng(-newAng);
+
+  // Check if ball crossed any ring boundary (falling downward primarily)
+  // Ball can cross at most one ring per step given physics
+  const prevY = s.ballY;
+  for(let i=0; i<N; i++){
+    const ry = i * RING_SPACING;
+    if(prevY < ry && newY >= ry){
+      const ring = RINGS[i];
+      if(inArc(ballWA, ring.gc, ring.ghw)){
+        // Passed through gap
+        if(i > newMax){
+          newScore += (i - newMax);
+          newMax = i;
+        }
+      } else if(ring.danger && inArc(ballWA, ring.danger.a, ring.danger.hw)){
+        dead = true;
+      } else {
+        // Solid platform - bounce
+        newY = ry - 0.5;
+        newVY = BOUNCE_VY;
+      }
+      break;
+    }
+  }
+
+  return{towerAng:newAng, ballY:newY, ballVY:newVY, score:newScore, dead, maxRing:newMax};
+}
+
+// ───────────────────── AUTO AI ───────────────────────────────────────────────
+// Identifies the next ring the ball will encounter and snaps tower to align gap.
+// Uses high rotation speed so it always aligns in time even for fast-falling ball.
+function autoAngleDelta(s){
+  // Target: the ring the ball is approaching (next ring below current position)
+  const approachIdx = Math.ceil(s.ballY / RING_SPACING);
+  const idx = Math.max(0, Math.min(approachIdx, N-1));
+  const ring = RINGS[idx];
+  // We want ballWorldAng = ring.gc
+  // ballWorldAng = normAng(-towerAng) = ring.gc
+  // → towerAng = -ring.gc + 2pi*k
+  const targetAng = -ring.gc;
+  const diff = angDiff(targetAng, s.towerAng);
+  // High rotation speed to ensure we always align before ball hits
+  const speed = 0.35;
+  return Math.sign(diff) * Math.min(Math.abs(diff), speed);
+}
+
+// Full AUTO simulation from seed state to given ms
+function autoSimTo(ms){
+  let s = mkState();
+  const totalMs = ms + START;
+  const nSteps = Math.floor(totalMs / DT);
+  for(let i=0; i<nSteps; i++){
+    const da = autoAngleDelta(s);
+    s = simStep(s, da);
+    if(s.dead){
+      // Shouldn't happen but reset gracefully
+      s = mkState();
+    }
+  }
+  return s;
+}
+
+// ───────────────────── Rendering ─────────────────────────────────────────────
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+function render(s){
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle = '#0d0a1f';
+  ctx.fillRect(0,0,W,H);
+
+  // Subtle vertical gradient overlay
+  const vg = ctx.createLinearGradient(0,0,0,H);
+  vg.addColorStop(0,'rgba(139,92,255,0.06)');
+  vg.addColorStop(1,'rgba(70,180,255,0.04)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0,0,W,H);
+
+  // Camera: ball sits at BALL_SY, rest of world scrolls
+  const camY = s.ballY - BALL_SY;
+
+  // Central column
+  const cg = ctx.createLinearGradient(CX-COL_W,0,CX+COL_W,0);
+  cg.addColorStop(0,'#100d28');
+  cg.addColorStop(0.3,'#1c1740');
+  cg.addColorStop(0.7,'#1c1740');
+  cg.addColorStop(1,'#100d28');
+  ctx.fillStyle = cg;
+  ctx.fillRect(CX-COL_W, 0, COL_W*2, H);
+  // Column glows
+  ctx.strokeStyle = '#8b5cff22';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(CX-COL_W,0); ctx.lineTo(CX-COL_W,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX+COL_W,0); ctx.lineTo(CX+COL_W,H); ctx.stroke();
+
+  // Rings (only those on screen)
+  for(let i=0; i<N; i++){
+    const wy = i * RING_SPACING;
+    const sy = wy - camY;
+    if(sy < -80 || sy > H+80) continue;
+    renderRing(i, sy, s.towerAng);
+  }
+
+  // Ball shadow
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(CX, BALL_SY+BALL_R+3, BALL_R*0.85, 4, 0, 0, TAU);
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fill();
+  ctx.restore();
+
+  // Ball with squash/stretch based on velocity
+  const absVY = Math.abs(s.ballVY);
+  const squash = s.ballVY > 3 ? (1 - Math.min(absVY/30, 0.18)) : 1;
+  ctx.save();
+  ctx.translate(CX, BALL_SY);
+  ctx.scale(1/squash, squash);
+  const bg = ctx.createRadialGradient(-3,-4,1, 0,0,BALL_R);
+  bg.addColorStop(0,'#fffbe0');
+  bg.addColorStop(0.4,'#e0b24a');
+  bg.addColorStop(1,'#36d39a');
+  ctx.beginPath();
+  ctx.arc(0,0,BALL_R,0,TAU);
+  ctx.fillStyle = bg;
+  ctx.shadowColor = '#e0b24a';
+  ctx.shadowBlur = 20;
+  ctx.fill();
+  ctx.restore();
+
+  // Score HUD
+  document.getElementById('score').textContent = s.score;
+}
+
+// Helper: subtract [removeS, removeE] from segment [a,b] (all in same 0..TAU domain)
+function subSeg(a, b, removeS, removeE){
+  const out = [];
+  // Normalize removeS,removeE to overlap [a,b]
+  let rs = removeS, re = removeE;
+  while(rs > b){ rs -= TAU; re -= TAU; }
+  while(re < a){ rs += TAU; re += TAU; }
+  if(re <= a || rs >= b){ return [[a,b]]; }
+  if(rs > a) out.push([a, rs]);
+  if(re < b) out.push([re, b]);
+  return out;
+}
+
+// Subtract gap (wrapped) and danger from [0,TAU]
+function safeParts(ring){
+  const gc = ring.gc, ghw = ring.ghw;
+  // Gap interval
+  const gS = gc - ghw, gE = gc + ghw;
+  const ngS = normAng(gS), ngE = normAng(gE);
+  let segs;
+  if(ngS < ngE){
+    segs = subSeg(0, TAU, ngS, ngE);
+  } else {
+    // Wraps around 0
+    let s1 = subSeg(0, TAU, ngS, TAU);
+    segs = [];
+    for(const [a,b] of s1) segs.push(...subSeg(a, b, 0, ngE));
+  }
+  // Remove danger
+  if(ring.danger){
+    const ds = ring.danger.a - ring.danger.hw, de = ring.danger.a + ring.danger.hw;
+    const nds = normAng(ds), nde = normAng(de);
+    const out = [];
+    if(nds < nde){
+      for(const [a,b] of segs) out.push(...subSeg(a,b,nds,nde));
+    } else {
+      let tmp = [];
+      for(const [a,b] of segs) tmp.push(...subSeg(a,b,nds,TAU));
+      for(const [a,b] of tmp) out.push(...subSeg(a,b,0,nde));
+    }
+    return out;
+  }
+  return segs;
+}
+
+function renderRing(idx, sy, towerAng){
+  const ring = RINGS[idx];
+  const r = RING_R;
+  const lw = RING_LW;
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'butt';
+
+  // Safe arc color alternates
+  const safeCol = idx % 2 === 0 ? '#8b5cff' : '#46b4ff';
+  const parts = safeParts(ring);
+
+  ctx.shadowColor = safeCol;
+  ctx.shadowBlur = 7;
+  const sg = ctx.createLinearGradient(CX-r, sy, CX+r, sy);
+  sg.addColorStop(0, safeCol+'88');
+  sg.addColorStop(0.5, safeCol);
+  sg.addColorStop(1, safeCol+'88');
+  ctx.strokeStyle = sg;
+
+  for(const [a, b] of parts){
+    if(b - a < 0.015) continue;
+    ctx.beginPath();
+    ctx.arc(CX, sy, r, a + towerAng, b + towerAng, false);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+
+  // Danger arc
+  if(ring.danger){
+    const dg = ctx.createLinearGradient(CX-r, sy, CX+r, sy);
+    dg.addColorStop(0,'#ff5cc2');
+    dg.addColorStop(1,'#ff6a3d');
+    ctx.strokeStyle = dg;
+    ctx.shadowColor = '#ff5cc2';
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(CX, sy, r,
+      ring.danger.a - ring.danger.hw + towerAng,
+      ring.danger.a + ring.danger.hw + towerAng, false);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ───────────────────── LIVE game ─────────────────────────────────────────────
+let gState = mkState(), gOver = false;
+let rotL = false, rotR = false;
+let dragging = false, lastDragX = 0;
+
+function restart(){
+  gState = mkState();
+  gOver = false;
+  document.getElementById('over').style.display = 'none';
+  document.getElementById('score').textContent = '0';
+}
+
+function liveFrame(){
+  if(gOver) return;
+  requestAnimationFrame(liveFrame);
+  let da = 0;
+  if(rotL) da -= 0.07;
+  if(rotR) da += 0.07;
+  gState = simStep(gState, da);
+  render(gState);
+  if(gState.dead){
+    gOver = true;
+    document.getElementById('over').style.display = 'flex';
+  }
+}
+
+function initLive(){
+  // Keyboard
+  addEventListener('keydown', e=>{
+    if(e.key==='ArrowLeft'  || e.key==='a' || e.key==='A') rotL=true;
+    if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') rotR=true;
+    if((e.key==='r'||e.key==='R') && gOver){ restart(); requestAnimationFrame(liveFrame); }
+  });
+  addEventListener('keyup', e=>{
+    if(e.key==='ArrowLeft'  || e.key==='a' || e.key==='A') rotL=false;
+    if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') rotR=false;
+  });
+  // On-screen buttons
+  const bl=document.getElementById('bl'), br=document.getElementById('br');
+  bl.addEventListener('pointerdown', e=>{ e.preventDefault(); rotL=true; });
+  bl.addEventListener('pointerup',   ()=>rotL=false);
+  bl.addEventListener('pointercancel',()=>rotL=false);
+  bl.addEventListener('pointerleave',()=>rotL=false);
+  br.addEventListener('pointerdown', e=>{ e.preventDefault(); rotR=true; });
+  br.addEventListener('pointerup',   ()=>rotR=false);
+  br.addEventListener('pointercancel',()=>rotR=false);
+  br.addEventListener('pointerleave',()=>rotR=false);
+  // Drag to rotate
+  cv.addEventListener('pointerdown', e=>{ dragging=true; lastDragX=e.clientX; });
+  addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const dx = e.clientX - lastDragX;
+    gState = {...gState, towerAng: gState.towerAng + dx*0.013};
+    lastDragX = e.clientX;
+  });
+  addEventListener('pointerup', ()=>dragging=false);
+  // Restart button
+  document.getElementById('btn-restart').addEventListener('click',()=>{
+    restart(); requestAnimationFrame(liveFrame);
+  });
+  requestAnimationFrame(liveFrame);
+}
+
+// ───────────────────── AUTO entry point ──────────────────────────────────────
+function drawAt(ms){
+  render(autoSimTo(ms));
+}
+
+// ───────────────────── Bootstrap ─────────────────────────────────────────────
+const AUTO = new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  document.getElementById('ctrl').style.display='none';
+  document.getElementById('over').style.display='none';
+  window.__seek = t => drawAt(((t%LOOP)+LOOP)%LOOP);
+  window.__seek(0);
+  window.__ready = true;
+} else {
+  initLive();
+}
+</script>
+</body>
+</html>

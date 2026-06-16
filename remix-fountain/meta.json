@@ -1,0 +1,11 @@
+{
+  "slug": "remix-fountain",
+  "title": "Cosmos Remix — Fountain you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 11000, "N": 92,
+  "tags": ["remix", "fountain", "generative", "interactive", "themeable", "canvas2d", "particles"],
+  "summary": "Remixable particle fountain: seeded jets launch upward from the bottom-centre with spread velocities and fall under gravity on their own looping life-phase, arcing up then down and recycling seamlessly while brightness fades near end-of-life. Live glass control panel retunes palette (brand theme tokens), shape, density, spread, speed, dot size and the launch-angle Spread∠ in real time; reskins to any brand colour in one click. Demonstrates the PARAMS convention (window.__params + setParam) the generic remix harness reads. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, choose a particle shape, drag Density/Spread/Speed/Dot and the Spread∠ launch-angle knob, press ↻ Seed, ⧉ Copy to copy your config. KEY TECHNIQUES: a particle fountain where each particle runs its own looping life-phase ph=(i/count + u·speed) mod 1 — launched from the bottom-centre nozzle along a straight-up ±Spread∠ fan with a seeded per-particle speed, then advanced by projectile motion (px=vx·ph, py=vy·ph + ½·g·ph²) so it arcs up and falls back, recycling seamlessly at the wrap; brightness fades in at launch and out near end-of-life; everything is a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS: window.__params describes the knobs and setParam(key,value) applies them — the contract the generic remix harness uses to auto-build panels for ANY effect. Theme tokens = a PALETTES map driving a CSS accent var and the per-index dot ramp; SHAPES draws the chosen glyph cheaply. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: widen Spread∠ for a broad fan or narrow it for a tight geyser; add palettes to PALETTES, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -1,0 +1,14 @@
+{
+  "slug": "micviz-blob",
+  "title": "Cosmos Sound Blob — mic-reactive living orb modulated by the spectrum",
+  "title_vi": "",
+  "W": 640,
+  "H": 420,
+  "LOOP": 8400,
+  "N": 93,
+  "tags": ["mic", "audio-reactive", "visualizer", "music", "interactive", "canvas2d"],
+  "summary": "A reactive blob/orb visualizer that reacts to the MICROPHONE live: a metaball-ish living sound-creature whose per-angle radius is modulated by the spectrum bins (low frequencies grow big lobes), pulsing outward on level with a glowing core and radiating tendrils. Gracefully falls back to a synthetic signal if the mic is unavailable or denied, plus a deterministic synthetic demo for capture. Self-contained, zero dependencies.",
+  "summary_vi": "",
+  "usage_notes": "RUN: open and click \"enable mic\" to make the orb breathe with your voice or music; if no mic is granted it falls back to a built-in beat. KEY TECHNIQUES: live AnalyserNode getByteFrequencyData / getByteTimeDomainData feeds render(spectrum, level, t); a deterministic synthSpectrum(u) (seeded sum-of-sines formants + beat kick) feeds the SAME render() for auto and fallback; per-angle radius driven by low-weighted spectrum bins, layered additive metaball aura, trailing fade. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: lobe size, low-emphasis exponent, COL tints, pulse scale, LOOP, and the formant centers f1/f2/f3 in synthSpectrum.",
+  "notes": ""
+}

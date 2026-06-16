@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Fireworks</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Fireworks — scheduled bursts of gravity particles, fully deterministic from time. Seamless loop.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=7000,TAU=6.28318;
+let W,H,DPR,bursts=[];
+function rnd(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  const r=rnd(9);bursts=[];const n=7,life=2000,span=LOOP-life-400;
+  for(let i=0;i<n;i++)bursts.push({t0:300+i*(span/(n-1)),x:(0.2+r()*0.6)*W,y:(0.2+r()*0.4)*H,c:AC[i%AC.length],life,m:60+(r()*40|0),seed:(r()*9999)|0,sp:(2.2+r()*1.6)});}
+rs();addEventListener('resize',rs);
+function frame(t){const tm=((t%LOOP)+LOOP)%LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);x.globalCompositeOperation='lighter';
+  const G=0.00022*H;
+  for(const b of bursts){const age=tm-b.t0;if(age<0||age>b.life)continue;const f=age/b.life;const r=rnd(b.seed);
+    for(let i=0;i<b.m;i++){const a=r()*TAU,v=b.sp*(0.4+r()*0.6)*DPR;const vx=Math.cos(a)*v*60,vy=Math.sin(a)*v*60;
+      const px=b.x+vx*(age/1000), py=b.y+vy*(age/1000)+0.5*G*age*age*0.06;
+      const al=Math.pow(1-f,1.6)*0.95;const sz=(1+ (1-f)*1.6)*DPR;const c=b.c;
+      x.fillStyle=`rgba(${Math.min(255,c[0]+60)},${Math.min(255,c[1]+60)},${Math.min(255,c[2]+60)},${al})`;
+      x.beginPath();x.arc(px,py,sz,0,TAU);x.fill();}
+    const fg=x.createRadialGradient(b.x,b.y,0,b.x,b.y,40*DPR*(1-f));fg.addColorStop(0,`rgba(${b.c[0]},${b.c[1]},${b.c[2]},${(1-f)*0.4})`);fg.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=fg;x.beginPath();x.arc(b.x,b.y,40*DPR*(1-f),0,TAU);x.fill();}
+  x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

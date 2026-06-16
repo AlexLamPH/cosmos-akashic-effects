@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Radial Audio</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Radial Audio — circular visualizer; spikes radiate from a ring around a glowing core, plus a wobbling waveform circle. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=6400,TAU=6.283185307;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const N=64;
+let W,H,DPR,cx,cy,R,seed;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;R=Math.min(W,H)*0.24;
+  const r=mb(2026);seed=[];for(let i=0;i<N;i++)seed.push({ph:r()*TAU,a:0.6+0.7*r(),b:0.4+0.6*r()});}
+rs();addEventListener('resize',rs);
+// fake-but-musical spike length: integer-harmonic sines of 2*pi*u → returns at u=1
+function level(i,u){const s=seed[i];
+  let v=Math.sin(TAU*(2*u)+s.ph)*s.a + Math.sin(TAU*(4*u)+i*0.30)*s.b*0.7 + Math.sin(TAU*(6*u)-i*0.15)*0.5 + Math.sin(TAU*(3*u)+s.ph*0.5)*0.5;
+  v=v*0.5+0.5;return Math.max(0.05,v*v);}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const maxL=Math.min(W,H)*0.20;
+  // radiating spikes
+  for(let i=0;i<N;i++){const ang=i/N*TAU - TAU*u*0.15;const L=level(i,u)*maxL;const col=COL[i%6];
+    const x0=cx+Math.cos(ang)*R, y0=cy+Math.sin(ang)*R;
+    const x1=cx+Math.cos(ang)*(R+L), y1=cy+Math.sin(ang)*(R+L);
+    x.strokeStyle=col;x.globalAlpha=0.9;x.lineWidth=(2.2+1.5*(L/maxL))*DPR;x.lineCap='round';
+    x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke();
+    // inward mirrored stub
+    x.globalAlpha=0.3;x.beginPath();x.moveTo(x0,y0);x.lineTo(cx+Math.cos(ang)*(R-L*0.45),cy+Math.sin(ang)*(R-L*0.45));x.stroke();}
+  // wobbling waveform ring: radius modulated by integer-harmonic sines
+  x.strokeStyle='#46b4ff';x.globalAlpha=0.85;x.lineWidth=2.2*DPR;x.beginPath();
+  for(let a=0;a<=128;a++){const ang=a/128*TAU;
+    const rr=R*0.72 + Math.min(W,H)*0.035*(Math.sin(ang*5+TAU*2*u)+0.6*Math.sin(ang*8-TAU*3*u));
+    const px=cx+Math.cos(ang)*rr, py=cy+Math.sin(ang)*rr;a?x.lineTo(px,py):x.moveTo(px,py);}
+  x.closePath();x.stroke();
+  // glowing core
+  const pulse=0.5+0.5*Math.sin(TAU*2*u);const cr=R*(0.30+0.10*pulse);
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,cr);g.addColorStop(0,'#ffffff');g.addColorStop(0.4,'#8b5cff');g.addColorStop(1,'#05030d');
+  x.fillStyle=g;x.globalAlpha=0.95;x.beginPath();x.arc(cx,cy,cr,0,TAU);x.fill();
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

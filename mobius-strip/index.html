@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mobius Strip</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Mobius Strip — a rotating 3D half-twist ribbon traced by glowing additive points; hand-rolled rotate+perspective, depth-shaded, deterministic & seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=8000,TAU=6.283185307,F=560;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let W,H,DPR,cx,cy;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;}
+rs();addEventListener('resize',rs);
+function dot(px,py,z,rad,col,a){const s=F/(F+z);if(s<=0)return;const X=cx+px*s,Y=cy+py*s,R=Math.max(0.5,rad*s*DPR);
+  const g=x.createRadialGradient(X,Y,0,X,Y,R*3);g.addColorStop(0,col);g.addColorStop(0.3,col);g.addColorStop(1,'rgba(0,0,0,0)');
+  x.globalAlpha=a;x.fillStyle=g;x.beginPath();x.arc(X,Y,R*3,0,TAU);x.fill();x.globalAlpha=1;}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const ry=TAU*u, tilt=0.62;                                   // one full turn about Y + constant tilt
+  const cy0=Math.cos(tilt),sy0=Math.sin(tilt);
+  const cry=Math.cos(ry),sry=Math.sin(ry);
+  const SC=Math.min(W,H)*0.30, NU=260, NW=12;                  // U around ring, W across band
+  dot(0,0,0,Math.min(W,H)*0.05/DPR,'rgba(139,92,255,0.45)',0.3);
+  for(let i=0;i<NU;i++){
+    const f=i/NU, ph=f*TAU;                                    // angle around the ring
+    const half=ph/2;                                            // HALF-twist: band rotates half a turn per loop
+    const ct=Math.cos(half),st=Math.sin(half);
+    for(let j=0;j<NW;j++){
+      const w=(j/(NW-1)-0.5)*0.55;                              // position across the band width
+      // parametric Mobius: ring of radius 1 with band twisting by ph/2
+      const rad=1+w*ct;
+      let X=rad*Math.cos(ph)*SC;
+      let Y=w*st*SC;
+      let Z=rad*Math.sin(ph)*SC;
+      let x1=X*cry+Z*sry, z1=-X*sry+Z*cry;                      // rotate about Y
+      let y2=Y*cy0-z1*sy0, z2=Y*sy0+z1*cy0;                     // constant tilt about X
+      const col=COL[((i*6/NU|0)+ (j>NW/2?1:0))%6];
+      const depth=Math.max(0,Math.min(1,(z2+SC*1.6)/(SC*3.2))); // 0 far .. 1 near
+      const near=1-depth;
+      const edge=Math.abs(j/(NW-1)-0.5)*2;                       // brighter at band edges
+      dot(x1,y2,z2,1.8+2.8*near+1.2*edge,col,Math.min(1,0.35+0.5*near+0.2*edge));
+    }
+  }
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

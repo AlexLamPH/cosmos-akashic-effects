@@ -1,0 +1,11 @@
+{
+  "slug": "game-dodge",
+  "title": "Cosmos Dodge — steer a glowing orb through a rain of cosmic obstacles",
+  "title_vi": "",
+  "W": 560, "H": 640, "LOOP": 12000, "N": 109, "live_fit": true,
+  "tags": ["game","arcade","playable","interactive","survival","canvas2d"],
+  "summary": "A real, self-contained playable dodger in one HTML file with zero dependencies. Steer a glowing aurora orb to weave through a seeded rain of cosmic obstacles falling from the top; your survival time is your score and a single hit ends the run, with difficulty ramping as faster, denser hazards spawn. Mouse, WASD, arrows, and touch control, a best-time tracker, game-over banner, and instant restart. Ships with a deterministic self-playing attract demo where an AI weaves through the seeded obstacle field.",
+  "usage_notes": "RUN: open index.html (double-click) — no server, no deps. CONTROLS: move the mouse, drag/touch, or use WASD / arrows to steer the orb; R restarts. GOAL: survive as long as possible — the on-screen timer is your score and your best run is kept; touching any falling obstacle is game over. KEY TECHNIQUES: fixed-timestep deterministic simulation — a mulberry32 seed drives obstacle spawn position, size, and velocity; a time-based difficulty(t) curve raises speed and spawn rate; circle collision ends the run. In AUTO a deterministic steering AI sums repulsion from nearby incoming obstacles to weave through the same seeded field, and frame 0 is offset mid-dodge with obstacles already on screen and time on the clock. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: OR orb radius, difficulty() ramp, spawn interval, AI repulsion radius/weights in aiSteer(), T_OFFSET (frame-0 offset).",
+  "summary_vi": "",
+  "notes": ""
+}

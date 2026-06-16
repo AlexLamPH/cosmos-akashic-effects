@@ -1,0 +1,15 @@
+{
+  "slug": "game-breakout",
+  "title": "Cosmos Breakout — bounce a ball off your paddle to shatter a wall of cosmic bricks",
+  "title_vi": "",
+  "W": 560,
+  "H": 620,
+  "LOOP": 12000,
+  "N": 109,
+  "live_fit": true,
+  "tags": ["game", "breakout", "playable", "interactive", "arcade", "canvas2d"],
+  "summary": "A real, fully playable Breakout / brick-breaker in one self-contained HTML file with zero dependencies. You slide a glowing paddle to bounce a ball into a wall of Cosmos-colored bricks, scoring per brick and racing to clear the board; you have three balls and lose one each time the ball drops past the paddle, with a game-over / win screen and restart. Controls work with both keyboard (left/right or A/D, R to restart) and touch (drag the playfield or hold the on-screen buttons). It also ships a deterministic self-playing attract demo for capture: a seeded paddle AI tracks the ball and the wall shatters over time as a pure function of time.",
+  "usage_notes": "RUN: double-click index.html (or serve it). CONTROLS: Left/Right arrows or A/D move the paddle; drag inside the playfield or hold the on-screen ◀ ▶ buttons on touch; R key or the Restart button starts a new run. GOAL: bounce the ball to break every brick (+10 each); you have 3 balls and lose one whenever the ball falls below the paddle — clear them all to win, run out of balls to lose. KEY TECHNIQUES: a fixed-timestep deterministic physics sim seeded with mulberry32 (never Math.random in the sim) handles wall/paddle/brick collisions with axis-of-overlap reflection and angle-by-contact-point off the paddle; for AUTO a deterministic paddle AI clamps toward the ball's x each tick and the same sim runs from a fixed seed. drawAt(ms) re-simulates from a fixed seeded start to ms with a frame-0 offset so capture opens with several bricks already cleared and the ball mid-flight, score above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: COLS/ROWS, ball speed, paddle width/AI clamp, LOOP, frame-0 offset, brick colors.",
+  "summary_vi": "",
+  "notes": ""
+}

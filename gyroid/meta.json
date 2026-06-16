@@ -1,0 +1,14 @@
+{
+  "slug": "gyroid",
+  "title": "Cosmos Gyroid — raymarched gyroid minimal surface with accent glow (WebGL shader)",
+  "title_vi": "Cosmos Gyroid — bề mặt cực tiểu gyroid raymarch phát sáng (shader WebGL)",
+  "W": 480,
+  "H": 360,
+  "LOOP": 9000,
+  "N": 90,
+  "tags": ["shader", "webgl", "glsl", "raymarch", "gyroid", "sdf", "generative", "loop"],
+  "summary": "A real WebGL GLSL fragment shader raymarching the gyroid minimal surface sin(x)cos(y)+sin(y)cos(z)+sin(z)cos(x)=0. A ray marches (<=80 steps) into the gyroid shell, shaded by surface normal and depth with violet/cosmic/nebula accent tint and a glowing aurora rim over a dark void, slowly rotating. Zero dependencies, runs fully offline, deterministic and seamless (loop time t wraps 0..1 driving a full rotation).",
+  "usage_notes": "RUN: open index.html in a WebGL-capable browser. KEY TECHNIQUES: gyroid SDF (abs(gyroid)-thickness) raymarched in <=80 steps, analytic-difference normals, normal+depth shading, Fresnel rim glow, full seamless volume rotation via 2*PI*t. CAPTURE: ?auto=1 + window.__seek(t). TUNE: step count (80), shell thickness (0.18), SDF frequency (1.7), rim glow strength, depth darkening.",
+  "summary_vi": "Shader fragment WebGL GLSL thật raymarch bề mặt cực tiểu gyroid; tia đâm vào lớp vỏ gyroid (<=80 bước), tô màu theo pháp tuyến và độ sâu với sắc tím/xanh/hồng cùng viền sáng aurora trên nền tối, xoay chậm, không phụ thuộc, chạy offline, tất định và liền mạch.",
+  "notes": "Bề mặt gyroid raymarch phát sáng dựng bằng shader WebGL, xoay liền mạch theo t."
+}

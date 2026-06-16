@@ -1,0 +1,21 @@
+{
+  "slug": "delaunay-lowpoly",
+  "title": "Cosmos Delaunay Lowpoly — shimmering animated triangulated facet mesh",
+  "title_vi": "Lưới Tam Giác Lowpoly Vũ Trụ",
+  "W": 592,
+  "H": 421,
+  "LOOP": 8000,
+  "N": 80,
+  "tags": [
+    "canvas2d",
+    "generative",
+    "lowpoly",
+    "triangulation",
+    "mesh",
+    "glow"
+  ],
+  "summary": "A seeded grid of points drifts on periodic Lissajous paths while a fixed Delaunay triangulation of their base positions draws a low-poly facet mesh. Each triangle is a flat accent-tinted additive gradient with glowing edges that shimmer in and out. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: seeded mulberry32 lays out a jittered point grid at setup; a Bowyer-Watson Delaunay triangulation is computed ONCE on the base positions; interior points drift on sin/cos paths with integer harmonics k (edge points pinned) so the loop is seamless; each facet is filled with an additive radial accent gradient and stroked with a shimmering glowing edge whose intensity pulses on integer harmonics. CAPTURE: ?auto=1 + window.__seek(t). TUNE: cols/rows density, drift amplitudes ax/ay, ACCENT palette, shimmer harmonics.",
+  "summary_vi": "Một lưới điểm có hạt giống trôi theo các quỹ đạo Lissajous tuần hoàn, trong khi một phép tam giác hóa Delaunay cố định trên vị trí gốc của chúng vẽ ra lưới facet lowpoly. Mỗi tam giác là một gradient cộng màu nhấn phẳng với các cạnh phát sáng lung linh.",
+  "notes": "Tam giác hóa Delaunay (Bowyer-Watson) tính một lần lúc khởi tạo; chuyển động dùng hài bậc nguyên nên vòng lặp liền mạch."
+}

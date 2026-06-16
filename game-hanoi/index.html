@@ -1,0 +1,335 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Hanoi</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:620px;height:460px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:14px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+    padding:0 22px;pointer-events:none;}
+  #title{font-size:22px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scoreBox{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:5px 14px;text-align:center;}
+  #scoreBox .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  #scoreBox .val{font-size:18px;font-weight:800;color:#fff;}
+  #pegBtns{position:absolute;bottom:16px;left:0;right:0;display:flex;justify-content:space-around;padding:0 40px;}
+  .pbtn{width:100px;height:36px;border:0;border-radius:10px;cursor:pointer;font-size:16px;font-weight:800;
+    letter-spacing:2px;background:linear-gradient(135deg,#1a1240,#2a1a5a);
+    border:1px solid rgba(139,92,255,.45);color:#b6aeff;
+    box-shadow:0 0 14px rgba(139,92,255,.2);transition:background .12s,box-shadow .12s;}
+  .pbtn:hover{background:linear-gradient(135deg,#2a1a5a,#3a2070);box-shadow:0 0 22px rgba(139,92,255,.45);}
+  .pbtn.sel{background:linear-gradient(135deg,#8b5cff,#5030c0);color:#fff;box-shadow:0 0 28px rgba(139,92,255,.75);}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.78);border-radius:18px;backdrop-filter:blur(3px);text-align:center;}
+  #over h1{margin:0 0 8px;font-size:32px;color:#36d39a;text-shadow:0 0 22px rgba(54,211,154,.7);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #over button{margin-top:16px;padding:11px 30px;border:0;border-radius:12px;cursor:pointer;
+    font-size:15px;font-weight:700;color:#0a0816;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:58px;left:0;right:0;text-align:center;font-size:11px;color:#5a527a;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="620" height="460"></canvas>
+  <div id="hud">
+    <div id="title">HANOI</div>
+    <div id="scoreBox"><div class="lab">MOVES / OPTIMAL</div><div class="val" id="moveVal">0 / 31</div></div>
+  </div>
+  <div id="pegBtns">
+    <button class="pbtn" id="pb0">A</button>
+    <button class="pbtn" id="pb1">B</button>
+    <button class="pbtn" id="pb2">C</button>
+  </div>
+  <div id="tip">Keys 1/2/3 or A/B/C · click peg or button · R to restart</div>
+  <div id="over">
+    <h1>SOLVED ✦</h1>
+    <p id="finMsg">moves</p>
+    <button onclick="initGame()">Play Again ▸</button>
+  </div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+const W=620,H=460;
+
+// ---- Disc constants ----
+// 5 discs, size values 0..4: 0=smallest(narrowest), 4=largest(widest)
+// Stack stored bottom-first: stack[0]=4(largest), stack[top]=0(smallest)
+const NDISCS=5, OPTIMAL=(1<<NDISCS)-1; // 31
+const DISC_MAX_W=200,DISC_MIN_W=52,DISC_STEP=(DISC_MAX_W-DISC_MIN_W)/(NDISCS-1);
+const DISC_H=22;
+// size 0=narrowest, size 4=widest
+function discWidth(size){return DISC_MIN_W+size*DISC_STEP;}
+
+// Cosmos accent palette by disc size (0=smallest top -> 4=largest bottom)
+const DISC_COL=['#ff6a3d','#36d39a','#ff5cc2','#46b4ff','#8b5cff'];
+
+// ---- Layout ----
+const BASE_Y=H-56, PEG_H=208, PEG_W=8;
+const PEG_X=[130,310,490];
+const LIFT_Y=BASE_Y-PEG_H-32; // Y to lift disc to before sliding
+
+// ---- Precompute optimal move list (deterministic) ----
+const MOVES=[];
+(function hanoi(n,from,to,via){
+  if(n===0)return;
+  hanoi(n-1,from,via,to);
+  MOVES.push([from,to]);
+  hanoi(n-1,via,to,from);
+})(NDISCS,0,2,1);
+// MOVES.length === 31
+
+const MOVE_MS=520; // ms per move in AUTO demo
+const LOOP=12000;  // loop period ms
+// START offset: 3900ms = 7.5 moves in -> movesDone=7, frac=0.5 -> disc mid-slide at t=0
+const START=3900;
+
+// ---- Build initial state: all discs stacked on peg 0 ----
+function buildInitialPegs(){
+  // bottom of array = bottom of stack = largest disc (size 4)
+  const p=[[],[],[]];
+  for(let s=NDISCS-1;s>=0;s--) p[0].push(s);
+  return p;
+}
+
+// ---- Drawing ----
+function drawBase(){
+  cx.save();
+  // base platform
+  cx.fillStyle='#1a1240';
+  cx.beginPath();cx.roundRect(PEG_X[0]-110,BASE_Y,PEG_X[2]-PEG_X[0]+220,14,7);cx.fill();
+  cx.fillStyle='#231550';
+  cx.beginPath();cx.roundRect(PEG_X[0]-100,BASE_Y+14,PEG_X[2]-PEG_X[0]+200,5,3);cx.fill();
+  cx.restore();
+}
+
+function drawPeg(pi,highlight){
+  const x=PEG_X[pi];
+  cx.save();
+  cx.shadowBlur=highlight?24:6;
+  cx.shadowColor=highlight?'#8b5cff':'rgba(139,92,255,0.3)';
+  cx.fillStyle=highlight?'#9b6cff':'#3a2a6a';
+  cx.beginPath();cx.roundRect(x-PEG_W/2,BASE_Y-PEG_H,PEG_W,PEG_H,4);cx.fill();
+  cx.restore();
+}
+
+function drawDisc(x,y,size,alpha){
+  const w=discWidth(size);
+  const col=DISC_COL[size];
+  cx.save();
+  cx.globalAlpha=alpha!==undefined?alpha:1;
+  cx.shadowBlur=20;cx.shadowColor=col;
+  cx.fillStyle=col;
+  cx.beginPath();cx.roundRect(x-w/2,y-DISC_H/2,w,DISC_H,DISC_H/2);cx.fill();
+  // inner highlight
+  cx.globalAlpha=(alpha!==undefined?alpha:1)*0.3;
+  cx.fillStyle='#fff';
+  cx.beginPath();cx.roundRect(x-w/2+8,y-DISC_H/2+4,w-16,5,2);cx.fill();
+  cx.restore();
+}
+
+function drawPegLabel(pi,label,active){
+  cx.save();
+  cx.fillStyle=active?'#c0b0ff':'#5a5280';
+  cx.font='bold 12px system-ui';
+  cx.textAlign='center';
+  cx.fillText(label,PEG_X[pi],BASE_Y+36);
+  cx.restore();
+}
+
+function renderState(pegs,selected,flyDisc,flyX,flyY){
+  cx.clearRect(0,0,W,H);
+  drawBase();
+  for(let i=0;i<3;i++) drawPeg(i,selected===i);
+  // Draw stacked discs (si=0 is bottom of stack = bottom of peg)
+  for(let pi=0;pi<3;pi++){
+    for(let si=0;si<pegs[pi].length;si++){
+      const size=pegs[pi][si];
+      const dy=BASE_Y-DISC_H/2-si*DISC_H;
+      drawDisc(PEG_X[pi],dy,size);
+    }
+  }
+  // In-flight disc
+  if(flyDisc!==null&&flyDisc!==undefined){
+    drawDisc(flyX,flyY,flyDisc,0.95);
+  }
+  // Peg labels
+  const labels=['A','B','C'];
+  for(let i=0;i<3;i++) drawPegLabel(i,labels[i],selected===i);
+}
+
+// ---- AUTO: simulate optimal solve to time ms ----
+function simTo(ms){
+  const pegs=buildInitialPegs();
+  const totalMoves=MOVES.length;
+  const rawMove=ms/MOVE_MS;
+  const movesDone=Math.min(Math.floor(rawMove),totalMoves);
+  const frac=(movesDone<totalMoves)?(rawMove-movesDone):0;
+
+  // Replay completed moves onto pegs
+  for(let i=0;i<movesDone;i++){
+    const [fr,to]=MOVES[i];
+    const d=pegs[fr].pop();
+    pegs[to].push(d);
+  }
+
+  let flyDisc=null,flyX=0,flyY=0;
+  if(movesDone<totalMoves&&frac>0){
+    const [fr,to]=MOVES[movesDone];
+    // Remove top disc from source temporarily
+    const disc=pegs[fr].pop();
+    const srcX=PEG_X[fr],dstX=PEG_X[to];
+    // Y position of disc once placed at destination
+    const dstY=BASE_Y-DISC_H/2-pegs[to].length*DISC_H;
+    // Y position the disc was sitting at on source (before lift)
+    const srcY=BASE_Y-DISC_H/2-pegs[fr].length*DISC_H;
+
+    // Phase: 0..0.25 lift, 0.25..0.75 slide, 0.75..1.0 drop
+    let fx,fy;
+    if(frac<0.25){
+      const t2=frac/0.25;
+      // ease out
+      const e=1-(1-t2)*(1-t2);
+      fx=srcX; fy=srcY+(LIFT_Y-srcY)*e;
+    } else if(frac<0.75){
+      const t2=(frac-0.25)/0.5;
+      fx=srcX+(dstX-srcX)*t2; fy=LIFT_Y;
+    } else {
+      const t2=(frac-0.75)/0.25;
+      const e=t2*t2;
+      fx=dstX; fy=LIFT_Y+(dstY-LIFT_Y)*e;
+    }
+    flyDisc=disc; flyX=fx; flyY=fy;
+  }
+  return{pegs,flyDisc,flyX,flyY,movesDone};
+}
+
+function drawAt(ms){
+  // START offset so t=0 is mid-solve (7.5 moves in)
+  const solveMs=ms+START;
+  // Loop within the solve by clamping; after LOOP ms of solve we've seen enough
+  const{pegs,flyDisc,flyX,flyY,movesDone}=simTo(solveMs);
+  renderState(pegs,-1,flyDisc,flyX,flyY);
+  // HUD overlay (move counter in AUTO)
+  cx.save();
+  cx.fillStyle='rgba(13,10,31,0.6)';
+  cx.beginPath();cx.roundRect(W/2-80,10,160,34,8);cx.fill();
+  cx.fillStyle='#c0b0ff';cx.font='bold 13px system-ui';cx.textAlign='center';
+  cx.fillText('Moves: '+movesDone+' / '+OPTIMAL,W/2,33);
+  cx.restore();
+}
+
+// ---- LIVE game state ----
+let gamePegs,gameMoves,selected,won;
+
+function initGame(){
+  gamePegs=buildInitialPegs();
+  gameMoves=0; selected=-1; won=false;
+  document.getElementById('over').style.display='none';
+  document.getElementById('moveVal').textContent='0 / '+OPTIMAL;
+  for(let i=0;i<3;i++) document.getElementById('pb'+i).classList.remove('sel');
+  scheduleDraw();
+}
+
+function scheduleDraw(){
+  requestAnimationFrame(liveRender);
+}
+
+function liveRender(){
+  if(won)return;
+  // If a peg is selected, show its top disc lifted
+  let flyDisc=null,flyX=0,flyY=LIFT_Y+8;
+  if(selected>=0&&gamePegs[selected].length>0){
+    flyDisc=gamePegs[selected][gamePegs[selected].length-1];
+    flyX=PEG_X[selected];
+    // Clone pegs without the lifted disc
+    const view=[gamePegs[0].slice(),gamePegs[1].slice(),gamePegs[2].slice()];
+    view[selected].pop();
+    renderState(view,selected,flyDisc,flyX,flyY);
+  } else {
+    renderState(gamePegs,selected,null,0,0);
+  }
+}
+
+function trySelect(p){
+  if(won)return;
+  if(selected===-1){
+    if(gamePegs[p].length===0)return; // empty peg, nothing to pick
+    selected=p;
+    document.getElementById('pb'+p).classList.add('sel');
+  } else if(selected===p){
+    // Deselect same peg
+    document.getElementById('pb'+selected).classList.remove('sel');
+    selected=-1;
+  } else {
+    // Attempt to move top of selected onto p
+    const src=selected,dst=p;
+    const srcTop=gamePegs[src][gamePegs[src].length-1]; // smallest disc value = narrowest
+    const dstTop=gamePegs[dst].length>0?gamePegs[dst][gamePegs[dst].length-1]:Infinity;
+    document.getElementById('pb'+selected).classList.remove('sel');
+    selected=-1;
+    if(srcTop<dstTop){ // placing smaller (narrower) disc on larger (wider) -> valid
+      gamePegs[src].pop();
+      gamePegs[dst].push(srcTop);
+      gameMoves++;
+      document.getElementById('moveVal').textContent=gameMoves+' / '+OPTIMAL;
+      // Win check: all discs on peg 2 (rightmost)
+      if(gamePegs[2].length===NDISCS){
+        won=true;
+        liveRender(); // one last draw without selection
+        won=true;
+        requestAnimationFrame(()=>{
+          liveRender();
+          document.getElementById('finMsg').textContent=
+            gameMoves+' move'+(gameMoves!==1?'s':'')+' (optimal: '+OPTIMAL+')';
+          document.getElementById('over').style.display='flex';
+        });
+        return;
+      }
+    }
+    // invalid move: silently ignore (disc stays on source)
+  }
+  scheduleDraw();
+}
+
+// ---- Canvas click: map X to peg zone ----
+cv.addEventListener('click',function(e){
+  if(AUTO)return;
+  const rect=cv.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(W/rect.width);
+  const zone=Math.floor(mx/(W/3));
+  if(zone>=0&&zone<=2) trySelect(zone);
+});
+
+// ---- Peg buttons ----
+for(let i=0;i<3;i++){
+  (function(idx){
+    document.getElementById('pb'+idx).addEventListener('click',function(){
+      if(!AUTO) trySelect(idx);
+    });
+  })(i);
+}
+
+// ---- Keyboard: 1/2/3 or A/B/C or R ----
+document.addEventListener('keydown',function(e){
+  if(AUTO)return;
+  switch(e.key.toLowerCase()){
+    case '1': case 'a': trySelect(0); break;
+    case '2': case 'b': trySelect(1); break;
+    case '3': case 'c': trySelect(2); break;
+    case 'r': initGame(); break;
+  }
+});
+
+// ---- Boot ----
+if(AUTO){
+  document.getElementById('pegBtns').style.display='none';
+  document.getElementById('tip').style.display='none';
+  window.__seek=function(t){ drawAt(((t%LOOP)+LOOP)%LOOP); };
+  window.__seek(0);
+  window.__ready=true;
+} else {
+  initGame();
+}
+</script></body></html>

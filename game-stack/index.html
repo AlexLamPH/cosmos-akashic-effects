@@ -1,0 +1,211 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Stack</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:440px;height:640px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(70,180,255,.06) inset;}
+  #hud{position:absolute;top:14px;left:0;right:0;display:flex;justify-content:space-between;
+    padding:0 22px;pointer-events:none;font-weight:700;letter-spacing:.5px;}
+  #score{font-size:34px;color:#fff;text-shadow:0 0 14px rgba(70,180,255,.8);}
+  #best{font-size:14px;color:#8b5cff;align-self:center;opacity:.85;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:26px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tap{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="440" height="640"></canvas>
+  <div id="hud"><div id="score">0</div><div id="best">BEST 0</div></div>
+  <div id="over"><h1>TOPPLED</h1><p id="fin">Height 0</p><button id="btn">Restart ▸</button></div>
+  <div id="tap">SPACE / TAP / CLICK to drop · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=440,H=640;
+const VIO='139,92,255',COS='70,180,255',NEB='255,92,194',AUR='54,211,154',SOL='255,106,61',SAC='224,178,74';
+// hue cycle for stacked blocks
+const HUES=[COS,VIO,NEB,AUR,SAC,SOL];
+// sim constants
+const BH=30;            // block height
+const BASEW=240;        // starting block width
+const BASEY=H-90;       // y of the top of the base block, in tower-local coords
+const SPEED=0.0042;     // horizontal oscillation speed (rad/ms)
+const AMP=150;          // oscillation amplitude around center
+const CX=W/2;           // center x
+const DT=16;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// per-level oscillation phase offset & direction (deterministic)
+function phase(i){const r=mul(2024+i*131);return r()*Math.PI*2;}
+function dir(i){const r=mul(91+i*57);return r()<0.5?-1:1;}
+// ---- state ----
+let S;
+function reset(){
+  S={t:0,level:0,score:0,dead:false,best:S?S.best:0,shake:0,
+     // tower: array of placed blocks {cx, w, hue}
+     stack:[{cx:CX,w:BASEW,hue:0}],
+     // current moving block
+     mvW:BASEW, dropping:false, slices:[]};
+}
+reset();
+// moving block x as a pure function of time within current level
+function movingCx(t,level,w){
+  const ph=phase(level), d=dir(level);
+  const span=Math.min(AMP, (W-w)/2 - 8);
+  return CX + d*Math.sin(t*SPEED+ph)*span;
+}
+// place the current moving block onto the top of the stack; returns true if survived
+function place(cx,w){
+  const top=S.stack[S.stack.length-1];
+  const left=Math.max(cx-w/2, top.cx-top.w/2);
+  const right=Math.min(cx+w/2, top.cx+top.w/2);
+  const overlap=right-left;
+  if(overlap<=2){ S.dead=true; S.shake=14; return false; }
+  const newCx=(left+right)/2;
+  const newW=overlap;
+  // sliced overhang for animation
+  const sliced=w-newW;
+  if(sliced>1.5){
+    const slCx = (cx<newCx)? (cx-w/2 + sliced/2) : (cx+w/2 - sliced/2);
+    S.slices.push({cx:slCx, w:sliced, hue:(S.level+1)%HUES.length, age:0, vy:0,
+                   dir:(cx<newCx?-1:1)});
+  }
+  S.level++;
+  S.score=S.level;
+  const perfect=Math.abs(cx-top.cx)<3.5;
+  S.stack.push({cx:newCx,w:newW,hue:S.level%HUES.length,perfect});
+  S.mvW=newW;
+  return true;
+}
+// ---- AUTO sim ----
+// auto-player drops the moving block when it is near-perfectly aligned with the top block.
+// We advance time; once per level when alignment is good, we place.
+const DROP_INTERVAL=760; // ms the auto block oscillates before being dropped (visible motion)
+function step(st,auto){
+  st.t+=DT;
+  // advance slices
+  for(const s of st.slices){ s.age+=DT; s.vy+=0.9; s.cx+=s.dir*1.5; }
+  st.slices=st.slices.filter(s=>s.age<700);
+  if(st.shake>0.3) st.shake*=0.92;
+}
+// deterministic AUTO: returns a fully-derived state at ms
+function simTo(ms){
+  reset();
+  const START=2600;            // start with a tall-ish tower already built
+  let target=START+ms;
+  // levelClock: time since current moving block appeared
+  let levelStart=0;
+  while(S.t<target && !S.dead){
+    step(S,true);
+    const local=S.t-levelStart;
+    if(local>=DROP_INTERVAL){
+      // auto drops near-perfectly: choose the moment when osc is closest to top center.
+      const top=S.stack[S.stack.length-1];
+      const cx=movingCx(S.t,S.level,S.mvW);
+      // tiny deterministic imperfection so blocks visibly shrink slowly
+      const r=mul(555+S.level*17);
+      const jitter=(r()-0.5)*10;
+      place(top.cx+jitter, S.mvW);
+      levelStart=S.t;
+      if(S.dead){ /* extremely rare with small jitter */ }
+    }
+  }
+  // expose current moving block position for draw
+  S.mvLocal=S.t-levelStart;
+  S.mvCx=movingCx(S.t,S.level,S.mvW);
+  S.mvLevelStart=levelStart;
+  return S;
+}
+// ---- camera: tower scrolls down as it grows so top stays near upper third ----
+function camOffset(st){
+  const topLevel=st.level;
+  const desiredTopY=H*0.30;            // where the top block should sit on screen
+  const towerTopY=BASEY - topLevel*BH; // world y of top block
+  return desiredTopY - towerTopY;      // add to world y
+}
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function block(cx,worldY,w,hue,glow,perfect){
+  const y=worldY; const c=HUES[hue%HUES.length];
+  if(glow){ x.globalCompositeOperation='lighter';
+    x.fillStyle=`rgba(${c},.12)`; rr(cx-w/2-6,y-6,w+12,BH+12,10); x.fill();
+    x.globalCompositeOperation='source-over'; }
+  const g=x.createLinearGradient(cx-w/2,y,cx+w/2,y+BH);
+  g.addColorStop(0,`rgba(${c},.95)`);g.addColorStop(.5,'rgba(30,22,70,.95)');g.addColorStop(1,`rgba(${c},.95)`);
+  x.fillStyle=g; rr(cx-w/2,y,w,BH-2,6); x.fill();
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${c},.45)`; x.fillRect(cx-w/2+4,y+2,w-8,2);
+  if(perfect){ x.strokeStyle=`rgba(255,255,255,.8)`; x.lineWidth=1.5; rr(cx-w/2,y,w,BH-2,6); x.stroke(); }
+  x.globalCompositeOperation='source-over';
+}
+function draw(st){
+  const sx=st.shake>0.4?(Math.sin(st.t*0.7)*st.shake):0, sy=st.shake>0.4?(Math.cos(st.t*0.9)*st.shake):0;
+  const cam=camOffset(st);
+  x.save(); x.translate(sx,sy);
+  x.clearRect(-20,-20,W+40,H+40);
+  const bg=x.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#140d30');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  // star dots parallax against tower height
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<44;i++){const r=mul(5+i*11);const bx=r()*W;
+    const by=((r()*H*2 + cam*0.4)%(H+40)+H+40)%(H+40)-20; const tw=0.3+0.5*r(); const rad=0.6+1.5*r();
+    x.fillStyle=`rgba(${COS},${tw*0.5})`; x.beginPath();x.arc(bx,by,rad,0,7); x.fill();}
+  x.globalCompositeOperation='source-over';
+  // stacked blocks
+  for(let i=0;i<st.stack.length;i++){const b=st.stack[i];
+    const worldY=BASEY - i*BH + cam; if(worldY>H+40||worldY<-40)continue;
+    block(b.cx,worldY,b.w,b.hue,true,b.perfect);
+  }
+  // sliced overhang pieces falling
+  for(const s of st.slices){ const worldY=BASEY - st.level*BH + cam + s.vy;
+    const c=HUES[s.hue%HUES.length]; x.globalAlpha=Math.max(0,1-s.age/700);
+    x.fillStyle=`rgba(${c},.85)`; rr(s.cx-s.w/2,worldY,s.w,BH-2,5); x.fill(); x.globalAlpha=1; }
+  // moving block (next to drop) hovering above the top
+  if(!st.dead){
+    const mvY=BASEY - (st.level+1)*BH + cam;
+    const cx=(st.mvCx!==undefined)?st.mvCx:movingCx(st.t,st.level,st.mvW);
+    block(cx,mvY,st.mvW,(st.level+1)%HUES.length,true,false);
+    // drop guide line
+    x.globalCompositeOperation='lighter';
+    x.strokeStyle=`rgba(${COS},.18)`;x.lineWidth=1.5;x.setLineDash([4,6]);
+    x.beginPath();x.moveTo(cx,mvY+BH);x.lineTo(cx,H);x.stroke();x.setLineDash([]);
+    x.globalCompositeOperation='source-over';
+  }
+  x.restore();
+  document.getElementById('score').textContent=st.score;
+  document.getElementById('best').textContent='BEST '+Math.max(st.best,st.score);
+}
+const LOOP=11000;
+function drawAt(ms){ const st=simTo(ms); draw(st); }
+// ---- live game ----
+let live, raf, last, acc=0, levelStart=0;
+function initGame(){
+  reset(); S.t=0; live=true; levelStart=0;
+  const over=document.getElementById('over'), btn=document.getElementById('btn');
+  function drop(){ if(S.dead)return;
+    const cx=movingCx(S.t,S.level,S.mvW); place(cx,S.mvW); levelStart=S.t;
+  }
+  function restart(){ const b=S.best; reset(); S.best=b; S.t=0; levelStart=0; live=true; over.style.display='none'; }
+  function loop(now){ if(!last)last=now; let dt=now-last; last=now; if(dt>60)dt=60;
+    if(live && !S.dead){ acc+=dt; while(acc>=DT){ step(S,false); acc-=DT; } }
+    // live moving block position
+    S.mvCx=movingCx(S.t,S.level,S.mvW); S.mvLocal=S.t-levelStart;
+    draw(S);
+    if(S.dead && live){ live=false; if(S.score>S.best)S.best=S.score;
+      document.getElementById('fin').textContent='Height '+S.score+'  ·  Best '+S.best;
+      over.style.display='flex'; }
+    raf=requestAnimationFrame(loop); }
+  addEventListener('keydown',e=>{ if(e.code==='Space'){e.preventDefault(); S.dead?restart():drop();}
+    if(e.key==='r'||e.key==='R')restart(); });
+  cv.addEventListener('pointerdown',()=>{ S.dead?restart():drop(); });
+  btn.addEventListener('click',e=>{e.stopPropagation();restart();});
+  raf=requestAnimationFrame(loop);
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Hexagon Grid</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Hexagon Grid — a honeycomb HUD whose hexes brighten in concentric travelling pulse waves radiating from the centre. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=6000,TAU=6.283185307;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let W,H,DPR,cx,cy,R,cells;
+function build(){const r=mb(13);cells=[];const maxd=Math.hypot(cx,cy);
+  const hw=Math.sqrt(3)*R, vh=1.5*R;                       // pointy-top hex spacing
+  const rows=Math.ceil(H/vh)+2, cols=Math.ceil(W/hw)+2;
+  for(let rr=-1;rr<rows;rr++)for(let cc=-1;cc<cols;cc++){
+    const px=cc*hw+(rr&1?hw/2:0), py=rr*vh;
+    const d=Math.hypot(px-cx,py-cy)/maxd;                  // 0..1 from centre
+    cells.push({px,py,d,col:COL[(Math.abs(rr)+Math.abs(cc))%6],j:r()});}}
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;R=Math.min(W,H)*0.046;build();}
+rs();addEventListener('resize',rs);
+function hexPath(px,py,s){x.beginPath();for(let i=0;i<6;i++){const a=TAU*(i/6)-TAU/12+Math.PI/2;const X=px+s*Math.cos(a),Y=py+s*Math.sin(a);i?x.lineTo(X,Y):x.moveTo(X,Y);}x.closePath();}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';x.lineJoin='round';
+  const freq=9.0;                                          // ring density across screen
+  for(const c of cells){
+    // two travelling waves (k=2 and k=3) → seamless concentric pulses outward
+    let b=0.5+0.5*Math.sin(TAU*u*2 - c.d*freq);
+    b=0.5*b+0.5*(0.5+0.5*Math.sin(TAU*u*3 - c.d*freq*0.55 + c.j*0.8));
+    const lit=b*b;                                         // sharpen the glow falloff
+    hexPath(c.px,c.py,R*0.9);
+    x.globalAlpha=0.05+0.42*lit;x.fillStyle=c.col;x.fill();
+    x.globalAlpha=0.18+0.78*lit;x.strokeStyle=c.col;x.lineWidth=(0.5+2.0*lit)*DPR;x.stroke();
+    if(lit>0.72){                                          // hot core dot on peak cells
+      x.globalAlpha=(lit-0.72)*2.6;x.beginPath();x.arc(c.px,c.py,R*0.16,0,TAU);x.fillStyle='#fff';x.fill();}
+  }
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

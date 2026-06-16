@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mic Blob</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+  font:600 13px/1.4 system-ui,sans-serif;color:#cdb8ff;letter-spacing:.04em;
+  padding:8px 16px;border:1px solid rgba(139,92,255,.45);border-radius:20px;
+  background:rgba(20,8,40,.55);cursor:pointer;user-select:none;
+  transition:opacity .8s;backdrop-filter:blur(4px);z-index:2}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div id="hint">🎤 enable mic</div>
+<script>
+// Cosmos Mic Blob — a living sound-creature: a metaball-ish orb whose per-angle
+// radius is modulated by the spectrum (low freqs = big lobes), pulsing outward on
+// level, with a glowing core. Mic-reactive live, synthetic fallback for capture.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const hint=document.getElementById('hint');
+const TAU=6.283185307179586, LOOP=8400, N=64;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d'];
+
+let W,H,DPR,cx,cy,R;
+function rs(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=cv.width=Math.round(innerWidth*DPR);
+  H=cv.height=Math.round(innerHeight*DPR);
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  cx=W/2;cy=H/2;R=Math.min(W,H)*0.20;
+}
+rs();addEventListener('resize',rs);
+
+// ---- deterministic synthetic generator ----------------------------------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0xb10b);
+const SEED=[];for(let i=0;i<N;i++)SEED.push({ph:rnd()*TAU,a:0.5+0.6*rnd(),f:1+((rnd()*3)|0)});
+
+// synthSpectrum(u): 64-bin normalised spectrum + level. Moving formants + beat kick.
+function synthSpectrum(u){
+  const spec=new Float32Array(N);
+  const beats=4, bp=(u*beats)%1;
+  const kick=Math.pow(1-bp,3.0);
+  const f1=0.10+0.05*Math.sin(TAU*u);
+  const f2=0.40+0.10*Math.sin(TAU*2*u+1.1);
+  const f3=0.72+0.07*Math.sin(TAU*3*u+2.4);
+  let sum=0;
+  for(let i=0;i<N;i++){
+    const p=i/(N-1);
+    const s=SEED[i];
+    const bump=Math.exp(-Math.pow((p-f1)/0.10,2))*1.0
+              +Math.exp(-Math.pow((p-f2)/0.09,2))*0.7
+              +Math.exp(-Math.pow((p-f3)/0.07,2))*0.5;
+    const tone=0.5+0.5*Math.sin(TAU*s.f*u+s.ph);
+    const lowBoost=(1-p)*0.55*kick;            // kick swells the low bins → big lobes
+    let v=bump*(0.45+0.55*tone)+lowBoost;
+    v*=(1-0.4*p);
+    v=Math.max(0,Math.min(1,v));
+    spec[i]=v;sum+=v;
+  }
+  const level=Math.max(0,Math.min(1,(sum/N)*1.5*(0.7+0.5*kick)));
+  return {spec,level};
+}
+
+// ---- the renderer -------------------------------------------------------
+// Per-angle radius modulated by spectrum bins; low freqs -> big lobes. Pulses
+// outward on level. Glowing core. Trailing fade gives a soft gel-like body.
+function render(spec,level,t){
+  const M=spec.length;
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='rgba(5,3,13,0.28)';
+  x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+
+  const pulse=R*(1.0+1.1*level);                  // whole blob breathes on level
+  const lobe=Math.min(W,H)*0.16;                  // max lobe displacement
+  const STEPS=180;
+  const rot=t*TAU*0.12;                            // slow living rotation
+
+  // map an angle to a spectrum sample; weight toward LOW bins so they dominate.
+  function radiusAt(ang){
+    const a=((ang%TAU)+TAU)%TAU;
+    const k=a/TAU;                                 // 0..1 around the circle
+    // fold so each side sweeps low->high->low; low bins create the big lobes
+    const fold=k<0.5?k*2:(1-k)*2;
+    const w=Math.pow(1-fold,1.6);                  // low-frequency emphasis
+    const fi=fold*(M-1), i0=fi|0, fr=fi-i0;
+    const sv=spec[i0]+(spec[Math.min(M-1,i0+1)]-spec[i0])*fr;
+    // a couple of slow harmonics keep it organic even on flat spectra
+    const wobble=0.5+0.5*Math.sin(ang*3+t*TAU*0.8)+0.3*Math.sin(ang*5-t*TAU*0.5);
+    return pulse + (sv*0.7+0.3)*w*lobe + wobble*lobe*0.18*level;
+  }
+
+  // outer aura (soft) — several tinted, scaled passes for a metaball glow
+  for(let pass=0;pass<COL.length;pass++){
+    const scale=1+(pass*0.05);
+    const alpha=(0.10+0.05*level)*(1-pass*0.14);
+    x.globalAlpha=alpha;
+    x.fillStyle=COL[pass%COL.length];
+    x.beginPath();
+    for(let i=0;i<=STEPS;i++){
+      const ang=i/STEPS*TAU+rot;
+      const r=radiusAt(ang)*scale;
+      const px=cx+Math.cos(ang)*r, py=cy+Math.sin(ang)*r;
+      i?x.lineTo(px,py):x.moveTo(px,py);
+    }
+    x.closePath();x.fill();
+  }
+
+  // crisp membrane outline
+  x.globalAlpha=0.9;
+  x.lineWidth=2.4*DPR;x.lineJoin='round';
+  x.strokeStyle='#cdb8ff';
+  x.beginPath();
+  for(let i=0;i<=STEPS;i++){
+    const ang=i/STEPS*TAU+rot;
+    const r=radiusAt(ang);
+    const px=cx+Math.cos(ang)*r, py=cy+Math.sin(ang)*r;
+    i?x.lineTo(px,py):x.moveTo(px,py);
+  }
+  x.closePath();x.stroke();
+
+  // radiating filaments at the strongest low lobes (tendrils of the creature)
+  x.lineWidth=1.6*DPR;x.lineCap='round';
+  for(let i=0;i<24;i++){
+    const ang=i/24*TAU+rot;
+    const r=radiusAt(ang);
+    const reach=(r-pulse)/lobe;                    // how far this lobe sticks out
+    if(reach<0.25)continue;
+    x.globalAlpha=0.35*Math.min(1,reach);
+    x.strokeStyle=COL[i%COL.length];
+    const x0=cx+Math.cos(ang)*r, y0=cy+Math.sin(ang)*r;
+    const x1=cx+Math.cos(ang)*(r+reach*lobe*0.8), y1=cy+Math.sin(ang)*(r+reach*lobe*0.8);
+    x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke();
+  }
+
+  // glowing core
+  const beat=Math.min(1,level*1.3);
+  const cr=pulse*(0.55+0.25*beat);
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,cr);
+  g.addColorStop(0,'rgba(255,255,255,'+(0.6+0.35*beat)+')');
+  g.addColorStop(0.4,'rgba(139,92,255,0.6)');
+  g.addColorStop(0.75,'rgba(70,180,255,0.25)');
+  g.addColorStop(1,'rgba(5,3,13,0)');
+  x.globalAlpha=0.95;x.fillStyle=g;
+  x.beginPath();x.arc(cx,cy,cr,0,TAU);x.fill();
+
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+
+// ---
+// LIVE pipeline (mic with synthetic fallback) — never runs in AUTO.
+let useSynth=true, analyser=null, timeBuf=null, freqBuf=null;
+async function mic(){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const s=await navigator.mediaDevices.getUserMedia({audio:true});
+  const src=ctx.createMediaStreamSource(s);
+  const an=ctx.createAnalyser();an.fftSize=128;an.smoothingTimeConstant=0.75;
+  src.connect(an);
+  analyser=an;
+  timeBuf=new Uint8Array(an.fftSize);
+  freqBuf=new Uint8Array(an.frequencyBinCount);
+  useSynth=false;
+}
+function liveSpectrum(){
+  analyser.getByteFrequencyData(freqBuf);
+  const spec=new Float32Array(N);
+  let e=0;
+  for(let i=0;i<N;i++){const v=(freqBuf[Math.min(freqBuf.length-1,i)]||0)/255;spec[i]=v;e+=v;}
+  const level=Math.min(1,(e/N)*2.4);
+  return {spec,level};
+}
+function startLiveLoop(){
+  const t0=performance.now();
+  let armed=false;
+  hint.addEventListener('pointerdown',async()=>{
+    if(armed)return;armed=true;
+    try{await mic();hint.style.opacity='0';setTimeout(()=>hint.remove(),900);}
+    catch(e){useSynth=true;hint.style.opacity='0';setTimeout(()=>hint.remove(),900);}
+  },{passive:true});
+  (function loop(now){
+    const t=(now-t0)/1000;
+    if(useSynth){const u=((t*1000%LOOP)+LOOP)%LOOP/LOOP;const s=synthSpectrum(u);render(s.spec,s.level,u);}
+    else{const s=liveSpectrum();render(s.spec,s.level,t);}
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  if(hint)hint.remove();
+  window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP; const s=synthSpectrum(u); render(s.spec,s.level,u);};
+  window.__seek(0); window.__ready=true;
+} else {
+  let useSynthAttract=true; // attract loop uses synth; first gesture tries mic()->success drives analyser, failure keeps synth
+  startLiveLoop();
+}
+</script></body></html>

@@ -1,0 +1,243 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Reactive Liquid</title>
+<style>
+  html,body{margin:0;height:100%;background:#05030d;overflow:hidden}
+  #cv{position:fixed;inset:0;display:block;background:#05030d}
+  #hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+    font:600 13px/1.4 system-ui,sans-serif;color:#aef0ff;letter-spacing:.04em;
+    padding:8px 16px;border:1px solid rgba(120,200,255,.35);border-radius:999px;
+    background:rgba(10,20,40,.5);backdrop-filter:blur(4px);cursor:pointer;
+    transition:opacity .8s;user-select:none;z-index:5}
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div id="hint">🎤 enable mic</div>
+<script>
+const cv=document.getElementById('cv'), g=cv.getContext('2d');
+const hint=document.getElementById('hint');
+let W=0,H=0,DPR=1;
+function resize(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  W=innerWidth; H=innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR;
+  cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+  g.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize); resize();
+
+const LOOP=9200;
+const BINS=64;
+const TWO=Math.PI*2;
+
+// ---- seeded RNG once ----
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x9e3b1c);
+
+// metaball blobs riding the surface
+const NB=7;
+const blobBase=new Float32Array(NB), blobPhase=new Float32Array(NB),
+      blobHarm=new Float32Array(NB), blobR=new Float32Array(NB), blobBin=new Int32Array(NB);
+for(let i=0;i<NB;i++){
+  blobBase[i]=(i+0.5)/NB;                  // x position 0..1
+  blobPhase[i]=rnd()*TWO;
+  blobHarm[i]=1+((rnd()*3)|0);
+  blobR[i]=0.6+rnd()*0.7;
+  blobBin[i]=Math.floor(rnd()*BINS);
+}
+
+// surface sample resolution
+const NX=96;
+
+// ---- synthetic spectrum: seeded sum-of-sines + beat kick ----
+function synthSpectrum(u){
+  const spec=new Float32Array(BINS);
+  const beats=4;
+  const bp=(u*beats)%1;
+  const kick=Math.pow(1-bp,2.6);
+  let lvl=0;
+  for(let i=0;i<BINS;i++){
+    const f=i/BINS;
+    const b1=Math.exp(-Math.pow((f-0.10-0.05*Math.sin(u*TWO))*9,2));
+    const b2=Math.exp(-Math.pow((f-0.38-0.06*Math.sin(u*TWO*2+0.7))*7,2));
+    const b3=Math.exp(-Math.pow((f-0.70-0.05*Math.cos(u*TWO*1.5))*8,2));
+    let v=0.95*b1+0.7*b2+0.45*b3;
+    v*=0.5+0.5*Math.sin(u*TWO*(2+ (i%5)) + i*0.4);
+    v=Math.abs(v);
+    v+=kick*(0.8-0.6*f)*0.9;
+    v=Math.min(1,v*0.85);
+    spec[i]=v; lvl+=v;
+  }
+  lvl=Math.min(1,lvl/BINS*1.7+kick*0.3);
+  return {spec, level:lvl};
+}
+
+// surface height at normalized x in [0..1], from spectrum
+function surfaceY(x,spec,level,u,slosh){
+  // map x to a band of spectrum bins → ripple
+  let h=0;
+  const idx=x*(BINS-1);
+  const i0=idx|0, fr=idx-i0, i1=Math.min(BINS-1,i0+1);
+  const sv=spec[i0]*(1-fr)+spec[i1]*fr;
+  h+=sv*0.9;
+  // travelling ripples
+  h+=0.12*Math.sin(x*TWO*5 - u*TWO*2);
+  h+=0.07*Math.sin(x*TWO*9 + u*TWO*3);
+  // slosh: whole surface tilts/heaves on the beat
+  h+=slosh*0.25*Math.sin(x*Math.PI - u*TWO);
+  return h;
+}
+
+function render(spec,level,t){
+  const u=(typeof t==='number')?(t%1+1)%1:0;
+
+  // beat slosh envelope
+  const beats=4; const bp=(u*beats)%1;
+  const slosh=Math.pow(1-bp,2.6)*(0.6+level);
+
+  // background gradient (Phantom-dark, cosmos depth)
+  let bg=g.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#05030d');
+  bg.addColorStop(0.55,'#070417');
+  bg.addColorStop(1,'#0a0820');
+  g.globalCompositeOperation='source-over';
+  g.fillStyle=bg; g.fillRect(0,0,W,H);
+
+  const baseLine=H*0.62;
+  const amp=H*0.26*(0.6+level*0.9);
+
+  // ---- build surface polyline ----
+  const pts=[];
+  for(let i=0;i<=NX;i++){
+    const x=i/NX;
+    const hy=surfaceY(x,spec,level,u,slosh);
+    const px=x*W;
+    const py=baseLine - hy*amp;
+    pts.push(px,py);
+  }
+
+  // ---- liquid body fill ----
+  g.beginPath();
+  g.moveTo(0,H);
+  g.lineTo(pts[0],pts[1]);
+  for(let i=1;i<=NX;i++){ g.lineTo(pts[i*2],pts[i*2+1]); }
+  g.lineTo(W,H); g.closePath();
+
+  const body=g.createLinearGradient(0,baseLine-amp,0,H);
+  body.addColorStop(0,'rgba(120,90,255,0.92)');
+  body.addColorStop(0.35,'rgba(90,60,220,0.95)');
+  body.addColorStop(0.7,'rgba(40,30,140,0.98)');
+  body.addColorStop(1,'rgba(15,12,60,1)');
+  g.fillStyle=body; g.fill();
+
+  // ---- metaball bulges on the surface (additive glow) ----
+  g.globalCompositeOperation='lighter';
+  for(let b=0;b<NB;b++){
+    const x=(blobBase[b]+0.06*Math.sin(blobPhase[b]+u*TWO*blobHarm[b]))%1;
+    const sv=spec[blobBin[b]];
+    const hy=surfaceY(x,spec,level,u,slosh);
+    const px=((x%1)+1)%1*W;
+    const py=baseLine - hy*amp;
+    const r=(H*0.04)*blobR[b]*(0.7+sv*1.6+slosh*0.6);
+    const gr=g.createRadialGradient(px,py,0,px,py,r);
+    const hue=210+ b*16 + sv*60;
+    gr.addColorStop(0,'hsla('+hue+',95%,80%,'+(0.55+sv*0.4)+')');
+    gr.addColorStop(0.5,'hsla('+(hue+20)+',90%,60%,'+(0.22+sv*0.2)+')');
+    gr.addColorStop(1,'hsla('+hue+',80%,50%,0)');
+    g.fillStyle=gr;
+    g.beginPath(); g.arc(px,py,r,0,TWO); g.fill();
+  }
+
+  // ---- glossy sheen line along the surface ----
+  g.lineJoin='round'; g.lineCap='round';
+  g.beginPath();
+  g.moveTo(pts[0],pts[1]);
+  for(let i=1;i<=NX;i++){ g.lineTo(pts[i*2],pts[i*2+1]); }
+  g.strokeStyle='rgba(200,230,255,'+(0.5+level*0.4)+')';
+  g.lineWidth=2.5; g.stroke();
+
+  // subtle inner highlight just under the surface
+  g.beginPath();
+  g.moveTo(pts[0],pts[1]+6);
+  for(let i=1;i<=NX;i++){ g.lineTo(pts[i*2],pts[i*2+1]+6); }
+  g.strokeStyle='rgba(140,180,255,'+(0.2+level*0.25)+')';
+  g.lineWidth=8; g.stroke();
+
+  // specular sparkle highlights on wave crests
+  for(let i=2;i<NX-2;i+=1){
+    const y=pts[i*2+1], yl=pts[(i-1)*2+1], yr=pts[(i+1)*2+1];
+    if(y<yl && y<yr){ // local crest
+      const crest=(yl+yr)/2 - y;
+      if(crest>amp*0.04){
+        const a=Math.min(0.9,crest/(amp*0.4))*(0.5+level);
+        g.fillStyle='rgba(235,245,255,'+a+')';
+        g.beginPath(); g.arc(pts[i*2],y,1.5+a*2.5,0,TWO); g.fill();
+      }
+    }
+  }
+
+  // ---- mist glow above the surface near loud bins ----
+  let mist=g.createLinearGradient(0,baseLine-amp*1.3,0,baseLine);
+  mist.addColorStop(0,'rgba(110,90,255,0)');
+  mist.addColorStop(1,'rgba(120,100,255,'+(0.10+level*0.12)+')');
+  g.fillStyle=mist;
+  g.fillRect(0,baseLine-amp*1.3,W,amp*1.3);
+
+  g.globalCompositeOperation='source-over';
+}
+
+// ---------- mic (live only) ----------
+let useSynth=true, analyser=null, freqData=null;
+async function mic(){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const s=await navigator.mediaDevices.getUserMedia({audio:true});
+  const src=ctx.createMediaStreamSource(s);
+  const an=ctx.createAnalyser(); an.fftSize=128; an.smoothingTimeConstant=0.78;
+  src.connect(an);
+  analyser=an; freqData=new Uint8Array(an.frequencyBinCount);
+  useSynth=false;
+}
+function liveSpectrum(){
+  analyser.getByteFrequencyData(freqData);
+  const n=freqData.length, spec=new Float32Array(BINS);
+  let lvl=0;
+  for(let i=0;i<BINS;i++){
+    const idx=Math.min(n-1,Math.floor(i/BINS*n));
+    const v=freqData[idx]/255; spec[i]=v; lvl+=v;
+  }
+  lvl=Math.min(1,lvl/BINS*1.8);
+  return {spec, level:lvl};
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+
+function startLiveLoop(){
+  const t0=performance.now();
+  function frame(now){
+    const t=(now-t0)/1000;
+    const u=((t*1000%LOOP)+LOOP)%LOOP/LOOP;
+    let s;
+    if(!useSynth && analyser){ s=liveSpectrum(); }
+    else { s=synthSpectrum(u); }
+    render(s.spec, s.level, u);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  function tryMic(){
+    mic().then(()=>{ hint.style.opacity='0'; setTimeout(()=>hint.remove(),900); })
+         .catch(()=>{ useSynth=true; hint.style.opacity='0'; setTimeout(()=>hint.remove(),900); });
+    removeEventListener('pointerdown',tryMic);
+  }
+  addEventListener('pointerdown',tryMic);
+  hint.addEventListener('pointerdown',tryMic);
+}
+
+if(AUTO){
+  window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP; const s=synthSpectrum(u); render(s.spec,s.level,u);};
+  window.__seek(0); window.__ready=true;
+} else {
+  let useSynthInit=true; /* attract loop uses synth; first gesture tries mic */
+  startLiveLoop();
+}
+</script>
+</body></html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Copy Button</title>
+<!-- Cosmos Copy Button — a polished code-snippet panel with a copy-to-clipboard button that, on click, morphs into a green "Copied!" checkmark with a little particle burst, then reverts. Self-contained, zero deps. Live = real clipboard copy + animation; AUTO = deterministic looping demo via render(u)/__seek. -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:#0a0816;display:flex;align-items:center;justify-content:center;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5}
+.panel{position:relative;width:430px;border-radius:16px;
+  background:linear-gradient(160deg,rgba(28,24,48,0.94),rgba(15,12,30,0.94));
+  border:1px solid rgba(139,92,255,0.18);
+  box-shadow:0 22px 60px -14px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.02) inset,
+    0 1px 0 rgba(255,255,255,0.05) inset;overflow:hidden}
+.panel::before{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;
+  background:radial-gradient(120% 70% at 50% -10%,rgba(139,92,255,0.14),transparent 60%);}
+.bar{display:flex;align-items:center;gap:8px;padding:11px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(8,6,18,0.4)}
+.dot{width:11px;height:11px;border-radius:50%}
+.d1{background:#ff6a5e}.d2{background:#f5bf4f}.d3{background:#5bd06f}
+.fname{margin-left:8px;font-size:12px;color:#8d86ad;font-weight:500;letter-spacing:.2px}
+.body{position:relative;padding:20px 18px 22px}
+.code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.85;
+  color:#cfc8ec;white-space:pre;overflow:hidden}
+.k{color:#c08bff}.f{color:#46b4ff}.s{color:#36d39a}.p{color:#ff7fbf}.c{color:#6a6390}
+.btnwrap{position:absolute;top:14px;right:18px}
+.cbtn{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;
+  min-width:104px;
+  border-radius:9px;border:1px solid rgba(139,92,255,0.30);cursor:pointer;
+  font-size:12.5px;font-weight:600;letter-spacing:.2px;color:#cabfff;
+  background:linear-gradient(135deg,rgba(139,92,255,0.20),rgba(122,79,240,0.12));
+  overflow:hidden;white-space:nowrap}
+.cbtn .grn{position:absolute;inset:0;border-radius:9px;z-index:1;
+  background:linear-gradient(135deg,#36d39a,#2bb886);transform-origin:center;}
+.cbtn .lbl{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.cbtn .copytxt,.cbtn .donetxt{position:absolute;left:0;right:0;justify-content:center}
+.cbtn svg{width:15px;height:15px;flex:none}
+.cbtn .copytxt,.cbtn .donetxt{display:flex;align-items:center;gap:7px}
+.burst{position:absolute;top:0;left:0;pointer-events:none;z-index:5}
+.spark{position:absolute;width:6px;height:6px;border-radius:50%;}
+</style></head>
+<body>
+<div class="panel">
+  <div class="bar">
+    <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span>
+    <span class="fname">cosmos.config.ts</span>
+  </div>
+  <div class="body">
+    <div class="code"><span class="k">import</span> { defineConfig } <span class="k">from</span> <span class="s">'cosmos'</span>
+
+<span class="k">export default</span> <span class="f">defineConfig</span>({
+  <span class="p">theme</span>: <span class="s">'phantom'</span>,
+  <span class="p">accent</span>: <span class="s">'#8b5cff'</span>,
+  <span class="p">glass</span>: <span class="k">true</span>,
+})</div>
+    <div class="btnwrap">
+      <div class="cbtn" id="cbtn">
+        <span class="grn" id="grn"></span>
+        <span class="lbl">
+          <span class="copytxt" id="copytxt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            <span>Copy</span>
+          </span>
+          <span class="donetxt" id="donetxt" style="position:absolute;left:0;color:#fff">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
+            <span>Copied!</span>
+          </span>
+        </span>
+      </div>
+      <div class="burst" id="burst"></div>
+    </div>
+  </div>
+</div>
+<script>
+const TAU=Math.PI*2;
+const $=s=>document.querySelector(s);
+const cbtn=$('#cbtn'),grn=$('#grn'),copytxt=$('#copytxt'),donetxt=$('#donetxt'),burst=$('#burst');
+
+// deterministic RNG (mulberry32) for spark layout — seeded once
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const NS=8, SP=[];
+{const r=mulberry32(0x51ec0de);
+ for(let i=0;i<NS;i++){const ang=(i/NS)*TAU+r()*0.6;
+   SP.push({ang,dist:26+r()*16,size:4+r()*4,
+     col:['#36d39a','#8b5cff','#46b4ff','#e0b24a'][i%4]});}}
+// build spark DOM once
+const sparkEls=SP.map(s=>{const e=document.createElement('span');e.className='spark';
+  e.style.background=s.col;e.style.width=e.style.height=s.size+'px';burst.appendChild(e);return e;});
+
+const clamp=(a,b,t)=>t<a?a:t>b?b:t;
+const smooth=t=>{t=clamp(0,1,t);return t*t*(3-2*t);};
+const easeOut=t=>1-Math.pow(1-clamp(0,1,t),3);
+// back overshoot for the morph pop
+function back(t){t=clamp(0,1,t);const c=1.9;return 1+ (c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);}
+
+const LOOP=4600;
+// Phase plan over u in [0,1):
+//  A 0.00-0.10  idle (button resting, "Copy")
+//  B 0.10-0.18  press dip + morph to green "Copied!" + burst fires
+//  C 0.18-0.62  hold "Copied!" state (sparks fly out & fade)
+//  D 0.62-0.74  morph back to "Copy"
+//  E 0.74-1.00  idle rest
+// Frame 0 offset lands inside the held "Copied!" moment -> rich thumbnail.
+const OFF=0.34;
+
+function render(u0){
+  let u=(u0+OFF)%1;
+
+  let copied=0;      // 0..1 how "copied" the button looks (green fill + checkmark in)
+  let press=0;       // 0..1 button press dip
+  let burstT=-1;     // <0 = no burst; 0..1 = burst progress
+
+  if(u<0.10){                       // A idle
+    copied=0;
+  } else if(u<0.18){                // B press + morph in + burst start
+    const p=(u-0.10)/0.08;
+    copied=smooth(p);
+    press=Math.sin(clamp(0,1,p)*Math.PI);
+    burstT=easeOut(p*0.6);
+  } else if(u<0.62){                // C hold copied, sparks continue/fade
+    copied=1;
+    burstT=clamp(0,1,0.6+ (u-0.18)/0.44*0.4);
+  } else if(u<0.74){                // D morph back
+    const p=(u-0.62)/0.12;
+    copied=1-smooth(p);
+  } else {                          // E idle
+    copied=0;
+  }
+
+  // --- green fill: scale from a tiny pill to full, with overshoot pop ---
+  const fillIn = u<0.18 ? back((u-0.10)/0.08) : (u<0.74 ? 1 : 0);
+  const g = u<0.62 ? clamp(0,1,fillIn) : copied; // during D, follows copied down
+  grn.style.opacity = g>0.02?1:0;
+  grn.style.transform='scale('+(0.2+0.8*clamp(0,1,g))+')';
+
+  // --- label crossfade copy <-> copied (slight vertical slide) ---
+  copytxt.style.opacity = 1-copied;
+  copytxt.style.transform='translateY('+(copied*-8)+'px)';
+  donetxt.style.opacity = copied;
+  donetxt.style.transform='translateY('+((1-copied)*8)+'px)';
+
+  // --- button press dip + a hair of scale on settle ---
+  const settle = u<0.18 ? (1+0.04*Math.sin(clamp(0,1,(u-0.10)/0.08)*Math.PI)) : 1;
+  cbtn.style.transform='scale('+((1-press*0.06)*settle)+')';
+  cbtn.style.borderColor = copied>0.3 ? 'rgba(54,211,154,0.55)' : 'rgba(139,92,255,0.30)';
+
+  // --- spark burst (emits from button centre) ---
+  if(burstT<0){ burst.style.opacity=0; }
+  else{
+    burst.style.opacity=1;
+    const e=easeOut(burstT);
+    const fade=1-smooth((burstT-0.45)/0.55);
+    for(let i=0;i<NS;i++){const s=SP[i];
+      const d=s.dist*e;
+      const x= Math.cos(s.ang)*d, y=Math.sin(s.ang)*d - e*6; // slight upward drift
+      const sc=(1-e*0.5)*fade;
+      sparkEls[i].style.transform='translate('+(x+34)+'px,'+(y+17)+'px) scale('+Math.max(0,sc)+')';
+      sparkEls[i].style.opacity=Math.max(0,fade);
+    }
+  }
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else {
+  // live: real clipboard copy + the same render() drives the animation
+  let clickT=null;
+  cbtn.addEventListener('click',()=>{
+    const code='import { defineConfig } from \'cosmos\'\n\nexport default defineConfig({\n  theme: \'phantom\',\n  accent: \'#8b5cff\',\n  glass: true,\n})';
+    if(navigator.clipboard) navigator.clipboard.writeText(code).catch(()=>{});
+    clickT=performance.now();
+  });
+  const s=performance.now();
+  (function l(n){
+    if(clickT!=null){ // play one copy cycle aligned so press happens now
+      const local=(n-clickT)/(LOOP*0.64); // run through phases B..E once
+      if(local>=1){clickT=null;}
+      else { render(((0.10 - OFF + local*0.64)%1+1)%1); requestAnimationFrame(l); return; }
+    }
+    render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

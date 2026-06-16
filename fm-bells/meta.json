@@ -1,0 +1,15 @@
+{
+  "slug": "fm-bells",
+  "title": "Cosmos FM Bells — click-to-ring inharmonic FM bell tones with expanding glowing rings",
+  "title_vi": "Chuông FM Cosmos",
+  "W": 720,
+  "H": 480,
+  "LOOP": 7200,
+  "N": 90,
+  "START": 1800,
+  "tags": ["fm-synthesis", "bells", "chimes", "generative", "audio", "webaudio", "interactive", "sound", "canvas2d", "pentatonic"],
+  "summary": "An FM bell generator that makes REAL sound via the Web Audio API: clicking spawns an FM bell tone built from a sine carrier and a sine modulator at an inharmonic ratio (~2.76) with a decaying modulation index for a bright metallic strike that settles into a long, pure exponential decay. Bell pitch follows the click height on a 3-octave pentatonic scale. Each strike is visualized as expanding glowing rings, a flaring core, and drifting chime particles. It also rains generative bells on its own. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
+  "usage_notes": "RUN: open index.html and click anywhere to ring a bell to HEAR it (audio needs a user gesture); pitch follows the vertical position (higher = higher note). After the first click it also rains generative bells automatically. KEY TECHNIQUES (synthesis): FM bell = sine carrier with a sine modulator connected to the carrier frequency at an inharmonic 2.76 ratio, modulation index set high at the strike and exponentially ramped down (bright onset -> pure tail), amplitude with a fast attack and a ~2.6s exponential decay (no clicks), master gain ~0.2 with a compressor, pitches from 27.5*2^((note-21)/12) snapped to a pentatonic scale. CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded shower of 22 bells spawns at fixed times and positions, rings expand and fade, cores flare, particles drift, each on a pentatonic pitch color, wrapping seamlessly at the loop seam. START offsets frame 0 so several rings are already mid-expansion. TUNE: LOOP for shower density/tempo, the seeded SCHED for bell placement, the FM ratio and modulation index for timbre, LIFE for ring lifespan.",
+  "summary_vi": "Bộ tạo chuông FM phát ra âm thanh THẬT qua Web Audio API: nhấp chuột tạo một tiếng chuông FM gồm sóng mang sine và sóng điều chế sine ở tỉ lệ phi hài hòa (~2.76) với chỉ số điều chế suy giảm, cho tiếng gõ kim loại sáng rồi tan dần thành đuôi ngân dài. Cao độ chuông theo chiều cao điểm nhấp trên thang ngũ cung 3 quãng tám. Mỗi tiếng gõ hiện thành các vòng sáng lan rộng, lõi lóe sáng và các hạt chuông trôi. Tự động đổ mưa chuông sinh thành. Tự chứa, không phụ thuộc, kèm bản demo hình lặp tất định im lặng để chụp.",
+  "notes": "Mở ra rồi nhấp chuột bất kỳ đâu để nghe chuông; cao độ theo chiều cao, có mưa chuông tự sinh."
+}

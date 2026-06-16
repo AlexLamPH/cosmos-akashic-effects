@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Tag Input</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:flex-start;justify-content:center}
+#scrim{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% 0%,rgba(139,92,255,.10),transparent 60%)}
+.stage{position:relative;margin-top:120px;width:480px;display:flex;flex-direction:column}
+.lbl{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:#7a7299;font-weight:700;margin:0 4px 9px}
+/* field */
+.field{position:relative;min-height:54px;border-radius:16px;padding:9px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  background:linear-gradient(180deg,rgba(28,23,46,.82),rgba(18,14,32,.86));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(139,92,255,.16);transition:border-color .2s,box-shadow .2s;
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(139,92,255,.06),inset 0 1px 0 rgba(255,255,255,.05)}
+.field.focus{border-color:rgba(139,92,255,.5);box-shadow:0 24px 60px -18px rgba(0,0,0,.65),0 0 0 3px rgba(139,92,255,.16),inset 0 1px 0 rgba(255,255,255,.06)}
+/* chip */
+.chip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 6px 0 12px;border-radius:9px;
+  font-size:13.5px;font-weight:550;color:#efeafc;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(139,92,255,.26),rgba(139,92,255,.14));
+  border:1px solid rgba(139,92,255,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+  transform-origin:left center}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:#b69bff;box-shadow:0 0 7px rgba(139,92,255,.9);flex:none}
+.chip .x{width:18px;height:18px;border-radius:6px;display:grid;place-items:center;color:#c9b8ff;cursor:pointer}
+.chip .x:hover{background:rgba(255,255,255,.12);color:#fff}
+.chip .x svg{width:11px;height:11px}
+/* input area */
+.iwrap{position:relative;flex:1;min-width:80px;height:32px;display:flex;align-items:center;overflow:hidden}
+.itext{font-size:14.5px;color:#ece9f5;font-weight:450;white-space:pre;letter-spacing:.1px}
+.ph{position:absolute;left:0;color:#615a82;font-weight:450;white-space:nowrap;font-size:14.5px}
+.caret{display:inline-block;width:1.5px;height:18px;vertical-align:-3px;margin-left:1px;
+  background:#8b5cff;border-radius:1px;box-shadow:0 0 6px rgba(139,92,255,.9)}
+/* dropdown */
+.drop{position:relative;width:480px;margin-top:9px;border-radius:14px;overflow:hidden;padding:6px;transform-origin:top center;
+  background:linear-gradient(180deg,rgba(28,23,46,.88),rgba(16,12,30,.92));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
+.opt{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px}
+.opt .oi{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:14px;
+  background:rgba(139,92,255,.14);border:1px solid rgba(139,92,255,.24)}
+.opt .ot{flex:1;font-size:14px;color:#e2ddf0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opt .ot b{color:#b69bff;font-weight:700}
+.opt .om{flex:none;font-size:11px;color:#7a7299}
+.opt.act{background:linear-gradient(90deg,rgba(139,92,255,.2),rgba(139,92,255,.06));border:1px solid rgba(139,92,255,.34)}
+.opt.act .ot{color:#fff}
+</style></head>
+<body><div id="scrim"></div>
+<div class="stage">
+  <div class="lbl">Add tags</div>
+  <div class="field" id="field"></div>
+  <div class="drop" id="drop"></div>
+</div>
+<script>
+const POOL=[
+ {n:'Nebula',e:'☁'},{n:'Quasar',e:'✦'},{n:'Pulsar',e:'◎'},{n:'Comet',e:'☄'},
+ {n:'Galaxy',e:'✧'},{n:'Meteor',e:'★'},{n:'Eclipse',e:'☾'},{n:'Aurora',e:'❋'}
+];
+const field=document.getElementById('field'),drop=document.getElementById('drop');
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function eo(t){return 1-Math.pow(1-t,3);}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+
+// ── scripted timeline: which tags exist, what's being typed, dropdown state ──
+// build the sequence of "events": type a query, suggestion appears, pick -> chip pops.
+const PICKS=[0,2,4,1]; // indices into POOL, picked in order
+function step(p){ // for a pick index p, return target option index + typed query length progression
+  const opt=POOL[PICKS[p]]; return opt;
+}
+
+function svgX(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';}
+
+// render chips: list of {opt, pop} where pop in [0,1] (1=settled), removing optional
+function paintChips(chips){
+  let html='';
+  chips.forEach(c=>{
+    const e=eo(clamp(c.pop,0,1));
+    const sc=0.6+0.4*e, op=e;
+    html+='<div class="chip" style="opacity:'+op.toFixed(3)+';transform:scale('+sc.toFixed(3)+')">'+
+      '<span class="dot"></span>'+c.opt.e+' '+c.opt.n+
+      '<span class="x">'+svgX()+'</span></div>';
+  });
+  // input area
+  html+='<div class="iwrap"><span class="itext" id="itext"></span><span class="caret" id="caret"></span>'+
+        '<span class="ph" id="ph">Type to search…</span></div>';
+  field.innerHTML=html;
+}
+
+function paintDrop(query,open,actIdx){
+  if(open<=0.001){drop.style.opacity=0;drop.style.pointerEvents='none';drop.innerHTML='';return;}
+  drop.style.pointerEvents='auto';
+  const dop=ease(clamp(open,0,1));
+  drop.style.opacity=dop;
+  drop.style.transform='translateY('+(-8*(1-dop))+'px) scaleY('+(0.95+0.05*dop)+')';
+  const q=query.toLowerCase();
+  const matches=POOL.filter(o=>o.n.toLowerCase().startsWith(q));
+  let html='';
+  matches.forEach((o,i)=>{
+    const start=i*0.12; const local=clamp((open-start)/0.4,0,1); const e=ease(local);
+    const isAct=o===POOL[actIdx];
+    const nm = q?('<b>'+o.n.slice(0,query.length)+'</b>'+o.n.slice(query.length)):o.n;
+    html+='<div class="opt'+(isAct?' act':'')+'" style="opacity:'+e.toFixed(3)+';transform:translateY('+((1-e)*8).toFixed(2)+'px)">'+
+      '<span class="oi">'+o.e+'</span><span class="ot">'+nm+'</span>'+
+      (isAct?'<span class="om">↵ enter</span>':'')+'</div>';
+  });
+  drop.innerHTML=html||'<div class="opt" style="opacity:.5"><span class="ot" style="color:#7a7299">No matches</span></div>';
+}
+
+let focused=false;
+function render(u){
+  // 6 phases across the loop:
+  //  for each of 4 picks: type query -> dropdown appears -> pick (chip pops). then settle.
+  //  finally remove one chip. We map u to a global timeline of segments.
+  // Build segments dynamically.
+  focused=true;
+  const settled=[]; // chips fully present
+  let typing='', dropOpen=0, actIdx=-1, blink=true, popExtra=null;
+
+  // segment layout (fractions of loop)
+  const SEG=PICKS.length; // 4 picks
+  const pickSpan=0.18;    // each pick takes this fraction
+  const removeAt=0.80;    // start removing a chip
+  const total=SEG*pickSpan; // 0.72
+
+  if(u<total){
+    const gi=Math.floor(u/pickSpan);       // which pick
+    const lp=(u-gi*pickSpan)/pickSpan;      // 0..1 within this pick
+    // chips already settled from previous picks
+    for(let k=0;k<gi;k++) settled.push({opt:POOL[PICKS[k]],pop:1});
+    const opt=POOL[PICKS[gi]];
+    const word=opt.n;
+    // sub-phases within a pick: type(0-.42) hold/drop(.42-.66) pick-pop(.66-.86) settle(.86-1)
+    if(lp<0.42){
+      const tp=lp/0.42; const nc=Math.round(eo(tp)*Math.min(3,word.length));
+      typing=word.slice(0,nc);
+      dropOpen=clamp((lp-0.18)/0.24,0,1);
+      actIdx=PICKS[gi];
+      blink=(Math.floor(lp*1000/70)%2)===0;
+    } else if(lp<0.66){
+      const nc=Math.min(3,word.length); typing=word.slice(0,nc);
+      dropOpen=1; actIdx=PICKS[gi];
+      blink=(Math.floor(lp*1000/240)%2)===0;
+    } else if(lp<0.86){
+      // chip pops in, dropdown collapses, input clears
+      const pp=eo((lp-0.66)/0.20);
+      settled.push({opt:opt,pop:pp});
+      typing=''; dropOpen=clamp(1-(lp-0.66)/0.10,0,1); actIdx=-1; blink=false;
+    } else {
+      settled.push({opt:opt,pop:1});
+      typing=''; dropOpen=0; actIdx=-1;
+      blink=(Math.floor(lp*1000/300)%2)===0;
+    }
+  } else if(u<removeAt){
+    // hold all chips, idle caret blink
+    for(let k=0;k<SEG;k++) settled.push({opt:POOL[PICKS[k]],pop:1});
+    typing=''; dropOpen=0; actIdx=-1;
+    blink=(Math.floor((u-total)*1000/300)%2)===0;
+  } else {
+    // remove the last chip: × highlight -> collapse, then pause
+    const rp=(u-removeAt)/(1-removeAt); // 0..1
+    const keep=SEG-1;
+    for(let k=0;k<keep;k++) settled.push({opt:POOL[PICKS[k]],pop:1});
+    // last chip collapses
+    const e=eo(clamp(rp/0.55,0,1));
+    if(rp<0.55) settled.push({opt:POOL[PICKS[SEG-1]],pop:1-e}); // pop goes 1->0
+    typing=''; dropOpen=0; actIdx=-1;
+    blink=(Math.floor((u-removeAt)*1000/300)%2)===0;
+  }
+
+  paintChips(settled);
+  // wire input text/caret/placeholder (elements just created)
+  const itext=document.getElementById('itext'),caret=document.getElementById('caret'),ph=document.getElementById('ph');
+  itext.textContent=typing;
+  // placeholder shows only when not typing and dropdown closed
+  ph.style.opacity=(!typing.length && dropOpen<0.01)?0.9:0;
+  caret.style.opacity=blink?1:0.08;
+  field.classList.add('focus');
+  paintDrop(typing,dropOpen,actIdx);
+}
+
+const LOOP=8000, OFF=0.61; // frame-0: lands in 4th pick with 3 chips settled + dropdown open
+function frame(u){render(((u+OFF)%1+1)%1);}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ frame((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

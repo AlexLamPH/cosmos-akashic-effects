@@ -1,0 +1,15 @@
+{
+  "slug": "game-spaceshooter",
+  "title": "Cosmos Strike — pilot a ship and blast weaving waves of descending cosmic enemies",
+  "title_vi": "",
+  "W": 560,
+  "H": 680,
+  "LOOP": 12000,
+  "N": 109,
+  "live_fit": true,
+  "tags": ["game", "shmup", "playable", "interactive", "arcade", "canvas2d"],
+  "summary": "A real, fully playable vertical shoot-'em-up in one self-contained HTML file with zero dependencies. You pilot a glowing ship around the lower playfield and fire upward at endless seeded waves of cosmic enemies that descend while weaving side to side, while dodging the bombs they fire back at you; destroyed enemies add to your score (tougher armored ones take two hits and score more), and an enemy reaching your row or a bomb hitting you costs a life. You have three lives; lose them all and it is game over with a restart. Controls work with both keyboard (arrows or WASD to fly, space to fire, R to restart) and on-screen touch buttons (left / FIRE / right). It also ships a deterministic self-playing attract demo for capture: a seeded ship AI weaves, aligns under the nearest threat, dodges incoming bullets and fires, all rendered purely as a function of time via window.__seek(t).",
+  "usage_notes": "RUN: double-click index.html (or serve it). CONTROLS: Arrow keys or WASD fly the ship in all four directions; Space fires; on touch use the on-screen left / FIRE / right buttons; R key or the Restart button starts a new run. GOAL: destroy descending cosmic enemies for points (armored two-hit enemies score more) while dodging their aimed bombs; you have 3 lives (shown as hearts) and lose one when a bomb hits you or an enemy reaches your row — lose all three and it is game over. KEY TECHNIQUES: the game is a fixed-timestep (16ms) deterministic simulation; every enemy's entry time, spawn x, weave amplitude/frequency/phase, hit points, score and firing schedule come from a mulberry32 seed keyed by enemy index (never Math.random in the sim), enemy positions are a closed-form function of elapsed time, and firing happens deterministically when the enemy crosses a time bucket, so AUTO replays identically; collisions are AABB between player bullets/enemies and enemy bullets/ship; for AUTO a deterministic ship AI dodges the nearest incoming bullet, otherwise aligns horizontally under the lowest live enemy and fires when aligned; drawAt(ms) re-simulates from a fixed seeded start to ms with a START frame-0 offset so capture opens mid-firefight with several enemies already destroyed, bullets in flight, explosions and score above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: NENEMY, spawn spacing, ESPD/EBSPD/BSPD, weave amp/freq ranges, fire cooldown and enemy firePer, the AI dodge window, START offset, and LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

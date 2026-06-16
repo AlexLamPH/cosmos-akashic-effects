@@ -1,0 +1,196 @@
+<!-- Cosmos Login Form: a sign-in card — email + password fields with floating labels that rise on focus, an animated focus ring/underline that glides between fields, a show-password toggle, a "Sign in" button that runs spinner → success check, then a divider with social buttons. Deterministic render(u); seamless loop; frame 0 = password field focused (label up, ring lit). -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Login Form</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.card{position:relative;width:380px;padding:38px 34px 34px;border-radius:22px;
+  background:linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.014));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 40px 90px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03) inset;
+  backdrop-filter:blur(8px)}
+.title{color:#f3eefe;font-size:22px;font-weight:700;letter-spacing:.2px;margin-bottom:4px}
+.sub{color:#9b93b4;font-size:13px;margin-bottom:26px}
+.field{position:relative;height:54px;margin-bottom:18px;border-radius:12px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}
+.field .lbl{position:absolute;left:15px;color:#8b84a3;pointer-events:none;
+  font-size:15px;will-change:transform,color;transform-origin:left center}
+.field .val{position:absolute;left:15px;top:28px;color:#d8d2ea;font-size:15px;
+  letter-spacing:.5px;will-change:opacity}
+.field .ring{position:absolute;inset:-1px;border-radius:12px;pointer-events:none;
+  border:1.5px solid #8b5cff;box-shadow:0 0 0 3px rgba(139,92,255,.16),0 0 18px rgba(139,92,255,.30);
+  opacity:0;will-change:opacity}
+.field .underline{position:absolute;left:0;bottom:0;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,#8b5cff,#46b4ff);width:0;will-change:width;
+  box-shadow:0 0 8px rgba(139,92,255,.6)}
+.eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;
+  width:20px;height:20px;opacity:.6}
+.eye svg{width:100%;height:100%}
+.btn{position:relative;width:100%;height:50px;margin-top:6px;border:none;border-radius:13px;
+  cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:15.5px;font-weight:650;letter-spacing:.3px;
+  background:linear-gradient(160deg,var(--c1,#9a6bff),var(--c2,#7a3df0));
+  box-shadow:0 12px 30px rgba(139,92,255,.45),0 0 0 1px rgba(255,255,255,.08) inset;
+  will-change:transform,box-shadow}
+.btn .blabel{position:absolute;white-space:nowrap}
+.spinner{position:absolute;width:22px;height:22px;border-radius:50%;
+  border:3px solid rgba(255,255,255,.28);border-top-color:#fff;border-right-color:#fff;opacity:0}
+.check{position:absolute;width:24px;height:24px;opacity:0}
+.check path{stroke:#eafff5;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.divider{display:flex;align-items:center;gap:12px;margin:22px 0 18px;color:#6f6889;font-size:12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.09)}
+.socials{display:flex;gap:12px}
+.soc{flex:1;height:44px;border-radius:11px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;will-change:transform,box-shadow}
+.soc svg{width:20px;height:20px}
+</style></head>
+<body><div id="stage">
+  <div class="card">
+    <div class="title">Welcome back</div>
+    <div class="sub">Sign in to continue to your cosmos.</div>
+
+    <div class="field" id="f0">
+      <span class="lbl" id="l0">Email</span>
+      <span class="val" id="v0">alex@cosmos.io</span>
+      <span class="underline" id="u0"></span>
+      <span class="ring" id="r0"></span>
+    </div>
+
+    <div class="field" id="f1">
+      <span class="lbl" id="l1">Password</span>
+      <span class="val" id="v1">•••••••••</span>
+      <span class="eye" id="eye"><svg viewBox="0 0 24 24" fill="none" stroke="#cfc8e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="underline" id="u1"></span>
+      <span class="ring" id="r1"></span>
+    </div>
+
+    <button class="btn" id="btn">
+      <span class="blabel" id="blabel">Sign in</span>
+      <span class="spinner" id="spinner"></span>
+      <span class="check" id="check"><svg viewBox="0 0 24 24"><path id="checkPath" pathLength="1" d="M5 13l4 4L19 7"/></svg></span>
+    </button>
+
+    <div class="divider">or continue with</div>
+    <div class="socials">
+      <div class="soc" data-i="0"><svg viewBox="0 0 24 24" fill="#46b4ff"><path d="M22 12c0-5.5-4.5-10-10-10S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7C18.3 21.1 22 17 22 12Z"/></svg></div>
+      <div class="soc" data-i="1"><svg viewBox="0 0 24 24" fill="#e0b24a"><path d="M21.8 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.5a4.7 4.7 0 0 1-2 3.1v2.6h3.3c1.9-1.8 3-4.4 3-7.5Z"/><path fill="#36d39a" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.6c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3v2.6A10 10 0 0 0 12 22Z"/><path fill="#ff5cc2" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#ff6a3d" d="M12 6.1c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3 7.5l3.4 2.6C7.2 7.9 9.4 6.1 12 6.1Z"/></svg></div>
+      <div class="soc" data-i="2"><svg viewBox="0 0 24 24" fill="#e8e2f5"><path d="M16.4 1.6c.1 1-.3 2-.9 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1 .4-2 1-2.7.6-.8 1.7-1.3 2.7-1.4Zm3.3 16.1c-.5 1.2-.8 1.7-1.5 2.8-1 1.5-2.3 3.3-4 3.3-1.5 0-1.9-1-3.9-1-2 0-2.4 1-3.9 1-1.6 0-2.9-1.7-3.9-3.1-2.7-4-3-8.6-1.3-11.1 1.2-1.7 3-2.7 4.8-2.7 1.8 0 2.9 1 4.4 1 1.4 0 2.3-1 4.4-1 1.5 0 3.2.8 4.3 2.3-3.8 2.1-3.2 7.5.5 8.5Z"/></svg></div>
+    </div>
+  </div>
+</div>
+<script>
+const L=[document.getElementById('l0'),document.getElementById('l1')];
+const V=[document.getElementById('v0'),document.getElementById('v1')];
+const U=[document.getElementById('u0'),document.getElementById('u1')];
+const R=[document.getElementById('r0'),document.getElementById('r1')];
+const F=[document.getElementById('f0'),document.getElementById('f1')];
+const eye=document.getElementById('eye'), v1=document.getElementById('v1');
+const btn=document.getElementById('btn'), blabel=document.getElementById('blabel'),
+  spinner=document.getElementById('spinner'), check=document.getElementById('check'),
+  checkPath=document.getElementById('checkPath');
+const clamp=t=>t<0?0:t>1?1:t, lerp=(a,b,t)=>a+(b-a)*t;
+const easeInOut=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const PW_HIDDEN='•••••••••', PW_SHOWN='nebula42';
+const LOOP=7000;
+// set a field's focus amount f (0..1): label floats up+shrinks+tints, ring fades in, underline grows, value reveals
+function setFocus(i,f){
+  const fe=easeInOut(clamp(f));
+  L[i].style.transform=`translateY(${lerp(18,7,fe).toFixed(2)}px) scale(${lerp(1,0.74,fe).toFixed(3)})`;
+  L[i].style.color = f>0.04 ? `rgb(${Math.round(lerp(139,150,1))},${Math.round(lerp(132,108,fe))},${Math.round(lerp(163,255,fe))})` : '#8b84a3';
+  // simpler readable tint: violet when focused
+  L[i].style.color = f>0.5 ? '#b69bff' : '#8b84a3';
+  R[i].style.opacity=fe.toFixed(3);
+  U[i].style.width=(fe*100).toFixed(1)+'%';
+  V[i].style.opacity=(f>0.5?1:lerp(0,1,clamp((f-0.15)/0.5))).toFixed(3);
+}
+function setLabelDefault(i){ // unfocused but filled => keep label floated (fields have values)
+  L[i].style.transform='translateY(7px) scale(0.74)';
+  L[i].style.color='#8b84a3';
+  R[i].style.opacity='0'; U[i].style.width='0%';
+  V[i].style.opacity='1';
+}
+function render(u){
+  // Timeline (frame 0 must land with PASSWORD focused):
+  //  P0 email focused           u in [.00,.18)
+  //  P1 ring glides to password u in [.18,.26)
+  //  P2 password focused        u in [.26,.42)   <-- offset target
+  //  P3 password reveal toggle  u in [.42,.50)
+  //  P4 press → spinner         u in [.50,.74)
+  //  P5 success check           u in [.74,.86)
+  //  P6 reset to email focused  u in [.86,1.0)
+  // offset so t=0 → password focused (centre of P2 ≈ .34)
+  const g=(u+0.34)%1;
+
+  // default: both labels floated (filled fields), no focus
+  setLabelDefault(0); setLabelDefault(1);
+  // password text default hidden
+  v1.textContent=PW_HIDDEN; eye.style.opacity='0.6';
+
+  let press=0, spin=0, spinT=0, chk=0, colorT=0, glow=0.45, btnLabelOp=1;
+
+  if(g<0.18){                         // email focused
+    setFocus(0,1);
+  }else if(g<0.26){                   // ring glides email→password
+    const p=(g-0.18)/0.08;
+    setFocus(0,1-easeInOut(p)); setFocus(1,easeInOut(p));
+  }else if(g<0.42){                   // password focused
+    setFocus(1,1);
+  }else if(g<0.50){                   // show-password toggle reveals text
+    setFocus(1,1);
+    const p=(g-0.42)/0.08;
+    if(p>0.45){ v1.textContent=PW_SHOWN; eye.style.opacity='1'; }
+  }else if(g<0.74){                   // press + spinner
+    setFocus(1,1-easeInOut(clamp((g-0.50)/0.10))); // ring releases as we submit
+    v1.textContent=PW_SHOWN;
+    const p=(g-0.50)/0.24;
+    press=Math.sin(clamp(p*5)*1)*0; // (kept stable)
+    press=p<0.12?easeOut(p/0.12):easeOut(1-clamp((p-0.12)/0.10))*1; // quick dip
+    spin=1; spinT=p; btnLabelOp=0; glow=0.4+0.12*Math.sin(p*Math.PI*2);
+  }else if(g<0.86){                   // success: green + check draws
+    v1.textContent=PW_SHOWN;
+    const p=(g-0.74)/0.12;
+    colorT=easeInOut(clamp(p*1.3)); chk=clamp((p-0.10)/0.6); btnLabelOp=0;
+    glow=0.5+0.25*Math.sin(clamp(p*1.6)*Math.PI);
+  }else{                              // reset back to email focus, button violet+label
+    const p=(g-0.86)/0.14;
+    colorT=1-easeInOut(p); chk=1-clamp(p*1.6); btnLabelOp=easeInOut(clamp((p-0.4)/0.6));
+    setFocus(0,easeInOut(clamp((p-0.3)/0.7)));
+    glow=lerp(0.5,0.45,p);
+  }
+
+  // button colour blend violet→green
+  const v1c=[154,107,255], g1c=[63,224,160], v2c=[122,61,240], g2c=[33,178,124];
+  const mix=(a,b)=>Math.round(lerp(a,b,colorT));
+  btn.style.setProperty('--c1',`rgb(${mix(v1c[0],g1c[0])},${mix(v1c[1],g1c[1])},${mix(v1c[2],g1c[2])})`);
+  btn.style.setProperty('--c2',`rgb(${mix(v2c[0],g2c[0])},${mix(v2c[1],g2c[1])},${mix(v2c[2],g2c[2])})`);
+  const accR=mix(139,54),accG=mix(92,211),accB=mix(255,154);
+  btn.style.transform=`translateY(${(press*2).toFixed(2)}px) scale(${(1-press*0.025).toFixed(3)})`;
+  btn.style.boxShadow=`0 12px 30px rgba(${accR},${accG},${accB},${glow.toFixed(3)}),0 0 0 1px rgba(255,255,255,.08) inset`;
+  blabel.style.opacity=btnLabelOp.toFixed(3);
+  spinner.style.opacity=(spin?1:0).toFixed(3);
+  spinner.style.transform=`rotate(${(spinT*1080).toFixed(1)}deg)`;
+  check.style.opacity=(chk>0?1:0).toFixed(3);
+  check.style.transform=`scale(${lerp(0.4,1,easeOut(clamp(chk*1.6))).toFixed(3)})`;
+  checkPath.style.strokeDasharray='1';
+  checkPath.style.strokeDashoffset=(1-clamp(chk)).toFixed(3);
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  // live interactivity: real focus rings + working show-password toggle; autoplay drives the demo
+  let pwShown=false;
+  function liveFocus(i){ setLabelDefault(0); setLabelDefault(1); setFocus(i,1); }
+  F.forEach((f,i)=>f.addEventListener('pointerdown',()=>liveFocus(i)));
+  eye.addEventListener('click',e=>{ e.stopPropagation(); pwShown=!pwShown; v1.textContent=pwShown?PW_SHOWN:PW_HIDDEN; eye.style.opacity=pwShown?'1':'0.6'; });
+  document.querySelectorAll('.soc').forEach(s=>{
+    s.addEventListener('pointerenter',()=>{s.style.transform='translateY(-2px)';s.style.boxShadow='0 8px 20px rgba(139,92,255,.25)';});
+    s.addEventListener('pointerleave',()=>{s.style.transform='';s.style.boxShadow='';});
+  });
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script></body></html>

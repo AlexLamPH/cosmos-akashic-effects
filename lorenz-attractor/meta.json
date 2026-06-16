@@ -1,0 +1,14 @@
+{
+  "slug": "lorenz-attractor",
+  "title": "Cosmos Lorenz Attractor — butterfly strange attractor with a flowing comet",
+  "title_vi": "Bộ hút Lorenz Cosmos — cánh bướm hỗn loạn với sao chổi chạy dọc đường",
+  "W": 620,
+  "H": 620,
+  "LOOP": 9000,
+  "N": 113,
+  "tags": ["canvas2d", "3d", "chaos", "attractor", "generative", "glow"],
+  "summary": "The Lorenz butterfly strange attractor: its full trajectory is integrated once into a fixed point list, drawn as a faint accent-gradient curve, with a bright glowing comet that streams along the precomputed path and loops. The 3D figure rotates one slow integer turn. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: precompute — the Lorenz ODE (sigma=10, rho=28, beta=8/3) is integrated by Euler steps ONCE into a 4200-point list at load; the full faint curve is stroked every frame, then a comet of tapered additive dots is drawn with head=((u) mod 1)*NP so it flows and loops; hand-rolled 3D rotate about Y + constant X tilt with perspective scale=F/(F+z); accent palette gradient runs along the curve length. CAPTURE: ?auto=1 + window.__seek(t). TUNE: NP/DT (trajectory detail), TAIL (comet length), SC (size), tilt, LOOP (speed).",
+  "summary_vi": "Bộ hút lạ hình cánh bướm Lorenz: quỹ đạo được tích phân một lần thành danh sách điểm cố định, vẽ thành đường mờ với gradient accent, kèm một sao chổi phát sáng chạy dọc đường đã tính sẵn và lặp lại. Hình 3D quay chậm trọn một vòng. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
+  "notes": "Tích phân ODE Lorenz một lần thành mảng điểm; sao chổi với head=(u mod 1)*len; 3D tự viết xoay Y + nghiêng X, phối cảnh scale=F/(F+z)."
+}

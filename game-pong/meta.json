@@ -1,0 +1,11 @@
+{
+  "slug": "game-pong",
+  "title": "Cosmos Pong — rally a glowing ball past a tracking CPU paddle",
+  "title_vi": "",
+  "W": 720, "H": 520, "LOOP": 11000, "N": 100, "live_fit": true,
+  "tags": ["game","sports","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, self-contained playable Pong in one HTML file with zero dependencies. Control the left paddle against a ball-predicting CPU on the right; the ball rallies with angle-on-contact physics and accelerating speed, and the live scoreboard tracks first-to-7. Keyboard plus drag/touch control, win/lose banner, and instant restart. Ships with a deterministic self-playing attract demo where both paddles are AI rallying the ball.",
+  "usage_notes": "RUN: open index.html (double-click) — no server, no deps. CONTROLS: Up/Down arrows nudge your paddle, or click-drag / touch-drag anywhere on the board to track it; R restarts. GOAL: first side to 7 points wins; you score when the ball passes the CPU's right edge, the CPU scores when it passes your left edge. KEY TECHNIQUES: fixed-timestep deterministic physics with reflection prediction (predictY simulates bounces to find the ball's landing row), contact angle based on hit offset, and a mulberry32 seed; in AUTO both paddles run the same predictive tracker so the rally is fully reproducible, and frame 0 is offset mid-rally with points already on the board. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: WIN target, paddle PH/PW, ball speed and acceleration in bounce(), T_OFFSET (frame-0 offset), tracker reaction/maxSpeed.",
+  "summary_vi": "",
+  "notes": ""
+}

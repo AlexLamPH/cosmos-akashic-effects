@@ -1,0 +1,14 @@
+{
+  "slug": "remix-sphere",
+  "title": "Cosmos Remix — Sphere you can retune and reskin live",
+  "title_vi": "",
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": ["remix", "sphere", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "A remixable particle sphere: points spread evenly over a unit globe (Fibonacci sphere), projected to 2D and spinning around Y, with depth mapped to size and brightness so the front face glows large and the back recedes dim — a convincing 3D globe of light. A live glass panel retunes palette, shape, density, speed, dot size, and a Tilt knob; one click reskins it to any brand colour. Self-contained, zero dependencies. ?auto=1 hides the panel and exposes a deterministic seamless loop for capture.",
+  "usage_notes": "RUN: open index.html in any browser — no build, no dependencies. PANEL: the glass control panel (top-right) drives live params — Palette swatches reskin the globe to a brand colour, Shape picks the particle glyph (dot/ruby/atom/star/crystal/spark), Density sets point count, Spread scales the sphere radius, Speed sets spin rate, Dot size sets base glyph size, and Tilt leans the globe's axis toward or away from the viewer. KEY TECHNIQUES: geometry — points are placed with the Fibonacci-sphere method (even golden-angle distribution over a unit sphere), spun around Y by u so frame(0)===frame(LOOP), tilted around X, then orthographically projected; depth (z) maps to both glyph size and alpha so front points are bright and large while back points dim and shrink, and points are sorted back-to-front so near glyphs overlap correctly. PARAMS convention — window.__params describes each knob and window.setParam(key,value) applies it, so a generic remix harness can drive the same controls. Theme tokens — each PALETTE is a brand skin (accent + 3-colour ramp); ramp(cols,t) colours a particle by its normalised index. Shapes — drawShape() renders the chosen glyph cheaply with additive 'lighter' compositing on #05030d. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Density for a solid globe surface; lower Speed for a slow stately rotation; adjust Tilt to show more of the top or bottom pole.",
+  "summary_vi": "",
+  "notes": ""
+}

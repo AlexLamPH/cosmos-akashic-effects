@@ -1,0 +1,257 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Tilt Liquid</title>
+<style>
+  html,body{margin:0;height:100%;background:#05030d;overflow:hidden}
+  #cv{position:fixed;inset:0;display:block;background:#05030d}
+  #hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+    font:600 13px/1.4 system-ui,sans-serif;color:#aef0ff;letter-spacing:.04em;
+    padding:8px 16px;border:1px solid rgba(120,200,255,.35);border-radius:999px;
+    background:rgba(10,20,40,.5);backdrop-filter:blur(4px);cursor:pointer;
+    transition:opacity .8s;user-select:none;z-index:5}
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div id="hint">📱 enable motion</div>
+<script>
+const cv=document.getElementById('cv'), g=cv.getContext('2d');
+const hint=document.getElementById('hint');
+let W=0,H=0,DPR=1;
+function resize(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  W=innerWidth; H=innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR;
+  cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+  g.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize); resize();
+
+const LOOP=9000;
+const TWO=Math.PI*2;
+const AUTO=new URLSearchParams(location.search).has('auto');
+
+// ---- 1D shallow-water column model: heights h[] + horizontal flow ----
+const NX=120;
+const h=new Float32Array(NX);    // surface height (deviation from rest)
+const u=new Float32Array(NX);    // horizontal velocity per column
+for(let i=0;i<NX;i++){ h[i]=0; u[i]=0; }
+
+// shallow-water integration: gravity drives flow downhill + along tilt,
+// waves rebound off the container walls (closed boundaries).
+function step(gx){
+  const C=0.30;        // wave speed coefficient
+  const DAMP=0.997;    // viscosity
+  const TILT=0.020;    // how strongly horizontal tilt pushes the body
+  // accelerate flow by height gradient + tilt forcing
+  for(let i=0;i<NX-1;i++){
+    const grad=h[i+1]-h[i];
+    u[i]-=C*grad;
+    u[i]+=TILT*gx;     // tilt drags the whole liquid toward gx
+    u[i]*=DAMP;
+  }
+  u[NX-1]*=DAMP;
+  // closed walls: no flow through the ends (waves bounce back)
+  u[0]=0; u[NX-1]=0;
+  // advect heights from flow divergence
+  for(let i=1;i<NX;i++){
+    h[i]-=(u[i]-u[i-1])*0.5;
+  }
+  // gentle return toward equilibrium volume (mass conserving-ish)
+  let mean=0; for(let i=0;i<NX;i++) mean+=h[i]; mean/=NX;
+  for(let i=0;i<NX;i++) h[i]-=mean*0.02;
+}
+
+function settle(gx,n){ for(let k=0;k<n;k++) step(gx); }
+
+// height sample with smoothing
+function hAt(x){
+  const fx=x*(NX-1); let i=fx|0; if(i>=NX-1)i=NX-2; const fr=fx-i;
+  return h[i]*(1-fr)+h[i+1]*fr;
+}
+
+function render(SIG,t){
+  const tu=(typeof t==='number')?((t%1)+1)%1:0;
+  const gx=SIG.gx, gy=SIG.gy;
+
+  // background Phantom-dark with cosmos depth
+  let bg=g.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#05030d');
+  bg.addColorStop(0.55,'#070417');
+  bg.addColorStop(1,'#0a0820');
+  g.globalCompositeOperation='source-over';
+  g.fillStyle=bg; g.fillRect(0,0,W,H);
+
+  // container square
+  const S=Math.min(W,H)*0.94, ox=(W-S)/2, oy=(H-S)/2;
+  g.strokeStyle='rgba(120,180,255,0.10)';
+  g.lineWidth=2; g.strokeRect(ox,oy,S,S);
+
+  // the surface tilts with gx (whole sheet rotates), and sloshes via h[]
+  const restY=oy+S*0.56;            // resting waterline
+  const tiltA=Math.atan(gx*0.55);   // visual rotation of the surface plane
+  const amp=S*0.30;                 // slosh height scale
+
+  // build the surface polyline across the box
+  const NS=NX;
+  const pts=[];
+  for(let i=0;i<NS;i++){
+    const xn=i/(NS-1);
+    const sx=ox+xn*S;
+    // tilt component: liquid rises on the low side
+    const tiltY=(xn-0.5)*Math.tan(tiltA)*S*0.9;
+    const sy=restY + tiltY - hAt(xn)*amp;
+    pts.push(sx,sy);
+  }
+
+  // ---- liquid body fill ----
+  g.save();
+  g.beginPath();
+  g.rect(ox,oy,S,S); g.clip();   // keep liquid inside the container
+  g.beginPath();
+  g.moveTo(ox,oy+S);
+  g.lineTo(pts[0],pts[1]);
+  for(let i=1;i<NS;i++) g.lineTo(pts[i*2],pts[i*2+1]);
+  g.lineTo(ox+S,oy+S); g.closePath();
+  const body=g.createLinearGradient(0,restY-amp,0,oy+S);
+  body.addColorStop(0,'rgba(120,90,255,0.92)');
+  body.addColorStop(0.35,'rgba(90,60,220,0.95)');
+  body.addColorStop(0.7,'rgba(40,30,140,0.98)');
+  body.addColorStop(1,'rgba(15,12,60,1)');
+  g.fillStyle=body; g.fill();
+
+  // depth caustic shimmer inside the body
+  g.globalCompositeOperation='lighter';
+  for(let k=0;k<5;k++){
+    const yy=restY+ S*0.06*k + 8;
+    let cg=g.createLinearGradient(0,yy,0,yy+S*0.12);
+    cg.addColorStop(0,'rgba(120,150,255,'+(0.05+0.02*Math.sin(tu*TWO*2+k))+')');
+    cg.addColorStop(1,'rgba(60,40,160,0)');
+    g.fillStyle=cg; g.fillRect(ox,yy,S,S*0.12);
+  }
+  g.globalCompositeOperation='source-over';
+
+  // ---- glossy sheen line along the surface ----
+  g.lineJoin='round'; g.lineCap='round';
+  g.beginPath();
+  g.moveTo(pts[0],pts[1]);
+  for(let i=1;i<NS;i++) g.lineTo(pts[i*2],pts[i*2+1]);
+  g.strokeStyle='rgba(210,235,255,0.85)';
+  g.lineWidth=2.6; g.stroke();
+  // under-surface highlight
+  g.beginPath();
+  g.moveTo(pts[0],pts[1]+6);
+  for(let i=1;i<NS;i++) g.lineTo(pts[i*2],pts[i*2+1]+6);
+  g.strokeStyle='rgba(150,190,255,0.30)';
+  g.lineWidth=9; g.stroke();
+
+  // ---- specular sparkles on wave crests ----
+  g.globalCompositeOperation='lighter';
+  for(let i=2;i<NS-2;i++){
+    const y=pts[i*2+1], yl=pts[(i-1)*2+1], yr=pts[(i+1)*2+1];
+    if(y<yl && y<yr){
+      const crest=(yl+yr)/2 - y;
+      if(crest>1.2){
+        const a=Math.min(0.95,crest/14);
+        g.fillStyle='rgba(235,245,255,'+a+')';
+        g.beginPath(); g.arc(pts[i*2],y,1.5+a*3,0,TWO); g.fill();
+      }
+    }
+  }
+
+  // splash glow where the wave hits a wall hardest
+  const edgeL=Math.abs(hAt(0.02)), edgeR=Math.abs(hAt(0.98));
+  for(const [ex,ev] of [[ox,edgeL],[ox+S,edgeR]]){
+    if(ev>0.05){
+      const ey=restY-hAt(ex<=ox?0.02:0.98)*amp;
+      const r=S*0.10*Math.min(1,ev*4);
+      const gr=g.createRadialGradient(ex,ey,0,ex,ey,r);
+      gr.addColorStop(0,'rgba(180,210,255,'+Math.min(0.5,ev*3)+')');
+      gr.addColorStop(1,'rgba(120,150,255,0)');
+      g.fillStyle=gr; g.beginPath(); g.arc(ex,ey,r,0,TWO); g.fill();
+    }
+  }
+  g.globalCompositeOperation='source-over';
+  g.restore();
+
+  // gravity hint arrow
+  const cxs=ox+S/2, cys=oy+S*0.20, al=S*0.07;
+  g.globalCompositeOperation='lighter';
+  g.strokeStyle='rgba(140,190,255,0.22)'; g.lineWidth=2.5; g.lineCap='round';
+  const m=Math.hypot(gx,gy*0.5+0.6)||1e-6;
+  g.beginPath(); g.moveTo(cxs,cys);
+  g.lineTo(cxs+gx/m*al, cys+(gy*0.5+0.6)/m*al); g.stroke();
+  g.globalCompositeOperation='source-over';
+}
+
+// ---- synthetic tilt signal (deterministic, looping) ----
+function synthSig(u){ return { gx:0.7*Math.sin(TWO*u), gy:0.7*Math.cos(TWO*2*u) }; }
+
+// ---- live tilt sources (gated behind !AUTO) ----
+let curSig={gx:0.4,gy:0.0}, useSynth=true, mouseSig=null;
+
+function enableMotion(){
+  const attach=()=>{
+    addEventListener('deviceorientation',e=>{
+      if(e.gamma==null && e.beta==null) return;
+      const gx=Math.max(-1,Math.min(1,(e.gamma||0)/45));
+      const gy=Math.max(-1,Math.min(1,(e.beta||0)/45));
+      curSig={gx,gy}; useSynth=false;
+      hint.style.opacity='0'; setTimeout(()=>hint.remove(),900);
+    });
+  };
+  try{
+    if(typeof DeviceOrientationEvent!=='undefined' &&
+       typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(r=>{ if(r==='granted') attach(); })
+        .catch(()=>{});
+    } else attach();
+  }catch(e){}
+}
+
+// desktop mouse fallback → tilt vector
+addEventListener('pointermove',e=>{
+  const gx=(e.clientX/innerWidth)*2-1;
+  const gy=(e.clientY/innerHeight)*2-1;
+  mouseSig={gx,gy};
+});
+
+function startLiveLoop(){
+  // poke the surface so frame 0 already has a slosh wave
+  h[(NX*0.3)|0]=0.5; h[(NX*0.7)|0]=-0.4;
+  settle(curSig.gx,40);
+  const t0=performance.now();
+  function frame(now){
+    const t=(now-t0)/1000;
+    const u2=((t*1000%LOOP)+LOOP)%LOOP/LOOP;
+    let sig;
+    if(!useSynth) sig=curSig;
+    else if(mouseSig) sig=mouseSig;
+    else sig=synthSig(u2);
+    step(sig.gx); step(sig.gx);
+    render(sig,u2);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  const tryEnable=()=>{ enableMotion(); removeEventListener('pointerdown',tryEnable); };
+  addEventListener('pointerdown',tryEnable);
+  hint.addEventListener('pointerdown',tryEnable);
+  setTimeout(()=>{ if(useSynth){ hint.style.opacity='0.45'; } }, 4000);
+}
+
+if(AUTO){
+  hint.remove();
+  // seed a lively slosh and settle under the synthetic vector at u=0
+  h[(NX*0.25)|0]=0.6; h[(NX*0.75)|0]=-0.5;
+  const s0=synthSig(0); settle(s0.gx,30);
+  window.__seek=t=>{
+    const uu=((t%LOOP)+LOOP)%LOOP/LOOP;
+    const s=synthSig(uu);
+    step(s.gx); step(s.gx); step(s.gx);   // 3 substeps → energetic sloshing
+    render(s,uu);
+  };
+  window.__seek(0); window.__ready=true;
+} else {
+  startLiveLoop();
+}
+</script>
+</body></html>

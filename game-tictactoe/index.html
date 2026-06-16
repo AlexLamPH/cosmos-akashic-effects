@@ -1,0 +1,215 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Tic-Tac-Toe — outwit a minimax CPU</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #frame{width:520px;height:600px;position:relative;background:#120e26;
+    border-radius:22px;box-shadow:0 0 60px #8b5cff33,inset 0 0 0 1px #ffffff10;
+    padding:16px;box-sizing:border-box;display:flex;flex-direction:column}
+  #hud{display:flex;justify-content:space-between;align-items:center;padding:4px 10px 12px}
+  .side{text-align:center}
+  .side .lbl{font-size:12px;opacity:.6;font-weight:600;letter-spacing:1px}
+  .side .v{font-size:28px;font-weight:800}
+  #youV{color:#46b4ff}#cpuV{color:#ff5cc2}#drawV{color:#e0b24a}
+  #turn{font-weight:700;font-size:14px;opacity:.85;text-align:center;padding-bottom:6px;color:#36d39a;min-height:18px}
+  canvas{display:block;border-radius:16px;background:#0d0a1f;flex:1;cursor:pointer}
+  #bar{display:flex;gap:8px;justify-content:center;padding-top:12px}
+  button{background:#1c1640;color:#c9c4ec;border:1px solid #ffffff18;
+    border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  button:hover{background:#271c5c;color:#fff}
+  #hint{text-align:center;font-size:11px;opacity:.45;padding-top:8px}
+</style></head>
+<body>
+<div id="frame">
+  <div id="hud">
+    <div class="side"><div class="lbl">YOU (X)</div><div class="v" id="youV">0</div></div>
+    <div class="side"><div class="lbl">DRAW</div><div class="v" id="drawV">0</div></div>
+    <div class="side"><div class="lbl">CPU (O)</div><div class="v" id="cpuV">0</div></div>
+  </div>
+  <div id="turn">Your move</div>
+  <canvas id="cv" width="488" height="430"></canvas>
+  <div id="bar"><button id="rs">Restart (R)</button></div>
+  <div id="hint">Click a cell to place X (or keys 1-9, numpad layout). CPU plays perfect minimax.</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const CW=cv.width,CH=cv.height;
+const COL={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',sacred:'#e0b24a'};
+const X=1,O=2; // X=you(cosmic), O=cpu(nebula)
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const LOOP=12000;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function winnerOf(b){for(const L of LINES){const[a,c,d]=L;if(b[a]&&b[a]===b[c]&&b[a]===b[d])return{who:b[a],line:L};}return b.every(v=>v)?{who:0,line:null}:null;}
+
+// ---- minimax (CPU = O maximises) ----
+function minimax(b,player){
+  const w=winnerOf(b);
+  if(w){if(w.who===O)return{score:10};if(w.who===X)return{score:-10};return{score:0};}
+  let best=player===O?{score:-99}:{score:99},move=-1;
+  for(let i=0;i<9;i++){if(b[i])continue;b[i]=player;
+    const r=minimax(b,player===O?X:O).score;b[i]=0;
+    if(player===O){if(r>best.score){best={score:r};move=i;}}
+    else{if(r<best.score){best={score:r};move=i;}}}
+  return{score:best.score,move};
+}
+function cpuMove(b){return minimax(b,O).move;}
+
+// deterministic "you" (X) player for AUTO: smart-ish but imperfect so games vary
+function autoXMove(b,rnd){
+  // win if possible
+  for(let i=0;i<9;i++){if(b[i])continue;b[i]=X;if(winnerOf(b)&&winnerOf(b).who===X){b[i]=0;return i;}b[i]=0;}
+  // block O win sometimes (80%)
+  if(rnd()<0.8)for(let i=0;i<9;i++){if(b[i])continue;b[i]=O;if(winnerOf(b)&&winnerOf(b).who===O){b[i]=0;return i;}b[i]=0;}
+  // prefer center, then a random open corner/edge
+  if(!b[4]&&rnd()<0.7)return 4;
+  const open=[];for(let i=0;i<9;i++)if(!b[i])open.push(i);
+  return open[(rnd()*open.length)|0];
+}
+
+// ---------- play one full deterministic game, return move list ----------
+function playGame(seed){
+  const rnd=mulberry32(seed); const b=[0,0,0,0,0,0,0,0,0]; const moves=[]; let turn=X;
+  while(true){const w=winnerOf(b);if(w){moves.push({end:true,winner:w});break;}
+    let mv=turn===X?autoXMove(b,rnd):cpuMove(b);
+    if(mv==null||b[mv]){const open=[];for(let i=0;i<9;i++)if(!b[i])open.push(i);mv=open[(rnd()*open.length)|0];}
+    b[mv]=turn;moves.push({cell:mv,who:turn});turn=turn===X?O:X;}
+  return moves;
+}
+
+// pick a seed whose game has a decisive winner (nicer demo); fall back to draw
+function pickGame(){
+  for(let s=7;s<7000;s++){const m=playGame(s);const last=m[m.length-1];
+    if(last.end&&last.winner.who!==0)return{moves:m,seed:s};}
+  return{moves:playGame(7),seed:7};
+}
+const GAME=pickGame();
+const MOVE_MS=950;            // each mark every 0.95s
+const HOLD_MS=2600;          // hold the finished board (highlight) before reset
+const PLAY_MS=GAME.moves.filter(m=>!m.end).length*MOVE_MS;
+const CYCLE=PLAY_MS+HOLD_MS;
+
+// derive board state at ms within one cycle
+function autoState(ms){
+  const b=[0,0,0,0,0,0,0,0,0]; let placed=0; let pop=null;
+  const seq=GAME.moves.filter(m=>!m.end);
+  for(let i=0;i<seq.length;i++){const at=i*MOVE_MS;
+    if(ms>=at){b[seq[i].cell]=seq[i].who;placed++;
+      if(ms-at<260)pop={cell:seq[i].cell,age:ms-at};}}
+  const finished=ms>=PLAY_MS;
+  const w=finished?winnerOf(b):null;
+  return {b,pop,win:w,finished,turn:placed%2===0?X:O};
+}
+
+// ---------- LIVE ----------
+let live=null;
+function initGame(){live={b:[0,0,0,0,0,0,0,0,0],turn:X,win:null,pop:null,busy:false,
+  score:live?live.score:{x:0,o:0,d:0}};refreshScore();paint(liveView());setTurn();}
+function setTurn(){const t=document.getElementById('turn');
+  if(live.win){t.textContent=live.win.who===X?'You win!':live.win.who===O?'CPU wins':'Draw';}
+  else t.textContent=live.turn===X?'Your move':'CPU thinking…';}
+function refreshScore(){document.getElementById('youV').textContent=live.score.x;
+  document.getElementById('cpuV').textContent=live.score.o;
+  document.getElementById('drawV').textContent=live.score.d;}
+function settle(){const w=winnerOf(live.b);if(w){live.win=w;
+  if(w.who===X)live.score.x++;else if(w.who===O)live.score.o++;else live.score.d++;
+  refreshScore();}setTurn();}
+function youPlay(i){
+  if(!live||live.win||live.turn!==X||live.b[i]||live.busy)return;
+  live.b[i]=X;live.pop={cell:i,t:performance.now()};blip(560);paint(liveView());settle();
+  if(live.win)return;
+  live.turn=O;live.busy=true;setTurn();
+  setTimeout(()=>{const mv=cpuMove(live.b);if(mv!=null){live.b[mv]=O;live.pop={cell:mv,t:performance.now()};blip(330);}
+    live.busy=false;live.turn=X;paint(liveView());settle();},480);
+}
+function liveView(){const pop=live.pop?{cell:live.pop.cell,age:performance.now()-live.pop.t}:null;
+  return {b:live.b,pop:pop&&pop.age<260?pop:null,win:live.win,finished:!!live.win,turn:live.turn};}
+
+// ---------- drawing ----------
+function cellRect(i){const c=i%3,r=(i/3)|0;const m=14,gap=10;
+  const s=(CW-2*m-2*gap)/3;return{x:m+c*(s+gap),y:m+r*(s+gap),s};}
+function drawMark(i,who,scale){
+  const R=cellRect(i);const cx=R.x+R.s/2,cy=R.y+R.s/2,r=R.s*0.30*scale;
+  ctx.save();ctx.lineCap='round';ctx.lineWidth=10;
+  if(who===X){ctx.strokeStyle=COL.cosmic;ctx.shadowColor=COL.cosmic;ctx.shadowBlur=18;
+    ctx.beginPath();ctx.moveTo(cx-r,cy-r);ctx.lineTo(cx+r,cy+r);ctx.moveTo(cx+r,cy-r);ctx.lineTo(cx-r,cy+r);ctx.stroke();}
+  else{ctx.strokeStyle=COL.nebula;ctx.shadowColor=COL.nebula;ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();}
+  ctx.restore();
+}
+function paint(s){
+  ctx.clearRect(0,0,CW,CH);
+  const bg=ctx.createRadialGradient(CW/2,CH/2,30,CW/2,CH/2,CW*0.8);
+  bg.addColorStop(0,'#151033');bg.addColorStop(1,'#0d0a1f');ctx.fillStyle=bg;ctx.fillRect(0,0,CW,CH);
+  // cells
+  for(let i=0;i<9;i++){const R=cellRect(i);
+    ctx.fillStyle='#171132';ctx.strokeStyle='#ffffff12';ctx.lineWidth=2;
+    roundRect(R.x,R.y,R.s,R.s,14);ctx.fill();ctx.stroke();}
+  // win line glow behind marks
+  if(s.win&&s.win.line){const L=s.win.line;
+    const a=cellRect(L[0]),c=cellRect(L[2]);
+    ctx.save();ctx.strokeStyle=COL.aurora;ctx.shadowColor=COL.aurora;ctx.shadowBlur=26;ctx.lineWidth=14;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(a.x+a.s/2,a.y+a.s/2);ctx.lineTo(c.x+c.s/2,c.y+c.s/2);ctx.stroke();ctx.restore();
+    // pulse highlight the winning cells
+    for(const k of L){const R=cellRect(k);ctx.save();ctx.strokeStyle=COL.aurora;ctx.lineWidth=3;
+      roundRect(R.x,R.y,R.s,R.s,14);ctx.stroke();ctx.restore();}}
+  // marks
+  for(let i=0;i<9;i++){if(!s.b[i])continue;
+    let sc=1;if(s.pop&&s.pop.cell===i)sc=0.4+0.6*Math.min(1,s.pop.age/220);
+    drawMark(i,s.b[i],sc);}
+  // banner if draw
+  if(s.finished&&s.win&&s.win.who===0){
+    ctx.fillStyle='#e0b24a';ctx.font='bold 22px system-ui';ctx.textAlign='center';
+    ctx.fillText('DRAW',CW/2,CH-6);
+  }
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+// ---------- AUTO draw ----------
+let autoWins={x:0,o:0,d:0};
+function drawAt(ms){
+  // running tally of finished cycles before this ms (deterministic, single repeating game)
+  const s=autoState(ms%CYCLE);
+  paint(s);
+  // scoreboard: count this game once it has finished, plus a fixed base so it's not 0/0/0
+  const base={x:2,o:1,d:0};
+  let xx=base.x,oo=base.o,dd=base.d;
+  if(s.finished&&s.win){if(s.win.who===X)xx++;else if(s.win.who===O)oo++;else dd++;}
+  document.getElementById('youV').textContent=xx;
+  document.getElementById('cpuV').textContent=oo;
+  document.getElementById('drawV').textContent=dd;
+  const t=document.getElementById('turn');
+  if(s.finished&&s.win){t.textContent=s.win.who===X?'You win!':s.win.who===O?'CPU wins':'Draw';}
+  else t.textContent=s.turn===X?'Your move':'CPU move';
+}
+
+// audio
+let actx;function blip(f){if(AUTO)return;try{actx=actx||new(window.AudioContext||webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.1,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+.12);
+  o.start();o.stop(actx.currentTime+.13);}catch(e){}}
+
+// input
+function cellFromXY(mx,my){for(let i=0;i<9;i++){const R=cellRect(i);
+  if(mx>=R.x&&mx<=R.x+R.s&&my>=R.y&&my<=R.y+R.s)return i;}return -1;}
+const KEYCELL={'7':0,'8':1,'9':2,'4':3,'5':4,'6':5,'1':6,'2':7,'3':8};
+function wireLive(){
+  cv.addEventListener('pointerdown',ev=>{const r=cv.getBoundingClientRect();
+    const mx=(ev.clientX-r.left)*(CW/r.width),my=(ev.clientY-r.top)*(CH/r.height);
+    const i=cellFromXY(mx,my);if(i>=0)youPlay(i);});
+  window.addEventListener('keydown',ev=>{if(ev.key.toLowerCase()==='r'){const sc=live.score;initGame();live.score=sc;refreshScore();return;}
+    if(ev.key in KEYCELL)youPlay(KEYCELL[ev.key]);});
+  document.getElementById('rs').addEventListener('click',()=>{const sc=live.score;initGame();live.score=sc;refreshScore();});
+  function frame(){if(live.pop&&performance.now()-live.pop.t>=260)live.pop=null;paint(liveView());requestAnimationFrame(frame);}
+  requestAnimationFrame(frame);
+}
+
+const T0OFF=Math.round(MOVE_MS*4.4); // frame 0 mid-game: a few marks already placed
+if(AUTO){ window.__seek=t=>drawAt((((t+T0OFF)%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { live={score:{x:0,o:0,d:0}}; initGame(); wireLive(); }
+</script>
+</body></html>

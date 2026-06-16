@@ -1,0 +1,102 @@
+<!-- Cosmos Skeleton Loader: a content card (avatar + title/subtitle lines + paragraph + image block) shown as shimmering skeleton placeholders. A left-to-right shimmer sweeps the placeholders, then the card briefly resolves into real accent-tinted content, then dissolves back to loading. Deterministic render(u). -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Skeleton Loader</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.card{position:relative;width:380px;padding:22px;border-radius:18px;
+  background:linear-gradient(160deg,rgba(28,24,46,.92),rgba(18,15,32,.94));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 28px 64px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.2);
+  backdrop-filter:blur(8px)}
+.head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.avatar{flex:0 0 52px;height:52px;border-radius:50%;position:relative;overflow:hidden}
+.hcol{flex:1;display:flex;flex-direction:column;gap:9px}
+.block{position:relative;overflow:hidden;border-radius:7px}
+.l-title{height:13px;width:62%}
+.l-sub{height:10px;width:40%}
+.lines{display:flex;flex-direction:column;gap:11px;margin-bottom:18px}
+.l-line{height:11px}
+.image{height:140px;border-radius:13px;position:relative;overflow:hidden}
+/* skeleton base + the real-content layer live as two stacked layers per block */
+.skel{position:absolute;inset:0;background:#231f3c}
+.real{position:absolute;inset:0;opacity:0}
+.avatar .real{background:radial-gradient(circle at 35% 30%,#a78bff,#6d3df0)}
+.l-title .real,.l-sub .real,.l-line .real{background:linear-gradient(90deg,#5a4fa0,#8b5cff)}
+.image .real{background:
+  radial-gradient(120% 90% at 20% 15%,rgba(139,92,255,.85),transparent 55%),
+  radial-gradient(110% 90% at 85% 90%,rgba(70,180,255,.7),transparent 55%),
+  linear-gradient(150deg,#2a2350,#1d1838)}
+/* moving shimmer band, position driven by JS via --x */
+.shimmer{position:absolute;top:0;bottom:0;width:55%;left:0;pointer-events:none;
+  transform:translateX(var(--x,-60%));
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),rgba(139,92,255,.10),transparent)}
+.tag{position:absolute;top:14px;right:16px;font-size:10px;letter-spacing:.16em;font-weight:700;
+  text-transform:uppercase;color:#8b5cff;opacity:0}
+</style></head>
+<body><div id="stage">
+  <div class="card">
+    <div class="tag" id="tag">Loaded</div>
+    <div class="head">
+      <div class="avatar block"><div class="skel"></div><div class="real"></div><div class="shimmer"></div></div>
+      <div class="hcol">
+        <div class="l-title block"><div class="skel"></div><div class="real"></div><div class="shimmer"></div></div>
+        <div class="l-sub block"><div class="skel"></div><div class="real"></div><div class="shimmer"></div></div>
+      </div>
+    </div>
+    <div class="lines" id="lines"></div>
+    <div class="image block"><div class="skel"></div><div class="real"></div><div class="shimmer"></div></div>
+  </div>
+</div>
+<script>
+// build 3 paragraph lines (last one short)
+const linesWrap=document.getElementById('lines');
+const LINE_W=['100%','100%','72%'];
+LINE_W.forEach(w=>{const d=document.createElement('div');d.className='l-line block';d.style.width=w;
+  d.innerHTML='<div class="skel"></div><div class="real"></div><div class="shimmer"></div>';linesWrap.appendChild(d);});
+const blocks=[...document.querySelectorAll('.block')];
+const tag=document.getElementById('tag');
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(t)=>t<0?0:t>1?1:t;
+const easeInOut=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const LOOP=6000;
+function render(u){
+  // phases:  loading-shimmer (0-.50) → resolve to real (.50-.62) → hold loaded (.62-.82) → dissolve back (.82-.94) → settle (.94-1)
+  // offset so frame 0 sits mid-shimmer (rich, clearly a skeleton)
+  const g=(u+0.18)%1;
+  const inLoad=g<0.50;
+  // shimmer sweep loops twice across the loading phase; the band travels left→right
+  const sweep = inLoad ? (g/0.50*2)%1 : 0;
+  const x = lerp(-65, 165, sweep);          // % translate of the shimmer band
+  // reveal amount: 0 = skeleton, 1 = real content shown
+  let reveal=0;
+  if(g<0.50){ reveal=0; }
+  else if(g<0.62){ reveal=easeOut((g-0.50)/0.12); }
+  else if(g<0.82){ reveal=1; }
+  else if(g<0.94){ reveal=1-easeInOut((g-0.82)/0.12); }
+  else { reveal=0; }
+  // subtle skeleton breathing pulse while loading so it never looks static
+  const pulse=inLoad? 0.5+0.5*Math.sin(g/0.50*Math.PI*4) : 0;
+  const skelOp = lerp(0.72,1.0, pulse);
+  blocks.forEach((b,i)=>{
+    const real=b.querySelector('.real'), skel=b.querySelector('.skel'), sh=b.querySelector('.shimmer');
+    // stagger the reveal slightly per block for a cascading resolve
+    const rr = clamp(reveal*1.12 - i*0.05);
+    real.style.opacity = rr.toFixed(3);
+    skel.style.opacity = (lerp(skelOp,0,rr)).toFixed(3);
+    sh.style.setProperty('--x', x.toFixed(1)+'%');
+    sh.style.opacity = ((inLoad?1:0)*(1-reveal)).toFixed(3);
+  });
+  tag.style.opacity = (reveal*0.9).toFixed(3);
+  tag.style.transform = `translateY(${lerp(-4,0,reveal).toFixed(1)}px)`;
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script></body></html>

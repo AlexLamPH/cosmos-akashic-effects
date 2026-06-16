@@ -1,0 +1,14 @@
+{
+  "slug": "micviz-rings",
+  "title": "Cosmos Frequency Rings — mic-reactive rings emitted on every beat",
+  "title_vi": "",
+  "W": 640,
+  "H": 420,
+  "LOOP": 8400,
+  "N": 93,
+  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "summary": "Concentric rings are emitted from the center on each beat (a level spike), expanding outward and fading as they travel, while a steady center glow pulses with the overall level; each ring's thickness and brightness are sampled from the spectrum at the moment it is emitted, with a faint white inner echo tinted by the high band. It reacts to the MICROPHONE live (gracefully falls back to a synthetic signal if the mic is unavailable/denied) and ships a deterministic synthetic demo for capture. Self-contained, zero dependencies, runs fully offline.",
+  "usage_notes": "RUN: open & click \"enable mic\" to react to your voice/music; it falls back to a built-in beat if no mic is available. KEY TECHNIQUES: a live AnalyserNode (fftSize 128) supplies a 64-bin spectrum + RMS-ish level into one render(spectrum,level,t); a beat is detected as the spike of level above a decaying envelope (and a 4-per-loop emission window for determinism), which spawns a ring whose thickness comes from the mid-band energy and brightness from the level at emit time; rings expand by age/life to RMAX and fade as (1-p); synthSpectrum(u) is a mulberry32-seeded sum of moving formant bumps plus a sharpened kick so emission is rhythmic and the loop is seamless, and four rings are pre-seeded at staggered past birth times so frame 0 already shows rings mid-expansion. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: MAXRINGS, life (ring lifespan), thickness gain, RMAX, center glow depth, beat threshold.",
+  "summary_vi": "",
+  "notes": ""
+}

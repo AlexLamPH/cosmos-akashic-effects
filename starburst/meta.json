@@ -1,0 +1,11 @@
+{
+  "slug": "starburst",
+  "title": "Cosmos Starburst — radiant pulsing ray burst",
+  "title_vi": "Cosmos Starburst — tia sáng toả từ lõi rực",
+  "W": 620, "H": 620, "LOOP": 7000, "N": 88,
+  "tags": ["starburst","rays","radial","generative","canvas2d","glow"],
+  "summary": "Rays of light radiate from a bright pulsing core, each ray varying in length and brightness on integer-harmonic phases while the whole burst slowly rotates one full turn per loop. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: rays are seeded with mulberry32 at even angular spacing, each given an integer harmonic k and phase; ray length and brightness both come from base + wob*sin(2pi*u*k+phase) so they pulse and return at LOOP; the entire field rotates rot=2pi*u*SPIN with INTEGER SPIN (1 turn) for a seamless spin; the core breathes via sin(2pi*u*2) and is drawn as a layered radial gradient over a white-hot dot. Accent-coloured rays via additive 'lighter' compositing. CAPTURE: ?auto=1 + window.__seek(t). TUNE: ray count N, harmonic k range, SPIN turns, base/wob length, AC accent colours.",
+  "summary_vi": "Các tia sáng toả ra từ lõi rực phập phồng, mỗi tia thay đổi độ dài và độ sáng theo pha hài nguyên trong khi cả khối xoay chậm đúng một vòng mỗi loop. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Độ dài/độ sáng tia theo sin(2pi*u*k) với k nguyên, xoay 2pi*u*SPIN với SPIN nguyên nên loop khít."
+}

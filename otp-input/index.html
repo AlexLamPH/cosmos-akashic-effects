@@ -1,0 +1,173 @@
+<!-- Cosmos OTP Input: six separate digit boxes; the active box glows violet with a blinking caret, digits fill in one by one, then a success state flushes the boxes green with a checkmark (or shakes on error). Real typing/paste/backspace in LIVE; deterministic looping auto-demo advances the caret box-to-box as digits appear, hits 6, pulses success green, then clears and restarts via render(u)/__seek; frame 0 shows 3 digits with the 4th box active. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos OTP Input</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:22px;
+  padding:38px 44px;border-radius:22px;
+  background:rgba(14,11,30,.74);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px)}
+.cap{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:#6c6690;font-weight:600}
+.sub{font-size:13px;color:#8b84ad;margin-top:-12px}
+.boxes{display:flex;gap:12px;will-change:transform}
+.box{position:relative;width:50px;height:62px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:700;color:#f1eeff;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  background:rgba(255,255,255,.035);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.08);
+  will-change:box-shadow,background,color}
+.digit{will-change:opacity,transform}
+.caret{position:absolute;width:2px;height:30px;border-radius:2px;
+  background:#8b5cff;box-shadow:0 0 8px 1px rgba(139,92,255,.8);will-change:opacity}
+.check{width:34px;height:34px;will-change:opacity,transform}
+.check svg{width:100%;height:100%;display:block}
+.check path{stroke:#36d39a;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;fill:none;
+  stroke-dasharray:30;will-change:stroke-dashoffset}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="cap">Verification code</div>
+  <div class="boxes" id="boxes">
+    <div class="box"><span class="digit"></span><span class="caret"></span></div>
+    <div class="box"><span class="digit"></span><span class="caret"></span></div>
+    <div class="box"><span class="digit"></span><span class="caret"></span></div>
+    <div class="box"><span class="digit"></span><span class="caret"></span></div>
+    <div class="box"><span class="digit"></span><span class="caret"></span></div>
+    <div class="box"><span class="digit"></span><span class="caret"></span></div>
+  </div>
+  <div class="check" id="check"><svg viewBox="0 0 36 36"><path d="M8 18.5 L15.5 26 L28 11"/></svg></div>
+  <div class="sub" id="sub">Enter the 6-digit code</div>
+</div>
+<script>
+const LOOP=7000,N=88;
+const CODE="284917";                      // the demo passcode
+const boxes=document.getElementById('boxes');
+const cells=[...boxes.querySelectorAll('.box')];
+const digits=cells.map(c=>c.querySelector('.digit'));
+const carets=cells.map(c=>c.querySelector('.caret'));
+const check=document.getElementById('check'),sub=document.getElementById('sub');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+// paint exact state:
+//  filled = how many digits are entered (0..6, fractional allowed for pop)
+//  active = index of the active/caret box (-1 if none / done)
+//  success = 0..1 green-flush amount
+//  caretOn = blink (0/1)
+function paint(str,active,success,caretOn,popI,popK){
+  for(let i=0;i<6;i++){
+    const has=i<str.length;
+    digits[i].textContent=has?str[i]:'';
+    // base + pop scale on the freshly-typed box
+    const pop=(i===popI)?(1+0.18*popK):1;
+    digits[i].style.opacity=has?'1':'0';
+    digits[i].style.transform=`scale(${pop})`;
+    let shadow,bg,col='#f1eeff';
+    if(success>0){
+      // green flush
+      const g=success;
+      bg=`rgba(54,211,154,${0.10*g})`;
+      shadow=`inset 0 0 0 ${1.5+1.2*g}px rgba(54,211,154,${0.55+0.4*g}),0 0 ${14*g}px ${4*g}px rgba(54,211,154,${0.30*g})`;
+      col=`rgb(${Math.round(241-(241-185)*g)},${Math.round(238-(238-244)*g)},${Math.round(255-(255-210)*g)})`;
+    }else if(i===active){
+      bg='rgba(139,92,255,.10)';
+      shadow='inset 0 0 0 2px rgba(139,92,255,.9),0 0 16px 3px rgba(139,92,255,.35)';
+    }else if(has){
+      bg='rgba(255,255,255,.05)';
+      shadow='inset 0 0 0 1.5px rgba(180,160,255,.30)';
+    }else{
+      bg='rgba(255,255,255,.035)';
+      shadow='inset 0 0 0 1.5px rgba(255,255,255,.08)';
+    }
+    cells[i].style.background=bg;
+    cells[i].style.boxShadow=shadow;
+    cells[i].style.color=col;
+    carets[i].style.opacity=(i===active&&success===0&&caretOn)?'1':'0';
+  }
+  // checkmark draw-in on success
+  const path=check.querySelector('path');
+  path.style.strokeDashoffset=String(30*(1-success));
+  check.style.opacity=String(clamp(success*1.2,0,1));
+  check.style.transform=`scale(${0.6+0.4*Math.min(1,success*1.3)})`;
+  sub.textContent=success>0?'Verified':'Enter the 6-digit code';
+  sub.style.color=success>0?'#36d39a':'#8b84ad';
+}
+// auto-demo timeline (u in 0..1), offset so frame 0 = 3 digits + box 4 active:
+//   typing: digits 1..6 appear one per slot; success pulse; brief hold; clear; pause.
+function render(u){
+  // Build a master timeline. Allocate phases by fraction of LOOP.
+  // 6 typing steps, each = TYPE; then SUCCESS flush; HOLD; CLEAR/pause.
+  const TYPE=0.105, GAP=0.0;            // each digit slot
+  const tEnd=6*TYPE;                    // ~0.63 typing done
+  const sucEnd=tEnd+0.14;               // success flush
+  const holdEnd=sucEnd+0.13;            // hold verified
+  // remainder = pause (cleared, box1 active)
+  // offset so that frame 0 sits at "3 digits, box4 active" => start ~3.5 slots in
+  const off=3.5*TYPE;
+  let uu=(u+off)%1;
+  let caretOn=( (uu*LOOP/470)%1 )<0.55;  // ~470ms blink
+  if(uu<tEnd){
+    const f=uu/TYPE;                    // fractional slot index
+    const n=Math.floor(f);             // completed digits
+    const k=f-n;                        // progress into current slot
+    const str=CODE.slice(0,n);
+    // pop the most recently completed digit briefly at slot start
+    const popI=n-1, popK=clamp(1-k*4,0,1);
+    paint(str,n,0,caretOn,popI,popK);
+  }else if(uu<sucEnd){
+    const g=(uu-tEnd)/(sucEnd-tEnd);
+    paint(CODE,-1,g,0,-1,0);
+  }else if(uu<holdEnd){
+    paint(CODE,-1,1,0,-1,0);
+  }else{
+    // cleared, waiting; box 0 active with blinking caret
+    paint('',0,0,caretOn,-1,0);
+  }
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  let val='',manualUntil=0,shakeUntil=0;
+  function setVal(s){
+    val=s.replace(/\D/g,'').slice(0,6);
+    manualUntil=performance.now()+4000;
+    const active=val.length<6?val.length:-1;
+    const blink=(performance.now()%940)<520;
+    if(val.length===6){
+      if(val===CODE){ /* success handled in loop */ }
+      else{ shakeUntil=performance.now()+520; }
+    }
+    paint(val,active,(val.length===6&&val===CODE)?1:0,blink,-1,0);
+  }
+  window.addEventListener('keydown',e=>{
+    if(e.key>='0'&&e.key<='9'){setVal(val+e.key);e.preventDefault();}
+    else if(e.key==='Backspace'){setVal(val.slice(0,-1));e.preventDefault();}
+  });
+  window.addEventListener('paste',e=>{const t=(e.clipboardData||window.clipboardData).getData('text');setVal(t);e.preventDefault();});
+  const st=performance.now();
+  (function l(n){
+    if(n<manualUntil){
+      const active=val.length<6?val.length:-1;
+      const blink=(n%940)<520;
+      const ok=(val.length===6&&val===CODE);
+      // shake on error
+      if(n<shakeUntil){
+        const p=(shakeUntil-n)/520;
+        boxes.style.transform=`translateX(${Math.sin(p*Math.PI*8)*8*p}px)`;
+      }else boxes.style.transform='';
+      paint(val,active,ok?1:0,blink,-1,0);
+    }else{
+      boxes.style.transform='';
+      render((((n-st)%LOOP)+LOOP)%LOOP/LOOP);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

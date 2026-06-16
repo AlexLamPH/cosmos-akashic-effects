@@ -1,0 +1,69 @@
+<!doctype html><!-- Cosmos ocean-waves: parallax sine sea bands rolling horizontally w/ crest glints + foam, Canvas 2D, zero deps -->
+<meta charset="utf-8"><title>ocean-waves</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0;width:100vw;height:100vh}</style>
+<canvas id="c"></canvas>
+<script>
+const LOOP=8000;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,dpr;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// aurora/cosmic tones: deep violet -> cosmic blue -> aurora green crests
+const PAL=[[60,40,140],[46,110,200],[54,180,170],[54,211,154]];
+const NB=7; let bands=[],stars=[],moon={};
+function build(){const r=mulberry32(11);bands=[];stars=[];
+  for(let i=0;i<NB;i++){const d=i/(NB-1); // 0=far(top) 1=near(bottom)
+    bands.push({
+      a1:8+d*30, a2:5+d*16, a3:3+d*9,
+      k1:1+(r()*2|0), k2:2+(r()*2|0), k3:3+(r()*2|0),
+      f1:0.006+r()*0.004, f2:0.012+r()*0.008, f3:0.02+r()*0.012,
+      p1:r()*6.28, p2:r()*6.28, p3:r()*6.28,
+      dir:r()<0.5?-1:1, sp:1+(r()*2|0), d:d});}
+  for(let i=0;i<70;i++)stars.push({x:r(),y:r()*0.45,b:0.3+r()*0.7,tw:1+(r()*2|0),ph:r()*6.28});
+  moon={x:0.74,y:0.20,R:0.10};}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP,T=2*Math.PI*u;
+  // sky gradient
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a0820');g.addColorStop(0.45,'#0d0a2a');g.addColorStop(1,'#05030d');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  // stars (twinkle on integer harmonics)
+  for(const s of stars){const a=s.b*(0.55+0.45*Math.sin(T*s.tw+s.ph));
+    ctx.fillStyle='rgba(200,210,255,'+(a*0.7).toFixed(3)+')';
+    ctx.fillRect(s.x*W,s.y*H,1.4,1.4);}
+  // faint moon glow
+  const mx=moon.x*W,my=moon.y*H,mR=moon.R*Math.min(W,H);
+  const mg=ctx.createRadialGradient(mx,my,0,mx,my,mR*2.2);
+  mg.addColorStop(0,'rgba(224,178,74,0.45)');mg.addColorStop(0.35,'rgba(139,92,255,0.18)');mg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=mg;ctx.beginPath();ctx.arc(mx,my,mR*2.2,0,6.2832);ctx.fill();
+  ctx.fillStyle='rgba(245,232,200,0.85)';ctx.beginPath();ctx.arc(mx,my,mR*0.5,0,6.2832);ctx.fill();
+  // parallax sea bands, far->near painted back to front
+  const step=Math.max(4,W/200);
+  for(let i=0;i<NB;i++){const B=bands[i],c=PAL[i%PAL.length];
+    const baseY=H*(0.42+0.62*B.d); // bands stack from horizon downward
+    const phase=B.dir*T*B.sp; // horizontal roll
+    const wy=x=> baseY
+      +B.a1*Math.sin(x*B.f1+phase*B.k1+B.p1)
+      +B.a2*Math.sin(x*B.f2+phase*B.k2+B.p2)
+      +B.a3*Math.sin(x*B.f3+phase*B.k3+B.p3);
+    // filled body (additive translucent)
+    ctx.beginPath();ctx.moveTo(0,H);
+    for(let x=0;x<=W;x+=step)ctx.lineTo(x,wy(x));
+    ctx.lineTo(W,H);ctx.closePath();
+    ctx.fillStyle='rgba('+c[0]+','+c[1]+','+c[2]+','+(0.10+0.10*B.d).toFixed(3)+')';ctx.fill();
+    // crest line + glints + foam
+    let px=0,py=wy(0);
+    for(let x=step;x<=W;x+=step){const y=wy(x);
+      ctx.strokeStyle='rgba('+c[0]+','+c[1]+','+c[2]+','+(0.5+0.4*B.d).toFixed(3)+')';
+      ctx.lineWidth=1+1.5*B.d;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x,y);ctx.stroke();
+      const slope=(y-py)/step; // crest where wave turns down (peak)
+      if(slope>-0.05&&slope<0.05){
+        const gl=0.4+0.6*Math.abs(Math.sin(x*0.05+phase*2));
+        ctx.fillStyle='rgba(235,245,255,'+(gl*(0.4+0.5*B.d)).toFixed(3)+')';
+        ctx.beginPath();ctx.arc(x,y,(1.2+2*B.d),0,6.2832);ctx.fill();}
+      px=x;py=y;}}
+  ctx.globalCompositeOperation='source-over';}
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);build();}
+addEventListener('resize',resize);resize();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

@@ -1,0 +1,11 @@
+{
+  "slug": "voronoi-cells",
+  "title": "Cosmos Voronoi Cells — drifting seeds form a shimmering glowing mosaic",
+  "title_vi": "Cosmos Voronoi Cells — các hạt trôi tạo bức khảm phát sáng lung linh",
+  "W": 720, "H": 560, "LOOP": 9000, "N": 113,
+  "tags": ["voronoi","cells","mosaic","glow","generative","canvas2d"],
+  "summary": "16 seed points drift on looping sine paths and partition the plane into a Voronoi mosaic. A small offscreen buffer (~108px) computes the two nearest seeds per pixel; cells are tinted by their owner's Cosmos accent and glowing edges flare where the two distances tie. The edge bloom is baked per-pixel from (d2-d1), then the tiny field is upscaled blocky (nearest-neighbour) with 'lighter' so the GIF stays small. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each seed moves on sin/cos(2pi*u*k) with integer k so the loop is seamless; per-pixel nearest + second-nearest seed search on a small offscreen ImageData gives the Voronoi partition; edge glow = cubic falloff of (d2-d1) under EW=2.6px, baked into the pixels so no costly smooth blur pass is needed; cells tinted by owner accent with a pulsing fill; the small field is upscaled with imageSmoothing OFF (flat cells keep the unique-colour count low, hence GIF stays well under 4MB); mulberry32 seeds all motion once. CAPTURE: ?auto=1 + window.__seek(t). TUNE: seed count NS (16), offscreen size (GW<=108), edge width EW=2.6, fill brightness, COLS palette, LOOP.",
+  "summary_vi": "16 hạt giống trôi theo quỹ đạo sin lặp và chia mặt phẳng thành khảm Voronoi. Bộ đệm nhỏ ngoài màn hình (~108px) tính hai hạt gần nhất mỗi pixel; ô được nhuộm theo màu nhấn Cosmos của chủ và viền phát sáng bùng lên nơi hai khoảng cách bằng nhau. Quầng viền được nướng sẵn từng pixel từ (d2-d1), rồi trường nhỏ được phóng to kiểu khối (nearest-neighbour) với 'lighter' để GIF gọn. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Voronoi tính per-pixel hai hạt gần nhất trên offscreen nhỏ (~108px) rồi phóng to kiểu khối để GIF nhỏ; viền glow nướng sẵn từ (d2-d1); chuyển động sin(2pi*u*k) nên loop liền; gieo bằng mulberry32."
+}

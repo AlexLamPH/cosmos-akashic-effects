@@ -1,0 +1,11 @@
+{
+  "slug": "animated-chart",
+  "title": "Cosmos Animated Chart — dashboard revenue card with growing bars, drawing line/area and a travelling tooltip",
+  "title_vi": "Cosmos Animated Chart — thẻ dashboard doanh thu với cột mọc lên, đường/area vẽ dần và tooltip di chuyển",
+  "W": 720, "H": 480, "LOOP": 6000, "N": 75,
+  "tags": ["chart","dashboard","card","tooltip","gradient","interactive"],
+  "summary": "A genuinely polished dashboard chart card on the Cosmos Phantom-dark theme: gradient-filled volume bars grow up with a stagger, a violet trend line draws across over a soft accent area fill, and a value tooltip with a moving dot travels along the series. Gridlines, Y/X axis labels and a legend frame it. A self-contained, zero-dependency component — fully interactive in live mode (hover the chart) and a seamless looping auto-demo for capture. Deterministic: the entire visual state is a pure function of u.",
+  "usage_notes": "RUN: double-click index.html. LIVE: the demo loops the draw-in then a sweeping highlight; the SVG line/area redraw progressively and the tooltip+dot track the head, then ping-pong across the week pulsing each bar. KEY TECHNIQUES: deterministic render(u) splits into a draw-in phase (easeOut growth of bar heights + progressive SVG path built to a fractional index) and a highlight phase using a raised-cosine ping-pong fi=tri*(N-1) so it returns at u=1 (seamless); the area path closes the line down to the baseline; the tooltip is a DOM overlay positioned by converting viewBox coords to pixels; a phase OFFset makes frame 0 land mid-draw so the thumbnail is rich, never blank. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, OFF (frame-0 offset), DATA/VMAX, the 0.55 draw/highlight split, bar width BW, accent gradients (barg/areag/line).",
+  "summary_vi": "Thẻ biểu đồ dashboard bóng bẩy trên nền Phantom-dark: các cột volume tô gradient mọc lên so le, đường xu hướng tím vẽ dần trên vùng area accent mờ, tooltip giá trị kèm chấm di chuyển dọc chuỗi. Lưới, nhãn trục X/Y và chú giải bao quanh. Một component tự chứa, không phụ thuộc — tương tác thật ở chế độ live và auto-demo lặp liền để chụp. Trạng thái hình ảnh là hàm thuần của u.",
+  "notes": "render(u) tách pha vẽ-vào và pha highlight ping-pong raised-cosine nên loop liền; offset pha để frame 0 hiện giữa lúc vẽ."
+}

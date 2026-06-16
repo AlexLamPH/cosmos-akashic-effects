@@ -1,0 +1,15 @@
+{
+  "slug": "game-platformer",
+  "title": "Cosmos Leap — run and jump a glowing hero across floating platforms to the goal flag",
+  "title_vi": "",
+  "W": 720,
+  "H": 480,
+  "LOOP": 11000,
+  "N": 100,
+  "live_fit": true,
+  "tags": ["game", "platformer", "playable", "interactive", "arcade", "canvas2d"],
+  "summary": "A real, fully playable side-scrolling platformer in one self-contained HTML file with zero dependencies. You run a glowing cosmic hero left and right and jump across floating platforms separated by deadly pits, collecting glowing cosmic coins for score while a scrolling camera follows you toward a goal flag at the end of the level. Falling into a pit ends the run; reaching the flag wins; either way you restart. Controls work with both keyboard (left/right or A/D to move, space or up to jump, R to restart) and on-screen touch buttons (left / JUMP / right). It also ships a deterministic self-playing attract demo for capture: a seeded AI hero runs and times jumps perfectly across the seeded platform layout, scooping up coins, rendered purely as a function of time via window.__seek(t).",
+  "usage_notes": "RUN: double-click index.html (or serve it). CONTROLS: ArrowLeft/ArrowRight or A/D move the hero; Space, ArrowUp, or W jumps; on touch use the on-screen left / JUMP / right buttons; R key or the Restart button starts a new run. GOAL: traverse the floating platforms to the goal flag without falling into a pit; each cosmic coin you touch adds to your score (shown top-left, with a best). KEY TECHNIQUES: the game is a fixed-timestep (16ms) deterministic simulation; the entire level (platform positions, gap widths, heights and coin arcs) is generated from a single mulberry32 seed so AUTO replays identically and never uses Math.random in the sim; physics is gravity + per-platform top-edge landing collision; for AUTO a deterministic auto-player always drives right, finds the current support platform and the next platform, and triggers a jump at a lead distance scaled to gap width and upward height so it clears every gap and lands cleanly; drawAt(ms) re-simulates from the fixed seeded start to ms with a START frame-0 offset so capture opens mid-run with the hero airborne mid-jump, several coins already collected, platforms and score all visible. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: GRAV, JUMP, MOVE, platform gap/width/height ranges in buildLevel, coin counts, the auto jump lead window, START offset, GOALX level length, and LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -1,0 +1,134 @@
+<!-- Cosmos Pricing Card: a polished 3-plan pricing table on the Phantom-dark theme. One "Popular" plan is accent-bordered with a glow. A Monthly/Yearly toggle flips the prices with a count animation. Deterministic render(u): the toggle slides Monthly<->Yearly, prices count between the two values, and the popular card lifts on hover. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Pricing</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.head{text-align:center}
+.head h1{font-size:21px;font-weight:720;color:#f4f2fb;letter-spacing:.2px}
+.head p{margin-top:5px;font-size:13px;color:#9b96bd}
+/* toggle */
+.toggle{display:flex;align-items:center;gap:12px;font-size:13px;color:#9b96bd;font-weight:560}
+.toggle .lbl.on{color:#f4f2fb}
+.save{margin-left:2px;font-size:11px;font-weight:640;color:#36d39a;
+  background:rgba(54,211,154,.12);border:1px solid rgba(54,211,154,.28);padding:2px 7px;border-radius:20px}
+.switch{position:relative;width:54px;height:28px;border-radius:20px;cursor:pointer;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(160deg,#8b5cff,#6a3dff);box-shadow:0 4px 12px rgba(139,92,255,.5)}
+/* cards */
+.cards{display:flex;gap:18px;align-items:stretch}
+.card{--acc:#8b5cff;position:relative;width:210px;padding:24px 22px;border-radius:20px;
+  background:linear-gradient(170deg,rgba(28,24,46,.95),rgba(16,13,28,.97));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 22px 50px rgba(0,0,0,.45);display:flex;flex-direction:column}
+.card.pop{border:1px solid rgba(139,92,255,.6);
+  box-shadow:0 26px 60px rgba(0,0,0,.5),0 0 0 1px rgba(139,92,255,.35),0 0 40px rgba(139,92,255,.28)}
+.tag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  font-size:11px;font-weight:680;letter-spacing:.4px;color:#fff;padding:4px 12px;border-radius:20px;
+  background:linear-gradient(160deg,#8b5cff,#6a3dff);box-shadow:0 6px 16px rgba(139,92,255,.5)}
+.plan{font-size:14px;font-weight:660;color:#cfcbe6;letter-spacing:.3px}
+.price{margin-top:12px;display:flex;align-items:baseline;gap:2px;color:#f4f2fb}
+.price .cur{font-size:20px;font-weight:600;align-self:flex-start;margin-top:6px}
+.price .amt{font-size:40px;font-weight:760;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.price .per{font-size:13px;color:#8e89ad;font-weight:520}
+.feat{margin-top:18px;display:flex;flex-direction:column;gap:11px;flex:1}
+.feat .f{display:flex;align-items:center;gap:9px;font-size:12.5px;color:#bdb8d6}
+.feat .f.off{color:#615d7e}
+.tick{flex:0 0 17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.tick.y{background:color-mix(in srgb,var(--acc) 22%,transparent);color:var(--acc)}
+.tick.n{background:rgba(255,255,255,.05);color:#4f4b68}
+.tick svg{width:11px;height:11px}
+.cta{margin-top:20px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);color:#e8e5f4;font-size:13px;font-weight:640;cursor:pointer;
+  transition:background .15s,transform .12s}
+.cta.primary{border:none;color:#fff;background:linear-gradient(160deg,var(--acc),#6a3dff);
+  box-shadow:0 10px 24px rgba(139,92,255,.4)}
+.cta:hover{transform:translateY(-1px)}
+</style></head>
+<body><div id="stage">
+  <div class="head"><h1>Choose your plan</h1><p>Scale as you grow. Cancel anytime.</p></div>
+  <div class="toggle">
+    <span class="lbl" id="lblM">Monthly</span>
+    <div class="switch" id="switch"><div class="knob" id="knob"></div></div>
+    <span class="lbl" id="lblY">Yearly</span>
+    <span class="save">Save 20%</span>
+  </div>
+  <div class="cards" id="cards"></div>
+</div>
+<script>
+const PLANS=[
+  {name:"Starter", m:9,  y:7,  feats:[["3 projects",1],["1 GB storage",1],["Community support",1],["Analytics",0],["Priority support",0]]},
+  {name:"Pro", m:29, y:23, pop:true, feats:[["Unlimited projects",1],["50 GB storage",1],["Email support",1],["Advanced analytics",1],["Priority support",0]]},
+  {name:"Team", m:59, y:47, feats:[["Everything in Pro",1],["500 GB storage",1],["24/7 support",1],["Advanced analytics",1],["SSO + audit logs",1]]},
+];
+const TICK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+const DASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 12h12"/></svg>';
+const cardsE=document.getElementById('cards');
+const els=PLANS.map(p=>{
+  const c=document.createElement('div');c.className='card'+(p.pop?' pop':'');
+  c.innerHTML=(p.pop?'<div class="tag">POPULAR</div>':'')+
+    '<div class="plan">'+p.name+'</div>'+
+    '<div class="price"><span class="cur">$</span><span class="amt">0</span><span class="per">/mo</span></div>'+
+    '<div class="feat">'+p.feats.map(f=>
+      '<div class="f'+(f[1]?'':' off')+'"><span class="tick '+(f[1]?'y':'n')+'">'+(f[1]?TICK:DASH)+'</span>'+f[0]+'</div>').join('')+'</div>'+
+    '<button class="cta'+(p.pop?' primary':'')+'">'+(p.pop?'Get Pro':'Choose plan')+'</button>';
+  cardsE.appendChild(c);
+  return {card:c, amt:c.querySelector('.amt')};
+});
+const knob=document.getElementById('knob'),lblM=document.getElementById('lblM'),lblY=document.getElementById('lblY');
+const popEl=els[PLANS.findIndex(p=>p.pop)];
+const LOOP=6500;
+function easeIO(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+// sub-phases within the loop (fractions): hold-monthly, flip->yearly, hold-yearly, flip->monthly
+function render(u){
+  // frame-0 offset so it opens mid-flip toward Yearly with the popular card lifted
+  const p=(u+0.15)%1;
+  let yr;            // 0=monthly .. 1=yearly  (drives knob + price interpolation)
+  if(p<0.22) yr=0;                         // hold monthly
+  else if(p<0.40) yr=easeIO((p-0.22)/0.18);// flip to yearly
+  else if(p<0.72) yr=1;                    // hold yearly
+  else if(p<0.90) yr=1-easeIO((p-0.72)/0.18);// flip back to monthly
+  else yr=0;                               // hold monthly
+  // toggle knob slides 3px -> 29px
+  knob.style.left=(3+yr*26).toFixed(2)+'px';
+  knob.style.background='linear-gradient(160deg,'+(yr>.5?'#36d39a,#1fae7e':'#8b5cff,#6a3dff')+')';
+  lblM.classList.toggle('on',yr<.5); lblY.classList.toggle('on',yr>=.5);
+  // prices count between monthly and yearly value
+  PLANS.forEach((pl,i)=>{ els[i].amt.textContent=Math.round(pl.m+(pl.y-pl.m)*yr); });
+  // hover lift on the popular card: a gentle pulse synced to the loop
+  const lift=0.5-0.5*Math.cos(u*Math.PI*2);   // 0..1..0 over loop
+  popEl.card.style.transform='translateY('+(-lift*10).toFixed(2)+'px)';
+  popEl.card.style.boxShadow='0 '+(26+lift*18).toFixed(0)+'px '+(60+lift*20).toFixed(0)+
+    'px rgba(0,0,0,.5),0 0 0 1px rgba(139,92,255,.35),0 0 '+(40+lift*30).toFixed(0)+'px rgba(139,92,255,'+(0.28+lift*0.22).toFixed(2)+')';
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  // LIVE: real toggle + hover. interaction pauses the demo loop; the switch animates a
+  // smooth count between monthly/yearly; the popular card lifts on real hover.
+  let yearly=false, anim=null, live=false;
+  const sw=document.getElementById('switch');
+  function paintYr(yr){
+    knob.style.left=(3+yr*26).toFixed(2)+'px';
+    knob.style.background='linear-gradient(160deg,'+(yr>.5?'#36d39a,#1fae7e':'#8b5cff,#6a3dff')+')';
+    lblM.classList.toggle('on',yr<.5);lblY.classList.toggle('on',yr>=.5);
+    PLANS.forEach((pl,i)=>{els[i].amt.textContent=Math.round(pl.m+(pl.y-pl.m)*yr);});
+  }
+  function setYearly(target){
+    live=true; if(anim)cancelAnimationFrame(anim);
+    const t0=performance.now(),from=yearly?1:0,to=target?1:0;yearly=target;
+    (function a(n){const k=Math.min(1,(n-t0)/450);paintYr(from+(to-from)*easeIO(k));
+      if(k<1)anim=requestAnimationFrame(a);})(t0);
+  }
+  sw.addEventListener('click',()=>setYearly(!yearly));
+  popEl.card.style.transition='transform .25s,box-shadow .25s';
+  popEl.card.addEventListener('mouseenter',()=>{live=true;popEl.card.style.transform='translateY(-10px)';});
+  popEl.card.addEventListener('mouseleave',()=>{popEl.card.style.transform='translateY(0)';});
+  // idle autoplay demo (fallback until the user interacts)
+  const s=performance.now();
+  (function l(n){ if(!live){popEl.card.style.transition='';render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);} requestAnimationFrame(l); })(performance.now());
+}
+</script></body></html>

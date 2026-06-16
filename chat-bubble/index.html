@@ -1,0 +1,159 @@
+<!-- Cosmos Chat Bubble: a chat conversation where message bubbles (incoming left / outgoing accent right) appear one by one with a typing three-dot indicator before each incoming reply, timestamps and smooth slide-up; deterministic conversation -> reset loop. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Chat Bubble</title><style>
+*{margin:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:#0a0816;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
+#app{position:relative;width:392px;height:520px;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;
+  background:linear-gradient(165deg,#14112b,#0d0a20);border:1px solid #221c40;
+  box-shadow:0 34px 90px -26px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset}
+/* header */
+#hd{display:flex;align-items:center;gap:12px;padding:15px 18px;flex-shrink:0;
+  background:linear-gradient(180deg,rgba(28,22,55,.92),rgba(20,16,40,.62));border-bottom:1px solid #221c40;z-index:3}
+#hd .av{position:relative;width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#8b5cff,#46b4ff);display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:16px;box-shadow:0 6px 16px -5px rgba(139,92,255,.9)}
+#hd .av::after{content:"";position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;
+  background:#36d39a;border:2.5px solid #14112b;box-shadow:0 0 8px 1px rgba(54,211,154,.7)}
+#hd .nm{display:flex;flex-direction:column;gap:2px}
+#hd .nm b{color:#f3f0ff;font-size:15px;font-weight:650;letter-spacing:-.2px}
+#hd .nm span{color:#36d39a;font-size:11.5px;font-weight:500}
+#hd .grow{flex:1}
+#hd .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#8a83b0;
+  cursor:pointer;transition:background .15s,color .15s}
+#hd .ic:hover{background:rgba(255,255,255,.06);color:#cfc7ee}
+#hd .ic svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none}
+/* feed */
+#feed{flex:1;overflow:hidden;padding:18px 16px 6px;display:flex;flex-direction:column;gap:11px;justify-content:flex-end}
+.msg{display:flex;flex-direction:column;max-width:78%;will-change:transform,opacity}
+.msg.in{align-self:flex-start;align-items:flex-start}
+.msg.out{align-self:flex-end;align-items:flex-end}
+.bub{padding:10px 14px;font-size:13.5px;line-height:1.42;border-radius:17px;position:relative;letter-spacing:-.1px}
+.in .bub{background:linear-gradient(160deg,#241d44,#1b1638);color:#e4dffa;border:1px solid #2c2550;border-bottom-left-radius:6px}
+.out .bub{background:linear-gradient(160deg,#8b5cff,#6f43f0);color:#fff;border-bottom-right-radius:6px;
+  box-shadow:0 8px 22px -10px rgba(139,92,255,.85)}
+.tm{font-size:10.5px;color:#615a86;margin:5px 4px 0;font-weight:500}
+.out .tm{color:#7a6fae}
+/* typing indicator (an incoming bubble) */
+#typing{align-self:flex-start;will-change:transform,opacity}
+#typing .bub{display:flex;gap:5px;align-items:center;padding:13px 15px;
+  background:linear-gradient(160deg,#241d44,#1b1638);border:1px solid #2c2550;border-radius:17px;border-bottom-left-radius:6px}
+#typing .d{width:7px;height:7px;border-radius:50%;background:#9b91d8}
+/* input bar (decorative, live-hoverable) */
+#ib{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border-top:1px solid #221c40;background:linear-gradient(0deg,rgba(28,22,55,.55),transparent)}
+#ib .box{flex:1;height:40px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;padding:0 16px;color:#5b5480;font-size:13px;transition:border-color .15s}
+#ib .box:hover{border-color:rgba(139,92,255,.4)}
+#ib .send{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#8b5cff,#6f43f0);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 16px -6px rgba(139,92,255,.9);transition:transform .12s}
+#ib .send:hover{transform:scale(1.06)}
+#ib .send svg{width:17px;height:17px;stroke:#fff;stroke-width:2.2;fill:none}
+</style></head>
+<body>
+<div id="app">
+  <div id="hd">
+    <div class="av">N</div>
+    <div class="nm"><b>Nova</b><span>online</span></div>
+    <div class="grow"></div>
+    <div class="ic"><svg viewBox="0 0 24 24"><path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.04v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg></div>
+  </div>
+  <div id="feed"></div>
+  <div id="ib">
+    <div class="box">Message…</div>
+    <div class="send"><svg viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg></div>
+  </div>
+</div>
+<script>
+const feed=document.getElementById('feed');
+const LOOP=8000;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+function outCubic(t){t=clamp(t,0,1);const x=1-t;return 1-x*x*x;}
+// conversation script. dir:'in'|'out', t:timestamp, typing:show typing before this one
+const SCRIPT=[
+  {dir:'in', tx:"Hey! Did you get the launch assets? 🚀", tm:"9:41"},
+  {dir:'out',tx:"Yep — just pushed them to the shared drive.", tm:"9:41"},
+  {dir:'in', tx:"Perfect. The gradient looks 🔥", tm:"9:42"},
+  {dir:'out',tx:"Used the new violet → cosmic ramp.", tm:"9:42"},
+  {dir:'in', tx:"Ship it. I'll prep the post.", tm:"9:43"},
+];
+// build DOM once
+const nodes=SCRIPT.map(m=>{
+  const w=document.createElement('div');w.className='msg '+(m.dir==='in'?'in':'out');
+  const b=document.createElement('div');b.className='bub';b.textContent=m.tx;
+  const t=document.createElement('div');t.className='tm';t.textContent=m.tm;
+  w.appendChild(b);w.appendChild(t);feed.appendChild(w);return w;
+});
+// typing indicator node (reused before incoming messages)
+const typing=document.createElement('div');typing.id='typing';
+typing.innerHTML='<div class="bub"><span class="d"></span><span class="d"></span><span class="d"></span></div>';
+feed.appendChild(typing);
+
+// each message gets a slot of time. incoming msgs are preceded by a typing phase.
+// timeline (fractions of u): build cumulative segments.
+const SEG=[]; // {t0,t1,kind:'type'|'show', idx}
+let cur=0.04; // small lead-in
+SCRIPT.forEach((m,i)=>{
+  if(m.dir==='in'){ SEG.push({t0:cur,t1:cur+0.075,kind:'type',idx:i}); cur+=0.075; }
+  SEG.push({t0:cur,t1:cur+0.055,kind:'show',idx:i}); cur+=0.055;
+  cur+=0.052; // dwell after each message
+});
+const END=cur;            // all shown
+const RESET=0.97;         // fade-out window start
+// normalise so the conversation occupies [0, RESET-pad]
+const SPAN=RESET-0.02;
+SEG.forEach(s=>{s.t0=s.t0/END*SPAN; s.t1=s.t1/END*SPAN;});
+
+function place(node,prog){ // prog 0..1 entrance
+  const e=outCubic(prog);
+  node.style.opacity=e.toFixed(3);
+  node.style.transform=`translateY(${((1-e)*16).toFixed(2)}px) scale(${(0.92+e*0.08).toFixed(3)})`;
+}
+
+function render(u){
+  // global fade-out / reset at the tail
+  const fade = u>RESET ? smooth((u-RESET)/(1-RESET)) : 0; // 0..1
+  const gAlpha=1-fade;
+  // typing: which (if any) is active
+  let typeIdx=-1, typeProg=0;
+  for(const s of SEG){ if(s.kind==='type' && u>=s.t0 && u<s.t1){typeIdx=s.idx; typeProg=(u-s.t0)/(s.t1-s.t0);} }
+  // each message visibility
+  nodes.forEach((nd,i)=>{
+    // find this msg's show segment
+    const seg=SEG.find(s=>s.kind==='show'&&s.idx===i);
+    let prog;
+    if(u>=seg.t1) prog=1;
+    else if(u>=seg.t0) prog=(u-seg.t0)/(seg.t1-seg.t0);
+    else prog=0;
+    place(nd,prog);
+    nd.style.opacity=(outCubic(prog)*gAlpha).toFixed(3);
+    nd.style.display = prog>0 ? 'flex':'none';
+  });
+  // typing indicator
+  if(typeIdx>=0 && fade<0.01){
+    typing.style.display='flex';
+    const app=smooth(clamp(typeProg/0.3,0,1)); // appear
+    typing.style.opacity=app.toFixed(3);
+    typing.style.transform=`translateY(${((1-app)*12).toFixed(2)}px)`;
+    // dot bounce — deterministic from typeProg
+    const dots=typing.querySelectorAll('.d');
+    dots.forEach((d,k)=>{
+      const ph=(typeProg*9 - k*0.18);
+      const b=Math.max(0,Math.sin(ph*Math.PI*2));
+      d.style.transform=`translateY(${(-b*5).toFixed(2)}px)`;
+      d.style.opacity=(0.45+b*0.55).toFixed(3);
+    });
+  } else {
+    typing.style.display='none';
+  }
+}
+
+const OFF=0.30; // frame-0: mid-conversation, a couple bubbles + typing visible
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render((((t/LOOP+OFF)%1)+1)%1);window.__seek(0);window.__ready=true;}
+else{
+  const s=performance.now();
+  (function l(n){ render((((n-s)/LOOP+OFF)%1+1)%1); requestAnimationFrame(l); })(performance.now());
+}
+</script></body></html>

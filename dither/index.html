@@ -1,0 +1,61 @@
+<!doctype html><!-- Cosmos dither: animated Cosmos-accent blob field run through a moving 8x8 Bayer ordered-dither threshold -> shifting 1-bit/limited dot patterns, retro look, Canvas 2D, zero deps -->
+<meta charset="utf-8"><title>dither</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0;width:100vw;height:100vh;image-rendering:pixelated}</style>
+<canvas id="c"></canvas>
+<script>
+const LOOP=8000;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,dpr;
+// small offscreen for per-pixel work (GIF-friendly), upscaled crisp/pixelated
+const PW=200, PH=160, off=document.createElement('canvas'); off.width=PW; off.height=PH;
+const octx=off.getContext('2d'); const idata=octx.createImageData(PW,PH); const px=idata.data;
+// Cosmos accents used as the limited palette buckets
+const PAL=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+// 8x8 Bayer ordered-dither matrix (values 0..63 -> normalized 0..1)
+const B=[0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,
+60,28,52,20,62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,
+15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21];
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP,T=2*Math.PI*u;
+  // moving Bayer threshold offset: integer steps so it loops (8 px sweep over the loop)
+  const ox=Math.floor(u*8)&7, oy=Math.floor(u*8)&7;
+  // travelling smooth gradient + two drifting blobs, all on integer harmonics
+  const b1x=PW*(0.5+0.32*Math.cos(T)), b1y=PH*(0.5+0.28*Math.sin(T));
+  const b2x=PW*(0.5+0.30*Math.cos(2*T+1.7)), b2y=PH*(0.5+0.34*Math.sin(T+2.1));
+  for(let y=0;y<PH;y++){
+    for(let x=0;x<PW;x++){
+      // smooth scalar field 0..1: diagonal gradient + sine bands + two blobs
+      let g=0.5+0.5*Math.sin((x+y)*0.05 - T*2);
+      const d1=Math.hypot(x-b1x,y-b1y), d2=Math.hypot(x-b2x,y-b2y);
+      g+=0.9*Math.exp(-d1*d1/1400)+0.8*Math.exp(-d2*d2/1100);
+      g+=0.15*Math.sin(x*0.12+T*3)*Math.sin(y*0.11-T*2);
+      g=g/2.0; if(g>1)g=1; if(g<0)g=0;
+      // ordered-dither: compare against moving Bayer threshold -> quantize to palette steps
+      const thr=(B[((y+oy)&7)*8+((x+ox)&7)]+0.5)/64;
+      const lvl=g*PAL.length; const lo=Math.floor(lvl); const frac=lvl-lo;
+      let idx=lo+(frac>thr?1:0); if(idx>=PAL.length)idx=PAL.length-1; if(idx<0)idx=0;
+      const c=PAL[idx];
+      // dark cells stay near-phantom; brighter cells take the accent at full crispness
+      const lit=g; const dk=0.10;
+      const r=(5+(c[0]-5)*lit*(dk+0.9))|0, gg=(3+(c[1]-3)*lit*(dk+0.9))|0, bb=(13+(c[2]-13)*lit*(dk+0.9))|0;
+      const o=(y*PW+x)*4; px[o]=r; px[o+1]=gg; px[o+2]=bb; px[o+3]=255;
+    }
+  }
+  octx.putImageData(idata,0,0);
+  ctx.fillStyle='#05030d'; ctx.fillRect(0,0,W,H);
+  ctx.imageSmoothingEnabled=false;
+  // cover-fit upscale of the dithered buffer
+  const s=Math.max(W/PW,H/PH); const dw=PW*s, dh=PH*s;
+  ctx.drawImage(off,(W-dw)/2,(H-dh)/2,dw,dh);
+  // subtle additive accent vignette glow to lift it on the loop
+  ctx.globalCompositeOperation='lighter';
+  const gc=PAL[Math.floor(u*PAL.length)%PAL.length];
+  const rg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.hypot(W,H)/2);
+  rg.addColorStop(0,'rgba('+gc[0]+','+gc[1]+','+gc[2]+','+(0.06+0.04*(0.5+0.5*Math.sin(T))).toFixed(3)+')');
+  rg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';}
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener('resize',resize);resize();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

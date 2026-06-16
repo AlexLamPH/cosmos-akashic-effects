@@ -1,0 +1,257 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Tetris</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #frame{width:520px;height:620px;display:flex;gap:14px;padding:16px;box-sizing:border-box;
+    background:linear-gradient(160deg,#140f28,#0c0a1c);border:1px solid #241a44;border-radius:18px;
+    box-shadow:0 12px 40px rgba(0,0,0,.55),inset 0 0 0 1px rgba(139,92,255,.06)}
+  canvas{border-radius:12px;background:#0b0a1a;box-shadow:inset 0 0 24px rgba(70,180,255,.06)}
+  #side{flex:1;display:flex;flex-direction:column;gap:12px}
+  .panel{background:rgba(139,92,255,.06);border:1px solid #2a2050;border-radius:12px;padding:10px 12px}
+  .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9a8fd0;margin-bottom:4px}
+  .val{font-size:26px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+  #next{display:block;margin-top:4px}
+  #over{margin-top:auto;font-size:12px;line-height:1.7;color:#8f86bd}
+  #over b{color:#ff6a3d}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  button{flex:1;min-width:42px;background:#1c1640;color:#cfc6f5;border:1px solid #34285f;border-radius:9px;
+    padding:9px 0;font-size:15px;cursor:pointer}
+  button:active{background:#2a2058}
+  #msg{position:absolute;font-size:30px;font-weight:800;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);
+    display:none}
+</style></head><body>
+<div id="wrap"><div id="frame">
+  <canvas id="c"></canvas>
+  <div id="side">
+    <div class="panel"><div class="lbl">Score</div><div class="val" id="score">0</div></div>
+    <div class="panel"><div class="lbl">Lines</div><div class="val" id="lines">0</div></div>
+    <div class="panel"><div class="lbl">Next</div><canvas id="next" width="120" height="80"></canvas></div>
+    <div id="over">
+      <div>&larr;&rarr; move&nbsp;&nbsp;&uarr;/X rotate</div>
+      <div>&darr; soft&nbsp;&nbsp;Space hard-drop</div>
+      <div><b>R</b> restart</div>
+      <div class="btns">
+        <button id="bL">&larr;</button><button id="bR">&rarr;</button>
+        <button id="bU">&#x21BB;</button><button id="bD">&darr;</button><button id="bS">Drop</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+<div id="msg"></div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+// ---------- palette ----------
+const COLS=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a','#b07cff'];
+const COLW=10,ROWS=20,CELL=24; // board 240x480
+const cv=document.getElementById('c');cv.width=COLW*CELL;cv.height=ROWS*CELL;
+const g=cv.getContext('2d');
+const nc=document.getElementById('next').getContext('2d');
+// ---------- tetromino defs (rotation states as 4x4 cell lists) ----------
+const SHAPES={
+  I:[[0,1],[1,1],[2,1],[3,1]], O:[[1,0],[2,0],[1,1],[2,1]],
+  T:[[1,0],[0,1],[1,1],[2,1]], S:[[1,0],[2,0],[0,1],[1,1]],
+  Z:[[0,0],[1,0],[1,1],[2,1]], J:[[0,0],[0,1],[1,1],[2,1]], L:[[2,0],[0,1],[1,1],[2,1]]};
+const KEYS=Object.keys(SHAPES);
+// ---------- mulberry32 ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---------- game state ----------
+let S;
+function newState(seed){
+  return {grid:Array.from({length:ROWS},()=>Array(COLW).fill(-1)),
+    rng:mulberry32(seed),bag:[],type:0,rot:0,px:3,py:0,score:0,lines:0,
+    nextType:0,over:false,clearAnim:0,clearRows:[]};
+}
+function nextPiece(s){ if(s.bag.length===0){s.bag=KEYS.map((_,i)=>i);
+    // seeded shuffle of indices 0..6
+    for(let i=s.bag.length-1;i>0;i--){const j=(s.rng()*(i+1))|0;[s.bag[i],s.bag[j]]=[s.bag[j],s.bag[i]];}}
+  return s.bag.pop();
+}
+function spawn(s){ s.type=s.nextType; s.nextType=nextPiece(s);
+  s.rot=0;s.px=3;s.py=0;
+  if(collide(s,s.px,s.py,s.rot)) s.over=true;
+}
+function pieceCells(type,r){ let cs=SHAPES[KEYS[type]];
+  for(let k=0;k<(((r%4)+4)%4);k++) cs=cs.map(([x,y])=>[3-y,x]);
+  let mx=Math.min(...cs.map(c=>c[0])),my=Math.min(...cs.map(c=>c[1]));
+  return cs.map(([x,y])=>[x-mx,y-my]);
+}
+function collide(s,px,py,r){
+  for(const [cx,cy] of pieceCells(s.type,r)){
+    const x=px+cx,y=py+cy;
+    if(x<0||x>=COLW||y>=ROWS) return true;
+    if(y>=0 && s.grid[y][x]>=0) return true;
+  }
+  return false;
+}
+function lockPiece(s){
+  for(const [cx,cy] of pieceCells(s.type,s.rot)){
+    const x=s.px+cx,y=s.py+cy; if(y>=0&&y<ROWS&&x>=0&&x<COLW) s.grid[y][x]=s.type;
+  }
+  // clear lines
+  let cleared=[];
+  for(let y=0;y<ROWS;y++){ if(s.grid[y].every(c=>c>=0)) cleared.push(y); }
+  if(cleared.length){
+    for(const y of cleared){ s.grid.splice(y,1); s.grid.unshift(Array(COLW).fill(-1)); }
+    s.lines+=cleared.length;
+    s.score+=[0,100,300,500,800][cleared.length];
+    s.clearAnim=1; s.clearRows=cleared.slice();
+  }
+  spawn(s);
+}
+function softDrop(s){ if(!collide(s,s.px,s.py+1,s.rot)){s.py++;return true;} lockPiece(s); return false; }
+function hardDrop(s){ while(!collide(s,s.px,s.py+1,s.rot)){s.py++;s.score+=2;} lockPiece(s); }
+function move(s,dx){ if(!collide(s,s.px+dx,s.py,s.rot)) s.px+=dx; }
+function rotate(s){ const nr=(s.rot+1)%4;
+  for(const kick of [0,-1,1,-2,2]){ if(!collide(s,s.px+kick,s.py,nr)){s.px+=kick;s.rot=nr;return;} } }
+
+// ---------- seeded AI (AUTO) ----------
+function aiTarget(s){
+  let best=null,bestScore=-1e9;
+  for(let r=0;r<4;r++){
+    const cells=pieceCells(s.type,r);
+    const w=Math.max(...cells.map(c=>c[0]))+1;
+    for(let px=-1;px<=COLW-1;px++){
+      // valid horizontal?
+      let ok=true; for(const[cx,cy]of cells){const x=px+cx; if(x<0||x>=COLW){ok=false;break;}}
+      if(!ok) continue;
+      // drop
+      let py=0; const tmp={type:s.type,grid:s.grid};
+      while(!collideAt(s.grid,s.type,px,py+1,r)) py++;
+      if(collideAt(s.grid,s.type,px,py,r)) continue;
+      const score=evalPlacement(s.grid,s.type,px,py,r);
+      if(score>bestScore){bestScore=score;best={px,py,r};}
+    }
+  }
+  return best;
+}
+function collideAt(grid,type,px,py,r){
+  for(const[cx,cy]of pieceCells(type,r)){const x=px+cx,y=py+cy;
+    if(x<0||x>=COLW||y>=ROWS)return true; if(y>=0&&grid[y][x]>=0)return true;}
+  return false;
+}
+function evalPlacement(grid,type,px,py,r){
+  // simulate landed grid
+  const gg=grid.map(row=>row.slice());
+  for(const[cx,cy]of pieceCells(type,r)){const x=px+cx,y=py+cy;if(y>=0&&y<ROWS)gg[y][x]=type;}
+  let lines=0; for(let y=0;y<ROWS;y++) if(gg[y].every(c=>c>=0)) lines++;
+  let agg=0,holes=0,bump=0,heights=[];
+  for(let x=0;x<COLW;x++){ let h=0; for(let y=0;y<ROWS;y++){ if(gg[y][x]>=0){h=ROWS-y;break;} }
+    heights.push(h); agg+=h;
+    let seen=false; for(let y=0;y<ROWS;y++){ if(gg[y][x]>=0)seen=true; else if(seen)holes++; } }
+  for(let x=0;x<COLW-1;x++) bump+=Math.abs(heights[x]-heights[x+1]);
+  return 0.8*lines*lines - 0.51*agg - 0.36*holes*4 - 0.18*bump - 0.04*Math.max(...heights);
+}
+
+// ---------- AUTO simulation ----------
+const SEED=20260615;
+const TICK=140;      // ms per gravity/ai step in auto
+const T_OFFSET=4200; // start mid-play
+function freshAuto(){ const s=newState(SEED); s.nextType=nextPiece(s); spawn(s);
+  s.plan=null; s.holdTimer=0; return s; }
+function autoStep(s){
+  if(s.over){ // brief pause then reset
+    s.deadFor=(s.deadFor||0)+1; if(s.deadFor>10){ Object.assign(s,freshAuto()); s.deadFor=0; }
+    return; }
+  if(!s.plan) s.plan=aiTarget(s);
+  const p=s.plan;
+  if(!p){ s.over=true; return; }
+  // step toward plan: rotation first, then horizontal, then drop
+  if(s.rot!==p.r){ rotate(s); return; }
+  if(s.px<p.px){ move(s,1); return; }
+  if(s.px>p.px){ move(s,-1); return; }
+  // aligned -> hard drop
+  hardDrop(s); s.plan=null;
+}
+function simTo(ms){
+  const s=freshAuto();
+  const total=Math.floor((ms+T_OFFSET)/TICK);
+  for(let i=0;i<total;i++){ autoStep(s); if(s.clearAnim) s.clearAnim=0; }
+  return s;
+}
+
+// ---------- drawing ----------
+function roundedCell(ctx,x,y,sz,fill,glow){
+  ctx.fillStyle=fill;
+  const r=4,p=1;
+  ctx.beginPath();
+  ctx.moveTo(x+p+r,y+p);
+  ctx.arcTo(x+sz-p,y+p,x+sz-p,y+sz-p,r);
+  ctx.arcTo(x+sz-p,y+sz-p,x+p,y+sz-p,r);
+  ctx.arcTo(x+p,y+sz-p,x+p,y+p,r);
+  ctx.arcTo(x+p,y+p,x+sz-p,y+p,r);
+  ctx.closePath();ctx.fill();
+  if(glow){ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#fff';
+    ctx.fillRect(x+p+2,y+p+2,sz-2*p-4,3);ctx.restore();}
+}
+function draw(s){
+  g.clearRect(0,0,cv.width,cv.height);
+  // grid background lines
+  g.strokeStyle='rgba(139,92,255,.07)';g.lineWidth=1;
+  for(let x=0;x<=COLW;x++){g.beginPath();g.moveTo(x*CELL,0);g.lineTo(x*CELL,cv.height);g.stroke();}
+  for(let y=0;y<=ROWS;y++){g.beginPath();g.moveTo(0,y*CELL);g.lineTo(cv.width,y*CELL);g.stroke();}
+  // settled blocks
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLW;x++){ const t=s.grid[y][x];
+    if(t>=0) roundedCell(g,x*CELL,y*CELL,CELL,COLS[t],true); }
+  // ghost
+  if(!s.over){
+    let gy=s.py; while(!collide(s,s.px,gy+1,s.rot)) gy++;
+    g.save();g.globalAlpha=.18;
+    for(const[cx,cy]of pieceCells(s.type,s.rot)){const x=s.px+cx,y=gy+cy;
+      if(y>=0)roundedCell(g,x*CELL,y*CELL,CELL,COLS[s.type],false);}
+    g.restore();
+    // active piece
+    for(const[cx,cy]of pieceCells(s.type,s.rot)){const x=s.px+cx,y=s.py+cy;
+      if(y>=0)roundedCell(g,x*CELL,y*CELL,CELL,COLS[s.type],true);}
+  }
+  // next preview
+  nc.clearRect(0,0,120,80);
+  const ncells=pieceCells(s.nextType,0);
+  const nw=Math.max(...ncells.map(c=>c[0]))+1,nh=Math.max(...ncells.map(c=>c[1]))+1;
+  const ox=(120-nw*20)/2,oy=(80-nh*20)/2;
+  for(const[cx,cy]of ncells) roundedCell(nc,ox+cx*20,oy+cy*20,20,COLS[s.nextType],true);
+  // HUD
+  document.getElementById('score').textContent=s.score;
+  document.getElementById('lines').textContent=s.lines;
+  const msg=document.getElementById('msg');
+  if(s.over && !AUTO){msg.style.display='block';msg.textContent='GAME OVER';
+    msg.style.left=(cv.getBoundingClientRect().left+10)+'px';
+    msg.style.top=(cv.getBoundingClientRect().top+cv.height/2-20)+'px';}
+  else msg.style.display='none';
+}
+function drawAt(ms){ draw(simTo(ms)); }
+
+const LOOP=12000;
+// ---------- LIVE ----------
+function initGame(){
+  S=newState((Date.now())>>>0); S.nextType=nextPiece(S); spawn(S);
+  let acc=0,last=performance.now();
+  function loop(now){ const d=now-last;last=now;
+    if(!S.over){ acc+=d; const rate=Math.max(140,650-S.lines*18);
+      while(acc>=rate){ acc-=rate; softDrop(S); } }
+    draw(S); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+  const onKey=e=>{ if(S.over){ if(e.key==='r'||e.key==='R'){initGame();} return; }
+    if(e.key==='ArrowLeft')move(S,-1);
+    else if(e.key==='ArrowRight')move(S,1);
+    else if(e.key==='ArrowUp'||e.key==='x'||e.key==='X')rotate(S);
+    else if(e.key==='ArrowDown'){softDrop(S);acc=0;}
+    else if(e.key===' '){hardDrop(S);e.preventDefault();}
+    else if(e.key==='r'||e.key==='R')initGame();
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
+    draw(S);
+  };
+  window.addEventListener('keydown',onKey);
+  const bind=(id,fn)=>document.getElementById(id).addEventListener('click',e=>{
+    if(S.over){initGame();return;} fn();draw(S);});
+  bind('bL',()=>move(S,-1));bind('bR',()=>move(S,1));bind('bU',()=>rotate(S));
+  bind('bD',()=>softDrop(S));bind('bS',()=>hardDrop(S));
+}
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

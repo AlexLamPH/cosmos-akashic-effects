@@ -1,0 +1,21 @@
+{
+  "slug": "rose-curve",
+  "title": "Cosmos Rose Curve — a glowing rhodonea whose petals morph and rotate through integer harmonics",
+  "title_vi": "Cosmos Rose Curve — đường hoa hồng phát sáng với cánh hoa biến đổi và xoay theo hài bậc nguyên",
+  "W": 600,
+  "H": 600,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "rhodonea",
+    "rose-curve",
+    "canvas2d",
+    "generative",
+    "geometric",
+    "cosmos"
+  ],
+  "summary": "An animated rhodonea (rose) curve r=cos(kθ) rendered as layered glowing closed paths whose petal count k and rotation evolve through integer-harmonic functions of u, morphing between petal counts and returning exactly at u=1. Six concentric accent layers blend with additive glow over a warm pulsing core. Pure Canvas 2D, zero deps, runs offline, deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: rhodonea r=cos(kθ) sampled over 720 steps into a closed path; petal count steps through an integer set [3,4,5,6] across u with a continuous cos(kθ)->cos((k+1)θ) blend so morphing is smooth yet returns at u=1; rotation and breathing radius driven by integer harmonics of 2πu; six rotated/scaled accent layers stroked with 'lighter' additive glow; radial-gradient warm core. CAPTURE: ?auto=1 + window.__seek(t). TUNE: petal sequence (seq), layer count (LAYERS), squish amplitude (sq), breathe range, LOOP.",
+  "summary_vi": "Đường hoa hồng (rhodonea) r=cos(kθ) được vẽ thành nhiều lớp đường khép kín phát sáng, với số cánh k và góc xoay biến đổi qua các hàm hài bậc nguyên của u, chuyển dạng giữa các số cánh và quay về đúng tại u=1. Sáu lớp đồng tâm theo các sắc Cosmos hoà trộn bằng phát sáng cộng dồn trên một lõi ấm đập nhịp. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Vòng lặp 7s liền mạch nhờ hài bậc nguyên và blend cánh hoa quay về tại u=1. Đổi 'seq' để chọn dải số cánh, tăng LAYERS để glow dày hơn."
+}

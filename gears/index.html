@@ -1,0 +1,102 @@
+<!doctype html><meta charset=utf8><title>Cosmos Gears</title>
+<!-- Cosmos Gears — interlocking glowing gears mesh; angular speed ∝ 1/teeth, integer turns per LOOP, deterministic & seamless. -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7200;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+// Module M = pitch radius / teeth*? -> we fix module so meshed gears share tooth pitch.
+const MOD=4.2;            // pixels of pitch radius per tooth (shared so teeth interlock)
+let gears=[];
+function build(){
+  const S=Math.min(W,H)/620;       // scale to viewport
+  const m=MOD*S;
+  // A meshed train. Each gear: teeth count, color, position; pitch radius = m*teeth/(2π)*2 ~ proportional to teeth.
+  // Use radius r = m*teeth/2  (pitch radius). Meshed pair centers separated by r1+r2.
+  function R(T){return m*T/2;}
+  const cx=W/2, cy=H/2;
+  // central driver
+  const driver={T:12,col:PAL[0],x:cx,y:cy,base:0,dir:1};
+  gears=[driver];
+  // satellites meshed around driver. Tooth counts all divide DRIVER_TURNS*T_d=144 -> seamless loop.
+  const sats=[
+    {T:16,col:PAL[1],ang:-1.05},
+    {T:24,col:PAL[2],ang:1.15},
+    {T:18,col:PAL[3],ang:2.55},
+    {T:36,col:PAL[4],ang:-2.5},
+  ];
+  for(const s of sats){
+    const d=R(driver.T)+R(s.T);
+    s.x=cx+Math.cos(s.ang)*d; s.y=cy+Math.sin(s.ang)*d;
+    s.dir=-1; // opposite to driver
+    // mesh phase offset: tooth at contact must align. base = angle so a valley faces driver.
+    s.base=Math.PI/ s.T; // half-tooth offset
+    gears.push(s);
+  }
+  // a second-order gear meshed to one satellite (the T24)
+  const parent=gears[2]; // T24
+  const child={T:48,col:PAL[5],dir:1};
+  const ang2=parent.ang+0.9;
+  const d2=R(parent.T)+R(child.T);
+  child.x=parent.x+Math.cos(ang2)*d2; child.y=parent.y+Math.sin(ang2)*d2;
+  child.base=Math.PI/child.T;
+  gears.push(child);
+  // precompute radii/turns. Driver does `turns` rotations per LOOP (integer).
+  for(const g of gears){g.r=R(g.T);}
+}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;build();}
+addEventListener('resize',resize);resize();
+const DRIVER_TURNS=12; // integer turns/LOOP; all tooth counts divide DRIVER_TURNS*T_driver=144 -> seamless
+function drawGear(g,rot){
+  const r=g.r,rr=r*0.78,rh=r*1.0,hub=r*0.3;
+  ctx.save();ctx.translate(g.x,g.y);ctx.rotate(rot);
+  // body fill (dim) — source-over not needed; we draw with lighter
+  // rim ring
+  ctx.globalCompositeOperation='lighter';
+  // teeth
+  ctx.beginPath();
+  for(let i=0;i<g.T;i++){
+    const a0=i/g.T*Math.PI*2, a1=(i+0.5)/g.T*Math.PI*2;
+    const t=0.5*0.5; // tooth half-width fraction handled via points
+    // outer tooth tip
+    ctx.lineTo(Math.cos(a0-0.12)*rh,Math.sin(a0-0.12)*rh);
+    ctx.lineTo(Math.cos(a0+0.12)*rh,Math.sin(a0+0.12)*rh);
+    ctx.lineTo(Math.cos(a1-0.10)*rr,Math.sin(a1-0.10)*rr);
+    ctx.lineTo(Math.cos(a1+0.10)*rr,Math.sin(a1+0.10)*rr);
+  }
+  ctx.closePath();
+  ctx.strokeStyle=g.col;ctx.lineWidth=2.2*DPR;ctx.globalAlpha=0.9;ctx.stroke();
+  // glowing rim
+  ctx.beginPath();ctx.arc(0,0,rr*0.96,0,7);ctx.strokeStyle=g.col;ctx.lineWidth=2.8*DPR;ctx.globalAlpha=0.7;ctx.stroke();
+  // inner hub
+  ctx.beginPath();ctx.arc(0,0,hub,0,7);ctx.strokeStyle='#ffffff';ctx.lineWidth=1.6*DPR;ctx.globalAlpha=0.6;ctx.stroke();
+  // spokes
+  for(let s=0;s<5;s++){const a=s/5*Math.PI*2;ctx.beginPath();ctx.moveTo(Math.cos(a)*hub,Math.sin(a)*hub);ctx.lineTo(Math.cos(a)*rr*0.9,Math.sin(a)*rr*0.9);ctx.strokeStyle=g.col;ctx.lineWidth=1.4*DPR;ctx.globalAlpha=0.45;ctx.stroke();}
+  // center glow
+  const gr=ctx.createRadialGradient(0,0,0,0,0,r*0.5);gr.addColorStop(0,g.col);gr.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.globalAlpha=0.5;ctx.fillStyle=gr;ctx.beginPath();ctx.arc(0,0,r*0.5,0,7);ctx.fill();
+  ctx.restore();
+}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const driver=gears[0];
+  const baseAng=u*Math.PI*2*DRIVER_TURNS; // driver rotation
+  for(const g of gears){
+    let rot;
+    if(g===driver){rot=baseAng;}
+    else{
+      // angular speed inversely proportional to teeth; opposite sign on mesh.
+      // driver turns DRIVER_TURNS*driver.T "tooth-units"; this gear turns same tooth-units / g.T
+      const toothUnits=baseAng*driver.T; // = baseAng*T_d
+      rot=g.dir*toothUnits/g.T + g.base;
+    }
+    drawGear(g,rot);
+  }
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

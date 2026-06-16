@@ -1,0 +1,11 @@
+{
+  "slug": "remix-pendulum-wave",
+  "title": "Cosmos Remix — Pendulum Wave you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "pendulum-wave", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle pendulum wave: a row of glowing pendulums each swinging on its own slightly different period, so the field phases in and out of a travelling wave / snake pattern and resyncs every loop. Live glass panel: palette/shape/density/speed/size + a Pendulums knob to change how many swing. Reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Pendulums to add or remove swinging points, press the shape buttons to change the particle glyph. KEY TECHNIQUES: pendulum-wave geometry — pendulum n swings (BASE+n) integer cycles over the loop, so neighbouring periods differ by one and the row phases into a travelling wave before resyncing at u=1; each pendulum draws a short trail of particles from pivot to bob for a dense glowing arc. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them, so a generic harness can auto-build a panel; theme tokens are a PALETTES map driving a CSS accent var and the per-particle colour ramp; SHAPES are cheap canvas glyphs drawn additively. Integer cycle counts keep frame(0)===frame(LOOP). CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Density for fuller arcs, Pendulums for finer/coarser waves, add palettes to PALETTES.",
+  "summary_vi": "",
+  "notes": ""
+}

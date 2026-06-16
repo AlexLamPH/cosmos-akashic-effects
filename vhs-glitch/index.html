@@ -1,0 +1,75 @@
+<!doctype html><!-- Cosmos VHS glitch: the word COSMOS on a worn tape screen — tracking tears/jitter, RGB chroma offset, rolling noise band, scanlines; all deterministic functions of u so it loops. Canvas 2D, zero deps -->
+<meta charset="utf-8"><title>vhs-glitch</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0;width:100vw;height:100vh}</style>
+<canvas id="c"></canvas>
+<script>
+const LOOP=7000, WORD="COSMOS";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,dpr;
+// small offscreen "broadcast" buffer; everything drawn here then blitted in tracking slices
+const PW=380, PH=240, src=document.createElement('canvas'); src.width=PW; src.height=PH;
+const sx=src.getContext('2d');
+const ACC={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0xC05305);
+// seeded jitter tables (computed once); indexed by floor(u*K) so playback is deterministic & loops
+const K=70, SL=PH; const jit=[], tear=[], noise=[];
+for(let k=0;k<K;k++){const row=new Float32Array(SL); for(let i=0;i<SL;i++)row[i]=(rnd()*2-1); jit.push(row);
+  tear.push({y:Math.floor(rnd()*SL),h:4+Math.floor(rnd()*10),dx:(rnd()*2-1)*30,on:rnd()});
+  const nr=new Float32Array(PW); for(let i=0;i<PW;i++)nr[i]=rnd(); noise.push(nr);}
+function drawWord(){ // paint COSMOS + accent bands into src buffer (RGB-split chroma)
+  sx.fillStyle='#05030d'; sx.fillRect(0,0,PW,PH);
+  // faint accent under-bands
+  for(let i=0;i<3;i++){const cols=[ACC.violet,ACC.cosmic,ACC.nebula];
+    sx.fillStyle=cols[i]; sx.globalAlpha=0.10; sx.fillRect(0,PH*0.18+i*8,PW,3);}
+  sx.globalAlpha=1; sx.textAlign='center'; sx.textBaseline='middle';
+  sx.font='bold 64px Arial Black, Arial, sans-serif';
+}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP,T=2*Math.PI*u;
+  const ki=Math.floor(u*K)%K, kn=jit[ki];
+  // beat (integer harmonic) drives glitch intensity
+  const beat=0.5+0.5*Math.sin(T*4), surge=Math.pow(0.5+0.5*Math.sin(T*7),3);
+  drawWord();
+  // RGB-split chroma: draw COSMOS three times, channels offset; horizontal wobble loops via sin
+  const wob=6*Math.sin(T*2)+10*surge;
+  sx.globalCompositeOperation='lighter';
+  sx.fillStyle='#ff2d6a'; sx.fillText(WORD, PW/2-wob, PH/2);            // red-ish (nebula leaning)
+  sx.fillStyle='#2dffb0'; sx.fillText(WORD, PW/2, PH/2+2*Math.sin(T*3)); // green (aurora)
+  sx.fillStyle='#46b4ff'; sx.fillText(WORD, PW/2+wob, PH/2);            // blue (cosmic)
+  sx.fillStyle='rgba(230,230,255,0.55)'; sx.fillText(WORD, PW/2, PH/2); // white core for legibility
+  sx.globalCompositeOperation='source-over';
+  // rolling noise band: a horizontal hiss band that scrolls down once per loop (loops cleanly)
+  const bandY=((u*PH*1)%PH)|0, bandH=18;
+  for(let y=0;y<bandH;y++){const yy=(bandY+y)%PH; const nr=noise[(ki+y)%K];
+    for(let x=0;x<PW;x+=2){const n=nr[x]; if(n>0.55){const v=(n*255)|0; sx.fillStyle='rgba('+v+','+v+','+v+','+(0.5*(1-y/bandH)).toFixed(2)+')'; sx.fillRect(x,yy,2,1);}}}
+  // blit src to main in horizontal tracking slices, each shifted by seeded jitter (the tracking tear)
+  ctx.fillStyle='#05030d'; ctx.fillRect(0,0,W,H);
+  ctx.imageSmoothingEnabled=true;
+  const s=Math.max(W/PW,H/PH), dw=PW*s, dh=PH*s, ax=(W-dw)/2, ay=(H-dh)/2;
+  for(let y=0;y<PH;y++){
+    let dx=kn[y]*(2+12*beat); // base per-line jitter, stronger on the beat
+    // hard tracking tear: a band index ki pulls a few lines way sideways
+    const te=tear[ki]; if(te.on>0.45 && y>=te.y && y<te.y+te.h) dx+=te.dx*(0.6+0.4*surge);
+    // a second slow tear wave that travels vertically and loops
+    dx+=14*Math.sin(y*0.08 + T*3)*surge;
+    ctx.drawImage(src, 0,y,PW,1, ax+dx*s, ay+y*s, dw, s+1);
+  }
+  // chroma bleed smear: faint additive red/blue ghosts of the whole frame, offset
+  ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.18;
+  ctx.drawImage(src, ax-6*s,ay,dw,dh); ctx.drawImage(src, ax+6*s,ay,dw,dh);
+  ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  // scanlines overlay
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  for(let y=0;y<H;y+=3) ctx.fillRect(0,y,W,1);
+  // vertical rolling sync bar (dark) once per loop for the VHS roll feel
+  const rb=((u*H*1)%H); ctx.fillStyle='rgba(255,255,255,0.05)'; ctx.fillRect(0,rb,W,28);
+  ctx.fillStyle='rgba(0,0,0,0.18)'; ctx.fillRect(0,rb-6,W,6);
+  // subtle vignette
+  const vg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,Math.hypot(W,H)/2);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.55)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);}
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener('resize',resize);resize();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

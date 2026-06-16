@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Singing Bowl</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0;cursor:pointer}
+#h{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font:12px/1 system-ui,sans-serif;color:#e7d6a8;opacity:.6;letter-spacing:.5px;pointer-events:none;transition:opacity .6s}</style></head>
+<body><canvas id="c"></canvas><div id="h">▶ click to strike · drag around the rim to sing</div><script>
+// Cosmos Singing Bowl — a Tibetan bowl/gong; struck (click) or rubbed (drag rim) rings a deep sustained tone with shimmering detuned overtones.
+// LIVE: real Web Audio (detuned sines + slow beating, long envelope). AUTO: seeded silent strike+rim-rub loop — ripples, breathing halo, rotating shimmer.
+const cv=document.getElementById('c'),x=cv.getContext('2d'),hint=document.getElementById('h');
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=7000,TAU=6.283185307;
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const BASE=146.83; // ~D3 fundamental
+// overtone partials of a struck bowl (inharmonic), each slightly detuned for beating
+const PART=[[1,1,0.6],[2.7,0.5,-0.5],[5.4,0.30,0.7],[8.9,0.16,-0.4]]; // [mult, amp, detune cents-ish]
+let W,H,DPR,cx,cy,R,seed,ripples;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  cx=W/2;cy=H*0.54;R=Math.min(W,H)*0.22;seed=mb(7);ripples=[];}
+rs();addEventListener('resize',rs);
+// ---- AUDIO (live only) ----
+let actx,master,voice=null,singGain=null;
+function audio(){if(!actx){actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=0.2;
+  const comp=actx.createDynamicsCompressor();comp.threshold.value=-16;comp.ratio.value=4;master.connect(comp);comp.connect(actx.destination);}
+  if(actx.state==='suspended')actx.resume();return actx;}
+function strike(vel){if(AUTO)return;const a=audio(),t=a.currentTime,g=a.createGain();g.connect(master);
+  const amp=Math.min(1,vel);
+  PART.forEach(([m,h,det])=>{const o=a.createOscillator();o.type='sine';o.frequency.value=BASE*m;o.detune.value=det*7;
+    const og=a.createGain();og.gain.value=h;o.connect(og);og.connect(g);
+    // a faint second detuned osc per partial → slow beating shimmer
+    const o2=a.createOscillator();o2.type='sine';o2.frequency.value=BASE*m;o2.detune.value=-det*7;
+    const og2=a.createGain();og2.gain.value=h*0.7;o2.connect(og2);og2.connect(g);
+    o.start(t);o2.start(t);o.stop(t+6.5);o2.stop(t+6.5);});
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amp*0.9,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+5.5+1.5*amp);
+  pulse=1;}
+// continuous "singing" voice while rubbing the rim
+function singStart(){if(AUTO)return;const a=audio();if(voice)return;voice=[];singGain=a.createGain();singGain.gain.value=0;singGain.connect(master);
+  PART.slice(0,3).forEach(([m,h,det])=>{const o=a.createOscillator();o.type='sine';o.frequency.value=BASE*m;o.detune.value=det*9;
+    const og=a.createGain();og.gain.value=h;o.connect(og);og.connect(singGain);o.start();
+    const o2=a.createOscillator();o2.type='sine';o2.frequency.value=BASE*m;o2.detune.value=-det*9;
+    const og2=a.createGain();og2.gain.value=h*0.6;o2.connect(og2);og2.connect(singGain);o2.start();voice.push(o,o2);});
+  singGain.gain.linearRampToValueAtTime(0.5,a.currentTime+0.4);}
+function singSet(speed){if(AUTO||!singGain)return;const a=audio();singGain.gain.setTargetAtTime(Math.min(0.7,0.2+speed*1.6),a.currentTime,0.15);pulse=Math.max(pulse,0.6);}
+function singStop(){if(AUTO||!voice)return;const a=audio(),vv=voice,sg=singGain;voice=null;singGain=null;
+  sg.gain.setTargetAtTime(0,a.currentTime,0.6);setTimeout(()=>vv.forEach(o=>{try{o.stop()}catch(e){}}),2400);}
+// ---- visual state ----
+let pulse=0; // live amplitude proxy (decays); in AUTO computed from script
+// seeded AUTO script: one strike then a rim-rub swell, looping. amp envelope as fn of u.
+function autoAmp(u){
+  // strike at u=0 (decaying), rim-rub swell mid-loop
+  const strikeEnv=Math.exp(-u*3.2);
+  const rubCenter=0.55, rub=Math.exp(-Math.pow((u-rubCenter)/0.22,2))* (0.7+0.3*Math.sin(TAU*6*u));
+  return Math.max(strikeEnv*0.9, rub*0.85);
+}
+// ripple spawn schedule for AUTO
+let lastU=0, spawnAcc=0;
+// frame-0 richness: pre-seed expanding ripples so t=0 is "just after a strike"
+if(AUTO){ripples=[{u0:-0.06,a:0.9},{u0:-0.12,a:0.7},{u0:-0.18,a:0.5}];}
+function render(u){
+  let amp;
+  if(AUTO){amp=autoAmp(u);
+    // spawn ripples deterministically: at strike + during rub. Reset on loop wrap.
+    if(u<lastU){ripples=[];spawnAcc=0;}
+    // strike ripple set near u=0
+    spawnAcc+=amp*0.9;
+    if(spawnAcc>0.5){spawnAcc=0;ripples.push({u0:u,a:amp});}
+    lastU=u;
+  } else {amp=pulse;pulse*=0.985;}
+  // beating shimmer factor
+  const beat=0.6+0.4*Math.sin(TAU*3*u)+0.3*Math.sin(TAU*4.3*u);
+  // background
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const bg=x.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*0.7);
+  bg.addColorStop(0,`rgba(80,60,20,${0.18+0.5*amp})`);bg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  // concentric ripples radiating outward
+  if(AUTO){for(const rp of ripples){const age=((u-rp.u0)+1)%1;const rad=R+age*Math.max(W,H)*0.55;const al=(1-age)*rp.a*0.6;
+      if(al>0.01){x.globalAlpha=al;x.strokeStyle='#e0b24a';x.lineWidth=(1.5+2*rp.a)*DPR;x.beginPath();x.arc(cx,cy,rad,0,TAU);x.stroke();}}}
+  else{ // live: ripple rings tied to amp, phase scrolling
+    for(let k=0;k<5;k++){const age=((u*1.0+k/5)%1);const rad=R+age*Math.max(W,H)*0.55;const al=(1-age)*amp*0.6;
+      if(al>0.01){x.globalAlpha=al;x.strokeStyle='#e0b24a';x.lineWidth=2*DPR;x.beginPath();x.arc(cx,cy,rad,0,TAU);x.stroke();}}}
+  // breathing level halo
+  const haloR=R*(1.35+0.55*amp);
+  const hg=x.createRadialGradient(cx,cy,R*0.8,cx,cy,haloR);
+  hg.addColorStop(0,`rgba(224,178,74,${0.10+0.35*amp})`);hg.addColorStop(1,'rgba(224,178,74,0)');
+  x.fillStyle=hg;x.globalAlpha=1;x.beginPath();x.arc(cx,cy,haloR,0,TAU);x.fill();
+  // rotating shimmer arcs (overtone shimmer)
+  const rot=TAU*u;
+  for(let k=0;k<3;k++){const a0=rot*(1+k*0.4)+k*2.1,sweep=0.5+0.3*Math.sin(TAU*(2*u)+k);
+    x.globalAlpha=(0.25+0.5*amp)*beat*0.6;x.strokeStyle=['#ffe9b0','#ffd06a','#fff3d0'][k];x.lineWidth=(2+3*amp)*DPR;
+    x.beginPath();x.arc(cx,cy,R*(1.05+k*0.10),a0,a0+sweep);x.stroke();}
+  // the bowl body
+  x.globalCompositeOperation='source-over';
+  const grad=x.createRadialGradient(cx-R*0.3,cy-R*0.4,R*0.1,cx,cy,R*1.1);
+  grad.addColorStop(0,'#3a2e12');grad.addColorStop(0.5,'#8a6a1e');grad.addColorStop(0.8,'#e0b24a');grad.addColorStop(1,'#6a4f16');
+  x.globalAlpha=1;x.fillStyle=grad;x.beginPath();
+  // bowl as a half-ellipse cup
+  x.ellipse(cx,cy,R,R*0.62,0,0,TAU);x.fill();
+  // inner shadow rim
+  x.globalCompositeOperation='lighter';
+  x.globalAlpha=0.6+0.4*amp;x.strokeStyle='#ffe9b0';x.lineWidth=(2.5+4*amp)*DPR;x.shadowColor='#e0b24a';x.shadowBlur=(8+40*amp)*DPR;
+  x.beginPath();x.ellipse(cx,cy,R,R*0.62,0,0,TAU);x.stroke();x.shadowBlur=0;
+  // rim highlight (top ellipse opening)
+  x.globalAlpha=0.7;x.strokeStyle='#fff3d0';x.lineWidth=2*DPR;x.beginPath();x.ellipse(cx,cy-R*0.40,R*0.92,R*0.22,0,0,TAU);x.stroke();
+  // central glow core that breathes
+  const cg=x.createRadialGradient(cx,cy-R*0.1,0,cx,cy-R*0.1,R*0.9);
+  cg.addColorStop(0,`rgba(255,243,208,${0.25+0.5*amp})`);cg.addColorStop(1,'rgba(255,243,208,0)');
+  x.fillStyle=cg;x.globalAlpha=1;x.beginPath();x.arc(cx,cy-R*0.1,R*0.9,0,TAU);x.fill();
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+// ---- live interaction ----
+let rubbing=false,lastAng=null,lastT=0;
+if(!AUTO){
+  const evt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*DPR,(e.clientY-r.top)*DPR];}
+  cv.addEventListener('pointerdown',e=>{audio();hint.style.opacity=0;const[px,py]=evt(e);const d=Math.hypot(px-cx,py-cy);
+    if(d>R*0.75&&d<R*1.4){rubbing=true;singStart();lastAng=Math.atan2(py-cy,px-cx);lastT=performance.now();}
+    else strike(0.95);});
+  cv.addEventListener('pointermove',e=>{if(!rubbing)return;const[px,py]=evt(e);const ang=Math.atan2(py-cy,px-cx);
+    let d=ang-lastAng;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;const now=performance.now();
+    const speed=Math.abs(d)/Math.max(16,now-lastT)*60;singSet(Math.min(1,speed*2.5));lastAng=ang;lastT=now;});
+  const stop=()=>{if(rubbing){rubbing=false;singStop();}};
+  addEventListener('pointerup',stop);cv.addEventListener('pointerleave',stop);
+  addEventListener('keydown',()=>{audio();hint.style.opacity=0;strike(0.9);});
+}
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);window.__seek(0);window.__ready=true;}
+else{const s=performance.now();(function l(n){render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

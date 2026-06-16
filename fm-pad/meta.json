@@ -1,0 +1,15 @@
+{
+  "slug": "fm-pad",
+  "title": "Cosmos FM Pad — XY touch pad FM synth that morphs timbre and cutoff",
+  "title_vi": "Bàn FM Cosmos",
+  "W": 720,
+  "H": 480,
+  "LOOP": 7200,
+  "N": 90,
+  "START": 1800,
+  "tags": ["fm-synth", "synth-pad", "xy-pad", "audio", "webaudio", "interactive", "sound", "canvas2d", "generative", "glow"],
+  "summary": "An XY FM synthesis touch pad that makes REAL sound via the Web Audio API: press and drag and a carrier+modulator oscillator pair sustains a rich evolving FM tone — X morphs the modulation index/ratio (timbre), Y morphs the lowpass cutoff and pitch. A glowing cursor halo leaves a trail and a deterministic spectrum/waveform reacts beneath it. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
+  "usage_notes": "RUN: open index.html and PRESS + DRAG on the pad to HEAR it (audio needs a user gesture to start the AudioContext). Move horizontally for brighter/duller FM timbre, vertically for higher pitch and a more open filter; release to fade out cleanly. KEY TECHNIQUES (synthesis): a sine carrier whose frequency is FM-modulated by a second sine through a gain node (modulation depth = the FM index), routed through a resonant lowpass biquad, a master gain ~0.2 with attack/release exponential ramps (no clicks) and a compressor; pitches use base*2^(semitone/12). CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded sum-of-sines path drifts across the pad while the spectrum and trail follow, looping seamlessly. TUNE: LOOP for drift speed, modGain depth and idx range for brightness, filt.Q for resonance, master gain for level.",
+  "summary_vi": "Một bàn cảm ứng tổng hợp FM theo trục XY phát ra âm thanh THẬT qua Web Audio API: nhấn và kéo để cặp dao động sóng mang + điều biến ngân lên một âm FM phong phú biến đổi — X đổi độ sáng âm sắc, Y đổi cao độ và độ mở bộ lọc. Quầng sáng con trỏ để lại vệt và phổ phản ứng theo. Tự chứa, không phụ thuộc, kèm bản demo hình lặp tất định và im lặng để chụp.",
+  "notes": "Mở ra rồi bấm và kéo chuột trên bàn để nghe âm FM thay đổi theo vị trí."
+}

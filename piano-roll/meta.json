@@ -1,0 +1,14 @@
+{
+  "slug": "piano-roll",
+  "title": "Cosmos Piano Roll — synthesia notes falling onto a glowing keyboard",
+  "title_vi": "Cuộn Phím Đàn Cosmos",
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "music", "generative", "loop", "glow"],
+  "summary": "A synthesia-style piano roll where glowing accent note-blocks fall toward a keyboard at the bottom, and keys light up the moment a note hits the line. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the note pattern is seeded once with mulberry32, each note carries a vertical phase y0 and wraps its descent with ((u - y0) mod 1) so the scroll loops seamlessly; a key lights when a note's body overlaps the hit line y=kbY, driving a glow fill plus an upward beam. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for scroll speed, KEYS for lane count, COUNT/len in resize() for note density and length, PAL indices for note colors.",
+  "summary_vi": "Một cuộn phím đàn kiểu synthesia với các khối nốt phát sáng rơi xuống bàn phím ở đáy, các phím sáng lên ngay khi nốt chạm vạch. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Mẫu nốt được gieo hạt một lần; mỗi nốt cuộn theo ((u - y0) mod 1) nên vòng lặp liền mạch."
+}

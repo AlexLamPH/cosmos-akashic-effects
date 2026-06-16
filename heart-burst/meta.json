@@ -1,0 +1,11 @@
+{
+  "slug": "heart-burst",
+  "title": "Cosmos Heart Burst — a like-heart pops and bursts a ring of sparkles",
+  "title_vi": "Cosmos Heart Burst — trái tim like bung ra cùng vòng tia lấp lánh",
+  "W": 600, "H": 600, "LOOP": 7000, "N": 88,
+  "tags": ["heart","like","burst","sparkle","particles","canvas2d"],
+  "summary": "A like-heart drawn from a parametric heart curve scales up with an overshooting pop and a subtle beat while a seeded ring of four-point sparkles bursts outward then settles back, all wrapped in a nebula-to-solaris glow halo. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a ping-pong driver pp=0.5-0.5*cos(2*PI*u) goes 0->1->0 so frame(0)==frame(LOOP) seamlessly; the heart uses the classic 16*sin^3(t) / 13cos-5cos2-2cos3-cos4 parametric curve scaled by an overshoot pop with a sin-based beat; mulberry32 seeds 22 sparkles ONCE at setup, each placed on a ring whose radius expands with pp (burst) and contracts back (settle); sparkles are 4-point stars spinning by integer-k angle; behind sits a nebula(#ff5cc2)->solaris(#ff6a3d) radial halo. Drawn additively ('lighter'). CAPTURE: ?auto=1 + window.__seek(t). TUNE: sparkle count n, ring spread, pop overshoot, glow size, AC palette.",
+  "summary_vi": "Một trái tim like vẽ từ đường cong tham số phóng to với cú pop vượt đà và nhịp đập nhẹ, trong khi vòng tia bốn cánh có seed bung ra rồi thu lại, bao quanh là quầng sáng nebula chuyển solaris. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Driver ping-pong pp=0.5-0.5*cos(2*PI*u) đảm bảo frame(0)==frame(LOOP); tia sparkle seed bằng mulberry32 một lần lúc setup."
+}

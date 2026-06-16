@@ -1,0 +1,161 @@
+<!doctype html><meta charset=utf8><title>Cosmos FM Bells</title>
+<!-- Cosmos FM Bells — click to ring inharmonic FM bell tones (carrier+modulator, long decay) on a pentatonic scale; real Web Audio on click + generative rain; AUTO is a silent seeded shower of expanding glowing rings. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font:12px/1.4 system-ui,sans-serif;color:#b9a8ff}
+canvas{position:fixed;inset:0;touch-action:none;cursor:crosshair}
+#hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);padding:7px 14px;border:1px solid #46b4ff55;border-radius:20px;background:#0a1426cc;color:#bfe0ff;letter-spacing:.3px;pointer-events:none;transition:opacity .4s}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ click anywhere to ring a bell · pitch follows height</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7200, TAU=Math.PI*2;
+const PAL=['#46b4ff','#8b5cff','#ff5cc2','#36d39a','#e0b24a'];
+// pentatonic scale (semitone offsets) over a few octaves, A as base
+const SCALE=[0,2,4,7,9], BASE=57;     // A4-ish midi base
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+
+// map a vertical fraction (0 top .. 1 bottom) to a scale pitch (high at top)
+function pitchAt(vy){ const steps=SCALE.length*3;               // 3 octaves of pentatonic
+  const idx=Math.round((1-vy)*(steps-1));
+  const oct=(idx/SCALE.length)|0, deg=idx%SCALE.length;
+  return BASE-12+SCALE[deg]+12*oct; }
+function colorForPitch(note){ return PAL[((note%PAL.length)+PAL.length)%PAL.length]; }
+
+// ---------- deterministic seeded bell schedule for AUTO ----------
+// each bell: {t0 (0..1 of LOOP), x,y (0..1), note, col}
+const SCHED=[]; const LIFE=0.34;        // fraction of LOOP a ring lives
+(function(){ const r=mulberry32(20260615); const COUNT=22;
+  for(let i=0;i<COUNT;i++){
+    const t0=r();
+    const x=0.12+r()*0.76, y=0.12+r()*0.76;
+    const note=pitchAt(y);
+    SCHED.push({t0,x,y,note,col:colorForPitch(note)});
+  }
+})();
+
+// live spawned bells (visual) — same shape as SCHED entries but with absolute spawn time
+let liveBells=[];
+
+function drawBell(b,age){            // age in 0..1 (0 fresh, 1 gone)
+  if(age<0||age>=1)return;
+  const x=b.x*W, y=b.y*H, col=b.col;
+  const ease=1-Math.pow(1-age,2);
+  const maxR=Math.min(W,H)*0.22;
+  const R=ease*maxR;
+  const fade=Math.pow(1-age,1.6);
+  ctx.globalCompositeOperation='lighter';
+  // main expanding ring
+  ctx.globalAlpha=0.55*fade;ctx.strokeStyle=col;ctx.lineWidth=(2.5*(1-age)+0.6)*DPR;
+  ctx.beginPath();ctx.arc(x,y,R+0.5*DPR,0,TAU);ctx.stroke();
+  // second, faster trailing ring
+  const R2=Math.min(maxR,ease*maxR*1.4);
+  ctx.globalAlpha=0.25*fade;ctx.lineWidth=1.2*DPR;
+  ctx.beginPath();ctx.arc(x,y,R2,0,TAU);ctx.stroke();
+  // soft core glow that flares on strike then fades
+  const flare=Math.pow(1-age,3);
+  const cr=(28*flare+6)*DPR;
+  let g=ctx.createRadialGradient(x,y,0,x,y,cr);
+  g.addColorStop(0,'#ffffff');g.addColorStop(0.25,col);g.addColorStop(1,col+'00');
+  ctx.globalAlpha=0.85*flare+0.1*fade;ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,cr,0,TAU);ctx.fill();
+  // drifting chime particles around the ring
+  const NP=7;
+  for(let p=0;p<NP;p++){ const a=(p/NP)*TAU + b.note*0.3;
+    const rr=R*(0.7+0.3*Math.sin(p*2.1+b.note));
+    const drift=age*18*DPR*(p%2?1:-1);
+    const px=x+Math.cos(a)*rr, py=y+Math.sin(a)*rr - drift;
+    const ps=(2.4*fade+0.5)*DPR;
+    ctx.globalAlpha=0.6*fade;ctx.fillStyle=col;
+    ctx.beginPath();ctx.arc(px,py,ps,0,TAU);ctx.fill();
+  }
+}
+
+function render(u){
+  // trail fade for a glowing afterimage
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  // faint scale guide lines
+  ctx.globalCompositeOperation='lighter';
+  const steps=SCALE.length*3;
+  for(let i=0;i<steps;i++){ const vy=1-i/(steps-1); ctx.globalAlpha=0.04;ctx.strokeStyle=colorForPitch(pitchAt(vy));
+    ctx.lineWidth=1*DPR;ctx.beginPath();ctx.moveTo(0,vy*H);ctx.lineTo(W,vy*H);ctx.stroke(); }
+
+  if(AUTO){
+    for(const b of SCHED){
+      // age relative to loop, wrapping so rings that span the seam continue
+      let age=((u - b.t0)%1+1)%1 / LIFE;
+      drawBell(b,age);
+    }
+  } else {
+    // live: draw the seeded attract bells (same deterministic pattern) ...
+    for(const b of SCHED){ let age=((u - b.t0)%1+1)%1 / LIFE; drawBell(b,age); }
+    // ... plus any user-spawned live bells by real elapsed time
+    const now=performance.now();
+    liveBells=liveBells.filter(b=> now-b.spawn < b.dur);
+    for(const b of liveBells){ const age=(now-b.spawn)/b.dur; drawBell(b,age); }
+  }
+
+  // title
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.8;ctx.fillStyle='#bfe0ff';
+  ctx.font=(13*DPR)+'px system-ui';ctx.textBaseline='top';ctx.textAlign='left';
+  ctx.fillText('FM BELLS · inharmonic · pentatonic', 22*DPR, 18*DPR);
+  ctx.globalAlpha=1;
+}
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx, master, rainTimer=null;
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function ensureMaster(){ if(master)return; const a=audio();
+  master=a.createGain();master.gain.value=0.2;
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);
+}
+function freq(note){ return 27.5*Math.pow(2,(note-21)/12); }
+// FM bell: carrier + modulator with an inharmonic ratio, long exponential decay
+function ringBell(note,vel){
+  ensureMaster(); const a=actx, when=a.currentTime;
+  const fc=freq(note);
+  const ratio=2.76;                 // inharmonic (classic FM bell ratio ~ sqrt-ish/non-integer)
+  const mod=a.createOscillator();mod.type='sine';mod.frequency.setValueAtTime(fc*ratio,when);
+  const modGain=a.createGain();
+  const idx=fc*4*vel;               // modulation index, decays => bright strike -> pure tail
+  modGain.gain.setValueAtTime(idx,when);
+  modGain.gain.exponentialRampToValueAtTime(Math.max(1,idx*0.02),when+1.2);
+  mod.connect(modGain);
+  const car=a.createOscillator();car.type='sine';car.frequency.setValueAtTime(fc,when);
+  modGain.connect(car.frequency);
+  const g=a.createGain();
+  const peak=0.5*vel;
+  g.gain.setValueAtTime(0.0001,when);
+  g.gain.exponentialRampToValueAtTime(peak,when+0.005);       // fast strike, no click
+  g.gain.exponentialRampToValueAtTime(0.0001,when+2.6);       // long bell decay
+  car.connect(g);g.connect(master);
+  mod.start(when);car.start(when);mod.stop(when+2.8);car.stop(when+2.8);
+}
+function spawnVisual(x,y,note){
+  liveBells.push({x:x/innerWidth, y:y/innerHeight, note, col:colorForPitch(note), spawn:performance.now(), dur:LIFE*LOOP});
+}
+function userBell(e){
+  const note=pitchAt(e.clientY/innerHeight);
+  ringBell(note,0.9);
+  spawnVisual(e.clientX,e.clientY,note);
+  hint.style.opacity='0';
+}
+// generative rain in live mode (uses Math.random — live only, never in render)
+function startRain(){ if(rainTimer)return;
+  (function tick(){ const x=Math.random()*innerWidth, y=(0.1+Math.random()*0.8)*innerHeight;
+    const note=pitchAt(y/innerHeight); ringBell(note,0.35+Math.random()*0.3); spawnVisual(x,y,note);
+    rainTimer=setTimeout(tick, 700+Math.random()*1400); })();
+}
+
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  cv.addEventListener('pointerdown',e=>{ audio(); userBell(e); startRain(); });
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script>

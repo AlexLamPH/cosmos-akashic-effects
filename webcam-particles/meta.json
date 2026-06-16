@@ -1,0 +1,14 @@
+{
+  "slug": "webcam-particles",
+  "title": "Cosmos Motion Sparks — webcam motion throws glowing particles where you move",
+  "title_vi": "",
+  "W": 640,
+  "H": 420,
+  "LOOP": 8400,
+  "N": 93,
+  "tags": ["webcam", "sensor", "reactive", "interactive", "canvas2d"],
+  "summary": "Reacts to the WEBCAM live: each frame is mirrored, downsampled to a 32x24 {brightness,motion} grid and frame-diffed, and wherever motion is high glowing particles spawn and burst outward in Cosmos accent colors, then drift under gravity and fade — so waving your hand throws sparks. It gracefully falls back to a synthetic signal (a fake waving silhouette of moving Gaussian blobs) when the camera is unavailable or denied, and ships a deterministic synthetic demo for capture. Self-contained, zero dependencies. Privacy: all processing happens in-browser, nothing is uploaded.",
+  "usage_notes": "RUN: open and click \"enable camera\", then wave your hand or move — sparks fly from wherever motion is detected, fading as they drift. Without a camera it animates from a built-in synthetic waving silhouette so it is never blank. KEY TECHNIQUES: getUserMedia({facingMode:'user'}) -> hidden <video> -> drawImage mirrored to a 32x24 offscreen canvas -> getImageData -> per-cell brightness + abs frame-diff motion = SIG; one render(SIG,t) spawns particles where motion>threshold (more per cell as motion rises), adds a faint motion underglow, then integrates/fades the particle field; synthSig(u) sums 3 looping Gaussian blobs into the same grid and diffs vs the previous frame for synthetic motion, deterministic and seamless. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: GW/GH (grid res), motion threshold and gain, MAXP (particle cap), spawn count, gravity/drag, blob count/speed.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "waveform-scope",
+  "title": "Cosmos Waveform Scope — glowing oscilloscope traces on a phosphor grid",
+  "title_vi": "Cosmos Waveform Scope — vệt dao động ký phát sáng trên lưới phosphor",
+  "W": 760, "H": 480, "LOOP": 7000, "N": 88,
+  "tags": ["oscilloscope","waveform","lissajous","glow","scope","canvas2d"],
+  "summary": "An oscilloscope screen: two glowing waveform traces built from summed sines scroll across a faint phosphor grid, with a Lissajous figure orbiting below and a roaming phosphor dot. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each trace is y=Σ harm.a*sin(2π(k*tx+u*k)+ph) so integer phase 2π*u*k advances exactly one cycle per loop; the Lissajous uses sin(a*s+2π*u) vs sin(b*s) for a closed orbiting curve; additive 'lighter' compositing with a wide low-alpha pass under a thin bright pass fakes phosphor bloom; faint grid drawn first. CAPTURE: ?auto=1 + window.__seek(t). TUNE: harm[] amplitudes/count, amp, Lissajous a/b, grid density, colours.",
+  "summary_vi": "Màn hình dao động ký: hai vệt sóng phát sáng từ tổng các sin trôi qua lưới phosphor mờ, hình Lissajous quay bên dưới và một chấm phosphor chạy dọc. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Batch factory. Pha 2π*u*k nguyên → loop liền; bloom = pass rộng alpha thấp + pass mảnh sáng với 'lighter'; Lissajous a=3,b=2 quay theo 2π*u. B-tier."
+}

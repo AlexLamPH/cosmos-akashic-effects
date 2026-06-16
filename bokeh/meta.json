@@ -1,0 +1,14 @@
+{
+  "slug": "bokeh",
+  "title": "Cosmos Bokeh — dreamy out-of-focus light circles drifting in the dark",
+  "title_vi": "Bokeh Vũ Trụ",
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "bokeh", "generative", "glow", "ambient", "particles"],
+  "summary": "Soft out-of-focus light circles in varied sizes and accent colours drift slowly along gentle sine paths over the Phantom dark, some bright-rimmed like defocused highlights, all gently pulsing. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: seeded mulberry32 places orbs at setup, sorted largest-behind; each drifts on sin/cos paths with integer harmonics k so the loop closes exactly at LOOP; soft discs are radial gradients fading to transparent under additive 'lighter' blending; brightness pulses via 0.5+0.5*sin(2π·pk·u+phase) on integer harmonic pk; ~1/3 of orbs get a brighter rim ring (lightened colour) to mimic out-of-focus highlight edges. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N count, rad range, rim probability, base brightness, ACCENT palette.",
+  "summary_vi": "Những vòng tròn ánh sáng mờ nhòe với kích thước và màu nhấn đa dạng trôi chậm theo quỹ đạo hình sin trên nền tối Phantom, một số có viền sáng như điểm nhấn lệch nét, tất cả nhẹ nhàng xung động.",
+  "notes": "Mọi chuyển động và xung sáng dùng hàm tuần hoàn với hệ số k nguyên nên vòng lặp liền mạch tại LOOP; không lưu trạng thái giữa các khung."
+}

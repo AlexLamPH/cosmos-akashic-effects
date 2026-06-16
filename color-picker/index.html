@@ -1,0 +1,139 @@
+<!-- Cosmos Color Picker: a saturation/value square with a draggable ring handle over a hue-tinted gradient, a hue slider strip below, and a live preview swatch with HEX/RGB readout that updates as you pick. Real drag on both surfaces in LIVE; deterministic looping auto-demo sweeps the hue spectrum while the SV ring traces a path, swatch + hex updating live via render(u)/__seek. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Color Picker</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center}
+.wrap{display:flex;flex-direction:column;gap:18px;width:312px;
+  padding:22px;border-radius:20px;
+  background:rgba(14,11,30,.74);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px)}
+.sv{position:relative;width:100%;height:188px;border-radius:13px;cursor:crosshair;
+  user-select:none;touch-action:none;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 6px 18px -8px rgba(0,0,0,.6)}
+.sv .white{position:absolute;inset:0;background:linear-gradient(to right,#fff,rgba(255,255,255,0))}
+.sv .black{position:absolute;inset:0;background:linear-gradient(to top,#000,rgba(0,0,0,0))}
+.ring{position:absolute;width:20px;height:20px;border-radius:50%;
+  transform:translate(-50%,-50%);pointer-events:none;
+  border:2.5px solid #fff;
+  box-shadow:0 0 0 1.5px rgba(0,0,0,.45),0 2px 8px -1px rgba(0,0,0,.6);z-index:3;will-change:left,top}
+.hue{position:relative;width:100%;height:16px;border-radius:9px;cursor:pointer;
+  user-select:none;touch-action:none;
+  background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 3px 8px -4px rgba(0,0,0,.6)}
+.hknob{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;
+  transform:translate(-50%,-50%);pointer-events:none;
+  background:#fff;border:2px solid #fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 2px 7px -1px rgba(0,0,0,.55);z-index:3;will-change:left,background}
+.read{display:flex;align-items:center;gap:13px}
+.swatch{width:50px;height:50px;border-radius:12px;flex:0 0 auto;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 4px 14px -4px rgba(0,0,0,.6);will-change:background,box-shadow}
+.vals{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hex{font-size:17px;font-weight:700;letter-spacing:1.2px;color:#f1eeff;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.rgb{font-size:12px;letter-spacing:.4px;color:#8b84ad;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.cap{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#6c6690;font-weight:600;margin-bottom:-4px}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="cap">Pick a colour</div>
+  <div class="sv" id="sv">
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="ring" id="ring"></div>
+  </div>
+  <div class="hue" id="hue"><div class="hknob" id="hknob"></div></div>
+  <div class="read">
+    <div class="swatch" id="swatch"></div>
+    <div class="vals">
+      <div class="hex" id="hex">#8B5CFF</div>
+      <div class="rgb" id="rgb">rgb(139, 92, 255)</div>
+    </div>
+  </div>
+</div>
+<script>
+const LOOP=7000,N=88;
+const sv=document.getElementById('sv'),ring=document.getElementById('ring'),
+      hue=document.getElementById('hue'),hknob=document.getElementById('hknob'),
+      swatch=document.getElementById('swatch'),hexEl=document.getElementById('hex'),rgbEl=document.getElementById('rgb');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+// HSV (h 0..360, s/v 0..1) -> {r,g,b} 0..255
+function hsv2rgb(h,s,v){
+  const c=v*s, x=c*(1-Math.abs((h/60)%2-1)), m=v-c;
+  let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;} else if(h<120){r=x;g=c;} else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;} else if(h<300){r=x;b=c;} else {r=c;b=x;}
+  return {r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)};
+}
+const hx=n=>n.toString(16).padStart(2,'0').toUpperCase();
+// paint exact state from hue(0..360), s(0..1), v(0..1)
+function paint(h,s,v){
+  const W=sv.clientWidth,H=sv.clientHeight;
+  // SV background tint = full-sat/full-val of the hue
+  const tint=hsv2rgb(h,1,1);
+  sv.style.background=`rgb(${tint.r},${tint.g},${tint.b})`;
+  ring.style.left=(s*W)+'px';
+  ring.style.top=((1-v)*H)+'px';
+  // ring fill mirrors selection so it reads on any bg
+  const sel=hsv2rgb(h,s,v);
+  ring.style.background=`rgb(${sel.r},${sel.g},${sel.b})`;
+  // hue knob
+  const hw=hue.clientWidth;
+  hknob.style.left=((h/360)*hw)+'px';
+  hknob.style.background=`rgb(${tint.r},${tint.g},${tint.b})`;
+  // preview + readout
+  swatch.style.background=`rgb(${sel.r},${sel.g},${sel.b})`;
+  swatch.style.boxShadow=`inset 0 0 0 1px rgba(255,255,255,.14),0 4px 16px -4px rgba(${sel.r},${sel.g},${sel.b},.7)`;
+  hexEl.textContent='#'+hx(sel.r)+hx(sel.g)+hx(sel.b);
+  rgbEl.textContent=`rgb(${sel.r}, ${sel.g}, ${sel.b})`;
+}
+// auto-demo: hue sweeps 0..360 continuously; the SV ring traces a smooth Lissajous-ish path.
+// frame 0 offset to a violet hue (~265deg) mid-sweep.
+function render(u){
+  const H0=265/360;                       // frame-0 hue = violet
+  const h=(((u+H0)%1)*360);               // hue sweeps full spectrum, starts at violet
+  // ring traces a looping path across the SV square (period = LOOP)
+  const a=u*Math.PI*2;
+  const s=0.46+0.40*Math.sin(a*1+0.6);    // saturation oscillates
+  const v=0.66+0.30*Math.sin(a*2+1.9);    // value oscillates at 2x for a figure-eight path
+  paint(h,clamp(s,0.04,0.98),clamp(v,0.18,0.99));
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  let h=265,s=0.66,v=1,manualUntil=0;
+  function svFromXY(cx,cy){
+    const r=sv.getBoundingClientRect();
+    s=clamp((cx-r.left)/r.width,0,1);
+    v=clamp(1-(cy-r.top)/r.height,0,1);
+    paint(h,s,v);manualUntil=performance.now()+2200;
+  }
+  function hueFromX(cx){
+    const r=hue.getBoundingClientRect();
+    h=clamp((cx-r.left)/r.width,0,1)*360;
+    paint(h,s,v);manualUntil=performance.now()+2200;
+  }
+  let dragSV=false,dragHue=false;
+  sv.addEventListener('pointerdown',e=>{dragSV=true;sv.setPointerCapture(e.pointerId);svFromXY(e.clientX,e.clientY);});
+  sv.addEventListener('pointermove',e=>{if(dragSV)svFromXY(e.clientX,e.clientY);});
+  hue.addEventListener('pointerdown',e=>{dragHue=true;hue.setPointerCapture(e.pointerId);hueFromX(e.clientX);});
+  hue.addEventListener('pointermove',e=>{if(dragHue)hueFromX(e.clientX);});
+  window.addEventListener('pointerup',()=>{dragSV=dragHue=false;});
+  paint(h,s,v);
+  const st=performance.now();
+  (function l(n){
+    if(dragSV||dragHue){/* held */}
+    else if(n<manualUntil){/* hold the user's pick */}
+    else{render((((n-st)%LOOP)+LOOP)%LOOP/LOOP);}
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

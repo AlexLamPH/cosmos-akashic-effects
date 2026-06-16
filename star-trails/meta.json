@@ -1,0 +1,11 @@
+{
+  "slug": "star-trails",
+  "title": "Cosmos Star Trails — long-exposure arcs of starlight circling a pole star",
+  "title_vi": "Cosmos Star Trails — vệt sao phơi sáng dài xoay quanh sao Bắc Cực",
+  "W": 760, "H": 540, "LOOP": 9000, "N": 113,
+  "tags": ["star-trails","long-exposure","night-sky","rotation","glow","canvas2d"],
+  "summary": "Hundreds of cool-tinted stars each trace a glowing partial arc as the whole night sky rotates around an off-centre pole star, like a long-exposure photograph; the field sweeps exactly one integer turn-fraction per loop so it rotates forever without a seam. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each star has a fixed radius and start angle around the pole; the global rotation head=2PI*SWEEP*u uses INTEGER SWEEP so frame(0)==frame(LOOP). A trail is drawn by stepping a fade-out arc (span = star.arc*2PI) backwards from each star's head angle, sampling points on the circle radius — no frame-to-frame accumulation, the whole exposure is recomputed every frame as a pure function of time. A radial vignette wash, static distant stars, and a bright additive pole star complete the scene. CAPTURE: ?auto=1 + window.__seek(t). TUNE: SWEEP turns-per-loop, pole position (px,py), star count, per-star arc length, AC cool palette, LOOP period.",
+  "summary_vi": "Hàng trăm ngôi sao màu lạnh, mỗi sao kéo một cung sáng khi cả bầu trời đêm xoay quanh một sao Bắc Cực lệch tâm, như ảnh phơi sáng dài; cả vùng quét đúng một phần nguyên vòng mỗi loop nên xoay mãi không thấy mối nối. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Góc xoay head=2PI*SWEEP*u với SWEEP nguyên; vệt sao là cung mờ dần lấy ngược từ góc đầu trên cùng bán kính nên loop liền tại u=1."
+}

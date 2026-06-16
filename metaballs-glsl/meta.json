@@ -1,0 +1,14 @@
+{
+  "slug": "metaballs-glsl",
+  "title": "Cosmos Metaballs — gooey 2D metaballs orbiting on looping paths, glowing iso-surface (WebGL shader)",
+  "title_vi": "Cosmos Metaballs — metaball 2D dẻo quánh quay theo quỹ đạo lặp, bề mặt iso phát sáng (shader WebGL)",
+  "W": 460,
+  "H": 460,
+  "LOOP": 9000,
+  "N": 90,
+  "tags": ["shader", "webgl", "glsl", "metaballs", "iso-surface", "generative", "loop", "cosmos"],
+  "summary": "2D metaballs computed entirely in a real WebGL GLSL fragment shader: six blobs orbit on looping elliptical paths and each contributes a 1/dist^2 scalar field; the summed field is thresholded with smoothstep to extract a gooey iso-surface that is glowed at the rim, with per-blob Cosmos accent colours (violet, cosmic, nebula, aurora, solaris, sacred) blended by field weight over a dark background. Zero dependencies, runs fully offline, deterministic and seamless — the time uniform loops in [0,1) and every blob orbit uses integer harmonics of 2*PI*t so shade(uv,0)==shade(uv,1).",
+  "usage_notes": "RUN: open index.html in any browser with WebGL support (no build, no deps, offline). KEY TECHNIQUES: metaballs = sum of 1/dist^2 fields from blobs whose centres orbit via cos/sin of integer multiples of ph=2*PI*t (seamless loop); smoothstep thresholds split the field into solid body, glowing iso rim and soft outer halo; accent colour is the field-weighted average of per-blob accents for a gooey merge; contrast keeps the background dark while rims bloom. CAPTURE: ?auto=1 + window.__seek(t). TUNE: edit orbit() radii/harmonics and field() strengths to change blob motion and merge size; adjust the iso/edge/halo smoothstep thresholds for thicker or thinner gooey surfaces.",
+  "summary_vi": "Metaball 2D tính hoàn toàn trong fragment shader WebGL GLSL: sáu khối quay theo quỹ đạo elip lặp, mỗi khối đóng góp trường 1/dist^2; tổng trường được ngưỡng hoá bằng smoothstep để tách bề mặt iso dẻo quánh, viền phát sáng, phối màu accent Cosmos theo trọng số trường trên nền tối. Không phụ thuộc, chạy offline, xác định và liền mạch (uT lặp trong [0,1)).",
+  "notes": "Metaball 2D dẻo quánh hợp nhất, viền iso phát sáng theo accent Cosmos, lặp liền mạch."
+}

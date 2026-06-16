@@ -1,0 +1,11 @@
+{
+  "slug": "moon-phases",
+  "title": "Cosmos Moon Phases — a shaded moon whose terminator sweeps new to full to new",
+  "title_vi": "Cosmos Moon Phases — mặt trăng được tô bóng với đường phân giới quét qua các pha",
+  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
+  "tags": ["moon","phases","terminator","starfield","glow","canvas2d"],
+  "summary": "A softly shaded moon disc lit by a sphere normal, with craters and limb darkening, whose terminator sweeps across the face cycling new -> crescent -> full -> crescent over the loop, set on a twinkling seeded starfield with a subtle bloom that brightens near full. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the moon is shaded per-pixel on a small 180px offscreen (GIF-friendly) and upscaled — each pixel inside the unit disc gets a sphere normal (nz = sqrt(1-r^2)) and a Lambert term against a light direction that rotates a full turn over u (lx=sin(2PI*u), lz=-cos(2PI*u)), so the terminator sweeps from new (u=0) through full (u=0.5) back to new (u=1), making frame(0)==frame(LOOP). Craters lower local albedo; limb darkening and faint earthshine on the dark side add depth; glow and rim light scale with the full fraction (0.5-0.5cos(2PI*u)). Stars twinkle on period-1 sin. CAPTURE: ?auto=1 + window.__seek(t). TUNE: D offscreen res, moon radius R, crater count/size, earthshine, glow strength, LOOP.",
+  "summary_vi": "Đĩa mặt trăng được tô bóng mềm theo pháp tuyến hình cầu, có miệng hố và tối rìa, đường phân giới quét qua bề mặt theo chu kỳ trăng non -> lưỡi liềm -> trăng tròn -> lưỡi liềm trong một vòng lặp, trên nền sao lấp lánh với quầng sáng nhẹ rực lên gần lúc trăng tròn. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Tô bóng từng pixel trên offscreen 180px rồi phóng to; hướng sáng xoay trọn vòng theo u nên đường phân giới quét đủ pha và loop liền mạch."
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "neon-rings",
+  "title": "Cosmos Neon Rings — sonar rings pulsing outward with a radar sweep",
+  "title_vi": "Cosmos Neon Rings — vòng sonar lan ra cùng tia quét radar",
+  "W": 760, "H": 540, "LOOP": 8000, "N": 100,
+  "tags": ["neon","rings","sonar","radar","sweep","pulse","canvas2d"],
+  "summary": "Concentric neon rings pulse outward from the centre like sonar, fading in alpha as they expand to the edge, while a rotating radar sweep line drags a faint trailing wedge and seeded blips flash as the beam passes over them, all around a bright glowing core. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each ring k has radius=((u+k/K) mod 1)*maxR with alpha=(1-that fraction) so it fades as it grows and re-spawns seamlessly at u=1; ring colour cycles the cosmos accents; the sweep line angle=2*PI*u completes exactly one integer turn per loop (frame(0)==frame(LOOP)); a radial-gradient wedge gives a trailing radar afterglow; mulberry32 seeds 10 blips once at setup and they glow by angular proximity to the beam; bright core is a radial gradient. Drawn additively ('lighter'). CAPTURE: ?auto=1 + window.__seek(t). TUNE: ring count K, maxR, sweep trail width tw, blip count, AC palette, core size.",
+  "summary_vi": "Các vòng neon đồng tâm lan ra từ tâm như sonar, mờ dần khi nở rộng, trong khi một tia quét radar xoay kéo theo vệt mờ và các blip có seed lóe lên khi tia quét qua, quanh một lõi sáng. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Bán kính vòng=((u+k/K) mod 1)*maxR và góc quét=2*PI*u (một vòng trọn) nên frame(0)==frame(LOOP)."
+}

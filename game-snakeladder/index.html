@@ -1,0 +1,276 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Snakes &amp; Ladders — race a CPU to 100</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #frame{width:560px;height:660px;position:relative;background:#120e26;
+    border-radius:22px;box-shadow:0 0 60px #8b5cff33,inset 0 0 0 1px #ffffff10;
+    padding:16px;box-sizing:border-box;display:flex;flex-direction:column}
+  #hud{display:flex;justify-content:space-between;align-items:center;padding:2px 10px 8px}
+  .side{text-align:center}
+  .side .lbl{font-size:11px;opacity:.6;font-weight:600;letter-spacing:1px}
+  .side .v{font-size:26px;font-weight:800}
+  #youV{color:#46b4ff}#cpuV{color:#ff5cc2}
+  #msg{text-align:center;font-weight:700;font-size:14px;color:#36d39a;min-height:18px;padding-bottom:4px}
+  canvas{display:block;border-radius:16px;background:#0d0a1f}
+  #bar{display:flex;gap:10px;justify-content:center;align-items:center;padding-top:10px}
+  button{background:#1c1640;color:#c9c4ec;border:1px solid #ffffff18;
+    border-radius:10px;padding:10px 18px;font-size:15px;font-weight:700;cursor:pointer}
+  button:hover{background:#271c5c;color:#fff}
+  #roll{background:#2a1d5e;color:#fff;box-shadow:0 0 18px #8b5cff55}
+  #roll:disabled{opacity:.45;cursor:default;box-shadow:none}
+  #hint{text-align:center;font-size:11px;opacity:.45;padding-top:7px}
+</style></head>
+<body>
+<div id="frame">
+  <div id="hud">
+    <div class="side"><div class="lbl">YOU</div><div class="v" id="youV">1</div></div>
+    <div class="side"><div class="lbl">CPU</div><div class="v" id="cpuV">1</div></div>
+  </div>
+  <div id="msg">Tap ROLL to begin</div>
+  <canvas id="cv" width="528" height="470"></canvas>
+  <div id="bar"><button id="roll">ROLL (Space)</button><button id="rs">Restart (R)</button></div>
+  <div id="hint">Tap ROLL to throw the die. Ladders fly you up, comet slides drag you down. First to exactly 100 wins.</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const CW=cv.width,CH=cv.height;
+const COL={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const LOOP=14000;
+const N=10; // 10x10 = 100
+// ladders (up) and comet slides (down). from->to
+const LADDERS={4:25,13:46,33:49,42:63,50:69,62:81,74:92};
+const SLIDES={27:6,40:19,54:34,66:45,76:58,89:67,97:78};
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// board geometry: boustrophedon numbering, square 1 bottom-left
+const M=10, TOP=8;
+const cell=(CW-2*M)/N;
+function cellCenter(n){ // n 1..100 -> {x,y}
+  const i=n-1;const row=Math.floor(i/N);let col=i%N;if(row%2===1)col=N-1-col;
+  const x=M+col*cell+cell/2;
+  const y=TOP+M+(N-1-row)*cell+cell/2; // row 0 at bottom
+  return{x,y};
+}
+
+// ---------- deterministic simulation of a full race ----------
+// apply die roll to a position, with snakes/ladders; returns {to,jump}
+function step(pos,die){
+  let np=pos+die;
+  if(np>100)return{to:pos,jump:null}; // must land exactly, else stay
+  let jump=null;
+  if(LADDERS[np]){jump={from:np,to:LADDERS[np],kind:'ladder'};np=LADDERS[np];}
+  else if(SLIDES[np]){jump={from:np,to:SLIDES[np],kind:'slide'};np=SLIDES[np];}
+  return{to:np,jump};
+}
+// play a full game -> array of turns [{who,die,from,land,jump,to,win}]
+function playGame(seed){
+  const rnd=mulberry32(seed);const pos=[1,1];const turns=[];let who=0;let guard=0;
+  while(guard++<400){
+    const die=1+((rnd()*6)|0);
+    const from=pos[who];const land=Math.min(100,from+die);
+    const r=step(from,die);
+    turns.push({who,die,from,land:from+die<=100?from+die:from,jump:r.jump,to:r.to});
+    pos[who]=r.to;
+    if(r.to===100){turns[turns.length-1].win=who;return{turns,seed,winner:who};}
+    who=1-who;
+  }
+  return{turns,seed,winner:-1};
+}
+// pick a seed with a decisive, reasonably long, exciting race
+function pickGame(start){
+  let fb=null;
+  for(let s=start;s<start+6000;s++){const g=playGame(s);
+    if(g.winner>=0){
+      const hasJump=g.turns.some(t=>t.jump);
+      if(g.turns.length>=22&&g.turns.length<=46&&hasJump)return g;
+      if(!fb&&g.turns.length>=14)fb=g;}
+  }
+  return fb||playGame(start);
+}
+const GAME=pickGame(7);
+
+// ---------- rendering ----------
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function drawConnector(from,to,color,kind){
+  const a=cellCenter(from),b=cellCenter(to);
+  ctx.save();ctx.strokeStyle=color;ctx.lineCap='round';ctx.shadowColor=color;ctx.shadowBlur=10;
+  if(kind==='ladder'){
+    // two parallel rails + rungs
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),nx=-dy/len,ny=dx/len,off=6;
+    ctx.lineWidth=3;ctx.globalAlpha=.85;
+    ctx.beginPath();ctx.moveTo(a.x+nx*off,a.y+ny*off);ctx.lineTo(b.x+nx*off,b.y+ny*off);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(a.x-nx*off,a.y-ny*off);ctx.lineTo(b.x-nx*off,b.y-ny*off);ctx.stroke();
+    ctx.lineWidth=2;ctx.globalAlpha=.6;const rungs=Math.max(2,Math.round(len/16));
+    for(let i=1;i<rungs;i++){const t=i/rungs;const mx=a.x+dx*t,my=a.y+dy*t;
+      ctx.beginPath();ctx.moveTo(mx+nx*off,my+ny*off);ctx.lineTo(mx-nx*off,my-ny*off);ctx.stroke();}
+  } else {
+    // comet slide: glowing tapered streak with a head
+    ctx.lineWidth=6;ctx.globalAlpha=.6;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);
+    const mx=(a.x+b.x)/2+(b.y-a.y)*0.12,my=(a.y+b.y)/2-(b.x-a.x)*0.12;
+    ctx.quadraticCurveTo(mx,my,b.x,b.y);ctx.stroke();
+    ctx.globalAlpha=1;ctx.fillStyle=color;ctx.beginPath();ctx.arc(b.x,b.y,6,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+function paint(st){
+  ctx.clearRect(0,0,CW,CH);
+  const bx=4,by=4,bw=CW-8,bh=CH-8;
+  const bg=ctx.createLinearGradient(0,by,0,by+bh);bg.addColorStop(0,'#1a1442');bg.addColorStop(1,'#130f30');
+  ctx.fillStyle=bg;roundRect(bx,by,bw,bh,16);ctx.fill();
+  ctx.strokeStyle='#8b5cff44';ctx.lineWidth=2;roundRect(bx,by,bw,bh,16);ctx.stroke();
+  // cells
+  ctx.textAlign='left';ctx.textBaseline='top';ctx.font='bold 11px system-ui';
+  for(let n=1;n<=100;n++){const c=cellCenter(n);const x=c.x-cell/2,y=c.y-cell/2;
+    const dark=((Math.floor((n-1)/N)+((n-1)%N))%2)===0;
+    ctx.fillStyle=dark?'#171130':'#12102a';roundRect(x+1.5,y+1.5,cell-3,cell-3,5);ctx.fill();
+    ctx.fillStyle='#6b6499';ctx.fillText(n,x+4,y+3);
+  }
+  // ladders + slides
+  for(const f in LADDERS)drawConnector(+f,LADDERS[f],COL.aurora,'ladder');
+  for(const f in SLIDES)drawConnector(+f,SLIDES[f],COL.solaris,'slide');
+  // tokens (slight offset so both visible on same cell)
+  drawToken(st.you,COL.cosmic,-7,'Y');
+  drawToken(st.cpu,COL.nebula,7,'C');
+  // die
+  drawDie(st.die,st.dieWho);
+}
+function drawToken(n,color,offx,label){
+  const c=cellCenter(n);const x=c.x+offx,y=c.y+4;
+  ctx.save();ctx.shadowColor=color;ctx.shadowBlur=14;ctx.fillStyle=color;
+  ctx.beginPath();ctx.arc(x,y,cell*0.27,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle='#0a0816';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,x,y+0.5);ctx.restore();
+}
+function drawDie(v,who){
+  if(!v)return;
+  const s=40,x=CW-s-12,y=12;
+  ctx.save();const col=who===0?COL.cosmic:who===1?COL.nebula:COL.sacred;
+  ctx.fillStyle='#efeaff';ctx.shadowColor=col;ctx.shadowBlur=16;roundRect(x,y,s,s,8);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle='#1a1230';
+  const p=[[0.5,0.5]],q=[[0.28,0.28],[0.72,0.72]],t3=[[0.28,0.28],[0.5,0.5],[0.72,0.72]],
+    f4=[[0.28,0.28],[0.72,0.28],[0.28,0.72],[0.72,0.72]],
+    f5=[[0.28,0.28],[0.72,0.28],[0.5,0.5],[0.28,0.72],[0.72,0.72]],
+    f6=[[0.28,0.26],[0.72,0.26],[0.28,0.5],[0.72,0.5],[0.28,0.74],[0.72,0.74]];
+  const pat=[p,q,t3,f4,f5,f6][v-1]||p;
+  for(const[px,py]of pat){ctx.beginPath();ctx.arc(x+px*s,y+py*s,3.4,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+}
+
+// ============ AUTO (deterministic attract) ============
+// Animate the seeded GAME turn by turn: token hops cells, then ladder/slide warp.
+const HOP_MS=120;          // per intermediate cell step
+const JUMP_MS=420;         // ladder/slide warp duration
+const POST_MS=260;         // pause after a turn
+function turnDuration(t){
+  const hops=t.land-t.from; // number of forward cells (>=0)
+  return Math.max(1,hops)*HOP_MS + (t.jump?JUMP_MS:0) + POST_MS;
+}
+const TURNS=GAME.turns;
+let CUM=[];{let acc=0;for(const t of TURNS){CUM.push(acc);acc+=turnDuration(t);}var PLAY_MS=acc;}
+const HOLD_MS=2400;
+const CYCLE=PLAY_MS+HOLD_MS;
+
+function autoState(ms){
+  const pos=[1,1];let die=0,dieWho=2,msg='';
+  let i=0;
+  // apply completed turns
+  for(;i<TURNS.length;i++){
+    const start=CUM[i],dur=turnDuration(TURNS[i]);
+    if(ms>=start+dur){pos[TURNS[i].who]=TURNS[i].to;die=TURNS[i].die;dieWho=TURNS[i].who;continue;}
+    break;
+  }
+  if(i<TURNS.length){
+    const t=TURNS[i];const local=ms-CUM[i];die=t.die;dieWho=t.who;
+    const hops=Math.max(0,t.land-t.from);const hopTime=hops*HOP_MS;
+    if(local<hopTime){
+      const done=Math.min(hops,Math.floor(local/HOP_MS)+ (hops>0?0:0));
+      // current displayed cell during hopping
+      const k=Math.min(hops,Math.floor(local/HOP_MS)+1);
+      pos[t.who]=t.from+Math.min(hops,k);
+    } else if(t.jump && local<hopTime+JUMP_MS){
+      const jp=(local-hopTime)/JUMP_MS;
+      // warp: interpolation handled by showing destination-ish; keep at land then snap to to
+      pos[t.who]= jp<0.5? t.jump.from : t.jump.to;
+    } else {
+      pos[t.who]=t.to;
+    }
+  } else {
+    // finished — hold final
+    pos[0]=lastPos(0);pos[1]=lastPos(1);
+    msg=GAME.winner===0?'You win!':GAME.winner===1?'CPU wins!':'';
+    die=TURNS[TURNS.length-1].die;dieWho=GAME.winner;
+  }
+  return {you:pos[0],cpu:pos[1],die,dieWho,msg,finished:i>=TURNS.length};
+}
+function lastPos(who){let p=1;for(const t of TURNS)if(t.who===who)p=t.to;return p;}
+
+function drawAt(ms){
+  const m=ms%CYCLE;const s=autoState(m);
+  paint(s);
+  document.getElementById('youV').textContent=s.you;
+  document.getElementById('cpuV').textContent=s.cpu;
+  const mb=document.getElementById('msg');
+  if(s.finished&&s.msg)mb.textContent=s.msg;
+  else mb.textContent = s.dieWho===0?'You rolled '+s.die:(s.dieWho===1?'CPU rolled '+s.die:'Tap ROLL');
+}
+
+// ============ LIVE ============
+let live=null;
+function initGame(){live={you:1,cpu:1,turn:0,busy:false,die:0,dieWho:2,won:-1};
+  setMsg('Tap ROLL to begin');document.getElementById('roll').disabled=false;refreshHud();paint(liveState());}
+function liveState(){return{you:live.you,cpu:live.cpu,die:live.die,dieWho:live.dieWho,
+  msg:live.won>=0?(live.won===0?'You win!':'CPU wins!'):'',finished:live.won>=0};}
+function refreshHud(){document.getElementById('youV').textContent=live.you;document.getElementById('cpuV').textContent=live.cpu;}
+function setMsg(s){document.getElementById('msg').textContent=s;}
+function liveRoll(){
+  if(!live||live.busy||live.won>=0||live.turn!==0)return;
+  doTurn(0,()=>{ if(live.won>=0)return;
+    live.turn=1;document.getElementById('roll').disabled=true;
+    setTimeout(()=>doTurn(1,()=>{live.turn=0;document.getElementById('roll').disabled=false;}),550);});
+}
+function doTurn(who,done){
+  live.busy=true;
+  const die=1+((Math.random()*6)|0);live.die=die;live.dieWho=who;
+  const from=who===0?live.you:live.cpu;
+  const r=step(from,die);
+  setMsg((who===0?'You':'CPU')+' rolled '+die);blip(who===0?520:360);
+  // simple hop animation
+  let cur=from;const target=Math.min(100,from+die);const exact=from+die<=100;
+  function hop(){
+    if(exact&&cur<target){cur++;if(who===0)live.you=cur;else live.cpu=cur;refreshHud();paint(liveState());
+      setTimeout(hop,110);return;}
+    // apply jump
+    const after=r.to;if(who===0)live.you=after;else live.cpu=after;refreshHud();
+    if(r.jump){setMsg((who===0?'You':'CPU')+(r.jump.kind==='ladder'?' climb a cosmic ladder!':' hit a comet slide!'));blip(r.jump.kind==='ladder'?660:240);}
+    paint(liveState());
+    if(after===100){live.won=who;setMsg(who===0?'You win!':'CPU wins!');document.getElementById('roll').disabled=true;live.busy=false;blip(820);paint(liveState());return;}
+    live.busy=false;done&&done();
+  }
+  setTimeout(hop, exact?110:60);
+}
+
+// audio
+let actx;function blip(f){if(AUTO)return;try{actx=actx||new(window.AudioContext||webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.08,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+.15);
+  o.start();o.stop(actx.currentTime+.16);}catch(e){}}
+
+function wireLive(){
+  document.getElementById('roll').addEventListener('click',liveRoll);
+  document.getElementById('rs').addEventListener('click',initGame);
+  window.addEventListener('keydown',ev=>{const k=ev.key.toLowerCase();
+    if(k==='r'){initGame();return;}
+    if(ev.key===' '){ev.preventDefault();liveRoll();}});
+}
+
+const T0OFF=Math.round(PLAY_MS*0.45); // frame 0: mid-race, tokens climbed, score>1
+if(AUTO){ window.__seek=t=>drawAt((((t+T0OFF)%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); wireLive(); }
+</script>
+</body></html>

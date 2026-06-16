@@ -1,0 +1,14 @@
+{
+  "slug": "piston-engine",
+  "title": "Cosmos Piston Engine — crankshaft drives four pistons via conrods in a glowing schematic cross-section",
+  "title_vi": "Động Cơ Piston Cosmos",
+  "W": 760,
+  "H": 540,
+  "LOOP": 7200,
+  "N": 90,
+  "tags": ["canvas2d", "mechanical", "generative", "schematic", "engine"],
+  "summary": "A mechanical engine cross-section: a rotating crankshaft drives four pistons up and down in their cylinders through glowing connecting rods. Built with pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: slider-crank kinematics — each crank pin orbits at radius Crank and the piston pin y is solved from rod length via sqrt(Rod^2 - dx^2); the four cylinders are phased 90 degrees apart; crank angle = 2*pi*u*TURNS with integer TURNS so the loop closes; additive 'lighter' glow on rods, pistons and crank webs. CAPTURE: ?auto=1 + window.__seek(t). TUNE: TURNS (engine speed), Crank/Rod/Bore/Stroke (geometry), cylinder count and span in build().",
+  "summary_vi": "Mặt cắt động cơ cơ khí: trục khuỷu quay dẫn động bốn piston lên xuống trong xy-lanh qua các thanh truyền phát sáng. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Dùng động học cơ cấu tay quay con trượt; góc trục khuỷu = 2*pi*u*TURNS với TURNS nguyên nên vòng lặp khép kín."
+}

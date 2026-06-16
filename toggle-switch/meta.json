@@ -1,0 +1,11 @@
+{
+  "slug": "toggle-switch",
+  "title": "Cosmos Toggle Switch — sleek UI toggle flicking ON/OFF with knob bounce and accent glow",
+  "title_vi": "Cosmos Toggle Switch — công tắc UI mượt bật/tắt với núm nảy và quầng sáng accent",
+  "W": 600, "H": 600, "LOOP": 3000, "N": 38,
+  "tags": ["toggle","switch","loader","glow","bounce","canvas2d"],
+  "summary": "A premium UI toggle switch flicking repeatedly between OFF and ON: the rounded knob slides across the track with a settling overshoot bounce while the track colour transitions from grey to a violet->cosmic accent glow, with a spark puff and ON/OFF labels. Motion is driven by a raised-cosine ping-pong of u so frame(0) equals frame(LOOP) exactly. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: ping-pong travel tri=0.5-0.5*cos(2*pi*u) gives a 0->1->0 sweep that returns at u=1 (seamless); knob position adds a spring overshoot term that decays to zero at the ends for the bounce; track fill alpha = smoothstep(tri) crossfades grey->accent linear gradient via a clipped rounded-rect; additive 'lighter' radial gradients add the outer accent glow, knob bloom, and a seeded spark puff that fires as the knob lands ON; ON/OFF labels fade with the state. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, track size (tw/th), overshoot amount os, ACC/ACC2 accent colours, spark count SP.",
+  "summary_vi": "Công tắc UI cao cấp liên tục bật/tắt: núm tròn trượt dọc rãnh kèm cú nảy overshoot khi dừng, màu rãnh chuyển từ xám sang quầng sáng accent tím->xanh vũ trụ, có cụm tia sáng và nhãn ON/OFF. Chuyển động dùng ping-pong raised-cosine của u nên frame(0) bằng frame(LOOP) chính xác. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Hành trình tri=0.5-0.5*cos(2*pi*u) trả về tại u=1 nên loop liền; vị trí núm cộng số hạng overshoot tắt dần ở hai đầu để nảy; quầng sáng dùng gradient additive 'lighter', tia sáng gieo bằng mulberry32."
+}

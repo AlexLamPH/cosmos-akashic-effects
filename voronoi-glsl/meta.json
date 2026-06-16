@@ -1,0 +1,24 @@
+{
+  "slug": "voronoi-glsl",
+  "title": "Cosmos Voronoi — drifting cells with glowing F2-F1 edges (WebGL shader)",
+  "title_vi": "Cosmos Voronoi — tế bào trôi dạt với cạnh sáng F2-F1 (WebGL shader)",
+  "W": 360,
+  "H": 360,
+  "LOOP": 8000,
+  "N": 56,
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "voronoi",
+    "cellular",
+    "noise",
+    "glow",
+    "cosmos",
+    "phantom"
+  ],
+  "summary": "A real WebGL GLSL fragment-shader animated Voronoi / cellular-noise field with zero dependencies, fully offline. Each cell's feature point drifts on a small looping circle, the F2-F1 distance difference draws glowing cell edges, and accent-tinted cell interiors shimmer with a per-cell pulse over a dark Phantom background. Deterministic and seamless: every feature point orbits an integer harmonic of the looping time uT in [0,1), so shade(uv,0) equals shade(uv,1).",
+  "usage_notes": "RUN: open index.html in a browser with WebGL support (renders to a fullscreen-triangle fragment shader). KEY TECHNIQUES: 3x3 neighbourhood Voronoi search tracking F1/F2, per-cell looping orbital drift of feature points, F2-F1 edge detection for glowing borders, hash-driven per-cell accent tinting, periodic shimmer pulse. CAPTURE: ?auto=1 + window.__seek(t). TUNE: change the cell scale (uv*3.2) for cell count, the orbit radius (0.42) for drift amount, the edge smoothstep width (0.10) for line thickness, and the shimmer frequency (ph*2.0).",
+  "summary_vi": "Một trường Voronoi / nhiễu tế bào động bằng fragment-shader WebGL GLSL thật, không phụ thuộc thư viện, chạy offline. Mỗi điểm đặc trưng của tế bào trôi trên một vòng tròn lặp nhỏ, hiệu F2-F1 vẽ các cạnh tế bào phát sáng, và phần trong tế bào được nhuộm màu accent lung linh theo nhịp đập riêng trên nền tối Phantom. Tất định và liền mạch nhờ thời gian lặp uT trong [0,1).",
+  "notes": "Voronoi động với điểm trôi dạt, cạnh sáng và tế bào nhuộm màu lung linh trên nền tối."
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Rating Input</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:center;justify-content:center}
+#scrim{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% 40%,rgba(224,178,74,.10),transparent 60%)}
+.card{position:relative;width:420px;padding:42px 40px 38px;border-radius:24px;text-align:center;
+  background:linear-gradient(180deg,rgba(28,23,46,.82),rgba(18,14,32,.86));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 30px 80px -22px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
+.q{font-size:18px;font-weight:650;color:#efeafc;letter-spacing:.2px}
+.sub{font-size:13px;color:#7a7299;margin-top:5px}
+/* stars */
+.stars{position:relative;display:inline-flex;gap:10px;margin:26px 0 22px;padding:6px}
+.star{position:relative;width:46px;height:46px}
+.star svg{position:absolute;inset:0;width:46px;height:46px;overflow:visible}
+.star .base path{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.14);stroke-width:1px}
+.star .fill{position:absolute;inset:0;overflow:hidden}
+.star .fill svg path{fill:url(#grad);stroke:rgba(224,178,74,.7);stroke-width:1px;
+  filter:drop-shadow(0 0 7px rgba(224,178,74,.55))}
+/* value badge */
+.row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:4px}
+.val{font-size:30px;font-weight:750;color:#ffd86b;letter-spacing:.5px;
+  text-shadow:0 0 18px rgba(224,178,74,.5);font-variant-numeric:tabular-nums;min-width:62px}
+.val .small{font-size:16px;color:#9a8f63;font-weight:600}
+.label{font-size:14px;font-weight:650;padding:6px 16px;border-radius:999px;color:#0a0816;
+  background:linear-gradient(180deg,#ffd66a,#e0b24a);box-shadow:0 6px 18px -6px rgba(224,178,74,.7);
+  transform-origin:center;white-space:nowrap}
+.glow{position:absolute;left:50%;top:118px;width:240px;height:120px;transform:translateX(-50%);
+  border-radius:50%;background:radial-gradient(closest-side,rgba(224,178,74,.5),transparent 70%);
+  filter:blur(8px);pointer-events:none}
+</style></head>
+<body><div id="scrim"></div>
+<div class="card">
+  <div class="q">How was your cosmic journey?</div>
+  <div class="sub">Tap a star to rate · hover for halves</div>
+  <div class="glow" id="glow"></div>
+  <div class="stars" id="stars"></div>
+  <div class="row"><div class="val" id="val">0<span class="small">.0</span></div><div class="label" id="label">—</div></div>
+</div>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#e0b24a"/>
+  </linearGradient></defs></svg>
+<script>
+const STAR_D='M12 2.2l2.95 6.34 6.85.66-5.16 4.6 1.5 6.78L12 17.6 5.86 21.18l1.5-6.78L2.2 9.8l6.85-.66z';
+const LABELS=[{v:0,t:'—'},{v:1,t:'Poor'},{v:2,t:'Fair'},{v:3,t:'Good'},{v:4,t:'Great'},{v:5,t:'Excellent'}];
+function labelFor(v){
+  if(v<=0)return '—';
+  if(v<1.25)return 'Poor'; if(v<2.25)return 'Fair'; if(v<3.25)return 'Good';
+  if(v<4.25)return 'Great'; return 'Excellent';
+}
+const starsEl=document.getElementById('stars'),valEl=document.getElementById('val'),
+      labelEl=document.getElementById('label'),glowEl=document.getElementById('glow');
+// build 5 stars: base + clipped fill
+const fills=[];
+for(let i=0;i<5;i++){
+  const d=document.createElement('div'); d.className='star';
+  d.innerHTML='<svg class="base" viewBox="0 0 24 24"><path d="'+STAR_D+'"/></svg>'+
+    '<div class="fill"><svg viewBox="0 0 24 24"><path d="'+STAR_D+'"/></svg></div>';
+  starsEl.appendChild(d);
+  fills.push({el:d, fill:d.querySelector('.fill'), wrap:d});
+}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function eo(t){return 1-Math.pow(1-t,3);}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+
+// paint stars to a fractional rating value (0..5), with an optional per-star pop scale
+function paint(value,popScale,activeIdx){
+  for(let i=0;i<5;i++){
+    const f=clamp(value-i,0,1);             // fill fraction of star i
+    fills[i].fill.style.width=(f*100)+'%';
+    // hover lift + pop scale on the active star
+    let sc=1;
+    if(activeIdx>=0 && i<=activeIdx) sc=1+0.06*popScale; // hovered group lifts a touch
+    if(activeIdx===i) sc=1+0.18*popScale;                // active star pops more
+    fills[i].wrap.style.transform='scale('+sc.toFixed(3)+') translateY('+(-(i<=activeIdx?2:0)*popScale).toFixed(2)+'px)';
+  }
+  const disp=value.toFixed(1);
+  valEl.innerHTML=disp.split('.')[0]+'<span class="small">.'+disp.split('.')[1]+'</span>';
+  valEl.style.opacity=value>0?1:0.4;
+  const lab=labelFor(value);
+  labelEl.textContent=lab;
+  labelEl.style.opacity=value>0?1:0.5;
+  labelEl.style.transform='scale('+(1+0.12*popScale).toFixed(3)+')';
+  glowEl.style.opacity=(clamp(value/5,0,1)*0.55+popScale*0.35).toFixed(3);
+  glowEl.style.transform='translateX(-50%) scale('+(0.6+0.4*clamp(value/5,0,1)+0.15*popScale).toFixed(3)+')';
+}
+
+function render(u){
+  // phases: hover-sweep 0->5 (label changes) -> settle on a value with a POP -> hold -> reset -> pause
+  let value=0, pop=0, active=-1;
+  if(u<0.40){                          // SWEEP: hover grows 0 -> 5
+    const p=ease(u/0.40);
+    value=p*5;
+    active=Math.min(4,Math.floor(value-1e-4));
+    if(value<=0)active=-1;
+    pop=0;
+  } else if(u<0.52){                   // land + POP on the settled value (4.5)
+    const SET=4.5;
+    value=SET; active=Math.ceil(SET)-1; // index 4
+    const pp=(u-0.40)/0.12;
+    pop=Math.sin(pp*Math.PI);          // pop up then down (satisfying)
+  } else if(u<0.80){                   // HOLD the set value, gentle glow breathe
+    const SET=4.5;
+    value=SET; active=4;
+    pop=0.10+0.05*Math.sin((u-0.52)*14); // subtle breathing
+  } else if(u<0.90){                   // RESET sweep back to 0
+    const p=eo((u-0.80)/0.10);
+    value=4.5*(1-p);
+    active=value>0?Math.min(4,Math.floor(value-1e-4)):-1;
+    pop=0;
+  } else {                             // PAUSE empty
+    value=0; active=-1; pop=0;
+  }
+  paint(value,pop,active);
+}
+
+const LOOP=6000, OFF=0.24; // frame-0: ~3.5 stars filled mid-hover-sweep with the label
+function frame(u){render(((u+OFF)%1+1)%1);}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ frame((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

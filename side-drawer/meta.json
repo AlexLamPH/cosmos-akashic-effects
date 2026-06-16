@@ -1,0 +1,11 @@
+{
+  "slug": "side-drawer",
+  "title": "Cosmos Side Drawer — a slide-out navigation drawer over a dimmed backdrop",
+  "title_vi": "Cosmos Side Drawer — ngăn điều hướng trượt ra từ trái trên nền tối mờ",
+  "W": 720, "H": 480, "LOOP": 7000, "N": 88,
+  "tags": ["side-drawer","sidebar","navigation","interactive","css"],
+  "summary": "A polished, self-contained slide-out navigation drawer on the Phantom-dark theme: a hamburger button morphs to an X while a left drawer (brand logo, icon nav items, active highlight with a glowing violet rail, a status dot) slides in over a dimmed backdrop and the nav items stagger in one by one. Zero dependencies, pure HTML/CSS/vanilla JS, fully interactive in live mode (click the burger or backdrop, hover and select items) and a seamless looping auto-demo for capture.",
+  "usage_notes": "RUN: double-click index.html — click the hamburger to open, click the backdrop or burger again to close, hover nav items and click to set the active one (real CSS-transitioned hover). KEY TECHNIQUES: a single render(u) writes the exact visual state as INLINE styles (drawer translateX, backdrop opacity, per-item staggered opacity + translateX, burger-to-X transform) so the captured motion is a pure function of u, never CSS-transition timing; phases over u are open→settle→hover-walk across items→close→pause with an outCubic staggered entrance so the loop returns seamlessly; an OFF offset makes frame 0 show the drawer already mid-open with items appearing. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, OFF offset, phase boundaries, drawer width W, the per-item stagger spacing (i*0.10), accent (violet #8b5cff).",
+  "summary_vi": "Ngăn điều hướng trượt ra trên nền Phantom-dark: nút hamburger biến thành dấu X trong khi ngăn bên trái (logo, các mục điều hướng có icon, mục đang chọn được làm nổi bằng thanh violet phát sáng) trượt vào trên nền tối mờ và các mục lần lượt hiện ra so le. Không phụ thuộc thư viện, thuần HTML/CSS/JS, tương tác thật ở chế độ live và auto-demo lặp liền mạch để chụp.",
+  "notes": "render(u) ghi state inline (translateX ngăn, opacity nền, độ trễ so le từng mục, biến hình burger→X); các pha open→hover→close→pause + offset OFF đảm bảo frame 0 đã mở và loop liền mạch."
+}

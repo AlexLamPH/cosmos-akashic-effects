@@ -1,0 +1,21 @@
+{
+  "slug": "noise-clouds",
+  "title": "Cosmos Noise Clouds — soft drifting fractal-noise nebula",
+  "title_vi": "Mây Vũ Trụ — tinh vân nhiễu fractal trôi nhẹ",
+  "W": 440,
+  "H": 320,
+  "LOOP": 6000,
+  "N": 64,
+  "tags": [
+    "noise",
+    "nebula",
+    "clouds",
+    "fractal",
+    "generative",
+    "canvas2d"
+  ],
+  "summary": "A soft, living nebula built from seeded value-noise fBm with domain warping, rendered in pure Canvas 2D with zero dependencies, fully offline, deterministic and seamless. The field is sampled along a circular looping offset (cos/sin of 2*pi*u) so frame(0) equals frame(LOOP); a modest 220px offscreen buffer is colour-mapped dark to violet/cosmic/nebula and upscaled with smoothing for softness.",
+  "usage_notes": "RUN: open index.html in any browser (animates via requestAnimationFrame). KEY TECHNIQUES: mulberry32-seeded value-noise grid, 4-octave fBm, domain warping, circular time offset for seamless loop, low-res offscreen + bilinear upscale + additive glow pass. CAPTURE: load with ?auto=1 then call window.__seek(t) per frame (t in ms, 0..LOOP). TUNE: LOOP (loop length), fr (noise frequency), A (loop circle radius), PAL (colour stops), OW (offscreen resolution / GIF size).",
+  "summary_vi": "Tinh vân mềm mại sống động dựng từ value-noise fBm có hạt giống và bẻ miền, vẽ thuần Canvas 2D, không phụ thuộc, chạy offline, tất định và lặp liền mạch. Trường nhiễu được lấy mẫu theo vòng tròn thời gian nên frame(0) trùng frame(LOOP); đệm ngoài màn hình 220px được ánh xạ màu từ tối sang tím/xanh/hồng rồi phóng to làm mượt.",
+  "notes": "Mây tinh vân lặp liền mạch, vẽ thuần Canvas 2D không phụ thuộc."
+}

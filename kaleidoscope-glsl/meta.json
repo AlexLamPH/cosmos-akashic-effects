@@ -1,0 +1,24 @@
+{
+  "slug": "kaleidoscope-glsl",
+  "title": "Cosmos Kaleidoscope — radial mirror of glowing rings and noise (WebGL shader)",
+  "title_vi": "Cosmos Kaleidoscope — gương xuyên tâm của vòng sáng và nhiễu (WebGL shader)",
+  "W": 360,
+  "H": 360,
+  "LOOP": 8000,
+  "N": 56,
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "kaleidoscope",
+    "radial",
+    "symmetry",
+    "glow",
+    "cosmos",
+    "phantom"
+  ],
+  "summary": "A real WebGL GLSL fragment-shader kaleidoscope with zero dependencies, fully offline. The polar angle is folded into twelve reflected wedges to produce mirror radial symmetry, the whole field rotates exactly once per loop, and a drifting accent of rings plus fbm noise shimmers along the fold seams over a dark Phantom background. Deterministic and seamless: all motion is driven from a looping time uT in [0,1) via sin/cos, so shade(uv,0) equals shade(uv,1).",
+  "usage_notes": "RUN: open index.html in a browser with WebGL support (renders to a fullscreen-triangle fragment shader). KEY TECHNIQUES: polar angle mod + mirror reflection for wedge folding, slow full-field rotation, ring + fbm accent sampling, seam-glow filaments, radial vignette to keep the rim dark. CAPTURE: ?auto=1 + window.__seek(t). TUNE: change kfold(uv,12.0) for the number of mirror wedges, the rings frequency (r*16.0) for ring density, the swirl term (0.18*sin) for breathing, and the vignette exponent for glow spread.",
+  "summary_vi": "Một kaleidoscope fragment-shader WebGL GLSL thật, không phụ thuộc thư viện, chạy offline. Góc cực được gập thành mười hai nêm phản chiếu tạo đối xứng xuyên tâm, toàn bộ trường xoay đúng một vòng mỗi chu kỳ, và lớp accent gồm vòng sáng cùng nhiễu fbm lung linh dọc các đường gập trên nền tối Phantom. Tất định và liền mạch nhờ thời gian lặp uT trong [0,1).",
+  "notes": "Kaleidoscope xuyên tâm với vòng sáng và nhiễu, xoay chậm trên nền tối, liền mạch."
+}

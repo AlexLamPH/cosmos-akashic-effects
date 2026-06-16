@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mandelbulb</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Mandelbulb — a raymarched power-8 3D Mandelbulb fractal orbiting one turn, orbit-trap accent colouring + soft glow, real WebGL GLSL fragment shader. Deterministic, seamless (uT loops 0..1).
+const cv=document.getElementById('c');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=9000;
+const gl=cv.getContext('webgl',{antialias:false,depth:false,preserveDrawingBuffer:true});
+const VERT='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FRAG=`precision highp float; uniform vec2 uRes; uniform float uT;
+#define TAU 6.28318530718
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+// power-8 Mandelbulb distance estimator; writes the orbit-trap into 'trap'
+float DE(vec3 p,out float trap){
+ vec3 z=p; float dr=1.0,r=0.0; trap=1e9;
+ for(int i=0;i<6;i++){
+   r=length(z); if(r>2.0)break;
+   float th=acos(clamp(z.z/r,-1.,1.));
+   float ph=atan(z.y,z.x);
+   float r7=pow(r,7.0); dr=r7*8.0*dr+1.0;
+   float zr=r7*r; th*=8.0; ph*=8.0;
+   z=zr*vec3(sin(th)*cos(ph),sin(th)*sin(ph),cos(th))+p;
+   trap=min(trap,r); // min-radius orbit trap for colour
+ }
+ return 0.5*log(r)*r/dr;
+}
+vec3 shade(vec2 uv,float t){
+ float ph=TAU*t; // one full orbit over the loop -> seamless
+ vec3 ro=vec3(2.4*cos(ph),0.55*sin(ph*2.0),2.4*sin(ph));
+ // build a look-at basis aimed at the origin
+ vec3 fw=normalize(-ro), rt=normalize(cross(vec3(0.,1.,0.),fw)), up=cross(fw,rt);
+ vec3 rd=normalize(uv.x*rt+uv.y*up+1.7*fw);
+ float dd=0.0,trap=0.0,gl=0.0; bool hit=false; vec3 pos;
+ for(int i=0;i<78;i++){
+   pos=ro+rd*dd; float tr; float d=DE(pos,tr);
+   gl+=0.010/(0.015+d*d); // exponential-ish soft glow accumulation
+   if(d<0.0007){trap=tr;hit=true;break;}
+   dd+=d*0.9; if(dd>6.0)break;
+ }
+ vec3 violet=vec3(0.545,0.36,1.0), cosmic=vec3(0.27,0.71,1.0), nebula=vec3(1.0,0.36,0.76);
+ vec3 col=vec3(0.018,0.011,0.04); // dark base
+ if(hit){
+   // finite-difference normal
+   float t0; vec2 e=vec2(0.0012,0.);
+   vec3 n=normalize(vec3(DE(pos+e.xyy,t0)-DE(pos-e.xyy,t0),
+                         DE(pos+e.yxy,t0)-DE(pos-e.yxy,t0),
+                         DE(pos+e.yyx,t0)-DE(pos-e.yyx,t0)));
+   vec3 ld=normalize(vec3(0.5,0.7,0.4));
+   float dif=clamp(dot(n,ld),0.,1.);
+   float rim=pow(1.0-clamp(dot(n,-rd),0.,1.),2.0);
+   // orbit-trap + normal drive the accent hue
+   vec3 base=mix(violet,cosmic,clamp(trap*1.4,0.,1.));
+   base=mix(base,nebula,0.5+0.5*n.y);
+   col=base*(0.10+0.95*dif*dif)+violet*rim*1.1;
+ }
+ col+=gl*0.16*mix(cosmic,violet,0.5); // glow halo
+ return col;}
+void main(){ vec2 uv=(gl_FragCoord.xy*2.0-uRes)/min(uRes.x,uRes.y); vec3 col=shade(uv,uT);
+ col=pow(clamp(col,0.,1.),vec3(0.4545)); gl_FragColor=vec4(col,1.0);}`;
+function sh(ty,src){const s=gl.createShader(ty);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const lp=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,2,gl.FLOAT,false,0,0);
+const uRes=gl.getUniformLocation(prog,'uRes'),uT=gl.getUniformLocation(prog,'uT');
+let DPR;function rs(){DPR=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*DPR;cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';gl.viewport(0,0,cv.width,cv.height);}
+rs();addEventListener('resize',rs);
+function render(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;gl.uniform2f(uRes,cv.width,cv.height);gl.uniform1f(uT,u);gl.drawArrays(gl.TRIANGLES,0,3);}
+if(AUTO){window.__seek=t=>render(t);render(0);window.__ready=true;}else{const s=performance.now();(function l(n){render(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

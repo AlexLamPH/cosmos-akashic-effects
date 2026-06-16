@@ -1,0 +1,103 @@
+<!-- Cosmos split-flap flip clock: glossy dark cards, top half folds down to change digits, accent edge glow, deterministic loop. -->
+<!doctype html><meta charset="utf-8"><title>Cosmos Flip Clock</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+const LOOP=8000;
+const ACC=['139,92,255','70,180,255','255,92,194','54,211,154','255,106,61','224,178,74'];
+// 6 digit cards = HH:MM:SS counting through 60 ticks per loop (one flip per tick)
+const TICKS=60;
+function clamp01(v){return v<0?0:v>1?1:v;}
+// rounded rect
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function drawText(s,cx,cy,h,acc){
+  ctx.font='700 '+h+'px Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='rgba('+acc+',0.25)';ctx.fillText(s,cx,cy+h*0.02);
+  ctx.fillStyle='#f4f0ff';ctx.fillText(s,cx,cy);
+}
+// draw a clipped half (top=true upper half) of a card showing digit s
+function half(s,x,y,w,h,top,acc){
+  ctx.save();ctx.beginPath();
+  if(top)ctx.rect(x,y,w,h/2);else ctx.rect(x,y+h/2,w,h/2);
+  ctx.clip();
+  const g=ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,'#181226');g.addColorStop(0.49,top?'#0d0a18':'#0d0a18');
+  g.addColorStop(0.51,top?'#070510':'#1a1430');g.addColorStop(1,'#0a0716');
+  rr(x,y,w,h,h*0.08);ctx.fillStyle=g;ctx.fill();
+  drawText(s,x+w/2,y+h/2,h*0.62,acc);
+  ctx.restore();
+}
+function card(cur,nxt,prog,x,y,w,h,acc){
+  // static back: top shows next, bottom shows current (revealed as flap falls)
+  half(nxt,x,y,w,h,true,acc);
+  half(cur,x,y,w,h,false,acc);
+  // hinge line
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(x,y+h/2-1,w,2);
+  // folding flap: shows current digit's top, rotating down (scaleY 1 -> 0 = top fold) then
+  // next digit's bottom rises (scaleY 0 -> 1). prog 0..1.
+  ctx.save();
+  if(prog<0.5){
+    const sy=Math.cos(prog*Math.PI); // 1->0
+    ctx.translate(x,y+h/2);ctx.scale(1,sy);ctx.translate(-x,-(y+h/2));
+    half(cur,x,y,w,h,true,acc);
+    ctx.fillStyle='rgba(0,0,0,'+(0.55*(1-sy)).toFixed(3)+')';ctx.fillRect(x,y,w,h/2);
+  }else{
+    const sy=Math.cos((1-prog)*Math.PI); // 0->1
+    ctx.translate(x,y+h/2);ctx.scale(1,sy);ctx.translate(-x,-(y+h/2));
+    half(nxt,x,y,w,h,false,acc);
+    ctx.fillStyle='rgba(0,0,0,'+(0.55*(1-sy)).toFixed(3)+')';ctx.fillRect(x,y+h/2,w,h/2);
+  }
+  ctx.restore();
+  // accent edge glow + glossy top sheen
+  ctx.globalCompositeOperation='lighter';
+  rr(x,y,w,h,h*0.08);ctx.lineWidth=2.5;ctx.strokeStyle='rgba('+acc+',0.55)';ctx.stroke();
+  const sh=ctx.createLinearGradient(0,y,0,y+h*0.4);
+  sh.addColorStop(0,'rgba(255,255,255,0.10)');sh.addColorStop(1,'rgba(255,255,255,0)');
+  rr(x+2,y+2,w-4,h*0.4,h*0.06);ctx.fillStyle=sh;ctx.fill();
+  ctx.globalCompositeOperation='source-over';
+}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const tk=u*TICKS;            // 0..60
+  const ti=Math.floor(tk);     // current second index
+  const sec=ti, nsec=(ti+1)%TICKS;
+  // global flip progress: each tick the cards flip in the back third of the tick
+  const fr=tk-ti;              // 0..1 within tick
+  const prog=clamp01((fr-0.55)/0.4);
+  const cw=Math.min(W*0.13,H*0.30), ch=cw*1.5, gap=cw*0.18, colon=cw*0.4;
+  const total=cw*6+gap*4+colon*2;
+  let x=(W-total)/2; const y=(H-ch)/2;
+  // time fields HH:MM:SS derived from a base + tick so it counts and loops
+  function field(v){return ('0'+v).slice(-2);}
+  const baseSec=10*60+25; // pleasant starting time 00:10:25 region
+  const totC=baseSec+sec, totN=baseSec+nsec;
+  const cur=[field(Math.floor(totC/3600)%24),field(Math.floor(totC/60)%60),field(totC%60)];
+  const nxt=[field(Math.floor(totN/3600)%24),field(Math.floor(totN/60)%60),field(totN%60)];
+  for(let f=0;f<3;f++){
+    for(let d=0;d<2;d++){
+      const acc=ACC[(f*2+d+ti)%ACC.length];
+      // only the changing digit flips; others rest at prog 0
+      const ch0=cur[f][d], ch1=nxt[f][d];
+      const p=(ch0===ch1)?0:prog;
+      card(ch0,ch1,p,x,y,cw,ch,acc);
+      x+=cw+(d===0?gap:0);
+    }
+    if(f<2){
+      // colon
+      ctx.fillStyle='rgba('+ACC[(ti+f)%ACC.length]+','+(0.6+0.4*Math.sin(2*Math.PI*u)).toFixed(3)+')';
+      ctx.beginPath();ctx.arc(x+colon/2,y+ch*0.36,cw*0.06,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.arc(x+colon/2,y+ch*0.64,cw*0.06,0,6.283);ctx.fill();
+      x+=colon;
+    }
+  }
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

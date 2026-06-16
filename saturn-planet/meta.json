@@ -1,0 +1,11 @@
+{
+  "slug": "saturn-planet",
+  "title": "Cosmos Saturn Planet — a ringed gas giant slowly turning under tilted ring arcs",
+  "title_vi": "Cosmos Saturn Planet — hành tinh khí khổng lồ có vành đai nghiêng quay chậm",
+  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
+  "tags": ["planet","saturn","rings","3d","glow","canvas2d"],
+  "summary": "A shaded, slowly rotating banded sphere is wrapped by a tilted elliptical ring system whose particles pass both behind and in front of the planet, with a soft accent glow and drifting cloud bands. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the ring is a flat circle of particles parameterised by plane-angle a; each is spun by adding u (so th=(a+u)*2PI) and projected through a fixed tilt — y is squashed by sin(TILT) and the depth z=sin(th)*cos(TILT) decides whether the particle draws BEHIND (z<0) or IN FRONT (z>0) of the clipped sphere, giving the ring-passes-around look. The sphere is a radial-gradient base disc plus additive horizontal bands that drift by (phase+u)%1, a sheen highlight, and a terminator shadow gradient; all motion is periodic in u so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: R planet size, TILT ring angle, ringPts count + rr radius profile, band count/alpha, AC palette, LOOP period.",
+  "summary_vi": "Một quả cầu có dải mây được tô bóng quay chậm, bao quanh bởi hệ vành đai elip nghiêng có các hạt đi cả phía sau lẫn phía trước hành tinh, kèm quầng sáng accent dịu và các dải mây trôi. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Vành đai là vòng hạt theo góc a, xoay bằng cách cộng u; độ sâu z=sin(th)*cos(TILT) quyết định vẽ trước hay sau quả cầu nên loop liền tại u=1."
+}

@@ -1,0 +1,121 @@
+<!-- Cosmos Pagination: numbered page buttons + prev/next arrows with a violet accent highlight that slides between pages and a subtle scale pop on each change. Real click/hover live; deterministic looping auto-demo via render(u)/__seek that walks 1->N and back. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Pagination</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:26px}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:24px}
+.pager{position:relative;display:flex;align-items:center;gap:8px;padding:9px;
+  border-radius:18px;background:rgba(12,9,26,.85);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 14px 40px -14px rgba(0,0,0,.7)}
+.thumb{position:absolute;top:9px;left:0;width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#8b5cff,#6a3ff0);
+  box-shadow:0 6px 18px -3px rgba(139,92,255,.6),0 0 0 1px rgba(255,255,255,.1) inset;
+  z-index:0;will-change:transform}
+.cell{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;
+  width:42px;height:42px;font-size:15px;font-weight:600;color:#8f88ad;cursor:pointer;
+  user-select:none;border-radius:12px;transition:color .2s,background .2s}
+.cell:hover{color:#cfc8ef;background:rgba(255,255,255,.04)}
+.arrow{color:#6f6890}
+.arrow.disabled{opacity:.3;cursor:default}
+.arrow:hover{background:rgba(255,255,255,.04)}
+.cell svg{width:17px;height:17px}
+.caption{font-size:13px;color:#6f6890;letter-spacing:.3px}
+.caption b{color:#b9b2dc;font-weight:600}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="pager" id="pager">
+    <div class="thumb" id="thumb"></div>
+    <div class="cell arrow" id="prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <div class="cell num">1</div>
+    <div class="cell num">2</div>
+    <div class="cell num">3</div>
+    <div class="cell num">4</div>
+    <div class="cell num">5</div>
+    <div class="cell num">6</div>
+    <div class="cell arrow" id="next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+  </div>
+  <div class="caption">Page <b id="cap">1</b> of 6</div>
+</div>
+<script>
+const LOOP=7200,N=6;
+const pager=document.getElementById('pager'),thumb=document.getElementById('thumb');
+const cap=document.getElementById('cap'),prev=document.getElementById('prev'),next=document.getElementById('next');
+const nums=[...pager.querySelectorAll('.num')];
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function smooth(t){t=clamp(t,0,1);return t*t*(3-2*t);}
+// underdamped spring (settles to 1) for the slide + the scale pop
+function spring(t){t=clamp(t,0,1);if(t>=1)return 1;return 1-Math.exp(-7*t)*Math.cos(11*t);}
+function geom(i){const pr=pager.getBoundingClientRect(),nr=nums[i].getBoundingClientRect();
+  return {x:nr.left-pr.left,y:nr.top-pr.top};}
+let activeIdx=0;
+function paint(x,y,scale,fadeA,a,fadeB,b){
+  thumb.style.transform=`translate(${x}px,${y}px) scale(${scale})`;
+  const cur=fadeB>=0.5?b:a;activeIdx=cur;cap.textContent=cur+1;
+  nums.forEach((o,i)=>{
+    let lit=0; if(i===a)lit=fadeA; else if(i===b)lit=fadeB;
+    o.style.color=`rgb(${lerp(143,255,lit)|0},${lerp(136,255,lit)|0},${lerp(173,255,lit)|0})`;
+    o.style.fontWeight=lit>0.55?'700':'600';
+    o.style.textShadow=lit>0.55?'0 1px 6px rgba(139,92,255,.45)':'none';
+  });
+  prev.classList.toggle('disabled',cur===0);
+  next.classList.toggle('disabled',cur===N-1);
+}
+// sequence: 1..N then back to 1  ->  indices 0..N-1..0
+const SEQ=[];for(let i=0;i<N;i++)SEQ.push(i);for(let i=N-2;i>=0;i--)SEQ.push(i);
+const SEG=SEQ.length-1;
+function render(u){
+  const uu=(u + (0.5/SEG)) % 1;          // frame 0 lands mid-slide between page 1 and 2
+  const f=uu*SEG; let s=Math.floor(f); if(s>=SEG)s=SEG-1;
+  const local=f-s;
+  const a=SEQ[s],b=SEQ[s+1];
+  const gp=clamp(local/0.55,0,1);        // glide for first 55%, dwell after
+  const e=spring(gp);
+  const fade=smooth(clamp(local/0.45,0,1));
+  const ga=geom(a),gb=geom(b);
+  const x=lerp(ga.x,gb.x,e),y=lerp(ga.y,gb.y,e);
+  // scale pop: gentle dip mid-flight + tiny overshoot settling back to 1
+  const pop=Math.sin(clamp(gp,0,1)*Math.PI);
+  const scale=1 - pop*0.08 + (e-1)*0.06;
+  paint(x,y,scale, 1-fade,a,fade,b);
+}
+function snapTo(i){const g=geom(i);thumb.style.transform=`translate(${g.x}px,${g.y}px) scale(1)`;
+  cap.textContent=i+1;activeIdx=i;
+  nums.forEach((o,k)=>{const lit=k===i?1:0;
+    o.style.color=`rgb(${lerp(143,255,lit)|0},${lerp(136,255,lit)|0},${lerp(173,255,lit)|0})`;
+    o.style.fontWeight=lit?'700':'600';o.style.textShadow=lit?'0 1px 6px rgba(139,92,255,.45)':'none';});
+  prev.classList.toggle('disabled',i===0);next.classList.toggle('disabled',i===N-1);
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  let target=null,from=null,start=0,manualUntil=0;const DUR=420;
+  function go(i){if(i===activeIdx||i<0||i>=N)return;from=activeIdx;target=i;start=performance.now();manualUntil=performance.now()+DUR+1800;}
+  nums.forEach((o,i)=>o.addEventListener('click',()=>go(i)));
+  prev.addEventListener('click',()=>go(activeIdx-1));
+  next.addEventListener('click',()=>go(activeIdx+1));
+  snapTo(0);
+  const s=performance.now();
+  (function l(n){
+    if(target!==null){
+      const k=clamp((n-start)/DUR,0,1);
+      if(k<1){const ga=geom(from),gb=geom(target);const e=spring(k),fade=smooth(k);
+        const pop=Math.sin(k*Math.PI);
+        const x=lerp(ga.x,gb.x,e),y=lerp(ga.y,gb.y,e);
+        paint(x,y,1 - pop*0.08 + (e-1)*0.06, 1-fade,from,fade,target);
+      }else{snapTo(target);target=null;}
+    }else if(n>manualUntil){
+      render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

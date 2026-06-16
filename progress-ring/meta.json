@@ -1,0 +1,11 @@
+{
+  "slug": "progress-ring",
+  "title": "Cosmos Progress Ring — circular loader sweeping 0->100% with glowing dot and % count",
+  "title_vi": "Cosmos Progress Ring — vòng tải tròn quét 0->100% với chấm sáng và số phần trăm",
+  "W": 600, "H": 600, "LOOP": 3200, "N": 40,
+  "tags": ["progress","loader","ring","arc", "glow", "canvas2d"],
+  "summary": "A circular progress loader where a violet->cosmic accent arc sweeps from 0 to 100% around a faint track ring, led by a glowing white leading dot, with a live percentage count in the middle and orbiting background dust. It holds at full then fades back to zero so the loop is seamless. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: u sweeps the arc over the first ~82% of the loop (prog=u/sweep) then holds at 100% and fades out over the remainder so frame(0) equals frame(LOOP); the arc is drawn as 64 short segments each tinted by a violet->cosmic lerp for a gradient sweep, with a wide low-alpha pass underneath for bloom; the leading dot is an additive radial gradient at the arc tip; the centred % is a large number plus a smaller '%' glyph, swapping LOADING->COMPLETE at 100; seeded mulberry32 dust orbits with integer harmonics so it loops. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, ring radius R / width lw, sweep fraction, SEG count, A/B gradient colours, DUST count.",
+  "summary_vi": "Vòng tải tròn: cung accent tím->xanh vũ trụ quét từ 0 đến 100% quanh vòng nền mờ, dẫn đầu bởi chấm sáng trắng, kèm số phần trăm sống ở giữa và bụi nền xoay quanh. Cung giữ ở mức đầy rồi mờ dần về 0 để loop liền mạch. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "u quét cung trong ~82% đầu của loop rồi giữ 100% và mờ dần phần còn lại nên frame(0) bằng frame(LOOP); cung vẽ bằng 64 đoạn lerp màu để tạo gradient, chấm dẫn đầu dùng gradient additive, bụi gieo bằng mulberry32 với hài số nguyên."
+}

@@ -1,0 +1,167 @@
+<!-- Cosmos Avatar Stack: gradient-tinted circular avatars with initials overlap into a stack with a "+N" counter; the demo loops avatars sliding in one-by-one to stack, then the stack spreading apart on hover (with a name tooltip) and re-stacking. Deterministic render(u). -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Avatar Stack</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+/* glassy panel framing the stack */
+#panel{position:relative;padding:46px 56px;border-radius:22px;
+  background:linear-gradient(160deg,rgba(28,23,48,.82),rgba(17,14,31,.9));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 30px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(10px)}
+#cap{position:absolute;top:16px;left:0;right:0;text-align:center;font-size:11.5px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;color:#7c7798}
+/* the stack lives in a fixed-size frame so avatars transform around their slots */
+#stack{position:relative;width:340px;height:64px;margin-top:6px}
+.av{position:absolute;left:0;top:0;width:54px;height:54px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;color:#fff;letter-spacing:.3px;
+  border:2.5px solid #16122a;
+  box-shadow:0 6px 16px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.22);
+  text-shadow:0 1px 2px rgba(0,0,0,.4);will-change:transform,opacity}
+.av span{position:relative;z-index:1}
+/* the +N counter chip — styled like an avatar but accented */
+#more{position:absolute;left:0;top:0;width:54px;height:54px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;
+  color:#cdbcff;border:2.5px dashed rgba(139,92,255,.55);
+  background:radial-gradient(circle at 50% 35%,rgba(139,92,255,.32),rgba(28,22,52,.95));
+  box-shadow:0 6px 16px rgba(0,0,0,.4);will-change:transform,opacity}
+/* tooltip name bubble */
+#tip{position:absolute;left:0;top:0;transform:translate(-50%,-100%);
+  padding:6px 11px;border-radius:9px;font-size:12.5px;font-weight:600;color:#f3f1fb;white-space:nowrap;
+  background:linear-gradient(160deg,rgba(40,33,66,.98),rgba(24,20,40,.98));
+  border:1px solid rgba(139,92,255,.4);box-shadow:0 10px 26px rgba(0,0,0,.5);
+  pointer-events:none;will-change:transform,opacity}
+#tip::after{content:"";position:absolute;left:50%;bottom:-5px;width:9px;height:9px;
+  transform:translateX(-50%) rotate(45deg);background:rgba(28,23,46,.98);
+  border-right:1px solid rgba(139,92,255,.4);border-bottom:1px solid rgba(139,92,255,.4)}
+</style></head>
+<body><div id="stage"><div id="panel">
+  <div id="cap">Team online</div>
+  <div id="stack"></div>
+</div></div>
+<script>
+const stack=document.getElementById('stack');
+// name, initials, two-stop gradient (cosmos-tinted)
+const PEOPLE=[
+  ['Maya Chen','MC','#8b5cff','#46b4ff'],
+  ['Jordan Park','JP','#ff5cc2','#8b5cff'],
+  ['Aria Voss','AV','#36d39a','#46b4ff'],
+  ['Leo Mercer','LM','#ff6a3d','#e0b24a'],
+  ['Nadia Khan','NK','#46b4ff','#36d39a'],
+  ['Theo Ruiz','TR','#e0b24a','#ff6a3d']
+];
+const SHOWN=4;                 // avatars visible before the +N chip
+const EXTRA=PEOPLE.length-SHOWN;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeInOut=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const smooth=t=>t*t*(3-2*t);
+const LOOP=6400;
+// build avatar nodes once
+const nodes=PEOPLE.slice(0,SHOWN).map((p,i)=>{
+  const d=document.createElement('div');d.className='av';
+  d.style.background=`linear-gradient(150deg,${p[2]},${p[3]})`;
+  d.innerHTML=`<span>${p[1]}</span>`;stack.appendChild(d);return d;});
+const more=document.createElement('div');more.id='more';more.innerHTML=`+${EXTRA}`;stack.appendChild(more);
+const tip=document.createElement('div');tip.id='tip';tip.textContent='';stack.appendChild(tip);
+
+const STACK_GAP=38;            // overlap spacing (less than avatar width => overlap)
+const SPREAD_GAP=66;           // spread-apart spacing
+const COUNT=SHOWN+1;           // avatars + chip
+function slotX(i,gap){         // centre the row of COUNT chips
+  const total=(COUNT-1)*gap;
+  return 170 - total/2 + i*gap; // 170 = half of stack width (340)
+}
+function place(node,cx,top,scale,op,z){
+  node.style.transform=`translate(${(cx-27).toFixed(1)}px,${top.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+  node.style.opacity=clamp(op,0,1).toFixed(3);
+  node.style.zIndex=String(z);
+}
+function render(u){
+  // 3 phases: [0,.40) avatars slide in & stack ; [.40,.72) spread + tooltip ; [.72,1) re-stack & settle
+  const yMid=5;                                  // vertical centring inside the 64px frame
+  if(u<0.40){
+    // INTRO: each avatar (and the chip) slides in from the left and stacks, staggered
+    const g=u/0.40;                              // 0..1
+    const items=COUNT;
+    for(let i=0;i<items;i++){
+      // stagger: item i fully arrives by the time g passes its window
+      const w=0.62;                              // per-item window width (overlapping)
+      const start=i*(1-w)/(items-1||1);
+      const local=clamp((g-start)/w,0,1);
+      const e=easeOut(local);
+      const tx=slotX(i,STACK_GAP);
+      const fromX=tx-120;                        // comes from the left edge
+      const cx=lerp(fromX,tx,e);
+      const node=(i<SHOWN)?nodes[i]:more;
+      place(node,cx,yMid,lerp(0.6,1,e),e,10+i);  // later items on top (higher z)
+    }
+    tip.style.opacity='0';
+  } else if(u<0.72){
+    // SPREAD: hover spreads avatars apart, a tooltip names the hovered one, then they hold
+    const g=(u-0.40)/0.32;                       // 0..1
+    // spread out then back toward stacked at the very end of this window for a smooth handoff
+    const sp=smooth(clamp(g/0.55,0,1)) - smooth(clamp((g-0.62)/0.38,0,1));
+    for(let i=0;i<COUNT;i++){
+      const sx=slotX(i,STACK_GAP), ex=slotX(i,SPREAD_GAP);
+      const cx=lerp(sx,ex,sp);
+      const node=(i<SHOWN)?nodes[i]:more;
+      // the "hovered" avatar (index 1) lifts slightly & scales up
+      const hov=(i===1)?sp:0;
+      place(node,cx,yMid-hov*9,1+hov*0.10,1,10+i+(i===1?20:0));
+    }
+    // tooltip over the hovered avatar (index 1), fades in with the spread
+    const hi=1;
+    const hx=slotX(hi,lerp(STACK_GAP,SPREAD_GAP,sp));
+    tip.textContent=PEOPLE[hi][0];
+    tip.style.left=hx+'px'; tip.style.top=(yMid-15)+'px';
+    const ta=smooth(clamp((g-0.10)/0.30,0,1)) - smooth(clamp((g-0.70)/0.25,0,1));
+    tip.style.transform=`translate(-50%,-100%) translateY(${lerp(6,0,clamp(ta,0,1)).toFixed(1)}px)`;
+    tip.style.opacity=clamp(ta,0,1).toFixed(3);
+  } else {
+    // SETTLE: everything rests, stacked, in its hold pose (loops back into INTRO's start)
+    for(let i=0;i<COUNT;i++){
+      const node=(i<SHOWN)?nodes[i]:more;
+      place(node,slotX(i,STACK_GAP),yMid,1,1,10+i);
+    }
+    tip.style.opacity='0';
+  }
+}
+// frame-0 offset: land mid-spread with the tooltip showing (rich thumbnail)
+const OFF=0.52;
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render((((t/LOOP+OFF)%1)+1)%1);window.__seek(0);window.__ready=true;}
+else{
+  // live: hovering an avatar spreads the stack & shows that person's name; leaving re-stacks (CSS-free, render-driven)
+  let start=performance.now();
+  let hoverHold=null;          // when set, freeze at the spread pose with this index highlighted
+  function frame(n){
+    if(hoverHold===null) render((((n-start)/LOOP+OFF)%1+1)%1);
+    requestAnimationFrame(frame);
+  }
+  stack.addEventListener('mousemove',e=>{
+    const r=stack.getBoundingClientRect();
+    const x=e.clientX-r.left;
+    // map x to nearest slot; show spread+tooltip for that person
+    let idx=Math.round((x-(170-(COUNT-1)*STACK_GAP/2))/STACK_GAP);
+    idx=clamp(idx,0,SHOWN-1);
+    hoverHold=idx;
+    for(let i=0;i<COUNT;i++){
+      const node=(i<SHOWN)?nodes[i]:more;
+      const ex=slotX(i,SPREAD_GAP);
+      const hov=(i===idx)?1:0;
+      place(node,ex,5-hov*9,1+hov*0.10,1,10+i+(i===idx?20:0));
+    }
+    tip.textContent=PEOPLE[idx][0];
+    tip.style.left=slotX(idx,SPREAD_GAP)+'px';tip.style.top=(5-15)+'px';
+    tip.style.transform='translate(-50%,-100%)';tip.style.opacity='1';
+  });
+  stack.addEventListener('mouseleave',()=>{hoverHold=null;start=performance.now()-OFF*LOOP;tip.style.opacity='0';});
+  requestAnimationFrame(frame);
+}
+</script></body></html>

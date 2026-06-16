@@ -1,0 +1,75 @@
+<!doctype html><meta charset="utf-8"><!-- Cosmos LED Matrix — dot-matrix display scrolling "COSMOS " with a pulsing heart, pure Canvas 2D -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=1,W=0,H=0;
+const LOOP=8000;
+const ACC=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+// 5x7 font for the glyphs we need
+const F={
+ 'C':['01110','10001','10000','10000','10000','10001','01110'],
+ 'O':['01110','10001','10001','10001','10001','10001','01110'],
+ 'S':['01111','10000','10000','01110','00001','00001','11110'],
+ 'M':['10001','11011','10101','10101','10001','10001','10001'],
+ ' ':['00000','00000','00000','00000','00000','00000','00000']};
+const TEXT='COSMOS ';
+// build a column bitmap of the whole word (7 rows tall, 6 cols per glyph incl spacing)
+const ROWS=7, GW=6, COLS=TEXT.length*GW;
+const bmp=[];
+for(let r=0;r<ROWS;r++){let row=[];for(let i=0;i<TEXT.length;i++){const g=F[TEXT[i]]||F[' '];for(let c=0;c<5;c++)row.push(g[r][c]==='1'?1:0);row.push(0);}bmp.push(row);}
+// heart shape on a 9x8 grid (rows of dots)
+const HEART=['011011','111111','111111','011110','001100'];
+let GX=0,GY=0,DOT=0,gap=0,rows=0,cols=0;
+function layout(){
+ cv.width=(W=innerWidth)*DPR; cv.height=(H=innerHeight)*DPR;
+ cv.style.width=W+'px'; cv.style.height=H+'px';
+ // grid: 7 rows tall display area
+ rows=ROWS; cols=Math.max(22,Math.floor(W/22));
+ const availH=H*0.5; DOT=Math.min(availH/rows, W/cols)*0.78;
+ gap=DOT*1.28;
+ GX=(W-cols*gap)/2+gap/2; GY=H*0.5-(rows*gap)/2+gap/2;
+}
+function dot(x,y,col,br){
+ ctx.globalCompositeOperation=br>0.5?'lighter':'source-over';
+ ctx.beginPath();ctx.arc(x*DPR,y*DPR,DOT*0.42*DPR,0,7);
+ ctx.fillStyle=col;ctx.globalAlpha=br;ctx.fill();
+ if(br>0.5){ctx.beginPath();ctx.arc(x*DPR,y*DPR,DOT*0.8*DPR,0,7);ctx.globalAlpha=br*0.25;ctx.fill();}
+ ctx.globalAlpha=1;
+}
+function frame(t){
+ const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+ ctx.globalCompositeOperation='source-over';
+ ctx.fillStyle='#05030d';ctx.fillRect(0,0,cv.width,cv.height);
+ // phase A (u<0.65): scrolling text ; phase B: pulsing heart
+ const textPhase=u<0.66;
+ const accA=ACC[0], accB=ACC[2];
+ for(let ry=0;ry<rows;ry++)for(let cx=0;cx<cols;cx++){
+   const px=GX+cx*gap, py=GY+ry*gap;
+   let lit=0, col=accA;
+   if(textPhase){
+     // scroll: integer-friendly offset that wraps over the loop
+     const scrollU=(u/0.66); // 0..1 within phase
+     const off=Math.floor(scrollU*COLS*1.0);
+     const src=((cx+off)%COLS+COLS)%COLS;
+     lit=bmp[ry]?bmp[ry][src]:0;
+     col=ACC[(Math.floor(src/GW))%ACC.length];
+   } else {
+     // heart centered, pulsing
+     const hp=(u-0.66)/0.34;
+     const beat=0.62+0.38*Math.abs(Math.sin(Math.PI*2*hp*2)); // 2 beats, periodic
+     const hw=HEART[0].length, hh=HEART.length;
+     const ox=Math.floor((cols-hw)/2), oy=Math.floor((rows-hh)/2);
+     const hx=cx-ox, hy=ry-oy;
+     if(hy>=0&&hy<hh&&hx>=0&&hx<hw&&HEART[hy][hx]==='1'){lit=beat;col=accB;}
+   }
+   const dim=0.12+0.05*Math.sin((cx*0.7+ry*1.3)+u*6.283);
+   if(lit>0.5) dot(px,py,col,Math.min(1,lit));
+   else dot(px,py,'#2a2240',dim);
+ }
+ // soft title glow vignette via faint accent dots already done
+}
+addEventListener('resize',()=>{DPR=Math.max(1,Math.min(2,window.devicePixelRatio||1));layout();});
+DPR=Math.max(1,Math.min(2,window.devicePixelRatio||1));layout();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

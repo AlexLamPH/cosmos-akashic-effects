@@ -1,0 +1,268 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mahjong Pairs</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:720px;height:540px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 28px;pointer-events:none;}
+  #title{font-size:23px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:12px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 14px;text-align:center;min-width:60px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:20px;font-weight:800;color:#fff;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.74);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;color:#36d39a;text-shadow:0 0 18px rgba(54,211,154,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="720" height="540"></canvas>
+  <div id="hud"><div id="title">MAHJONG PAIRS</div>
+    <div id="scores"><div class="box"><div class="lab">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="box"><div class="lab">TILES</div><div class="val" id="tiles">0</div></div></div></div>
+  <div id="over"><h1 id="otitle">BOARD CLEAR!</h1><p id="fin">Score 0</p><button id="btn">New Board ▸</button></div>
+  <div id="tip">Tap two free matching tiles to remove them · only edge-free tiles select · R restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=720,H=540;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---------- layout ----------
+// Tiles placed on a half-cell grid (so stacking/offset feels mahjong-ish). Each tile occupies 2x2 half-cells.
+// A multi-layer pyramid: lower layers wider, upper layers centred. Free = no tile to immediate left or right
+// (on same layer) AND nothing on the layer above covering it.
+const TILE_W=58, TILE_H=74, HX=TILE_W/2, HY=TILE_H/2; // half sizes
+const SYMS=6; // Cosmos symbol types (each appears in matched pairs)
+const SYMCOL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+
+// Layout template: list of [layer, gx, gy] in half-cell units. We build a small 3-layer mound.
+function layoutTemplate(){
+  const t=[];
+  // layer 0: 6x4 base of tiles (cols 0..5, rows 0..3) on a half-cell grid stepping by 2
+  for(let r=0;r<4;r++)for(let c=0;c<6;c++) t.push([0, c*2, r*2]);
+  // layer 1: 4x2 centred on top
+  for(let r=0;r<2;r++)for(let c=0;c<4;c++) t.push([1, 1+c*2+1, 1+r*2]); // offset inward by 1 half-cell
+  // layer 2: 2x1 cap
+  for(let c=0;c<2;c++) t.push([2, 3+c*2, 1+1]);
+  return t;
+}
+// ensure even count -> pairable
+function buildBoard(seed){
+  const rnd=mul(seed);
+  const tpl=layoutTemplate();
+  let cells=tpl.map(([l,gx,gy],idx)=>({id:idx, layer:l, gx, gy, sym:-1, gone:false}));
+  if(cells.length%2) cells.pop();
+  // assign symbols in pairs deterministically
+  const pairCount=cells.length/2;
+  const symList=[]; for(let i=0;i<pairCount;i++){ const s=i%SYMS; symList.push(s,s); }
+  // shuffle symList with rnd
+  for(let k=symList.length-1;k>0;k--){ const j=(rnd()*(k+1))|0; const t2=symList[k];symList[k]=symList[j];symList[j]=t2; }
+  cells.forEach((c,i)=>c.sym=symList[i]);
+  return cells;
+}
+// overlap test on half-cell grid: two tiles overlap if |dgx|<2 and |dgy|<2
+function covers(a,b){ return Math.abs(a.gx-b.gx)<2 && Math.abs(a.gy-b.gy)<2; }
+function isFree(cells,cell){
+  if(cell.gone) return false;
+  // covered from above?
+  for(const o of cells){ if(o.gone||o===cell)continue; if(o.layer>cell.layer && covers(o,cell)) return false; }
+  // free on left or right (same layer, no same-layer neighbour blocking that side)
+  let leftBlocked=false, rightBlocked=false;
+  for(const o of cells){ if(o.gone||o===cell)continue; if(o.layer!==cell.layer)continue;
+    if(Math.abs(o.gy-cell.gy)<2){ if(o.gx===cell.gx-2) leftBlocked=true; if(o.gx===cell.gx+2) rightBlocked=true; } }
+  return !leftBlocked || !rightBlocked;
+}
+
+// ---------- AUTO: deterministic pair-removal solver ----------
+const BSEED=70513, STEP_MS=560;
+let AD=null;
+function buildAuto(){
+  let cells=buildBoard(BSEED);
+  // produce a deterministic removal sequence of free matching pairs.
+  const steps=[]; // each: {a,b,sym}
+  // work on a clone we can mutate
+  const live=cells.map(c=>({...c}));
+  let guard=0;
+  while(guard++<200){
+    // gather free tiles
+    const free=live.filter(c=>!c.gone && isFree(live,c));
+    // find a matching pair among free (deterministic: lowest id pair)
+    let found=null;
+    outer:
+    for(let i=0;i<free.length;i++) for(let j=i+1;j<free.length;j++){
+      if(free[i].sym===free[j].sym){ found=[free[i],free[j]]; break outer; }
+    }
+    if(!found) break;
+    found.sort((p,q)=>p.id-q.id);
+    steps.push({a:found[0].id,b:found[1].id,sym:found[0].sym});
+    live.find(c=>c.id===found[0].id).gone=true;
+    live.find(c=>c.id===found[1].id).gone=true;
+  }
+  return {cells, steps};
+}
+const LOOP=12000;
+const START_OFFSET=2600; // start mid-clear
+function drawAt(ms){
+  if(!AD)AD=buildAuto();
+  const total=AD.steps.length*STEP_MS + 1600;
+  let m=((ms+START_OFFSET)%total+total)%total;
+  const k=Math.min(AD.steps.length, Math.floor(m/STEP_MS)); // pairs removed
+  const inStep=(m - k*STEP_MS)/STEP_MS;
+  // reconstruct board state
+  const gone=new Set();
+  for(let s=0;s<k;s++){ gone.add(AD.steps[s].a); gone.add(AD.steps[s].b); }
+  // current pair being matched (fading out)
+  let fading=null;
+  if(k<AD.steps.length){ fading={a:AD.steps[k].a, b:AD.steps[k].b, p:inStep}; }
+  const score=k*100;
+  const remaining=AD.cells.length - gone.size;
+  renderBoard(AD.cells, gone, fading, null, score, remaining, k>=AD.steps.length);
+}
+
+// ---------- rendering ----------
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+// compute pixel origin of a tile (its top-left), with per-layer offset for 3D feel
+function tilePos(cell){
+  // half-cell to px: each half-cell = TILE_W/2 horiz, TILE_H/2 vert
+  const baseX=(W-6*TILE_W)/2;          // centre the 6-wide base
+  const baseY=96;
+  const off=cell.layer*6;              // lift higher layers up-left
+  const px=baseX + cell.gx*HX - off;
+  const py=baseY + cell.gy*HY - off;
+  return [px,py];
+}
+function drawSymbol(cx,cy,sym,col,a){
+  x.save(); x.globalAlpha=a; x.strokeStyle=col; x.fillStyle=col; x.lineWidth=3;
+  x.shadowColor=hexA(col,0.7); x.shadowBlur=8;
+  const s=16;
+  x.beginPath();
+  if(sym===0){ // 6-point star
+    for(let i=0;i<12;i++){ const ang=-Math.PI/2+i*Math.PI/6; const r=i%2?s:s*0.45; const gx=cx+Math.cos(ang)*r,gy=cy+Math.sin(ang)*r; i?x.lineTo(gx,gy):x.moveTo(gx,gy);} x.closePath(); x.fill();
+  } else if(sym===1){ // ring
+    x.arc(cx,cy,s*0.85,0,7); x.stroke(); x.beginPath(); x.arc(cx,cy,s*0.4,0,7); x.fill();
+  } else if(sym===2){ // heart-ish diamond
+    x.moveTo(cx,cy-s); x.lineTo(cx+s,cy); x.lineTo(cx,cy+s); x.lineTo(cx-s,cy); x.closePath(); x.fill();
+  } else if(sym===3){ // crescent moon
+    x.arc(cx,cy,s,0,7); x.fill(); x.globalCompositeOperation='destination-out';
+    x.beginPath(); x.arc(cx+s*0.5,cy-s*0.2,s*0.85,0,7); x.fill(); x.globalCompositeOperation='source-over';
+  } else if(sym===4){ // 4-point spark
+    for(let i=0;i<8;i++){ const ang=i*Math.PI/4; const r=i%2?s:s*0.3; const gx=cx+Math.cos(ang)*r,gy=cy+Math.sin(ang)*r; i?x.lineTo(gx,gy):x.moveTo(gx,gy);} x.closePath(); x.fill();
+  } else { // orbit dot
+    x.arc(cx,cy,s*0.45,0,7); x.fill(); x.lineWidth=2; x.beginPath(); x.ellipse(cx,cy,s,s*0.5,Math.PI/5,0,7); x.stroke();
+  }
+  x.restore();
+}
+function drawTile(cell,faceCol,sel,fadeP){
+  const [px,py]=tilePos(cell);
+  const a = fadeP!=null ? (1-fadeP) : 1;
+  const lift = fadeP!=null ? fadeP*10 : 0;
+  x.save(); x.globalAlpha=a;
+  // shadow/side for depth
+  x.fillStyle='rgba(0,0,0,.45)'; rr(px+4,py+5-lift,TILE_W,TILE_H,9); x.fill();
+  // tile body
+  const grad=x.createLinearGradient(px,py,px,py+TILE_H);
+  grad.addColorStop(0,'#241a4a'); grad.addColorStop(1,'#1a1335');
+  x.fillStyle=grad; rr(px,py-lift,TILE_W,TILE_H,9); x.fill();
+  // top bevel highlight
+  x.fillStyle='rgba(255,255,255,.06)'; rr(px+3,py+3-lift,TILE_W-6,TILE_H*0.4,7); x.fill();
+  x.strokeStyle= sel ? '#fff' : hexA(faceCol,0.55); x.lineWidth= sel?3:1.5; rr(px,py-lift,TILE_W,TILE_H,9); x.stroke();
+  // symbol
+  drawSymbol(px+TILE_W/2, py+TILE_H/2-lift, cellSym(cell), faceCol, 1);
+  x.restore();
+}
+let _symRef=null;
+function cellSym(cell){ return cell.sym; }
+function bg(){
+  x.clearRect(0,0,W,H);
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#120c2c');g.addColorStop(1,'#0a0817');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  // table felt
+  x.fillStyle='#14102b'; rr(40,84,W-80,H-150,18); x.fill();
+  x.strokeStyle='rgba(139,92,255,.12)'; x.lineWidth=1; rr(40,84,W-80,H-150,18); x.stroke();
+}
+// renderBoard: cells, goneSet, fading {a,b,p}|null, selId|null, score, remaining, solved
+function renderBoard(cells, gone, fading, selId, score, remaining, solved){
+  bg();
+  // draw bottom layers first, then up, so stacking reads correctly
+  const order=cells.slice().sort((a,b)=> a.layer-b.layer || a.gy-b.gy || a.gx-b.gx);
+  for(const cell of order){
+    if(gone.has(cell.id)) continue;
+    const col=SYMCOL[cell.sym];
+    let fadeP=null, sel=false;
+    if(fading && (cell.id===fading.a || cell.id===fading.b)) fadeP=fading.p;
+    if(selId!=null && cell.id===selId) sel=true;
+    // free tiles glow brighter; covered/blocked dimmed
+    const free = isFree(cellsLiveFor(cells,gone), cell);
+    x.save(); if(!free && fadeP==null){ x.globalAlpha=0.78; }
+    drawTile(cell, col, sel, fadeP);
+    x.restore();
+  }
+  document.getElementById('score').textContent=score;
+  document.getElementById('tiles').textContent=remaining;
+}
+// build a view array with gone flags applied so isFree works
+function cellsLiveFor(cells,gone){
+  return cells.map(c=>({...c, gone:gone.has(c.id)}));
+}
+
+// ---------------- LIVE GAME ----------------
+let LG=null;
+function newGame(){
+  const seed=(Math.random()*1e9)|0;
+  let cells=buildBoard(seed);
+  LG={cells, gone:new Set(), sel:null, score:0, over:false};
+  document.getElementById('over').style.display='none'; renderLive();
+}
+function renderLive(){
+  renderBoard(LG.cells, LG.gone, null, LG.sel, LG.score, LG.cells.length-LG.gone.size, false);
+}
+function liveFree(cell){ return isFree(cellsLiveFor(LG.cells,LG.gone), cell); }
+function clickTile(cell){
+  if(LG.over) return;
+  if(LG.gone.has(cell.id)) return;
+  if(!liveFree(cell)) return;            // only edge-free tiles selectable
+  if(LG.sel==null){ LG.sel=cell.id; renderLive(); return; }
+  if(LG.sel===cell.id){ LG.sel=null; renderLive(); return; }
+  const a=LG.cells.find(c=>c.id===LG.sel), b=cell;
+  if(a.sym===b.sym){
+    LG.gone.add(a.id); LG.gone.add(b.id); LG.sel=null; LG.score+=100; renderLive();
+    if(LG.cells.length-LG.gone.size===0){ win(); }
+    else if(!anyMove()){ stuck(); }
+  } else { LG.sel=cell.id; renderLive(); } // switch selection
+}
+function anyMove(){ const live=cellsLiveFor(LG.cells,LG.gone);
+  const free=live.filter(c=>!c.gone && isFree(live,c));
+  for(let i=0;i<free.length;i++)for(let j=i+1;j<free.length;j++) if(free[i].sym===free[j].sym) return true;
+  return false;
+}
+function win(){ LG.over=true; document.getElementById('otitle').textContent='BOARD CLEAR!';
+  document.getElementById('fin').textContent='Score '+LG.score; document.getElementById('over').style.display='flex'; }
+function stuck(){ LG.over=true; document.getElementById('otitle').textContent='NO MOVES LEFT';
+  document.getElementById('fin').textContent='Score '+LG.score; document.getElementById('over').style.display='flex'; }
+function pick(clientX,clientY){ const rect=cv.getBoundingClientRect();
+  const sx=cv.width/rect.width, sy=cv.height/rect.height;
+  const mx=(clientX-rect.left)*sx, my=(clientY-rect.top)*sy;
+  // topmost tile hit (highest layer first)
+  const order=LG.cells.slice().sort((a,b)=> b.layer-a.layer || b.gy-a.gy);
+  for(const cell of order){ if(LG.gone.has(cell.id))continue; const [px,py]=tilePos(cell);
+    if(mx>=px && mx<px+TILE_W && my>=py && my<py+TILE_H) return cell; }
+  return null;
+}
+function initGame(){ newGame();
+  cv.addEventListener('pointerdown',e=>{ const cell=pick(e.clientX,e.clientY); if(cell) clickTile(cell); });
+  addEventListener('keydown',e=>{ if(e.key==='r'||e.key==='R') newGame(); });
+  document.getElementById('btn').addEventListener('click',ev=>{ev.stopPropagation();newGame();});
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

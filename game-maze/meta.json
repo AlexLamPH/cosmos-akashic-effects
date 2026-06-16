@@ -1,0 +1,12 @@
+{
+  "slug": "game-maze",
+  "title": "Cosmos Maze Runner — guide a glowing dot through a seeded maze to the goal",
+  "title_vi": "",
+  "W": 560, "H": 640, "LOOP": 12000, "N": 100,
+  "live_fit": true,
+  "tags": ["game","maze","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, self-contained Cosmos Maze Runner game in one HTML file with zero dependencies. A 13x13 maze is carved with a seeded depth-first search; you drive a glowing dot from the start corner to the aurora goal, walls drawn as violet glow, your route lighting up behind you. A steps counter and live timer score the run, and reaching the goal advances the level and generates a fresh maze. Arrow keys and WASD move on keyboard, an on-screen D-pad and New Maze button cover touch, and R resets. It also ships a deterministic self-playing attract demo for capture: a BFS solver traces the shortest start-to-goal path as a pure function of time.",
+  "usage_notes": "RUN: double-click index.html (or open in any browser). CONTROLS: Arrow keys or WASD move the dot one cell (blocked by walls); on-screen D-pad arrows and the New Maze button work on touch; press R or New Maze for a fresh maze. GOAL/SCORING: reach the glowing aurora goal in the far corner; the HUD tracks Steps, elapsed Time, and Level, and each win generates a new seeded maze at the next level. KEY TECHNIQUES: a mulberry32-seeded depth-first carve (never Math.random in the sim) builds the maze, BFS precomputes the shortest path; the AUTO attract demo's drawAt(ms) is a deterministic BFS-solver that places the runner along the precomputed path purely from time (with smooth cell interpolation and a lit trail) and a frame-0 offset so capture starts mid-traverse with maze, partial trail, and goal visible. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: A_SEED, STEP (ms per cell), OFFSET (frame-0 point), grid size G, LOOP, the glow colors.",
+  "summary_vi": "",
+  "notes": ""
+}

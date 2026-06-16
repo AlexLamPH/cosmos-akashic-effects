@@ -1,0 +1,144 @@
+<!-- Cosmos Kalimba: a playable thumb piano. LIVE: click a tine or press A,S,D,F,G,H,J,K,L to HEAR a warm bell-like note (sine fundamental + odd 3rd/5th harmonics, ramped attack, medium exponential decay) through a master gain ~0.2; the plucked tine wobbles + glows and the soundhole pulses. AUTO: a seeded gentle melody plays SILENTLY — tines vibrate/glow in sequence with decay tails, soundhole shimmers per note — pure function of u, loops seamlessly. Frame 0 mid-vibration. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Kalimba</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.top{display:flex;align-items:center;gap:12px}
+.title{font-size:13px;font-weight:680;color:#f2ecd9;letter-spacing:.5px}
+.dot{width:8px;height:8px;border-radius:50%;background:#e0b24a;box-shadow:0 0 10px #e0b24a}
+.hint{font-size:11.5px;color:#9c8e6a;transition:opacity .35s}
+.body{position:relative;width:420px;height:430px;border-radius:42px;cursor:pointer;
+  background:linear-gradient(150deg,#5b3b22 0%,#7a4f2c 22%,#9c6536 48%,#6e4527 74%,#4a2f1b 100%);
+  border:1px solid rgba(255,220,160,.14);
+  box-shadow:0 36px 80px rgba(0,0,0,.6),inset 0 2px 14px rgba(255,225,170,.18),inset 0 -20px 50px rgba(0,0,0,.5)}
+.body::after{content:"";position:absolute;inset:0;border-radius:42px;pointer-events:none;
+  background:linear-gradient(155deg,rgba(255,250,235,.28),rgba(255,250,235,0) 30%,rgba(255,250,235,0) 70%,rgba(255,240,210,.08))}
+.bridge{position:absolute;left:24px;right:24px;top:182px;height:14px;border-radius:7px;
+  background:linear-gradient(180deg,#2a1c10,#120b06);box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,210,150,.18)}
+svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+</style></head>
+<body><div id="stage">
+  <div class="top"><span class="dot"></span><span class="title">KALIMBA</span>
+    <span class="hint" id="hint">▶ click / press a key</span></div>
+  <div class="body" id="body">
+    <svg id="svg" viewBox="0 0 420 430"></svg>
+    <div class="bridge"></div>
+  </div>
+</div>
+<script>
+const LOOP=6000, N=9;
+const SVGNS="http://www.w3.org/2000/svg";
+const svg=document.getElementById('svg'),hintE=document.getElementById('hint');
+const TAU=Math.PI*2, BASE=261.63; // C4
+// Pentatonic major scale (C D E G A) across ~2 octaves, ascending semitone offsets
+const SCALE=[0,2,4,7,9,12,14,16,19];
+const KEYS=['a','s','d','f','g','h','j','k','l'];
+// Alternating kalimba layout: longest/lowest tine in CENTER, shorter/higher toward edges.
+// order[i] = which physical column the i-th SCALE note (lowest..highest) sits in.
+// center=4, then 5,3,6,2,7,1,8,0  -> low notes center, high notes edges.
+const order=[4,5,3,6,2,7,1,8,0];
+const col2note=new Array(N); for(let i=0;i<N;i++)col2note[order[i]]=i; // column -> scale index
+const BRIDGE_Y=189, TOP_PAD=40, MAXLEN=150, MINLEN=78;
+const cx0=58, span=304, gap=span/(N-1);
+const tines=[]; // {x, len, top, semi, key, lineEl, capEl}
+for(let c=0;c<N;c++){
+  const note=col2note[c];                 // 0=lowest -> longest
+  const len=MAXLEN-(MAXLEN-MINLEN)*(note/(N-1));
+  const x=cx0+c*gap, top=BRIDGE_Y-len;
+  const line=document.createElementNS(SVGNS,'line');
+  line.setAttribute('x1',x);line.setAttribute('x2',x);
+  line.setAttribute('y1',BRIDGE_Y);line.setAttribute('y2',top);
+  line.setAttribute('stroke','url(#tg)');line.setAttribute('stroke-width','6');
+  line.setAttribute('stroke-linecap','round');
+  const cap=document.createElementNS(SVGNS,'circle');
+  cap.setAttribute('cx',x);cap.setAttribute('cy',top);cap.setAttribute('r','5.5');
+  cap.setAttribute('fill','#fff');
+  svg.appendChild(line);svg.appendChild(cap);
+  tines.push({x,len,top,semi:SCALE[note],key:KEYS[note],line,cap});
+}
+// soundhole + gradients + glow filter
+svg.insertAdjacentHTML('afterbegin',
+ '<defs>'+
+ '<linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a8d96"/>'+
+ '<stop offset=".5" stop-color="#f4f0e6"/><stop offset="1" stop-color="#b9a06a"/></linearGradient>'+
+ '<radialGradient id="hole"><stop offset="0" stop-color="#000"/><stop offset=".7" stop-color="#1a1208"/>'+
+ '<stop offset="1" stop-color="#3a2a14"/></radialGradient>'+
+ '<filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="b"/>'+
+ '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
+ '<circle id="ring2" cx="210" cy="300" r="46" fill="none" stroke="#e0b24a" stroke-width="2"/>'+
+ '<circle cx="210" cy="300" r="42" fill="url(#hole)"/>'+
+ '<circle id="ring" cx="210" cy="300" r="42" fill="none" stroke="#e0b24a" stroke-width="3"/>');
+const ring=document.getElementById('ring'), ring2=document.getElementById('ring2');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(11);
+// seeded gentle melody: STEPS notes over LOOP, each = a scale-note index 0..N-1
+const STEPS=12, SEQ=[]; let prev=4;
+for(let i=0;i<STEPS;i++){let n;do{n=Math.floor(rnd()*N);}while(Math.abs(n-prev)>4);SEQ.push(n);prev=n;}
+const PHASE=[];for(let i=0;i<N;i++)PHASE.push(rnd()*TAU);
+const OFF=0.27; // frame-0 offset: a tine mid-vibration + hole mid-pulse at u=0
+
+function render(u){
+  const fpos=((u+OFF)%1)*STEPS;
+  let holePulse=0;
+  // per scale-note: smallest dt since it was struck in the seeded sequence (wrap-aware)
+  for(let note=0;note<N;note++){
+    let dt=99;
+    for(let s=0;s<STEPS;s++){ if(SEQ[s]!==note)continue;
+      let d=fpos-s; if(d<0)d+=STEPS; const t=d/STEPS*LOOP/1000; if(t<dt)dt=t; }
+    const t=tines.find(x=>x.semi===SCALE[note]);
+    const wob=Math.exp(-dt*5.5)*Math.sin(dt*70+PHASE[note])*7; // damped side-to-side px
+    const glow=Math.exp(-dt*3.0);
+    t.line.setAttribute('x1',t.x+wob*0.25);t.line.setAttribute('x2',t.x+wob);
+    t.cap.setAttribute('cx',t.x+wob);
+    t.line.setAttribute('filter',glow>0.06?'url(#gl)':'');
+    t.line.setAttribute('stroke',glow>0.25?'#ffe9b0':'url(#tg)');
+    t.cap.setAttribute('fill',glow>0.06?'#fff7e0':'#fff');
+    t.cap.setAttribute('r',(5.5+glow*3).toFixed(2));
+    if(glow>holePulse)holePulse=glow;
+  }
+  ring.setAttribute('stroke-width',(3+holePulse*4).toFixed(2));
+  ring.setAttribute('stroke','#e0b24a');ring.setAttribute('opacity',(0.5+0.5*holePulse).toFixed(2));
+  ring2.setAttribute('r',(46+holePulse*16).toFixed(2));
+  ring2.setAttribute('opacity',(holePulse*0.6).toFixed(2));
+  ring2.setAttribute('filter',holePulse>0.1?'url(#gl)':'');
+}
+
+// ---- LIVE audio: warm bell-like pluck (sine + odd harmonics) ----
+let actx,master;
+function audio(){if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain();master.gain.value=0.2;master.connect(actx.destination);}
+  if(actx.state==='suspended')actx.resume();return actx;}
+function pluck(semi){const a=audio();const f=BASE*Math.pow(2,semi/12);const t=a.currentTime;
+  const g=a.createGain();g.connect(master);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+0.008); // gentle attack, no click
+  g.gain.exponentialRampToValueAtTime(0.0008,t+1.2);                    // medium exp decay
+  const parts=[[1,1],[3,0.16],[5,0.07]];                                // fundamental + odd harmonics
+  parts.forEach(([h,amp])=>{const o=a.createOscillator(),og=a.createGain();
+    o.type='sine';o.frequency.value=f*h;og.gain.value=amp;
+    o.connect(og);og.connect(g);o.start(t);o.stop(t+1.3);});
+  const o2=a.createOscillator();o2.type='sine';o2.frequency.value=f*1.004; // detune for warmth
+  const o2g=a.createGain();o2g.gain.value=0.5;o2.connect(o2g);o2g.connect(g);o2.start(t);o2.stop(t+1.3);}
+// transient visual strike for LIVE feel (pure render() stays unaffected for capture)
+const strike={};
+function flash(t){t.cap.setAttribute('fill','#fff7e0');t.line.setAttribute('stroke','#ffe9b0');
+  t.line.setAttribute('filter','url(#gl)');
+  ring.setAttribute('stroke-width','7');ring2.setAttribute('opacity','0.6');ring2.setAttribute('filter','url(#gl)');}
+function hideHint(){hintE.style.opacity='0';}
+function hit(t){pluck(t.semi);flash(t);hideHint();}
+// click a tine
+tines.forEach(t=>{[t.line,t.cap].forEach(el=>{el.style.cursor='pointer';
+  el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();hit(t);});});});
+document.getElementById('body').addEventListener('pointerdown',()=>{audio();hideHint();});
+const KEYMAP={};tines.forEach(t=>KEYMAP[t.key]=t);
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  window.addEventListener('keydown',e=>{const t=KEYMAP[e.key.toLowerCase()];if(t&&!e.repeat)hit(t);});
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

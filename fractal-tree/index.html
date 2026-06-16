@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Fractal Tree</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Fractal Tree — a recursively branching tree swaying in wind; per-depth sway = SW*sin(2PI*u + depth) returns at u=1; branch tips bloom as glowing accent dots. Recomputed each frame, pure Canvas 2D.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=6000,TAU=6.28318530718;
+let W,H,DPR,jit=[];const DEPTH=10,SPREAD=0.42,SHRINK=0.74,SW=0.10;
+// seeded RNG (mulberry32) — called only at setup, never inside frame()
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+// pre-seed a deterministic angle-jitter table so each branch keeps its character every frame
+(function(){const r=mul(1337);for(let i=0;i<70000;i++)jit.push((r()-0.5)*0.22);})();
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}
+rs();addEventListener('resize',rs);
+let JI;
+function branch(px,py,ang,len,d,u){
+  const e=ang + SW*Math.sin(TAU*u + d) + jit[JI++%jit.length]*(d/DEPTH); // wind sway + seeded character
+  const ex=px+Math.cos(e)*len, ey=py+Math.sin(e)*len;
+  const c=AC[(d+ (AC.length))%AC.length];                 // limb colour shifts with depth
+  x.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.18+0.5*(1-d/DEPTH)})`;
+  x.lineWidth=Math.max(1,(DEPTH-d)*1.3)*DPR;
+  x.beginPath();x.moveTo(px,py);x.lineTo(ex,ey);x.stroke();
+  if(d>=DEPTH || len<6*DPR){                              // leaf: glowing blossom tip
+    const bl=AC[(d*2+1)%AC.length];const col=`${bl[0]},${bl[1]},${bl[2]}`;
+    const tw=0.6+0.4*Math.sin(TAU*u*2 + JI*0.7);          // gentle twinkle (integer freq)
+    const rr=(3.2+2.4*tw)*DPR;
+    x.fillStyle=`rgba(${col},0.16)`;x.beginPath();x.arc(ex,ey,rr*3,0,TAU);x.fill();
+    x.fillStyle=`rgba(${col},0.5)`;x.beginPath();x.arc(ex,ey,rr*1.6,0,TAU);x.fill();
+    x.fillStyle=`rgba(${col},0.95)`;x.beginPath();x.arc(ex,ey,rr,0,TAU);x.fill();
+    x.fillStyle=`rgba(255,255,255,0.8)`;x.beginPath();x.arc(ex,ey,rr*0.4,0,TAU);x.fill();
+    return;
+  }
+  branch(ex,ey,e-SPREAD,len*SHRINK,d+1,u);               // left child
+  branch(ex,ey,e+SPREAD,len*SHRINK,d+1,u);               // right child
+}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;     // 0..1 normalized loop time
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);            // full repaint each frame (pure fn of t)
+  x.globalCompositeOperation='lighter';                 // additive glow
+  x.lineCap='round';JI=0;                                // reset jitter cursor -> deterministic walk
+  const len0=Math.min(W,H)*0.21, sway0=SW*0.6*Math.sin(TAU*u); // whole trunk leans gently
+  branch(W/2, H*0.96, -Math.PI/2 + sway0, len0, 0, u);  // grow upward from the base
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

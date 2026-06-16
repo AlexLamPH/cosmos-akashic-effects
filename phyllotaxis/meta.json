@@ -1,0 +1,11 @@
+{
+  "slug": "phyllotaxis",
+  "title": "Cosmos Phyllotaxis — golden-angle sunflower spiral that blooms and rotates",
+  "title_vi": "Cosmos Phyllotaxis — xoắn ốc hoa hướng dương theo góc vàng nở và xoay",
+  "W": 760, "H": 560, "LOOP": 8000, "N": 100,
+  "tags": ["phyllotaxis","golden-angle","sunflower","spiral","dots","canvas2d"],
+  "summary": "1500 glowing dots placed at the golden angle (137.5 degrees) with radius c*sqrt(i) form a living sunflower/galaxy disc that slowly rotates, gently blooms in and out, and has a colour-brightness wave sweeping outward from the warm core. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: seed i sits at angle i*GOLD (137.5deg) and radius c*sqrt(i) where c=scale/sqrt(N), giving the classic Vogel sunflower packing; colours cycle the Cosmos accents by index. Per frame the whole disc rotates by spin=u*2PI (one turn per loop), breathes via bloom=0.9+0.1*sin(2PI*u), and an outward colour wave 0.5+0.5*sin(2PI*(2u - norm*3)) pulses brightness by radius — all integer harmonics of u so frame(0)==frame(LOOP). Drawn additively ('lighter') over a warm radial core glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N dot count, c spacing, bloom depth, colour-wave speed/scale, AC palette.",
+  "summary_vi": "1500 chấm phát sáng đặt theo góc vàng (137.5 độ) với bán kính c*sqrt(i) tạo thành đĩa hoa hướng dương/thiên hà sống động, xoay chậm, nở vào ra nhẹ nhàng, và có sóng màu-độ sáng lan từ lõi ấm ra ngoài. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Chấm i tại góc i*137.5 độ, bán kính c*sqrt(i); spin/bloom/sóng màu đều dùng harmonic nguyên của u nên loop liền."
+}

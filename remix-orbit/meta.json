@@ -1,0 +1,11 @@
+{
+  "slug": "remix-orbit",
+  "title": "Cosmos Remix — Orbit System you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "orbit", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle orbit system: a glowing solar-system / electron-cloud of several concentric orbital shells, each particle riding a slightly-inclined elliptical orbit at shell-dependent radius and speed around a bright central body, all advancing with time. Live glass panel retunes palette (brand theme tokens), shape, density, spread, speed, dot size and the number of Shells in real time; reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open index.html and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Shells to add or remove orbital rings, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: each particle is assigned to one of N concentric shells; its angle advances with u (inner shells faster, alternating spin direction), its position is an ellipse squashed by a per-shell inclination then rotated into a tilted orbital plane, and a radial-gradient central body anchors the system; per-particle depth shading and a colour ramp from the active palette give additive glow. The geometry is a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them, the contract a generic remix harness uses; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; SHAPES + drawShape render the chosen glyph cheaply. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: add palettes to PALETTES, adjust shell radius/speed falloff, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

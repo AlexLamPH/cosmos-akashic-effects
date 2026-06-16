@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mic Terrain</title><style>
+*{margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;
+  font:600 13px/1 system-ui,sans-serif;color:#cfc3ff;letter-spacing:.04em;
+  padding:9px 16px;border:1px solid rgba(150,120,255,.35);border-radius:999px;
+  background:rgba(20,12,40,.55);cursor:pointer;backdrop-filter:blur(4px);
+  transition:opacity .8s;user-select:none}
+</style></head>
+<body><canvas id="c"></canvas><div id="hint">🎤 enable mic</div><script>
+// Cosmos Mic Terrain — scrolling 3D spectrum waterfall: each new ridge row's heights are the current spectrum, receding to a horizon, near ridge brightest. Mic-reactive, synth fallback.
+const cv=document.getElementById('c'), x=cv.getContext('2d'), hint=document.getElementById('hint');
+const NBINS=64;
+let W=0,H=0;
+function resize(){
+  W=innerWidth;H=innerHeight;
+  cv.width=W;cv.height=H;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+}
+addEventListener('resize',resize);resize();
+
+const ACC=[[150,90,255],[90,170,255],[255,110,200],[120,255,220],[255,180,90]];
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x5EED11);
+const FB=[];for(let i=0;i<8;i++)FB.push({c:rnd(),w:0.05+rnd()*0.18,sp:0.5+rnd()*2.5,ph:rnd()*6.283,a:0.4+rnd()*0.6});
+
+const LOOP=9000;
+function synthSpectrum(u){
+  const ph=u*6.2831853;
+  const spec=new Float32Array(NBINS);
+  for(let i=0;i<NBINS;i++){
+    const f=i/(NBINS-1);
+    let v=0;
+    for(const b of FB){
+      const c=(b.c+0.13*Math.sin(ph*b.sp+b.ph))%1;
+      const d=(f-c)/b.w;
+      v+=b.a*Math.exp(-d*d);
+    }
+    v*=(1.0-0.40*f);
+    v+=0.05*Math.max(0,Math.sin(ph*3+f*11));
+    spec[i]=v;
+  }
+  const beat=Math.pow(0.5+0.5*Math.cos(ph*4),6);
+  let level=0.18+0.72*beat;
+  for(let i=0;i<10;i++)spec[i]+=beat*(1.1-i*0.08);
+  let mx=0;for(let i=0;i<NBINS;i++)mx=Math.max(mx,spec[i]);
+  if(mx>0)for(let i=0;i<NBINS;i++)spec[i]=Math.min(1,spec[i]/(mx*0.78));
+  return {spec,level:Math.min(1,level)};
+}
+
+// ---- waterfall buffer: ROWS rows of NBINS heights; row 0 = newest (near), last = far ----
+const ROWS=34;
+const grid=[];
+for(let r=0;r<ROWS;r++){
+  // pre-seed with a synth slice so frame 0 is already rich (offset per row)
+  const s=synthSpectrum((r/ROWS*0.6)%1);
+  grid.push(Array.from(s.spec));
+}
+let acc=0, lastT=0, pushEvery=0.045; // seconds between new ridge rows
+
+// project a point in (col 0..NBINS-1, depth 0..1 near->far, height 0..1) to screen
+function proj(col, depth, height){
+  // perspective: depth 0 = near (bottom, wide), depth 1 = far (horizon, narrow)
+  const horizonY=H*0.30;
+  const nearY=H*0.96;
+  const t=depth;
+  // ease so rows bunch toward horizon
+  const yt=t/(t+0.55*(1-t));
+  const baseY=nearY+(horizonY-nearY)*yt;
+  const scale=1-0.78*yt;            // horizontal & height scale shrink with depth
+  const cx=W/2;
+  const spread=W*0.92*scale;
+  const sx=cx+((col/(NBINS-1))-0.5)*spread;
+  const hpx=height*H*0.42*scale;
+  const sy=baseY-hpx;
+  return {x:sx, y:sy, baseY, scale, yt};
+}
+
+function render(spec, level, t){
+  const dt=Math.min(0.08, Math.max(0, t-lastT)); lastT=t;
+  acc+=dt;
+  // push new ridge rows from the current spectrum (waterfall scroll)
+  while(acc>=pushEvery){
+    acc-=pushEvery;
+    grid.unshift(Array.from(spec));
+    if(grid.length>ROWS)grid.pop();
+  }
+
+  // sky / background gradient
+  const sky=x.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#0a0618');
+  sky.addColorStop(0.30,'#120a28');
+  sky.addColorStop(0.34,'#1a0f38');
+  sky.addColorStop(1,'#05030d');
+  x.globalCompositeOperation='source-over';
+  x.fillStyle=sky;x.fillRect(0,0,W,H);
+
+  // horizon glow that pulses with level
+  const hg=x.createRadialGradient(W/2,H*0.30,0,W/2,H*0.30,W*0.6);
+  hg.addColorStop(0,`rgba(150,90,255,${0.18+level*0.35})`);
+  hg.addColorStop(0.4,`rgba(90,60,180,${0.08+level*0.15})`);
+  hg.addColorStop(1,'rgba(5,3,13,0)');
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=hg;x.fillRect(0,0,W,H);
+
+  // draw from far (last row) to near (row 0) for painter's order
+  for(let r=ROWS-1;r>=0;r--){
+    const row=grid[r]||grid[grid.length-1];
+    const depth=r/(ROWS-1);
+    const near=1-depth;                 // 1 near, 0 far
+    const colIdx=(r%ACC.length);
+    const c=ACC[colIdx];
+    const bright=0.20+near*near*0.95;   // near ridge brightest
+    // build ridge polyline
+    const pts=[];
+    for(let i=0;i<NBINS;i++){
+      pts.push(proj(i, depth, row[i]));
+    }
+    // fill under the ridge (soft band) for solidity
+    x.globalCompositeOperation='source-over';
+    x.beginPath();
+    x.moveTo(pts[0].x, pts[0].baseY);
+    for(let i=0;i<NBINS;i++)x.lineTo(pts[i].x, pts[i].y);
+    x.lineTo(pts[NBINS-1].x, pts[NBINS-1].baseY);
+    x.closePath();
+    const fa=0.10+near*0.30;
+    x.fillStyle=`rgba(${(c[0]*0.4)|0},${(c[1]*0.3)|0},${(c[2]*0.5)|0},${fa})`;
+    x.fill();
+
+    // glowing ridge line
+    x.globalCompositeOperation='lighter';
+    x.beginPath();
+    for(let i=0;i<NBINS;i++){ if(i===0)x.moveTo(pts[i].x,pts[i].y);else x.lineTo(pts[i].x,pts[i].y); }
+    x.lineWidth=Math.max(0.7, 2.4*near+0.5);
+    x.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${Math.min(0.95,bright)})`;
+    x.stroke();
+
+    // sparkle peaks on the nearest few rows
+    if(near>0.55){
+      for(let i=0;i<NBINS;i+=2){
+        if(row[i]>0.55){
+          const p=pts[i];
+          const sz=(row[i]-0.4)*6*near;
+          const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,sz+2);
+          g.addColorStop(0,`rgba(255,255,255,${0.5*near})`);
+          g.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+          x.fillStyle=g;
+          x.beginPath();x.arc(p.x,p.y,sz+2,0,6.2831853);x.fill();
+        }
+      }
+    }
+  }
+}
+
+// ===================== SOURCE PLUMBING =====================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let analyser=null, freq=null, useSynth=true, t0=0;
+
+async function mic(){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const s=await navigator.mediaDevices.getUserMedia({audio:true});
+  const src=ctx.createMediaStreamSource(s);
+  const an=ctx.createAnalyser(); an.fftSize=128; an.smoothingTimeConstant=0.72;
+  src.connect(an);
+  analyser=an; freq=new Uint8Array(an.frequencyBinCount); useSynth=false;
+}
+function liveSpectrum(){
+  analyser.getByteFrequencyData(freq);
+  const spec=new Float32Array(NBINS);
+  const n=Math.min(NBINS,freq.length);
+  let sum=0;
+  for(let i=0;i<NBINS;i++){const v=(freq[i%n]||0)/255;spec[i]=v;sum+=v;}
+  return {spec, level:Math.min(1,sum/NBINS*2.2)};
+}
+function startLiveLoop(){
+  t0=performance.now();
+  (function frame(now){
+    const t=(now-t0)/1000;
+    let s;
+    if(!useSynth && analyser){ s=liveSpectrum(); }
+    else { const u=((t*1000%LOOP)+LOOP)%LOOP/LOOP; s=synthSpectrum(u); }
+    render(s.spec, s.level, t);
+    requestAnimationFrame(frame);
+  })(performance.now());
+}
+
+if(AUTO){
+  if(hint)hint.style.display='none';
+  window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP; const s=synthSpectrum(u); render(s.spec,s.level,u*LOOP/1000);};
+  window.__seek(0); window.__ready=true;
+} else {
+  let triedMic=false;
+  const tryMic=async()=>{
+    if(triedMic)return; triedMic=true;
+    try{ await mic(); hint.style.opacity='0'; setTimeout(()=>hint.style.display='none',900); }
+    catch(e){ useSynth=true; hint.textContent='🎤 mic unavailable'; hint.style.opacity='0.0'; setTimeout(()=>{if(hint)hint.style.display='none';},1400); }
+  };
+  hint.addEventListener('pointerdown',tryMic);
+  addEventListener('pointerdown',tryMic,{once:true});
+  startLiveLoop();
+}
+</script></body></html>

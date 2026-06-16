@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Spring Bounce</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Spring Bounce — a coiled helix spring compresses and stretches as a glowing bob oscillates on a clean sine; perfectly periodic. Deterministic, seamless, pure Canvas 2D.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=7200,TAU=6.28318530718;
+let W,H,DPR,cx,topY;const COILS=11,SEG=140;
+// seeded RNG (mulberry32) — only at setup/resize, never in frame()
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+let spark=[];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;topY=H*0.16;
+  const r=mul(11);spark=[];for(let i=0;i<14;i++){spark.push({a:r()*TAU,rad:(0.5+r()*0.5),k:1+((r()*3)|0),c:AC[(r()*AC.length)|0]});}
+}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // bob vertical position on a clean periodic sine (mid-action at u=0)
+  const restLen=H*0.46,amp=H*0.22;
+  const s=Math.sin(TAU*u);                       // -1..1, returns to 0 at u=0,.5,1
+  const bobY=topY+restLen+amp*s;                 // bob bounces down/up
+  const springLen=bobY-topY;
+  const width=Math.min(W*0.13,H*0.13)*(1.0-0.18*s); // compressed coils widen slightly
+  // mounting bracket at top
+  x.strokeStyle='rgba(170,160,210,0.55)';x.lineWidth=5*DPR;x.lineCap='round';
+  x.beginPath();x.moveTo(cx-width*1.4,topY);x.lineTo(cx+width*1.4,topY);x.stroke();
+  // helix drawn as a stretched sine: angle phi spins through COILS turns down the length
+  const accent=AC[2];const acc=`${accent[0]},${accent[1]},${accent[2]}`;
+  function helix(lw,alpha,col){x.globalCompositeOperation='lighter';x.strokeStyle=`rgba(${col},${alpha})`;
+    x.lineWidth=lw;x.lineJoin='round';x.beginPath();
+    for(let i=0;i<=SEG;i++){const f=i/SEG;const phi=f*COILS*TAU;
+      const px=cx+Math.sin(phi)*width;
+      const depth=(Math.cos(phi)*0.5+0.5);       // front coils drawn brighter via y squash
+      const py=topY+f*springLen+depth*0;         // depth folds into glow, not y
+      x.lineTo(px,py);}
+    x.stroke();}
+  // soft wide glow then bright core coil
+  helix(11*DPR,0.10,'150,120,255');
+  helix(5.5*DPR,0.5,acc);
+  helix(2.2*DPR,0.95,'255,210,245');
+  // coil dots emphasising the 3D wrap (front of each turn brightest)
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<=COILS;i++){const f=i/COILS;const phi=f*COILS*TAU;
+    const depth=(Math.cos(phi)*0.5+0.5);const px=cx+Math.sin(phi)*width;const py=topY+f*springLen;
+    const c=AC[i%AC.length];x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.25+0.55*depth})`;
+    x.beginPath();x.arc(px,py,(2+3*depth)*DPR,0,TAU);x.fill();}
+  // the bob (a glowing weight) hangs at the spring end
+  const R=Math.min(W,H)*0.062;const c=AC[0];const cc=`${c[0]},${c[1]},${c[2]}`;
+  x.fillStyle=`rgba(${cc},0.12)`;x.beginPath();x.arc(cx,bobY+R,R*2.6,0,TAU);x.fill();
+  x.fillStyle=`rgba(${cc},0.4)`;x.beginPath();x.arc(cx,bobY+R,R*1.4,0,TAU);x.fill();
+  x.fillStyle=`rgba(${cc},0.95)`;x.beginPath();x.arc(cx,bobY+R,R,0,TAU);x.fill();
+  x.fillStyle='rgba(255,255,255,0.9)';x.beginPath();x.arc(cx-R*0.3,bobY+R-R*0.3,R*0.34,0,TAU);x.fill();
+  // ambient sparks drifting on integer harmonics for life
+  for(const p of spark){const ph=(u*p.k+p.a/TAU)%1;const sx=cx+Math.cos(p.a)*W*0.42*p.rad;
+    const sy=topY+ph*H*0.7;const a=0.12+0.12*Math.sin(TAU*ph);
+    x.fillStyle=`rgba(${p.c[0]},${p.c[1]},${p.c[2]},${a})`;x.beginPath();x.arc(sx,sy,2*DPR,0,TAU);x.fill();}
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Tilt Orbs</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font:600 13px/1.4 system-ui,sans-serif;color:#cdd2ff;
+background:rgba(20,14,40,.55);padding:7px 14px;border-radius:20px;backdrop-filter:blur(6px);pointer-events:none;transition:opacity 1s;z-index:2}</style></head>
+<body><canvas id="c"></canvas><div id="hint">📱 tap to enable motion</div><script>
+// Cosmos Tilt Orbs — glowing balls roll, collide and settle in a bowl under a tilt-driven gravity vector {gx,gy}.
+// SOURCE of {gx,gy}: live deviceorientation (phone) / mouse (desktop) / synthSig (auto + fallback). One render().
+const cv=document.getElementById('c'),x=cv.getContext('2d'),hint=document.getElementById('hint');
+const AUTO=new URLSearchParams(location.search).has('auto'); const TAU=6.28318530718,LOOP=9000;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const COLS=[[124,200,255],[167,139,250],[255,138,205],[120,240,200],[255,200,110],[110,170,255]];
+let W,H,DPR,orbs,Rbowl,CX,CY;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  CX=W/2;CY=H/2;Rbowl=Math.min(W,H)*0.44;}
+function init(){const r=mulberry32(7);orbs=[];const N=14;
+  for(let i=0;i<N;i++){const rad=Math.min(W,H)*(0.035+r()*0.03);const ang=r()*TAU,dd=r()*Rbowl*0.6;
+    orbs.push({x:CX+Math.cos(ang)*dd,y:CY+Math.sin(ang)*dd,vx:0,vy:0,r:rad,m:rad*rad,c:COLS[i%COLS.length],ph:r()});}}
+rs();init();addEventListener('resize',()=>{rs();init();});
+
+// ---- signal SOURCE ----
+let SIG={gx:0,gy:0}; let useSynth=AUTO, sensorOn=false;
+function synthSig(u){return {gx:0.7*Math.sin(TAU*u), gy:0.7*Math.cos(TAU*2*u)};}
+if(!AUTO){
+  // DESKTOP mouse fallback → tilt vector (active until a real sensor takes over)
+  addEventListener('mousemove',e=>{ if(sensorOn)return; SIG.gx=(e.clientX/innerWidth*2-1); SIG.gy=(e.clientY/innerHeight*2-1); });
+  function onTilt(e){ if(e.gamma==null&&e.beta==null)return; sensorOn=true; useSynth=false;
+    SIG.gx=Math.max(-1,Math.min(1,(e.gamma||0)/45)); SIG.gy=Math.max(-1,Math.min(1,(e.beta||0)/45));
+    hint.style.opacity=0; }
+  function enable(){ if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){
+      DeviceOrientationEvent.requestPermission().then(s=>{ if(s==='granted'){addEventListener('deviceorientation',onTilt);} }).catch(()=>{});
+    } else { addEventListener('deviceorientation',onTilt); }
+  }
+  addEventListener('pointerdown',enable,{once:true});
+  // if no motion within 3.5s, assume desktop / blocked: hide hint, mouse drives it
+  setTimeout(()=>{ if(!sensorOn){ hint.textContent='🖱 move mouse to tilt'; setTimeout(()=>hint.style.opacity=0,2200);} },3500);
+}
+
+// ---- physics + draw: render(SIG,t) ----
+function step(gx,gy){
+  const G=Math.min(W,H)*0.00055;
+  for(const o of orbs){ o.vx+=gx*G; o.vy+=gy*G; o.vx*=0.992; o.vy*=0.992; o.x+=o.vx; o.y+=o.vy;
+    // bowl wall (circular)
+    const dx=o.x-CX,dy=o.y-CY,d=Math.hypot(dx,dy),lim=Rbowl-o.r;
+    if(d>lim){const nx=dx/d,ny=dy/d;o.x=CX+nx*lim;o.y=CY+ny*lim;const vn=o.vx*nx+o.vy*ny;o.vx-=1.6*vn*nx;o.vy-=1.6*vn*ny;o.vx*=0.86;o.vy*=0.86;}
+  }
+  // orb-orb collisions
+  for(let i=0;i<orbs.length;i++)for(let j=i+1;j<orbs.length;j++){const a=orbs[i],b=orbs[j];
+    let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;
+    if(d>0&&d<min){const nx=dx/d,ny=dy/d,ov=(min-d)/2;a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;
+      const rvx=b.vx-a.vx,rvy=b.vy-a.vy,vn=rvx*nx+rvy*ny;if(vn<0){const imp=-1.7*vn/(1/a.m+1/b.m);
+        a.vx-=imp/a.m*nx;a.vy-=imp/a.m*ny;b.vx+=imp/b.m*nx;b.vy+=imp/b.m*ny;}}}
+}
+function draw(u){
+  // Phantom-dark backdrop
+  const sky=x.createRadialGradient(CX,CY,0,CX,CY,Math.max(W,H)*0.7);
+  sky.addColorStop(0,'#0a0820');sky.addColorStop(0.7,'#070417');sky.addColorStop(1,'#05030d');
+  x.fillStyle=sky;x.fillRect(0,0,W,H);
+  // cosmic bowl rim
+  x.save();x.globalCompositeOperation='lighter';
+  const rim=x.createRadialGradient(CX,CY,Rbowl*0.82,CX,CY,Rbowl*1.06);
+  rim.addColorStop(0,'rgba(80,70,160,0)');rim.addColorStop(0.78,'rgba(120,110,220,0.10)');rim.addColorStop(1,'rgba(150,140,255,0)');
+  x.fillStyle=rim;x.beginPath();x.arc(CX,CY,Rbowl*1.06,0,TAU);x.fill();
+  x.strokeStyle='rgba(150,150,255,0.18)';x.lineWidth=2*DPR;x.beginPath();x.arc(CX,CY,Rbowl,0,TAU);x.stroke();
+  // glowing orbs
+  for(const o of orbs){const c=o.c;
+    const g=x.createRadialGradient(o.x-o.r*0.3,o.y-o.r*0.3,o.r*0.1,o.x,o.y,o.r*2.4);
+    g.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},0.95)`);g.addColorStop(0.35,`rgba(${c[0]},${c[1]},${c[2]},0.5)`);
+    g.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);x.fillStyle=g;x.beginPath();x.arc(o.x,o.y,o.r*2.4,0,TAU);x.fill();
+    const core=x.createRadialGradient(o.x-o.r*0.35,o.y-o.r*0.35,o.r*0.05,o.x,o.y,o.r);
+    core.addColorStop(0,'rgba(255,255,255,0.95)');core.addColorStop(0.5,`rgba(${c[0]},${c[1]},${c[2]},0.95)`);
+    core.addColorStop(1,`rgba(${(c[0]*0.5)|0},${(c[1]*0.5)|0},${(c[2]*0.5)|0},0.9)`);
+    x.fillStyle=core;x.beginPath();x.arc(o.x,o.y,o.r,0,TAU);x.fill();}
+  x.restore();
+}
+function render(sig,t){ const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  // sub-step physics for stability
+  for(let k=0;k<3;k++) step(sig.gx,sig.gy);
+  draw(u); }
+
+if(AUTO){ window.__seek=t=>render(synthSig(((t%LOOP)+LOOP)%LOOP/LOOP),t); render(synthSig(0),0); window.__ready=true; }
+else { let s=performance.now(); (function l(n){ const t=n-s, u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  const sig = useSynth ? synthSig(u) : SIG; render(sig,t); requestAnimationFrame(l); })(performance.now()); }
+</script></body></html>

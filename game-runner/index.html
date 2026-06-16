@@ -1,0 +1,243 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Runner</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:720px;height:420px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(70,180,255,.06) inset;}
+  #hud{position:absolute;top:14px;left:0;right:0;display:flex;justify-content:space-between;
+    padding:0 24px;pointer-events:none;font-weight:700;letter-spacing:.5px;}
+  #score{font-size:30px;color:#fff;text-shadow:0 0 14px rgba(70,180,255,.8);}
+  #best{font-size:14px;color:#8b5cff;align-self:center;opacity:.85;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:26px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tap{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="720" height="420"></canvas>
+  <div id="hud"><div id="score">0</div><div id="best">BEST 0</div></div>
+  <div id="over"><h1>CRASHED</h1><p id="fin">Distance 0</p><button id="btn">Restart ▸</button></div>
+  <div id="tap">SPACE / ↑ / TAP jump · ↓ duck · R restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=720,H=420;
+const VIO='139,92,255',COS='70,180,255',NEB='255,92,194',AUR='54,211,154',SOL='255,106,61',SAC='224,178,74';
+// sim constants
+const GY=320;              // ground line y
+const RX=130;              // runner x position
+const RW=34, RH=46;        // runner body size (standing)
+const DUCKH=24;            // ducking height
+const GRAV=2600, JUMP=-880;
+const BASESPEED=300;       // px/sec base
+const SPEEDGAIN=14;        // per second speed increase
+const DT=16;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// obstacles are placed along a distance axis, deterministic by index.
+// type 0 = ground cactus (jump), type 1 = high bar (duck under), type 2 = wide ground (jump)
+function obstacle(i){
+  const r=mul(7000+i*211);
+  const gap=320 + r()*220;                 // spacing
+  const tRand=r();
+  const type = tRand<0.62?0 : (tRand<0.85?1:2);
+  return {gap,type};
+}
+// cumulative world-x of obstacle i (its left edge in distance units)
+let obsCache=[];
+function obsX(i){
+  if(obsCache[i]!==undefined) return obsCache[i];
+  let acc = (obsCache[i-1]!==undefined? obsCache[i-1] : 480);
+  if(i>0) acc += obstacle(i).gap;
+  else acc = 480;
+  obsCache[i]=acc; return acc;
+}
+function obsBox(i,distance){
+  const ob=obstacle(i); const wx=obsX(i)-distance;
+  if(ob.type===0) return {x:wx,y:GY-40,w:26,h:40};        // cactus
+  if(ob.type===1) return {x:wx,y:GY-118,w:40,h:46};       // high bar to duck under
+  return {x:wx,y:GY-30,w:58,h:30};                         // wide low block to jump
+}
+// speed as function of time
+function speedAt(t){ return BASESPEED + SPEEDGAIN*(t/1000); }
+// distance traveled as integral of speed over time
+function distAt(t){ const s=t/1000; return BASESPEED*s + 0.5*SPEEDGAIN*s*s; }
+// ---- state ----
+let S;
+function reset(){ obsCache=[];
+  S={t:0,y:0,vy:0,onGround:true,duck:false,dead:false,best:S?S.best:0,shake:0,score:0,passed:0};
+}
+reset();
+// runner top-of-feet y = GY + S.y (S.y is offset above ground, negative when airborne handled by jumpY)
+// We track jump height jy (>=0 above ground)
+const DT_S=DT/1000;
+function rectHit(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function runnerBox(st){ const h=st.duck&&st.onGround?DUCKH:RH; const top=GY-h - st.jy;
+  return {x:RX, y:top, w:st.duck&&st.onGround?RW+10:RW, h:h}; }
+// ---- AUTO auto-player rules ----
+// Look ahead for the nearest obstacle; jump cactus/wide, duck under high bar at the right distance.
+function autoControl(st){
+  const distance=distAt(st.t); const sp=speedAt(st.t);
+  // find nearest obstacle ahead of runner
+  let best=null,bestD=1e9;
+  for(let i=Math.max(0,st.passed-1);i<st.passed+6;i++){ const b=obsBox(i,distance);
+    const d=b.x-(RX+RW); if(d>-40 && d<bestD){bestD=d;best={i,b,ob:obstacle(i)};} }
+  if(!best) return;
+  const {b,ob}=best; const lead=bestD;
+  if(ob.type===1){
+    // duck under high bar when close
+    if(lead<120 && lead>-40) st.wantDuck=true; else st.wantDuck=false;
+  } else {
+    st.wantDuck=false;
+    // jump so the arc clears the obstacle: trigger when within jump window
+    const jumpLead = 96 + sp*0.12;
+    if(lead<jumpLead && lead>0 && st.onGround) st.wantJump=true;
+  }
+}
+function physics(st,auto){
+  if(auto){ st.wantJump=false; st.wantDuck=false; autoControl(st);
+    if(st.wantJump && st.onGround){ st.vy=JUMP; st.onGround=false; }
+    st.duck=!!st.wantDuck && st.onGround;
+  }
+  if(!st.onGround){ st.vy+=GRAV*DT_S; st.jy-=st.vy*DT_S; if(st.jy<=0){st.jy=0;st.vy=0;st.onGround=true;} }
+  // collisions
+  const distance=distAt(st.t);
+  const rb=runnerBox(st);
+  for(let i=st.passed;i<st.passed+8;i++){ const b=obsBox(i,distance);
+    if(b.x+b.w < RX-4){ st.passed=i+1; continue; }
+    if(b.x > RX+RW+200) break;
+    if(rectHit(rb,b)){ st.dead=true; st.shake=14; }
+  }
+  st.score=Math.floor(distAt(st.t)/10);
+  st.t+=DT;
+  if(st.shake>0.3) st.shake*=0.92;
+}
+function advance(st,auto){ physics(st,auto); }
+// ---- AUTO sim ----
+function simTo(ms){ reset(); st_init(S);
+  const START=4000; let target=START+ms;
+  while(S.t<target && !S.dead){ advance(S,true); }
+  return S;
+}
+function st_init(st){ st.jy=0; st.vy=0; st.onGround=true; }
+// ---- camera shake & draw ----
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function drawObstacle(b,ob){
+  let c = ob.type===1?NEB : ob.type===2?SOL : AUR;
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${c},.14)`; rr(b.x-5,b.y-5,b.w+10,b.h+10,8); x.fill();
+  x.globalCompositeOperation='source-over';
+  const g=x.createLinearGradient(b.x,b.y,b.x,b.y+b.h);
+  g.addColorStop(0,`rgba(${c},.95)`);g.addColorStop(1,'rgba(30,22,70,.9)');
+  x.fillStyle=g; rr(b.x,b.y,b.w,b.h,6); x.fill();
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${c},.5)`; x.fillRect(b.x+3,b.y+3,b.w-6,2);
+  x.globalCompositeOperation='source-over';
+}
+function drawRunner(st){
+  const rb=runnerBox(st); const cx=rb.x+rb.w/2, cy=rb.y+rb.h/2;
+  const run=Math.sin(st.t*0.02)*1; // leg phase
+  x.save();
+  // glow
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(cx,cy,2,cx,cy,RH*1.4);
+  gg.addColorStop(0,'rgba(255,255,255,.7)');gg.addColorStop(.4,`rgba(${COS},.6)`);gg.addColorStop(1,`rgba(${COS},0)`);
+  x.fillStyle=gg; x.beginPath();x.arc(cx,cy,RH*1.4,0,7);x.fill();
+  x.globalCompositeOperation='source-over';
+  // body
+  const c=st.dead?NEB:VIO;
+  const bg=x.createLinearGradient(rb.x,rb.y,rb.x,rb.y+rb.h);
+  bg.addColorStop(0,'#ffffff');bg.addColorStop(.4,`rgba(${COS},1)`);bg.addColorStop(1,`rgba(${c},1)`);
+  x.fillStyle=bg; rr(rb.x,rb.y,rb.w,rb.h,8); x.fill();
+  // eye
+  x.fillStyle='rgba(10,8,22,.9)'; x.beginPath();x.arc(rb.x+rb.w-9,rb.y+12,3.2,0,7);x.fill();
+  // legs (only when on ground & not ducking deep)
+  x.strokeStyle=`rgba(${COS},.9)`;x.lineWidth=3;x.lineCap='round';
+  if(st.onGround){
+    x.beginPath();x.moveTo(rb.x+8,rb.y+rb.h);x.lineTo(rb.x+8+run*4,rb.y+rb.h+8);x.stroke();
+    x.beginPath();x.moveTo(rb.x+rb.w-8,rb.y+rb.h);x.lineTo(rb.x+rb.w-8-run*4,rb.y+rb.h+8);x.stroke();
+  } else {
+    x.beginPath();x.moveTo(rb.x+8,rb.y+rb.h);x.lineTo(rb.x+4,rb.y+rb.h+6);x.stroke();
+    x.beginPath();x.moveTo(rb.x+rb.w-8,rb.y+rb.h);x.lineTo(rb.x+rb.w-4,rb.y+rb.h+6);x.stroke();
+  }
+  x.restore();
+}
+function draw(st){
+  const distance=distAt(st.t);
+  const sx=st.shake>0.4?(Math.sin(st.t*0.7)*st.shake):0, sy=st.shake>0.4?(Math.cos(st.t*0.9)*st.shake):0;
+  x.save(); x.translate(sx,sy);
+  x.clearRect(-20,-20,W+40,H+40);
+  const bg=x.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#160e34');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  // parallax stars
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<54;i++){const r=mul(11+i*17);
+    const bx=((r()*W*2 - distance*0.15)%(W+40)+W+40)%(W+40)-20; const by=r()*(GY-30);
+    const tw=0.3+0.5*r(); const rad=0.6+1.6*r();
+    x.fillStyle=`rgba(${COS},${tw*0.5})`; x.beginPath();x.arc(bx,by,rad,0,7); x.fill();}
+  x.globalCompositeOperation='source-over';
+  // ground
+  x.fillStyle='#0e0a22'; x.fillRect(0,GY,W,H-GY);
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${VIO},.6)`; x.fillRect(0,GY,W,2);
+  // ground dashes scrolling
+  x.strokeStyle=`rgba(${COS},.35)`;x.lineWidth=2;
+  const off=-(distance%40);
+  for(let gx=off; gx<W; gx+=40){ x.beginPath();x.moveTo(gx,GY+18);x.lineTo(gx+18,GY+18);x.stroke(); }
+  x.globalCompositeOperation='source-over';
+  // obstacles
+  for(let i=Math.max(0,st.passed-1);i<st.passed+10;i++){ const b=obsBox(i,distance);
+    if(b.x>W+40) break; if(b.x+b.w<-40) continue; drawObstacle(b,obstacle(i)); }
+  // runner
+  drawRunner(st);
+  x.restore();
+  document.getElementById('score').textContent=st.score;
+  document.getElementById('best').textContent='BEST '+Math.max(st.best,st.score);
+}
+const LOOP=12000;
+function drawAt(ms){ const st=simTo(ms); draw(st); }
+// ---- live game ----
+let live, raf, last, acc=0;
+function initGame(){
+  reset(); st_init(S); S.t=0; live=true;
+  const over=document.getElementById('over'), btn=document.getElementById('btn');
+  let holdDuck=false;
+  function jump(){ if(S.dead)return; if(S.onGround){ S.vy=JUMP; S.onGround=false; } }
+  function restart(){ const b=S.best; reset(); st_init(S); S.best=b; S.t=0; live=true; holdDuck=false; over.style.display='none'; }
+  function loop(now){ if(!last)last=now; let dt=now-last; last=now; if(dt>60)dt=60;
+    if(live && !S.dead){ acc+=dt; while(acc>=DT){ S.duck=holdDuck && S.onGround; physicsLive(); acc-=DT; } }
+    draw(S);
+    if(S.dead && live){ live=false; if(S.score>S.best)S.best=S.score;
+      document.getElementById('fin').textContent='Distance '+S.score+'  ·  Best '+S.best;
+      over.style.display='flex'; }
+    raf=requestAnimationFrame(loop); }
+  function physicsLive(){
+    if(!S.onGround){ S.vy+=GRAV*DT_S; S.jy-=S.vy*DT_S; if(S.jy<=0){S.jy=0;S.vy=0;S.onGround=true;} }
+    const distance=distAt(S.t); const rb=runnerBox(S);
+    for(let i=S.passed;i<S.passed+8;i++){ const b=obsBox(i,distance);
+      if(b.x+b.w<RX-4){S.passed=i+1;continue;} if(b.x>RX+RW+200)break;
+      if(rectHit(rb,b)){S.dead=true;S.shake=14;} }
+    S.score=Math.floor(distAt(S.t)/10); S.t+=DT; if(S.shake>0.3)S.shake*=0.92;
+  }
+  addEventListener('keydown',e=>{
+    if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault(); S.dead?restart():jump();}
+    if(e.code==='ArrowDown'){e.preventDefault(); holdDuck=true;}
+    if(e.key==='r'||e.key==='R')restart(); });
+  addEventListener('keyup',e=>{ if(e.code==='ArrowDown')holdDuck=false; });
+  cv.addEventListener('pointerdown',ev=>{ if(S.dead){restart();return;}
+    // tap lower third = duck, else jump
+    const rect=cv.getBoundingClientRect(); const py=ev.clientY-rect.top;
+    if(py>H*0.66){holdDuck=true;} else jump(); });
+  cv.addEventListener('pointerup',()=>{holdDuck=false;});
+  btn.addEventListener('click',e=>{e.stopPropagation();restart();});
+  raf=requestAnimationFrame(loop);
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

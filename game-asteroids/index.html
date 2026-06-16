@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Asteroids</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#0a0816;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none}
+body{display:flex;align-items:center;justify-content:center}
+#wrap{width:720px;height:560px;position:relative}
+#hud{position:absolute;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;color:#cdb9ff;font-size:15px;letter-spacing:.5px;z-index:2}
+#hud .v{color:#8b5cff;font-weight:700}
+#hud .lives{color:#36d39a}
+#board{position:absolute;top:48px;left:0;width:720px;height:512px;border-radius:14px;overflow:hidden;
+  background:radial-gradient(120% 120% at 50% 30%,#140e2c 0%,#0a0816 70%);box-shadow:0 0 0 1px #2a1f52,0 0 40px #1a1238 inset}
+canvas{display:block}
+#msg{position:absolute;top:48px;left:0;width:720px;height:512px;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;color:#e9e2ff;text-align:center;z-index:3;pointer-events:none}
+#msg.hide{display:none}
+#msg h1{font-size:30px;color:#8b5cff;text-shadow:0 0 18px #8b5cff88;margin-bottom:8px;letter-spacing:1px}
+#msg p{font-size:14px;color:#9d8fc8;line-height:1.7}
+#touch{position:absolute;bottom:10px;left:0;width:720px;display:flex;justify-content:space-between;padding:0 16px;z-index:4}
+.pad{display:flex;gap:10px}
+.btn{width:58px;height:50px;border-radius:11px;background:#1c1540cc;border:1px solid #3a2c6e;color:#cdb9ff;
+  font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(2px)}
+.btn:active{background:#2c2160;border-color:#8b5cff;color:#fff}
+.fire{background:#3a1240cc;border-color:#7a2c5e;color:#ff9cd8}
+.fire:active{background:#5a1d62;border-color:#ff5cc2}
+</style></head>
+<body><div id="wrap">
+<div id="hud"><div>SCORE <span class="v" id="sc">0</span></div><div>WAVE <span class="v" id="wv">1</span></div><div class="lives" id="lv">SHIP &#9650;&#9650;&#9650;</div></div>
+<div id="board"><canvas id="c" width="720" height="512"></canvas></div>
+<div id="msg" class="hide"><h1 id="mt">COSMOS ASTEROIDS</h1><p id="mp"></p></div>
+<div id="touch">
+  <div class="pad"><div class="btn" data-k="l">&#8634;</div><div class="btn" data-k="r">&#8635;</div></div>
+  <div class="pad"><div class="btn fire" data-k="f">&#9679;</div><div class="btn" data-k="t">&#9650;</div></div>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=720,H=512,TAU=Math.PI*2;
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=12000, DT=16;
+// palette
+const VIOLET='#8b5cff',COSMIC='#46b4ff',NEBULA='#ff5cc2',AURORA='#36d39a',SOLARIS='#ff6a3d',SACRED='#e0b24a';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---- generic helpers (shared by live + auto sims) ----
+function wrap(o){ if(o.x<0)o.x+=W; if(o.x>=W)o.x-=W; if(o.y<0)o.y+=H; if(o.y>=H)o.y-=H; }
+function astShape(seed){ const r=mulberry32(seed); const n=10,pts=[]; for(let i=0;i<n;i++){ const a=i/n*TAU; const rr=0.72+r()*0.45; pts.push([Math.cos(a)*rr,Math.sin(a)*rr]); } return pts; }
+function spawnAst(rng,x0,y0,size){ const a=rng()*TAU, sp=(0.5+rng()*0.8)*(4-size)*0.5; return {x:x0,y:y0,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,size:size,rot:rng()*TAU,vr:(rng()-0.5)*0.04,shape:astShape((rng()*1e9)|0),seed:(rng()*1e9)|0}; }
+const SZR={3:34,2:20,1:11};
+
+// ---- draw a full state ----
+function drawState(s){
+  x.clearRect(0,0,W,H);
+  // starfield (deterministic, twinkle by time)
+  const sr=mulberry32(99); x.save();
+  for(let i=0;i<70;i++){ const sx=sr()*W,sy=sr()*H,b=0.2+0.6*Math.abs(Math.sin(sr()*99+s.time*0.0008)); x.fillStyle='rgba(200,210,255,'+(b*0.5)+')'; x.fillRect(sx,sy,1.6,1.6); }
+  x.restore();
+  // asteroids
+  for(const a of s.asts){ x.save(); x.translate(a.x,a.y); x.rotate(a.rot); const R=SZR[a.size];
+    x.beginPath(); for(let i=0;i<a.shape.length;i++){ const p=a.shape[i]; const px=p[0]*R,py=p[1]*R; i?x.lineTo(px,py):x.moveTo(px,py);} x.closePath();
+    x.fillStyle='rgba(70,180,255,0.10)'; x.fill();
+    x.lineWidth=2; x.strokeStyle=COSMIC; x.shadowColor=COSMIC; x.shadowBlur=10; x.stroke();
+    x.shadowBlur=0; x.lineWidth=1; x.strokeStyle='rgba(224,178,74,0.6)';
+    x.beginPath(); for(let i=0;i<a.shape.length;i+=3){ const p=a.shape[i]; x.lineTo(p[0]*R*0.5,p[1]*R*0.5);} x.stroke();
+    x.restore(); }
+  // bullets
+  for(const b of s.bullets){ x.save(); x.fillStyle=NEBULA; x.shadowColor=NEBULA; x.shadowBlur=12;
+    x.beginPath(); x.arc(b.x,b.y,2.6,0,TAU); x.fill(); x.restore(); }
+  // particles (explosions / thrust)
+  for(const p of s.parts){ const al=p.life/p.max; x.save(); x.globalAlpha=al; x.fillStyle=p.col; x.shadowColor=p.col; x.shadowBlur=6;
+    x.beginPath(); x.arc(p.x,p.y,p.r,0,TAU); x.fill(); x.restore(); }
+  // ship
+  if(s.ship.alive){ const sh=s.ship; x.save(); x.translate(sh.x,sh.y); x.rotate(sh.a);
+    if(sh.blink && (((s.time/80)|0)%2)){ /* skip draw to blink */ } else {
+      if(sh.thrust){ x.beginPath(); x.moveTo(-9,-5); x.lineTo(-9,5); x.lineTo(-9-(8+Math.random()*0),0); // deterministic flame len
+        x.lineTo(-18,0); x.closePath(); x.fillStyle=SOLARIS; x.shadowColor=SOLARIS; x.shadowBlur=12; x.fill(); x.shadowBlur=0; }
+      x.beginPath(); x.moveTo(16,0); x.lineTo(-11,-10); x.lineTo(-6,0); x.lineTo(-11,10); x.closePath();
+      x.fillStyle='rgba(139,92,255,0.18)'; x.fill();
+      x.lineWidth=2.2; x.strokeStyle=VIOLET; x.shadowColor=VIOLET; x.shadowBlur=14; x.stroke();
+    }
+    x.restore(); }
+}
+
+// ---- one sim step (mutates state) ----
+function stepSim(s, controls){
+  s.time+=DT;
+  const sh=s.ship;
+  // controls: {left,right,thrust,fire}
+  if(sh.alive){
+    if(controls.left) sh.a-=0.072;
+    if(controls.right) sh.a+=0.072;
+    sh.thrust=!!controls.thrust;
+    if(controls.thrust){ sh.vx+=Math.cos(sh.a)*0.16; sh.vy+=Math.sin(sh.a)*0.16;
+      if(s.time-s.lastP>40){ s.lastP=s.time; s.parts.push({x:sh.x-Math.cos(sh.a)*12,y:sh.y-Math.sin(sh.a)*12,vx:-Math.cos(sh.a)*1.5-sh.vx*0.3,vy:-Math.sin(sh.a)*1.5-sh.vy*0.3,r:2.4,col:SOLARIS,life:14,max:14}); } }
+    sh.vx*=0.992; sh.vy*=0.992; sh.x+=sh.vx; sh.y+=sh.vy; wrap(sh);
+    if(sh.blinkT>0){ sh.blinkT-=DT; if(sh.blinkT<=0) sh.blink=false; }
+    // fire
+    if(controls.fire && s.time-s.lastFire>240){ s.lastFire=s.time;
+      s.bullets.push({x:sh.x+Math.cos(sh.a)*16,y:sh.y+Math.sin(sh.a)*16,vx:Math.cos(sh.a)*6+sh.vx,vy:Math.sin(sh.a)*6+sh.vy,life:520}); }
+  }
+  // asteroids
+  for(const a of s.asts){ a.x+=a.vx; a.y+=a.vy; a.rot+=a.vr; wrap(a); }
+  // bullets
+  for(const b of s.bullets){ b.x+=b.vx; b.y+=b.vy; b.life-=DT; wrap(b); }
+  s.bullets=s.bullets.filter(b=>b.life>0);
+  // particles
+  for(const p of s.parts){ p.x+=p.vx; p.y+=p.vy; p.vx*=0.94; p.vy*=0.94; p.life-=1; }
+  s.parts=s.parts.filter(p=>p.life>0);
+  // collisions bullet-asteroid
+  for(let bi=s.bullets.length-1;bi>=0;bi--){ const b=s.bullets[bi];
+    for(let ai=s.asts.length-1;ai>=0;ai--){ const a=s.asts[ai]; const dx=a.x-b.x,dy=a.y-b.y; if(dx*dx+dy*dy<SZR[a.size]*SZR[a.size]){
+      s.bullets.splice(bi,1); s.score+=(4-a.size)*20;
+      // explosion particles
+      for(let k=0;k<8;k++){ const ang=k/8*TAU; s.parts.push({x:a.x,y:a.y,vx:Math.cos(ang)*2,vy:Math.sin(ang)*2,r:2.2,col:k%2?NEBULA:SACRED,life:18,max:18}); }
+      if(a.size>1){ const r=mulberry32(a.seed*7+s.score+1); s.asts.push(spawnAst(r,a.x,a.y,a.size-1)); s.asts.push(spawnAst(r,a.x,a.y,a.size-1)); }
+      s.asts.splice(ai,1); break; } } }
+  // ship-asteroid
+  if(sh.alive && !sh.blink){ for(const a of s.asts){ const dx=a.x-sh.x,dy=a.y-sh.y; if(dx*dx+dy*dy<(SZR[a.size]+10)*(SZR[a.size]+10)){
+      for(let k=0;k<14;k++){ const ang=k/14*TAU; s.parts.push({x:sh.x,y:sh.y,vx:Math.cos(ang)*2.6,vy:Math.sin(ang)*2.6,r:2.6,col:k%2?VIOLET:SOLARIS,life:24,max:24}); }
+      s.lives--; sh.alive=s.lives>=0; sh.x=W/2; sh.y=H/2; sh.vx=0; sh.vy=0; sh.a=-Math.PI/2; sh.blink=true; sh.blinkT=1400; break; } } }
+  // new wave
+  if(s.asts.length===0){ s.wave++; newWave(s); }
+}
+
+function newWave(s){ const r=mulberry32(s.waveSeed+s.wave*131); const count=3+s.wave;
+  for(let i=0;i<count;i++){ let ax,ay; do{ ax=r()*W; ay=r()*H; }while(Math.hypot(ax-W/2,ay-H/2)<140);
+    s.asts.push(spawnAst(r,ax,ay,3)); } }
+
+function freshState(seed, offsetWave){
+  const s={time:0,score:0,wave:1,lives:3,asts:[],bullets:[],parts:[],lastFire:-9999,lastP:0,waveSeed:seed,
+    ship:{x:W/2,y:H/2,vx:0,vy:0,a:-Math.PI/2,alive:true,thrust:false,blink:false,blinkT:0}};
+  newWave(s);
+  return s;
+}
+
+// ================= AUTO (deterministic attract) =================
+// Deterministic AI: pick nearest asteroid, rotate toward an intercept, thrust to drift, fire on aim.
+function autoControls(s){
+  const sh=s.ship; if(!sh.alive) return {left:false,right:false,thrust:false,fire:false};
+  // find nearest asteroid
+  let best=null,bd=1e9; for(const a of s.asts){ const dx=a.x-sh.x,dy=a.y-sh.y; const d=dx*dx+dy*dy; if(d<bd){bd=d;best=a;} }
+  if(!best) return {left:false,right:false,thrust:false,fire:false};
+  // lead target slightly
+  const lead=Math.min(28,Math.sqrt(bd)/6);
+  const tx=best.x+best.vx*lead, ty=best.y+best.vy*lead;
+  let want=Math.atan2(ty-sh.y,tx-sh.x);
+  let diff=((want-sh.a+Math.PI*3)%(TAU))-Math.PI;
+  const left=diff<-0.05, right=diff>0.05;
+  const aimed=Math.abs(diff)<0.22;
+  const dist=Math.sqrt(bd);
+  // drift toward field center occasionally + keep moving so it looks alive
+  const thrust=(dist>180) || ((((s.time/520)|0)%4)===0 && sh.spd<2);
+  sh.spd=Math.hypot(sh.vx,sh.vy);
+  return {left,right,thrust:thrust&&aimed?true:thrust, fire:aimed && dist<320};
+}
+
+let autoState=null, autoCachedTo=-1;
+function autoSimTo(ms){
+  // re-sim from fixed seed each call (N small)
+  if(!autoState || ms<autoCachedTo){ autoState=freshState(20240711); autoCachedTo=0; }
+  let s=autoState;
+  while(autoCachedTo<ms){ const c=autoControls(s); stepSim(s,c); autoCachedTo+=DT; }
+  return s;
+}
+// frame-0-rich offset: skip ahead so t=0 already shows action with score>0
+const OFFSET=2600;
+function drawAt(ms){ const s=autoSimTo(OFFSET+ms); syncHud(s); drawState(s); }
+
+function syncHud(s){
+  document.getElementById('sc').textContent=s.score;
+  document.getElementById('wv').textContent=s.wave;
+  const n=Math.max(0,s.lives); document.getElementById('lv').innerHTML='SHIP '+('▲'.repeat(n)||'—');
+}
+
+// ================= LIVE =================
+let live=null, raf=0, keys={};
+function initGame(){
+  live=freshState((Math.random()*1e9)|0);
+  showMsg(false);
+  addEventListener('keydown',e=>{ const k=e.key.toLowerCase();
+    if(['arrowleft','arrowright','arrowup',' ','a','d','w'].includes(k)) e.preventDefault();
+    if(k==='r'){ initGame(); return; }
+    keys[k]=true; });
+  addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+  document.querySelectorAll('.btn').forEach(b=>{ const k=b.dataset.k;
+    const dn=e=>{e.preventDefault();touch[k]=true;}, up=e=>{e.preventDefault();touch[k]=false;};
+    b.addEventListener('touchstart',dn,{passive:false}); b.addEventListener('touchend',up); b.addEventListener('touchcancel',up);
+    b.addEventListener('mousedown',dn); b.addEventListener('mouseup',up); b.addEventListener('mouseleave',up); });
+  let last=performance.now();
+  (function loop(now){ raf=requestAnimationFrame(loop);
+    if(now-last<DT) return; last=now;
+    const c={ left:keys['arrowleft']||keys['a']||touch.l, right:keys['arrowright']||keys['d']||touch.r,
+      thrust:keys['arrowup']||keys['w']||touch.t, fire:keys[' ']||touch.f };
+    if(live.lives>=0) stepSim(live,c); else { /* game over hold */ }
+    syncHud(live); drawState(live);
+    if(live.lives<0){ showMsg(true,'GAME OVER','Score '+live.score+' — press R / tap to restart'); }
+  })(performance.now());
+}
+const touch={l:false,r:false,t:false,f:false};
+function showMsg(show,t,p){ const m=document.getElementById('msg'); if(!show){m.classList.add('hide');return;}
+  m.classList.remove('hide'); document.getElementById('mt').textContent=t; document.getElementById('mp').textContent=p; }
+addEventListener('pointerdown',()=>{ if(live&&live.lives<0) initGame(); });
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

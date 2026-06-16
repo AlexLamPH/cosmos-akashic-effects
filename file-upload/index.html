@@ -1,0 +1,108 @@
+<!-- Cosmos File Upload: a dashed drag-and-drop dropzone where a file card drops in, an upload progress bar fills with % + filename, finishing in a green success state; loops drop -> uploading -> done. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos File Upload</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.zone{position:relative;width:380px;padding:30px;border-radius:20px;
+  background:linear-gradient(160deg,rgba(30,24,54,.92),rgba(18,14,34,.92));
+  border:1px solid rgba(139,92,255,.18);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter:blur(8px)}
+.drop{position:relative;border:2px dashed rgba(139,92,255,.4);border-radius:14px;
+  padding:30px 20px;text-align:center;transition:border-color .25s,background .25s;overflow:hidden}
+.drop.hot{border-color:#8b5cff;background:rgba(139,92,255,.07)}
+.icon{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(150deg,rgba(139,92,255,.22),rgba(70,180,255,.18));
+  border:1px solid rgba(139,92,255,.3);color:#c9b8ff}
+.icon svg{width:26px;height:26px}
+.hint{font-size:14px;color:#cdc6e6;font-weight:600}
+.sub{font-size:12px;color:#8b84a6;margin-top:5px}
+/* the falling file card */
+.file{position:absolute;left:50%;top:-30px;transform:translateX(-50%);
+  width:230px;display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:11px;
+  background:linear-gradient(150deg,rgba(46,38,78,.96),rgba(30,24,54,.96));
+  border:1px solid rgba(139,92,255,.28);box-shadow:0 12px 30px -10px rgba(0,0,0,.6);
+  opacity:0;pointer-events:none}
+.ft{width:34px;height:40px;border-radius:6px;flex:0 0 auto;position:relative;
+  background:linear-gradient(160deg,#8b5cff,#6d4ad6);box-shadow:0 4px 12px -3px rgba(139,92,255,.6)}
+.ft::after{content:"";position:absolute;top:0;right:0;width:11px;height:11px;
+  background:rgba(10,8,22,.6);clip-path:polygon(0 0,100% 100%,100% 0);border-bottom-left-radius:3px}
+.ft span{position:absolute;left:0;right:0;bottom:7px;text-align:center;font-size:8px;
+  font-weight:800;letter-spacing:.5px;color:#fff;opacity:.95}
+.meta{flex:1;min-width:0;text-align:left}
+.fn{font-size:12.5px;font-weight:700;color:#f1edff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs{font-size:11px;color:#8b84a6;margin-top:2px}
+.fnum{font-size:11px;font-weight:700;color:#b9a8ff;font-variant-numeric:tabular-nums}
+/* progress */
+.bar{margin-top:16px;height:8px;border-radius:6px;overflow:hidden;
+  background:rgba(139,92,255,.1);border:1px solid rgba(139,92,255,.14);opacity:0}
+.fill{height:100%;width:0%;border-radius:6px;
+  background:linear-gradient(90deg,#8b5cff,#46b4ff);box-shadow:0 0 14px rgba(139,92,255,.5)}
+.fill.ok{background:linear-gradient(90deg,#36d39a,#46b4ff);box-shadow:0 0 16px rgba(54,211,154,.55)}
+.check{position:absolute;right:13px;top:50%;width:24px;height:24px;border-radius:50%;
+  transform:translateY(-50%) scale(0);background:#36d39a;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 0 18px rgba(54,211,154,.6)}
+.check svg{width:14px;height:14px;stroke:#06140f;stroke-width:3.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style></head>
+<body><div id="stage">
+  <div class="zone">
+    <div class="drop" id="drop">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+      <div class="hint">Drop your file here</div>
+      <div class="sub">or click to browse · PNG, PDF up to 10MB</div>
+      <div class="file" id="file">
+        <div class="ft"><span>PDF</span></div>
+        <div class="meta"><div class="fn">cosmos-report.pdf</div><div class="fs">2.4 MB</div></div>
+        <div class="fnum" id="pct">0%</div>
+        <div class="check" id="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+    </div>
+    <div class="bar" id="bar"><div class="fill" id="fill"></div></div>
+  </div>
+</div>
+<script>
+const drop=document.getElementById('drop'),file=document.getElementById('file'),
+  bar=document.getElementById('bar'),fill=document.getElementById('fill'),
+  pct=document.getElementById('pct'),check=document.getElementById('check');
+const LOOP=6000;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2; // easeInOutCubic
+function render(u){
+  // phases: 0 drop falls in (.0-.22) | uploading (.22-.72) | done hold (.72-.92) | reset pause (.92-1)
+  let drag,fy,fop,prog,done;
+  if(u<.22){ // file falls into the zone
+    const p=ease(clamp(u/.22,0,1));
+    drag=clamp(p*1.4,0,1); fy=-30+ (40+30)*p; fop=clamp(p*2,0,1); prog=0; done=0;
+  } else if(u<.72){ // uploading
+    drag=clamp(1-(u-.22)/.12,0,1); fy=40; fop=1; prog=ease(clamp((u-.22)/.50,0,1)); done=0;
+  } else if(u<.92){ // success hold
+    drag=0; fy=40; fop=1; prog=1; done=clamp((u-.72)/.06,0,1);
+  } else { // pause / fade out for seamless loop
+    const p=ease(clamp((u-.92)/.08,0,1));
+    drag=0; fy=40-30*p; fop=clamp(1-p*1.3,0,1); prog=1; done=clamp(1-p*1.6,0,1);
+  }
+  drop.classList.toggle('hot',drag>.5);
+  file.style.opacity=fop.toFixed(3);
+  file.style.transform=`translateX(-50%) translateY(${fy.toFixed(1)}px)`;
+  // progress bar appears once file is in
+  bar.style.opacity=(fop>.5?clamp((fop-.5)*2,0,1):0).toFixed(3);
+  const pc=Math.round(prog*100);
+  fill.style.width=(prog*100).toFixed(1)+'%';
+  pct.textContent=done>.3?'Done':pc+'%';
+  pct.style.color=done>.3?'#7fe9c2':'#b9a8ff';
+  fill.classList.toggle('ok',done>.05);
+  check.style.transform=`translateY(-50%) scale(${(done<.6?done/.6*1.12:1-(done-.6)/.4*.12).toFixed(3)})`;
+  // hide the % number when the check is shown
+  pct.style.opacity=(done>.3?clamp(1-(done-.3)/.3,0,1):1).toFixed(3);
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;} else {
+  // live: clickable dropzone replays the upload; idle autoplay as fallback
+  let manual=0;
+  drop.addEventListener('click',()=>{manual=performance.now();});
+  const s=performance.now();
+  (function l(n){ const base=manual?(n-manual):(n-s); render((((base)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

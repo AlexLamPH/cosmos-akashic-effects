@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Atom</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Atom — a Bohr-model atom: glowing nucleus with electrons on 3 tilted elliptical orbit rings, hand-rolled 3D so orbits pass in front of / behind the nucleus, electrons leaving faint trails. Integer periods, deterministic & seamless, pure Canvas 2D.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=8000,TAU=6.28318530718;
+let W,H,DPR,cx,cy,rings=[],stars=[];const N=3;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+// 3D rotate a point by Euler angles (ax around X, az around Z), then perspective project
+function rot3(p,ca,sa,cz,sz){let y=p[1]*ca-p[2]*sa,z=p[1]*sa+p[2]*ca;let X=p[0]*cz-y*sz,Y=p[0]*sz+y*cz;return[X,Y,z];}
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;
+  const r=mul(7);const R=Math.min(W,H)*0.34;rings=[];
+  for(let i=0;i<N;i++){const ax=(i/N)*TAU*0.5+0.45, az=i*TAU/N;          // distinct tilt per ring
+    rings.push({a:R,b:R*0.42, ca:Math.cos(ax),sa:Math.sin(ax),cz:Math.cos(az),sz:Math.sin(az),
+      period:i+2, th0:r()*TAU, c:AC[i%AC.length], er:(5.2+i*0.4)*DPR}); }
+  stars=[];const rs2=mul(53);for(let i=0;i<110;i++)stars.push({x:rs2()*W,y:rs2()*H,r:rs2()*1.3*DPR+0.3*DPR,a:0.25+rs2()*0.5});
+}
+rs();addEventListener('resize',rs);
+function pos(rg,u){const th=rg.th0+TAU*u*rg.period;                       // integer period -> seamless
+  const p=[Math.cos(th)*rg.a, Math.sin(th)*rg.b, 0];                       // ellipse in its own plane
+  const w=rot3(p,rg.ca,rg.sa,rg.cz,rg.sz);                                 // -> world 3D (z = depth)
+  const s=1+ w[2]/(Math.min(W,H)*1.6);                                     // mild perspective scale by depth
+  return[cx+w[0]*s, cy+w[1]*s, w[2], s];}
+function ringPath(rg,wantBack){const c=`${rg.c[0]},${rg.c[1]},${rg.c[2]}`;
+  x.lineWidth=1.4*DPR;let pen=false;
+  for(let k=0;k<=120;k++){const th=k/120*TAU;
+    const p=[Math.cos(th)*rg.a,Math.sin(th)*rg.b,0];const w=rot3(p,rg.ca,rg.sa,rg.cz,rg.sz);
+    const back=w[2]<0;const s=1+w[2]/(Math.min(W,H)*1.6);const px=cx+w[0]*s,py=cy+w[1]*s;
+    if(back===wantBack){if(!pen){x.beginPath();x.moveTo(px,py);pen=true;}else x.lineTo(px,py);}
+    else{if(pen){x.strokeStyle=`rgba(${c},${wantBack?0.10:0.22})`;x.stroke();pen=false;}}}
+  if(pen){x.strokeStyle=`rgba(${c},${wantBack?0.10:0.22})`;x.stroke();}}
+function electron(rg,u){const p=pos(rg,u);const c=`${rg.c[0]},${rg.c[1]},${rg.c[2]}`;const er=rg.er*p[3];
+  // trail
+  const SEG=22,sp=0.12;
+  for(let k=SEG;k>=1;k--){const q=pos(rg,u-(k/SEG)*sp);const f=1-k/SEG;
+    x.fillStyle=`rgba(${c},${0.22*f})`;x.beginPath();x.arc(q[0],q[1],er*0.55*f+0.6*DPR,0,TAU);x.fill();}
+  x.fillStyle=`rgba(${c},0.16)`;x.beginPath();x.arc(p[0],p[1],er*2.6,0,TAU);x.fill();
+  x.fillStyle=`rgba(${c},0.5)`;x.beginPath();x.arc(p[0],p[1],er*1.4,0,TAU);x.fill();
+  x.fillStyle=`rgba(${c},0.98)`;x.beginPath();x.arc(p[0],p[1],er,0,TAU);x.fill();
+  x.fillStyle='rgba(255,255,255,0.9)';x.beginPath();x.arc(p[0]-er*0.3,p[1]-er*0.3,er*0.36,0,TAU);x.fill();}
+function nucleus(u){const pulse=1+0.07*Math.sin(TAU*u*2);const nr=Math.min(W,H)*0.06;
+  x.fillStyle='rgba(255,150,90,0.10)';x.beginPath();x.arc(cx,cy,nr*2.7*pulse,0,TAU);x.fill();
+  x.fillStyle='rgba(255,170,80,0.22)';x.beginPath();x.arc(cx,cy,nr*1.7*pulse,0,TAU);x.fill();
+  x.fillStyle='rgba(255,130,60,0.55)';x.beginPath();x.arc(cx,cy,nr*1.05,0,TAU);x.fill();
+  x.fillStyle='rgba(255,230,170,0.95)';x.beginPath();x.arc(cx,cy,nr*0.6,0,TAU);x.fill();
+  x.fillStyle='rgba(255,255,245,0.98)';x.beginPath();x.arc(cx-nr*0.18,cy-nr*0.18,nr*0.3,0,TAU);x.fill();}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  for(const s of stars){x.fillStyle=`rgba(200,210,255,${s.a})`;x.beginPath();x.arc(s.x,s.y,s.r,0,TAU);x.fill();}
+  for(const rg of rings)ringPath(rg,true);                                 // back halves of orbit rings
+  for(const rg of rings){const p=pos(rg,u);if(p[2]<0)electron(rg,u);}       // electrons behind nucleus
+  nucleus(u);
+  for(const rg of rings)ringPath(rg,false);                                // front halves of orbit rings
+  for(const rg of rings){const p=pos(rg,u);if(p[2]>=0)electron(rg,u);}      // electrons in front
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

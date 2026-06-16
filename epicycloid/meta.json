@@ -1,0 +1,11 @@
+{
+  "slug": "epicycloid",
+  "title": "Cosmos Epicycloid — a rolling circle traces glowing looping curves",
+  "title_vi": "Cosmos Epicycloid — vòng tròn lăn vẽ đường cong phát sáng",
+  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
+  "tags": ["epicycloid","hypocycloid","rolling-circle","geometry","generative","canvas2d"],
+  "summary": "Five concentric rolling-circle curves: a small circle rolls around a big one and the pen traces glowing epicycloid and hypocycloid loops, with the faint base and rolling circles shown plus a bright pen-head sweeping the rim. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each curve is an epicycloid x=(R+r)cos a - r cos((R+r)/r a) / y=... (or hypocycloid with R-r) using INTEGER R,r so it closes; the rolling angle phi=2PI*u*K with INTEGER K=2R sweeps the parameter exactly K times per loop so the curve completes and loops; the full closed curve is always stroked while the rolling circle centre rides cenR*[cos phi,sin phi] and the pen head sits on the live contact point; whole figure spins exactly one turn per loop (spin=dir*u*2PI) so frame(0)==frame(LOOP). Additive 'lighter' blending over a violet core glow; alpha breathes via sin(2PI*u). CAPTURE: ?auto=1 + window.__seek(t). TUNE: ring count, integer R/r pairs, K turns, epi/hypo toggle, ring radii, AC palette.",
+  "summary_vi": "Năm đường cong lăn vòng đồng tâm: một vòng tròn nhỏ lăn quanh vòng lớn và bút vẽ các vòng epicycloid và hypocycloid phát sáng, kèm vòng nền và vòng lăn mờ cùng đầu bút sáng lướt quanh viền. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "R,r nguyên và phi=2PI*u*K (K=2R nguyên) nên đường khép kín và frame(0)==frame(LOOP)."
+}

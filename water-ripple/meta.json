@@ -1,0 +1,20 @@
+{
+  "slug": "water-ripple",
+  "title": "Cosmos Water Ripple — concentric ripples interfering on a dark pond with crest glints",
+  "title_vi": "Cosmos Water Ripple — gợn sóng đồng tâm giao thoa trên mặt hồ tối với ánh sáng trên đỉnh sóng",
+  "W": 720,
+  "H": 560,
+  "LOOP": 9000,
+  "N": 113,
+  "tags": [
+    "water",
+    "ripple",
+    "interference",
+    "waves",
+    "canvas2d"
+  ],
+  "summary": "Two or three ripple sources on a dark cosmic pond each emit expanding concentric rings that overlap and interfere; rings brighten as they spawn and fade as they grow, and golden glints sparkle along the moving wave crests. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each of 3 seeded sources emits K stroked rings whose radius phase = ((u*TURNS + k/K + srcPhase) mod 1)*maxR with integer TURNS so frame(0)==frame(LOOP); brightness and line width fade with the (1-phase)^2 term as rings expand; per-ring glints are a handful of arc dots placed at angles riding the crest, twinkling via sin of u; drawn additively ('lighter') over a radial pond gradient with a slow shimmer band sweep. Cool cosmic/aurora tones (#46b4ff/#36d39a/#ff5cc2) with #e0b24a glints. CAPTURE: ?auto=1 + window.__seek(t). TUNE: K rings, TURNS, source count/positions, maxR factor 0.6, glint count, shimmer band alpha.",
+  "summary_vi": "Hai đến ba nguồn gợn sóng trên mặt hồ vũ trụ tối, mỗi nguồn phát các vòng tròn đồng tâm lan rộng chồng lấn và giao thoa; vòng sáng lên khi sinh ra rồi mờ dần khi lan rộng, các tia sáng vàng lấp lánh dọc theo đỉnh sóng. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Pha bán kính dùng TURNS nguyên nên frame(0)==frame(LOOP); độ sáng & bề rộng nét fade theo (1-pha)^2; glint là các chấm arc trên đỉnh vòng lấp lánh theo sin của u."
+}

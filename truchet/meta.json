@@ -1,0 +1,11 @@
+{
+  "slug": "truchet",
+  "title": "Cosmos Truchet — flowing quarter-arc tiles forming glowing maze paths",
+  "title_vi": "Cosmos Truchet — ô cung phần tư chảy thành mê cung phát sáng",
+  "W": 620, "H": 620, "LOOP": 7600, "N": 95,
+  "tags": ["truchet","tiles","arcs","maze","wave","flow","canvas2d"],
+  "summary": "A seeded grid of Truchet tiles where each tile draws two quarter-arcs in one of two orientations; arcs connect across tiles into continuous maze-like paths while a glowing comet draw-phase flows along every arc and a diagonal wave sweeps the whole grid. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: mulberry32 seeds each tile's orientation once at setup; each tile renders two quarter-arcs (radius=cell/2 from opposite corners) so neighbours link into flowing paths; a travelling bright segment sweeps each arc using phase p=(u+(i+j)/(cols+rows)) mod 1 producing a diagonal wave that returns to start at u=1 (frame(0)==frame(LOOP)); drawn additively ('lighter') with a faint base track plus a comet-falloff head; per-tile colour picked from the cosmos accents by grid position. CAPTURE: ?auto=1 + window.__seek(t). TUNE: cell size, LOOP, line width w, comet length SG/falloff power, AC palette, wave direction via (i+j).",
+  "summary_vi": "Lưới ô Truchet có seed, mỗi ô vẽ hai cung phần tư theo một trong hai hướng; các cung nối nhau qua các ô tạo thành đường mê cung liên tục, một vệt sáng chạy dọc mỗi cung và một làn sóng chéo quét khắp lưới. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Pha vẽ p=(u+(i+j)/(cols+rows)) mod 1 nên sóng chéo trở về đúng điểm đầu cho frame(0)==frame(LOOP)."
+}

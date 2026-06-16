@@ -1,0 +1,20 @@
+{
+  "slug": "neon-sign",
+  "title": "Cosmos Neon Sign — the word COSMOS as glowing flickering neon tubes with halo and reflection",
+  "title_vi": "Cosmos Neon Sign — chữ COSMOS dạng ống neon phát sáng nhấp nháy có quầng sáng và phản chiếu",
+  "W": 760,
+  "H": 400,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "neon",
+    "sign",
+    "glow",
+    "flicker",
+    "canvas2d"
+  ],
+  "summary": "The word COSMOS is rendered as glowing neon tubes: each letter is stroked several times with increasing shadowBlur to build a soft accent halo, topped by a hot near-white core, and mirrored upside-down below the baseline as a faint reflection. Letters dim briefly via a deterministic seeded flicker table, and an ambient sign glow breathes behind the text. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: neon tube = 3 layered strokeText passes (shadowBlur 34/18/7, lineWidth 10/6/2.5) plus a brightened fillText core, all in 'lighter' composite; reflection is the same tube drawn with translate+scale(1,-1) at reduced alpha; flicker is a per-letter seeded table of K=64 lit values sampled by floor(u*K) and linearly interpolated to the wrapping next index so frame(0)==frame(LOOP); ambient glow breathes on sin(2PI*u) and a tube hum uses sin(2PI*2*u) (integer harmonics). All randomness from mulberry32 at setup; no Math.random in frame. CAPTURE: ?auto=1 + window.__seek(t). TUNE: WORD, K, flicker probabilities/depth, shadowBlur/lineWidth tiers, reflection alpha, AC palette per letter.",
+  "summary_vi": "Chữ COSMOS được vẽ như ống neon phát sáng: mỗi chữ được stroke nhiều lần với shadowBlur tăng dần tạo quầng sáng mềm, phủ lõi trắng nóng, và phản chiếu lật ngược mờ phía dưới. Các chữ chợt tối nhờ bảng nhấp nháy seeded tất định, nền có quầng sáng thở. Thuần Canvas 2D, không lib, chạy offline; tất định và loop liền.",
+  "notes": "Nhấp nháy lấy mẫu bảng K=64 theo floor(u*K) nội suy tới chỉ số kế (vòng lại) nên frame(0)==frame(LOOP)."
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "webcam-mirror",
+  "title": "Cosmos Kaleido-Mirror — your reflection folded live into a glowing kaleidoscope",
+  "title_vi": "",
+  "W": 460, "H": 300, "LOOP": 9000, "N": 52,
+  "tags": ["webcam", "sensor", "reactive", "interactive", "canvas2d"],
+  "summary": "Reacts to the WEBCAM live: each frame is mirrored (selfie), downsampled to a 32x24 {brightness,motion} field and frame-diffed, then folded into an 8-fold kaleidoscope of glowing Cosmos-tinted blobs whose radius and heat follow brightness and motion, replicated across rotational wedges plus a mirror flip for a hypnotic, slowly rotating symmetric portrait — wave a hand and the whole flower pulses and blooms. It gracefully falls back to a synthetic signal (a fake waving silhouette of moving Gaussian blobs) when the camera is unavailable or denied, and ships a deterministic synthetic demo for capture. Self-contained, zero dependencies. Privacy: all processing happens in-browser, nothing is uploaded.",
+  "usage_notes": "RUN: open and click \"enable camera\", then move — your brightness and motion drive a symmetric kaleidoscope of glowing light that blooms where you move. Without a camera it animates from a built-in synthetic waving silhouette so it is never blank. HOW IT REACTS: each cell's brightness places a blob and sets its size/glow; motion (abs frame-diff) pushes color toward white-hot and intensifies the bloom; the whole pattern slowly rotates. DESKTOP: works with any webcam; the synthetic demo needs no camera. KEY TECHNIQUES: getUserMedia({facingMode:'user'}) -> hidden <video> -> drawImage mirrored to a 32x24 offscreen canvas -> getImageData -> per-cell luminance + abs frame-diff = SIG; one render(SIG,t) paints the field as glowing blobs inside one wedge, then replicates it across K rotational sectors with a mirror flip for kaleidoscope symmetry plus a central bloom; synthSig(u) sums 3 looping Gaussian blobs into the same grid and diffs vs the previous frame for synthetic motion, deterministic and seamless. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: K (fold count), GW/GH, motion gain, blob size/glow, rotation speed, palette.",
+  "summary_vi": "",
+  "notes": ""
+}

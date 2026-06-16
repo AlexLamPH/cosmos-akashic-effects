@@ -1,0 +1,224 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Breakout</title>
+<style>
+  :root{--violet:#8b5cff;--cosmic:#46b4ff;--nebula:#ff5cc2;--aurora:#36d39a;--solaris:#ff6a3d;--sacred:#e0b24a}
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f4;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}
+  #frame{width:560px;height:620px;background:#120e25;border-radius:18px;
+    box-shadow:0 0 0 1px #261d44,0 18px 60px #0006;padding:18px;box-sizing:border-box;
+    display:flex;flex-direction:column;gap:12px}
+  #hud{display:flex;align-items:center;justify-content:space-between;font-size:15px}
+  #hud .t{font-weight:700;letter-spacing:.5px;color:var(--cosmic)}
+  #hud .r{display:flex;gap:18px;font-variant-numeric:tabular-nums}
+  #hud b{color:var(--aurora);font-size:19px}
+  #hud .lv b{color:var(--nebula)}
+  #wrap{position:relative;flex:1;border-radius:14px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px #2a2050,inset 0 0 40px #46b4ff15}
+  canvas{display:block;width:100%;height:100%;background:radial-gradient(120% 120% at 50% 0%,#13102e,#0b0820)}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0a0816cc;backdrop-filter:blur(2px);gap:10px;text-align:center}
+  #over h2{margin:0;color:var(--nebula);font-size:26px}
+  #over p{margin:0;opacity:.8;font-size:14px}
+  .btn{margin-top:4px;background:var(--cosmic);color:#06121f;border:0;border-radius:10px;
+    padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #46b4ff55}
+  #ctl{display:flex;gap:10px;align-self:center}
+  #ctl button{background:#1d1640;color:#cfc7ef;border:1px solid #322763;border-radius:10px;
+    width:84px;height:46px;font-size:20px;cursor:pointer;touch-action:manipulation}
+  @media (hover:hover){#ctl{opacity:.85}}
+</style></head><body>
+<div id="frame">
+  <div id="hud"><span class="t">COSMOS BREAKOUT</span>
+    <span class="r"><span>SCORE <b id="sc">0</b></span><span class="lv">BALLS <b id="lf">3</b></span></span></div>
+  <div id="wrap"><canvas id="cv"></canvas>
+    <div id="over"><h2 id="ot">GAME OVER</h2><p id="op">Press R to restart</p><button class="btn" id="rb">Restart</button></div>
+  </div>
+  <div id="ctl"><button data-d="-1">◀</button><button data-d="1">▶</button></div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const C={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const COLS=8, ROWS=5, LOOP=12000;
+const BRICK_COLORS=[C.nebula,C.solaris,C.sacred,C.aurora,C.cosmic];
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+// fixed logical playfield; canvas scales via CSS, we render in logical px
+let W=524,H=512;
+function fit(){ const r=cv.getBoundingClientRect(); W=r.width||524; H=r.height||512;
+  cv.width=Math.round(W*devicePixelRatio); cv.height=Math.round(H*devicePixelRatio);
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// geometry derived from W,H
+function geom(){
+  const padW=92,padH=12, padY=H-34, ballR=7;
+  const mTop=58, mSide=20, gap=6;
+  const bw=(W-2*mSide-(COLS-1)*gap)/COLS, bh=22;
+  return {padW,padH,padY,ballR,mTop,mSide,gap,bw,bh};
+}
+function brickRect(c,r,g){return {x:g.mSide+c*(g.bw+g.gap), y:g.mTop+r*(g.bh+g.gap), w:g.bw, h:g.bh};}
+
+function roundRect(x,y,w,h,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.arcTo(x+w,y,x+w,y+h,rad);ctx.arcTo(x+w,y+h,x,y+h,rad);ctx.arcTo(x,y+h,x,y,rad);ctx.arcTo(x,y,x+w,y,rad);ctx.closePath();}
+
+// ---- state: {bricks:Uint8(COLS*ROWS), ball:{x,y,vx,vy}, padX, score, balls, dead, won, t}
+function draw(st){
+  const g=geom();
+  ctx.clearRect(0,0,W,H);
+  // bricks
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(!st.bricks[r*COLS+c]) continue;
+    const b=brickRect(c,r,g), col=BRICK_COLORS[r%BRICK_COLORS.length];
+    ctx.shadowColor=col;ctx.shadowBlur=10;
+    ctx.fillStyle=col;roundRect(b.x,b.y,b.w,b.h,5);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='#ffffff22';roundRect(b.x,b.y,b.w,b.h*0.42,5);ctx.fill();
+  }
+  // paddle
+  const px=st.padX-g.padW/2;
+  ctx.shadowColor=C.cosmic;ctx.shadowBlur=16;
+  ctx.fillStyle=C.cosmic;roundRect(px,g.padY,g.padW,g.padH,6);ctx.fill();ctx.shadowBlur=0;
+  ctx.fillStyle='#ffffff44';roundRect(px,g.padY,g.padW,g.padH*0.4,6);ctx.fill();
+  // ball + glow
+  const b=st.ball;
+  let rg=ctx.createRadialGradient(b.x,b.y,1,b.x,b.y,g.ballR*3);
+  rg.addColorStop(0,'#ffffff');rg.addColorStop(.4,C.sacred);rg.addColorStop(1,'#e0b24a00');
+  ctx.fillStyle=rg;ctx.beginPath();ctx.arc(b.x,b.y,g.ballR*2.6,0,7);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,g.ballR,0,7);ctx.fill();
+}
+
+// ---- deterministic sim ----
+function freshState(seed){
+  const g=geom();
+  const bricks=new Uint8Array(COLS*ROWS).fill(1);
+  const rng=mulberry32(seed);
+  const st={bricks,score:0,balls:3,dead:false,won:false,padX:W/2,t:0,rng,launched:true};
+  // launch ball upward at a seeded angle
+  const ang=(-Math.PI/2)+(rng()-.5)*0.7;
+  const sp=5.4;
+  st.ball={x:W/2,y:g.padY-12,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp};
+  return st;
+}
+function reflectPaddle(st,g){
+  const b=st.ball;
+  const hit=(b.x-st.padX)/(g.padW/2);          // -1..1
+  const sp=Math.hypot(b.vx,b.vy);
+  const ang=(-Math.PI/2)+hit*(Math.PI/3);       // up, spread ±60°
+  b.vx=Math.cos(ang)*sp; b.vy=Math.sin(ang)*sp;
+  b.y=g.padY-g.ballR-0.5;
+}
+// one physics tick (dt in "frames", fixed). auto controls paddle when ai=true
+function tick(st,ai){
+  const g=geom(); const b=st.ball;
+  if(ai){ // paddle AI tracks ball x with slight lag/clamp (deterministic)
+    const target=b.x;
+    const d=target-st.padX;
+    st.padX+=Math.max(-7,Math.min(7,d));
+    st.padX=Math.max(g.padW/2,Math.min(W-g.padW/2,st.padX));
+  }
+  b.x+=b.vx; b.y+=b.vy;
+  // walls
+  if(b.x<g.ballR){b.x=g.ballR;b.vx=Math.abs(b.vx);}
+  if(b.x>W-g.ballR){b.x=W-g.ballR;b.vx=-Math.abs(b.vx);}
+  if(b.y<g.ballR+4){b.y=g.ballR+4;b.vy=Math.abs(b.vy);}
+  // paddle
+  if(b.vy>0 && b.y>g.padY-g.ballR && b.y<g.padY+g.padH &&
+     b.x>st.padX-g.padW/2-g.ballR && b.x<st.padX+g.padW/2+g.ballR){
+    reflectPaddle(st,g);
+  }
+  // bricks (check the brick the ball center is over)
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(!st.bricks[r*COLS+c]) continue;
+    const br=brickRect(c,r,g);
+    if(b.x>br.x-g.ballR && b.x<br.x+br.w+g.ballR && b.y>br.y-g.ballR && b.y<br.y+br.h+g.ballR){
+      st.bricks[r*COLS+c]=0; st.score+=10;
+      // bounce based on dominant overlap axis
+      const ox=Math.min(b.x-br.x, br.x+br.w-b.x);
+      const oy=Math.min(b.y-br.y, br.y+br.h-b.y);
+      if(ox<oy) b.vx=-b.vx; else b.vy=-b.vy;
+      r=ROWS;break;
+    }
+  }
+  // lost ball
+  if(b.y>H+g.ballR){
+    st.balls--;
+    if(st.balls<=0){st.dead=true;}
+    else { const ang=(-Math.PI/2)+(st.rng()-.5)*0.7, sp=5.4;
+      b.x=W/2;b.y=g.padY-12;b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp; st.padX=W/2; }
+  }
+  if(st.bricks.every(v=>!v)) st.won=true;
+}
+// AUTO: simulate to ms then draw, pure function of time
+const SEED=0xB7EA4;
+function drawAt(ms){
+  const offset=4200;                    // frame-0 rich: several bricks cleared, ball mid-flight
+  const T=ms+offset;
+  const ticks=Math.floor(T/16);
+  const st=freshState(SEED);
+  for(let i=0;i<ticks;i++){ if(st.dead||st.won)break; tick(st,true); }
+  st.t=T;
+  document.getElementById('sc').textContent=st.score;    // reflect sim score in HUD
+  document.getElementById('lf').textContent=st.balls;
+  draw(st);
+}
+
+// ---- LIVE ----
+let live=null, raf=0, lastTs=0, acc=0, keyDir=0;
+function setHud(){document.getElementById('sc').textContent=live.score;
+  document.getElementById('lf').textContent=live.balls;}
+function initGame(){ fit();
+  live=freshState(0x1234); live.padX=W/2;
+  document.getElementById('over').style.display='none';
+  setHud(); acc=0; lastTs=performance.now();
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+}
+const FT=16;
+function loop(ts){ raf=requestAnimationFrame(loop);
+  const dt=ts-lastTs; lastTs=ts; live.t=ts;
+  const g=geom();
+  if(!live.dead&&!live.won){
+    if(keyDir){ live.padX+=keyDir*7.5; live.padX=Math.max(g.padW/2,Math.min(W-g.padW/2,live.padX)); }
+    acc+=dt; let guard=0;
+    while(acc>=FT && guard++<8){ acc-=FT; const pre=live.score; tick(live,false);
+      if(live.score!==pre) blip(520+Math.random()*0,.04);
+      if(live.dead||live.won)break; }
+    setHud();
+    if(live.dead) showOver('GAME OVER','Score '+live.score+' · Press R');
+    else if(live.won) showOver('YOU WIN!','Score '+live.score+' · Press R');
+  }
+  draw(live);
+}
+function showOver(t,p){blip(live.won?740:120,.18);
+  document.getElementById('ot').textContent=t;document.getElementById('op').textContent=p;
+  document.getElementById('over').style.display='flex';}
+// input
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a')keyDir=-1; else if(k==='arrowright'||k==='d')keyDir=1;
+  else if(k==='r')initGame();
+  if(['arrowleft','arrowright',' '].includes(k))e.preventDefault();});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();
+  if((k==='arrowleft'||k==='a')&&keyDir<0)keyDir=0; if((k==='arrowright'||k==='d')&&keyDir>0)keyDir=0;});
+// drag / touch on canvas
+function dragTo(clientX){ if(!live||live.dead||live.won)return; const r=cv.getBoundingClientRect();
+  const g=geom(); live.padX=Math.max(g.padW/2,Math.min(W-g.padW/2,clientX-r.left)); }
+cv.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')dragTo(e.clientX);});
+cv.addEventListener('pointerdown',e=>dragTo(e.clientX));
+// on-screen buttons (hold)
+document.querySelectorAll('#ctl button').forEach(b=>{
+  const d=+b.dataset.d;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();keyDir=d;});
+  b.addEventListener('pointerup',()=>{if(keyDir===d)keyDir=0;});
+  b.addEventListener('pointerleave',()=>{if(keyDir===d)keyDir=0;});
+});
+document.getElementById('rb').addEventListener('click',initGame);
+addEventListener('resize',()=>{fit();if(live)draw(live);});
+// optional audio
+let actx=null,armed=false;
+function arm(){if(!armed&&!AUTO){armed=true;try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+addEventListener('pointerdown',arm,{once:true});addEventListener('keydown',arm,{once:true});
+function blip(f,d){if(!actx||AUTO)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.05,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+  o.start();o.stop(actx.currentTime+d);}
+
+if(AUTO){ fit(); window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

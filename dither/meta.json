@@ -1,0 +1,21 @@
+{
+  "slug": "dither",
+  "title": "Cosmos Dither — an animated accent blob field crushed through a moving Bayer ordered-dither into shifting retro dot patterns",
+  "title_vi": "Cosmos Dither — trường blob màu nhấn ép qua ngưỡng dither Bayer chuyển động thành các hoa văn chấm retro",
+  "W": 360,
+  "H": 288,
+  "LOOP": 8000,
+  "N": 80,
+  "tags": [
+    "dither",
+    "bayer",
+    "retro",
+    "canvas2d",
+    "generative",
+    "1-bit"
+  ],
+  "summary": "A smooth Cosmos-accent gradient with two drifting blobs is computed on a small 200x160 offscreen, then quantized to a limited accent palette through a moving 8x8 Bayer ordered-dither matrix, producing crisp shifting dot patterns that read like a 1-bit retro display. The buffer is upscaled pixelated to fill the window. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: per-pixel scalar field (diagonal gradient + sine bands + two Gaussian blobs) on a 200x160 offscreen for GIF-friendliness; 8x8 Bayer ordered-dither matrix B[64] normalized 0..1 used as a per-pixel threshold to pick between adjacent steps of a 6-colour Cosmos accent palette; the Bayer matrix is sampled at an integer-stepped offset ox/oy = floor(u*8)&7 so the dot pattern marches and loops exactly; the gradient/blobs animate via sin/cos of 2*PI*u*k with integer k; nearest-neighbour upscale (imageSmoothingEnabled=false) keeps dots crisp; an additive accent vignette breathes on the loop. CAPTURE: ?auto=1 + window.__seek(t). TUNE: PW/PH (dot resolution), PAL (palette), blob radii (1400/1100), threshold sweep speed, LOOP.",
+  "summary_vi": "Một gradient màu nhấn Cosmos mượt cùng hai blob trôi được tính trên offscreen nhỏ 200x160, rồi lượng tử hóa qua ma trận dither Bayer 8x8 chuyển động thành các hoa văn chấm sắc nét như màn hình 1-bit retro, sau đó phóng to pixelated lấp đầy khung. Thuần Canvas 2D, không thư viện, chạy offline, tất định và liền mạch.",
+  "notes": "Ma trận Bayer lấy mẫu tại offset bước nguyên floor(u*8)&7 và chuyển động dùng sin của hài số nguyên nên frame(0)==frame(LOOP)."
+}

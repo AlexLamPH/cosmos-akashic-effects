@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Fire Flames</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Fire Flames — layered sine-wobbled flame tongues + rising embers, flicker = pure fn of u. Seamless loop.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=7000,TAU=6.28318;
+let W,H,DPR,tongues=[],embers=[];
+function rnd(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// solaris / sacred / nebula gradient stops
+const HOT=[255,224,160],MID=[255,106,61],COOL=[224,178,74],TIP=[255,92,194];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  const r=rnd(7);tongues=[];const n=26;
+  for(let i=0;i<n;i++)tongues.push({off:(r()-0.5)*0.42*W,w:(0.05+r()*0.09)*W,h:(0.34+r()*0.42)*H,
+    k1:1+((r()*3)|0),k2:2+((r()*3)|0),ph:r(),sw:(0.012+r()*0.03)*W,fk:r(),fa:0.3+r()*0.5});
+  embers=[];const m=46;for(let i=0;i<m;i++)embers.push({x0:(r()-0.5)*0.5*W,r0:r(),rise:(0.5+r()*0.5),
+    sx:(0.02+r()*0.05)*W,k:1+((r()*2)|0),sz:(0.8+r()*1.8)*DPR,c:r()<0.5?TIP:COOL});}
+rs();addEventListener('resize',rs);
+function lerp(a,b,f){return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const bx=W*0.5,by=H*0.94;
+  // base ground glow
+  x.globalCompositeOperation='lighter';
+  let bg=x.createRadialGradient(bx,by,0,bx,by,0.4*W);bg.addColorStop(0,'rgba(255,106,61,0.5)');bg.addColorStop(0.5,'rgba(224,90,40,0.18)');bg.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  for(const g of tongues){
+    const fl=0.5+0.5*Math.sin(TAU*(u*g.k1+g.ph))*Math.cos(TAU*(u*g.k2+g.fk)); // flicker fn of u
+    const hh=g.h*(0.7+0.3*fl), bw=g.w*(0.8+0.35*fl);
+    const cx=bx+g.off+Math.sin(TAU*(u*2+g.ph))*g.sw*0.5;
+    x.beginPath();x.moveTo(cx-bw*0.5,by);
+    const seg=14;
+    for(let s=0;s<=seg;s++){const fy=s/seg; // 0 base -> 1 tip
+      const wob=Math.sin(TAU*(u*g.k1+fy*2+g.ph))*g.sw*(0.3+fy*0.9)+Math.sin(TAU*(u*g.k2+fy*3))*g.sw*0.4*fy;
+      const wd=bw*(1-fy)*(0.6+0.4*Math.sin(fy*3.1));
+      x.lineTo(cx+wob+wd*0.5, by-hh*fy);}
+    for(let s=seg;s>=0;s--){const fy=s/seg;
+      const wob=Math.sin(TAU*(u*g.k1+fy*2+g.ph))*g.sw*(0.3+fy*0.9)+Math.sin(TAU*(u*g.k2+fy*3))*g.sw*0.4*fy;
+      const wd=bw*(1-fy)*(0.6+0.4*Math.sin(fy*3.1));
+      x.lineTo(cx+wob-wd*0.5, by-hh*fy);}
+    x.closePath();
+    const gr=x.createLinearGradient(cx,by,cx,by-hh);
+    const c1=lerp(HOT,MID,0.2),c2=MID,c3=lerp(COOL,TIP,fl*0.6);
+    gr.addColorStop(0,`rgba(${c1[0]|0},${c1[1]|0},${c1[2]|0},${g.fa})`);
+    gr.addColorStop(0.45,`rgba(${c2[0]},${c2[1]},${c2[2]},${g.fa*0.85})`);
+    gr.addColorStop(1,`rgba(${c3[0]|0},${c3[1]|0},${c3[2]|0},0)`);
+    x.fillStyle=gr;x.fill();}
+  // bright inner core
+  let cg=x.createRadialGradient(bx,by-H*0.14,0,bx,by-H*0.14,0.16*W);cg.addColorStop(0,'rgba(255,232,180,0.85)');cg.addColorStop(0.6,'rgba(255,120,60,0.3)');cg.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=cg;x.fillRect(0,0,W,H);
+  // rising embers (looping)
+  for(const e of embers){const p=(e.r0+u*e.rise)%1; const y=by-p*e.rise*H*1.3;
+    const ex=bx+e.x0+Math.sin(TAU*(p*e.k+e.r0))*e.sx;
+    const al=Math.sin(p*Math.PI)*0.9;const c=e.c;
+    x.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${al})`;x.beginPath();x.arc(ex,y,e.sz*(0.5+(1-p)),0,TAU);x.fill();}
+  x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Form Validation</title>
+<!-- Cosmos Form Validation — a polished glassy sign-in card demonstrating inline field validation: fields type out, show red error (border+shake+message) when invalid, then a green check on success, then the submit button fills and confirms. Self-contained, zero deps. Live = real typing/blur validation + submit; AUTO = deterministic looping demo via render(u)/__seek. -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:#0a0816;display:flex;align-items:center;justify-content:center;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5}
+.card{position:relative;width:330px;padding:30px 28px 26px;border-radius:20px;
+  background:linear-gradient(160deg,rgba(28,24,48,0.92),rgba(16,13,32,0.92));
+  border:1px solid rgba(139,92,255,0.18);
+  box-shadow:0 22px 60px -12px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.02) inset,
+    0 1px 0 rgba(255,255,255,0.05) inset;}
+.card::before{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% -10%,rgba(139,92,255,0.16),transparent 60%);}
+.head{text-align:center;margin-bottom:22px;position:relative}
+.logo{width:38px;height:38px;margin:0 auto 12px;border-radius:11px;
+  background:linear-gradient(135deg,#8b5cff,#46b4ff);
+  box-shadow:0 8px 22px -6px rgba(139,92,255,0.7);display:flex;align-items:center;justify-content:center}
+.logo svg{width:20px;height:20px;fill:#fff}
+.title{font-size:18px;font-weight:650;letter-spacing:.2px}
+.sub{font-size:12.5px;color:#9a93b8;margin-top:4px}
+.field{margin-bottom:15px;position:relative}
+.field label{display:block;font-size:11.5px;font-weight:600;color:#a9a2c8;margin-bottom:6px;letter-spacing:.3px}
+.inwrap{position:relative;display:flex;align-items:center}
+.inbox{width:100%;height:44px;border-radius:11px;padding:0 40px 0 13px;font-size:13.5px;
+  color:#ece9fb;background:rgba(10,8,22,0.7);
+  border:1.5px solid rgba(139,92,255,0.22);outline:none;
+  display:flex;align-items:center;overflow:hidden;white-space:nowrap}
+.inbox input{all:unset;width:100%;font:inherit;color:inherit}
+.cursor{width:1.5px;height:18px;background:#8b5cff;margin-left:1px;border-radius:1px;flex:none}
+.ph{color:#5d5680}
+.icon{position:absolute;right:12px;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+.icon svg{width:18px;height:18px}
+.msg{font-size:11px;margin-top:6px;height:13px;color:#ff6f7d;font-weight:500;letter-spacing:.2px;overflow:hidden}
+.btn{width:100%;height:46px;margin-top:7px;border-radius:12px;border:none;position:relative;overflow:hidden;
+  font-size:14px;font-weight:650;color:#fff;letter-spacing:.3px;cursor:pointer;
+  background:linear-gradient(135deg,#8b5cff,#7a4ff0);
+  box-shadow:0 12px 26px -8px rgba(139,92,255,0.7)}
+.btn .lbl{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:7px;height:100%}
+.btn .fill{position:absolute;inset:0;background:linear-gradient(135deg,#36d39a,#2bb886);
+  transform-origin:left center;z-index:1}
+.btn .chk{width:17px;height:17px;fill:#fff}
+.foot{text-align:center;font-size:11.5px;color:#7e779c;margin-top:15px}
+.foot b{color:#9b7bff;font-weight:600}
+</style></head>
+<body>
+<div class="card" id="card">
+  <div class="head">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2l2.6 6.3L21 9l-5 4.6L17.5 21 12 17.3 6.5 21 8 13.6 3 9l6.4-.7z"/></svg></div>
+    <div class="title">Welcome back</div>
+    <div class="sub">Sign in to your Cosmos workspace</div>
+  </div>
+
+  <div class="field" id="f-email">
+    <label>Email</label>
+    <div class="inwrap">
+      <div class="inbox"><span class="txt"></span><span class="cursor"></span></div>
+      <span class="icon"></span>
+    </div>
+    <div class="msg"></div>
+  </div>
+
+  <div class="field" id="f-pass">
+    <label>Password</label>
+    <div class="inwrap">
+      <div class="inbox"><span class="txt"></span><span class="cursor"></span></div>
+      <span class="icon"></span>
+    </div>
+    <div class="msg"></div>
+  </div>
+
+  <button class="btn" id="btn">
+    <span class="fill"></span>
+    <span class="lbl"><span class="btxt">Sign in</span></span>
+  </button>
+
+  <div class="foot">No account? <b>Create one</b></div>
+</div>
+<script>
+const TAU=Math.PI*2;
+const $=s=>document.querySelector(s);
+const fE=$('#f-email'),fP=$('#f-pass'),btn=$('#btn');
+const eTxt=fE.querySelector('.txt'),eCur=fE.querySelector('.cursor'),eIco=fE.querySelector('.icon'),eMsg=fE.querySelector('.msg'),eBox=fE.querySelector('.inbox');
+const pTxt=fP.querySelector('.txt'),pCur=fP.querySelector('.cursor'),pIco=fP.querySelector('.icon'),pMsg=fP.querySelector('.msg'),pBox=fP.querySelector('.inbox');
+const fill=btn.querySelector('.fill'),btxt=btn.querySelector('.btxt');
+
+// content the demo "types": first an invalid attempt, then corrected to valid
+const EMAIL_BAD="alex@cosmos",     EMAIL_OK="alex@cosmos.io";
+const PASS_BAD ="pass",            PASS_OK ="cosm0s★star";   // masked
+const ERR_EMAIL="Enter a valid email address",
+      ERR_PASS ="Must be at least 8 characters";
+
+const COL={ok:'#36d39a',err:'#ff6f7d',idle:'rgba(139,92,255,0.22)',focus:'#8b5cff'};
+const ICO_ERR='<svg viewBox="0 0 24 24" fill="none" stroke="#ff6f7d" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><circle cx="12" cy="16.5" r=".2" fill="#ff6f7d" stroke-width="1.6"/></svg>';
+const ICO_OK ='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#36d39a"/><path d="M7.5 12.3l3 3 6-6.4" stroke="#06150f" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+
+const clamp=(a,b,t)=>t<a?a:t>b?b:t;
+const smooth=t=>{t=clamp(0,1,t);return t*t*(3-2*t);};
+// type-out: returns substring length for progress p with a slight per-char ease
+function typed(str,p){const n=Math.round(smooth(p)*str.length);return str.slice(0,n);}
+function mask(str){return '•'.repeat(str.length);}
+
+// shake offset that decays — deterministic function of local phase q in [0,1]
+function shake(q){if(q<=0||q>=1)return 0;const env=Math.sin(q*Math.PI);return Math.sin(q*TAU*3.5)*9*env*env;}
+
+function setField(box,txt,cur,ico,msg,opts){
+  // opts: value(string), showCur(bool), state('idle'|'err'|'ok'|'focus'), msgTxt, msgShow, shakePx, iconScale
+  txt.textContent=opts.value||'';
+  if(!opts.value){txt.innerHTML='<span class="ph">'+(opts.ph||'')+'</span>';}
+  cur.style.opacity=opts.showCur?(Math.sin(performance.now()/1)>0?1:1):0; // overwritten below for auto
+  cur.style.opacity=opts.curOpacity!=null?opts.curOpacity:(opts.showCur?1:0);
+  let bc=COL.idle;
+  if(opts.state==='err')bc=COL.err; else if(opts.state==='ok')bc=COL.ok; else if(opts.state==='focus')bc=COL.focus;
+  box.style.borderColor=bc;
+  box.style.boxShadow = opts.state==='err' ? '0 0 0 3px rgba(255,92,108,0.14)' :
+                        opts.state==='ok'  ? '0 0 0 3px rgba(54,211,154,0.14)' :
+                        opts.state==='focus'?'0 0 0 3px rgba(139,92,255,0.16)' : 'none';
+  box.parentElement.style.transform='translateX('+(opts.shakePx||0)+'px)';
+  if(opts.icon==='err')ico.innerHTML=ICO_ERR;
+  else if(opts.icon==='ok')ico.innerHTML=ICO_OK;
+  else ico.innerHTML='';
+  ico.style.transform='scale('+(opts.iconScale!=null?opts.iconScale:1)+')';
+  ico.style.opacity=opts.iconOp!=null?opts.iconOp:1;
+  msg.style.color=opts.state==='ok'?COL.ok:COL.err;
+  msg.textContent=opts.msgShow?opts.msgTxt:'';
+  msg.style.opacity=opts.msgShow?1:0;
+}
+
+function setBtn(p){
+  // p: 0 = idle, ramps fill 0->1 then label switches to "Signed in ✓"
+  const f=clamp(0,1,p);
+  fill.style.transform='scaleX('+smooth(f)+')';
+  if(f>0.55){btxt.innerHTML='<svg class="chk" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.2L19 7"/></svg> Signed in';}
+  else btxt.textContent='Sign in';
+  const press=Math.sin(clamp(0,1,p*3)*Math.PI)*0.02;
+  btn.style.transform='scale('+(1-press)+')';
+}
+
+const LOOP=8200;
+// Phase plan over u in [0,1):
+//  A 0.00-0.12  type email (bad)        -> email focus
+//  B 0.12-0.22  type pass  (bad)        -> pass focus
+//  C 0.22-0.30  submit -> validate FAIL -> both error + shake + messages
+//  D 0.30-0.42  hold errors
+//  E 0.42-0.56  fix email (append .io)  -> turns ok (green check)
+//  F 0.56-0.70  fix pass  (retype long) -> turns ok (green check)
+//  G 0.70-0.80  submit -> button fills green -> "Signed in"
+//  H 0.80-1.00  hold success, then reset wraps to A at u=1 (fields empty again briefly)
+// Frame 0 is offset so capture starts mid-interaction (in the error/fix region) -> rich.
+const OFF=0.30; // start the loop at the held-error moment for a rich frame 0
+
+function render(u0){
+  let u=(u0+OFF)%1;
+  // cursor blink (deterministic): 5 cycles across the loop
+  const blink=Math.sin(TAU*((u0)*5))>-0.3?1:0;
+
+  // ---- EMAIL field ----
+  let eOpts={ph:'name@example.com'};
+  // ---- PASS field ----
+  let pOpts={ph:'••••••••'};
+
+  if(u<0.12){ // A type email bad
+    const p=u/0.12;
+    eOpts={value:typed(EMAIL_BAD,p),showCur:1,curOpacity:blink,state:'focus'};
+    pOpts={value:'',ph:'••••••••',showCur:0,state:'idle'};
+  } else if(u<0.22){ // B type pass bad
+    const p=(u-0.12)/0.10;
+    eOpts={value:EMAIL_BAD,showCur:0,state:'idle'};
+    pOpts={value:mask(typed(PASS_BAD,p)),showCur:1,curOpacity:blink,state:'focus'};
+  } else if(u<0.30){ // C submit -> fail, shake fires
+    const q=(u-0.22)/0.08;
+    const sk=shake(clamp(0,1,q*1.0));
+    eOpts={value:EMAIL_BAD,state:'err',icon:'err',iconOp:smooth(q*2),msgShow:1,msgTxt:ERR_EMAIL,shakePx:sk};
+    pOpts={value:mask(PASS_BAD),state:'err',icon:'err',iconOp:smooth(q*2),msgShow:1,msgTxt:ERR_PASS,shakePx:sk*-0.7};
+    setBtn(0);
+  } else if(u<0.42){ // D hold errors
+    eOpts={value:EMAIL_BAD,state:'err',icon:'err',msgShow:1,msgTxt:ERR_EMAIL};
+    pOpts={value:mask(PASS_BAD),state:'err',icon:'err',msgShow:1,msgTxt:ERR_PASS};
+  } else if(u<0.56){ // E fix email -> ok
+    const p=(u-0.42)/0.14;
+    const full=EMAIL_BAD+EMAIL_OK.slice(EMAIL_BAD.length);
+    const n=EMAIL_BAD.length+Math.round(smooth(p)*(EMAIL_OK.length-EMAIL_BAD.length));
+    const val=EMAIL_OK.slice(0,n);
+    const done=p>0.92;
+    eOpts={value:val,showCur:p<0.95,curOpacity:blink,
+      state:done?'ok':'focus',icon:done?'ok':'',iconScale:done?1:0,iconOp:done?smooth((p-0.9)/0.1):0,
+      msgShow:!done,msgTxt:ERR_EMAIL};
+    pOpts={value:mask(PASS_BAD),state:'err',icon:'err',msgShow:1,msgTxt:ERR_PASS};
+  } else if(u<0.70){ // F fix pass -> ok
+    const p=(u-0.56)/0.14;
+    const val=mask(typed(PASS_OK,p));
+    const done=p>0.92;
+    eOpts={value:EMAIL_OK,state:'ok',icon:'ok',iconScale:1};
+    pOpts={value:val,showCur:p<0.95,curOpacity:blink,
+      state:done?'ok':'focus',icon:done?'ok':'',iconScale:done?1:0,iconOp:done?smooth((p-0.9)/0.1):0,
+      msgShow:!done,msgTxt:ERR_PASS};
+  } else if(u<0.80){ // G submit success -> fill
+    const p=(u-0.70)/0.10;
+    eOpts={value:EMAIL_OK,state:'ok',icon:'ok',iconScale:1};
+    pOpts={value:mask(PASS_OK),state:'ok',icon:'ok',iconScale:1};
+    setBtn(p);
+  } else { // H hold success
+    eOpts={value:EMAIL_OK,state:'ok',icon:'ok',iconScale:1};
+    pOpts={value:mask(PASS_OK),state:'ok',icon:'ok',iconScale:1};
+    setBtn(1);
+  }
+  if(u<0.70) setBtn(0);
+
+  // icon pop scale default for ok/err when not specified
+  if(eOpts.icon&&eOpts.iconScale==null)eOpts.iconScale=1;
+  if(pOpts.icon&&pOpts.iconScale==null)pOpts.iconScale=1;
+
+  setField(eBox,eTxt,eCur,eIco,eMsg,eOpts);
+  setField(pBox,pTxt,pCur,pIco,pMsg,pOpts);
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else {
+  // live: real interactivity could be wired here; demo autoplay as fallback
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

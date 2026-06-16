@@ -1,0 +1,53 @@
+<!-- Moiré interference: two concentric-ring fields from offset centres, slowly counter-rotating/breathing. -->
+<!doctype html><meta charset="utf-8"><title>Cosmos Moiré</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+const LOOP=11000;
+function rings(cx,cy,spacing,rot,col,wob){
+  ctx.strokeStyle=col;ctx.lineWidth=1.1;
+  const maxR=Math.hypot(W,H);
+  for(let r=spacing;r<maxR;r+=spacing){
+    const rr=r+wob*Math.sin(r*0.02+rot*6.2832);
+    ctx.beginPath();ctx.arc(cx,cy,rr,0,6.2832);ctx.stroke();
+  }
+}
+function grating(cx,cy,spacing,ang,col){
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(ang);
+  ctx.strokeStyle=col;ctx.lineWidth=1.0;
+  const ext=Math.hypot(W,H);
+  for(let x=-ext;x<ext;x+=spacing){ctx.beginPath();ctx.moveTo(x,-ext);ctx.lineTo(x,ext);ctx.stroke();}
+  ctx.restore();
+}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  const mx=W/2,my=H/2;
+  // two ring fields drifting against each other -> moiré bands
+  const off=Math.min(W,H)*0.10;
+  const dx=off*Math.cos(2*Math.PI*u), dy=off*Math.sin(2*Math.PI*u);
+  rings(mx-dx,my-dy,11,u,'rgba(139,92,255,0.55)',3*Math.sin(2*Math.PI*u));
+  rings(mx+dx,my+dy,11,-u,'rgba(70,180,255,0.55)',3*Math.cos(2*Math.PI*u));
+  // a rotating line grating pair for a second-order interference
+  const a=0.10*Math.sin(2*Math.PI*u);
+  grating(mx,my,13,a,'rgba(255,92,194,0.22)');
+  grating(mx,my,13,-a,'rgba(54,211,154,0.22)');
+  // central pulse to keep frame 0 rich
+  ctx.globalCompositeOperation='lighter';
+  const pr=Math.min(W,H)*(0.16+0.03*Math.sin(2*Math.PI*(2*u)));
+  const g=ctx.createRadialGradient(mx,my,0,mx,my,pr);
+  g.addColorStop(0,'rgba(224,178,74,0.30)');g.addColorStop(1,'rgba(224,178,74,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(mx,my,pr,0,6.2832);ctx.fill();
+  ctx.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(t);window.__ready=true;}
+else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

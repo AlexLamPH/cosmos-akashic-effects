@@ -1,0 +1,179 @@
+<!-- Cosmos Euclidean Rhythm: 3 concentric ring tracks, each distributing K hits evenly across N steps (Bjorklund / Euclidean algorithm) with a rotating playhead. LIVE: click ring segments to nudge K, drag to change a ring's K/N, press space to run; lit hits glow + ripple inward as the playhead crosses them, firing a synthesized percussion voice per ring (low tom, mid click, high tick). AUTO: a seeded set of 3 Euclidean patterns runs silently — the playhead sweeps the rings, hits flash + ripple inward — looping. Frame 0 has the playhead mid-rotation with hits flashing. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Euclidean Rhythm</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#05030d;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+canvas{display:block}
+.hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+  font-size:12px;color:#8e89ad;letter-spacing:.3px;transition:opacity .35s;pointer-events:none}
+.cap{position:fixed;left:18px;top:16px;font-size:12px;font-weight:680;color:#cfcbe6;letter-spacing:.5px}
+.cap .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8b5cff;box-shadow:0 0 10px #8b5cff;margin-right:8px;vertical-align:middle}
+</style></head>
+<body><div id="stage"><canvas id="c"></canvas></div>
+<div class="cap"><span class="dot"></span>EUCLIDEAN RHYTHM</div>
+<div class="hint" id="hint">▶ press space / click rings to play</div>
+<script>
+const W=560,H=560,LOOP=6400,CX=W/2,CY=H/2,TAU=Math.PI*2;
+const cv=document.getElementById('c'),hintE=document.getElementById('hint');
+cv.width=W;cv.height=H;const g=cv.getContext('2d');
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Euclidean (Bjorklund) — distribute k hits over n steps as evenly as possible.
+function euclid(k,n){if(k<=0)return new Array(n).fill(0);if(k>=n)return new Array(n).fill(1);
+  const p=[];for(let i=0;i<n;i++)p.push(Math.floor((i*k)/n)!==Math.floor(((i+1)*k)/n)?1:0);return p;}
+// 3 rings: outer/mid/inner. radius, color (one cosmos accent family), seeded K/N.
+const ACC=['#8b5cff','#46b4ff','#ff5cc2'];
+const RINGS=[
+  {r:215,k:5,n:8 ,c:ACC[0]},   // outer — violet
+  {r:160,k:7,n:12,c:ACC[1]},   // mid   — cosmic
+  {r:108,k:3,n:5 ,c:ACC[2]}    // inner — nebula
+];
+RINGS.forEach(R=>R.pat=euclid(R.k,R.n));
+// ripple state per ring (triggered when playhead crosses a hit)
+const ripples=[]; // {r0, age, c}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+
+// per-ring phase offsets so frame 0 looks mid-performance (rotations not aligned)
+const PH=[0.0,0.21,0.47];
+function render(u){
+  g.clearRect(0,0,W,H);
+  // soft cosmic vignette
+  const bg=g.createRadialGradient(CX,CY,40,CX,CY,300);
+  bg.addColorStop(0,'rgba(30,22,60,0.55)');bg.addColorStop(1,'rgba(5,3,13,0)');
+  g.fillStyle=bg;g.fillRect(0,0,W,H);
+  // global playhead angle (sweeps clockwise); +0.18 offset => frame 0 mid-rotation
+  const pa=(u+0.18)%1*TAU;
+  // draw rings
+  for(let ri=0;ri<RINGS.length;ri++){
+    const R=RINGS[ri],pat=R.pat,n=R.n;
+    // each ring has its own rotation speed feel via phase, but the playhead is shared visually
+    const rot=PH[ri]*TAU;
+    // ring base circle
+    g.beginPath();g.arc(CX,CY,R.r,0,TAU);g.lineWidth=2;
+    g.strokeStyle=hexA(R.c,0.16);g.stroke();
+    // step dots
+    for(let s=0;s<n;s++){
+      const a=rot - Math.PI/2 + s/n*TAU;       // step angle (start at top)
+      const x=CX+Math.cos(a)*R.r,y=CY+Math.sin(a)*R.r;
+      const lit=pat[s];
+      // is the playhead near this step? (within a small arc window after passing)
+      const stepU=((s/n)+PH[ri])%1;
+      let d=((u+0.18)%1)-stepU;d=((d%1)+1)%1;       // forward distance from step to playhead
+      const cross=lit && d<0.045;                    // just crossed -> flash
+      if(lit){
+        const glow=cross?1:0.5;
+        g.beginPath();g.arc(x,y,cross?12:7,0,TAU);
+        const grd=g.createRadialGradient(x,y,0,x,y,cross?22:11);
+        grd.addColorStop(0,hexA(R.c,cross?1:0.85));grd.addColorStop(1,hexA(R.c,0));
+        g.fillStyle=grd;g.fill();
+        g.beginPath();g.arc(x,y,cross?5:3.4,0,TAU);g.fillStyle=cross?'#ffffff':hexA(R.c,0.9);g.fill();
+        if(cross) spawnRipple(R.r,R.c);
+      } else {
+        g.beginPath();g.arc(x,y,2.2,0,TAU);g.fillStyle=hexA(R.c,0.28);g.fill();
+      }
+    }
+  }
+  // ripples (ripple inward toward center)
+  drawRipples(u);
+  // shared playhead line from center outward
+  const ox=CX+Math.cos(pa-Math.PI/2)*238,oy=CY+Math.sin(pa-Math.PI/2)*238;
+  g.beginPath();g.moveTo(CX,CY);g.lineTo(ox,oy);
+  g.lineWidth=2.5;g.strokeStyle='rgba(255,255,255,0.55)';
+  g.shadowColor='rgba(255,255,255,0.7)';g.shadowBlur=14;g.stroke();g.shadowBlur=0;
+  // center hub
+  g.beginPath();g.arc(CX,CY,5,0,TAU);g.fillStyle='#e0b24a';
+  g.shadowColor='#e0b24a';g.shadowBlur=12;g.fill();g.shadowBlur=0;
+}
+// ripples are computed deterministically in AUTO from u via a small fixed pool keyed on recent crossings;
+// to stay a pure function of u we rebuild ripple set each render from crossing phase.
+let rseed=0;
+function spawnRipple(){}            // (live mode pushes; AUTO uses deterministic pass below)
+function drawRipples(u){
+  // deterministic inward rings: for each ring+step hit, age = forward distance from step-phase
+  for(let ri=0;ri<RINGS.length;ri++){
+    const R=RINGS[ri],pat=R.pat,n=R.n;
+    for(let s=0;s<n;s++){if(!pat[s])continue;
+      const stepU=((s/n)+PH[ri])%1;
+      let d=((u+0.18)%1)-stepU;d=((d%1)+1)%1;
+      if(d<0.16){const t=d/0.16, rr=R.r*(1-t*0.92), a=(1-t)*0.5;
+        g.beginPath();g.arc(CX,CY,rr,0,TAU);g.lineWidth=2*(1-t)+0.4;
+        g.strokeStyle=hexA(R.c,a);g.stroke();}
+    }
+  }
+}
+
+// ---- LIVE audio (synthesis) ----
+let actx,master;
+function audio(){if(!actx){actx=new(window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain();master.gain.value=0.22;
+  const comp=actx.createDynamicsCompressor();master.connect(comp);comp.connect(actx.destination);}
+  if(actx.state==='suspended')actx.resume();return actx;}
+// percussion voice per ring: low tom, mid woodblock click, high tick
+function perc(ri){const a=audio(),t=a.currentTime;
+  if(ri===0){ // low tom — sine pitch drop
+    const o=a.createOscillator(),gn=a.createGain();
+    o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(70,t+0.14);
+    gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(0.9,t+0.005);
+    gn.gain.exponentialRampToValueAtTime(0.001,t+0.30);
+    o.connect(gn);gn.connect(master);o.start(t);o.stop(t+0.32);
+  } else if(ri===1){ // mid woodblock — triangle short with bandpass
+    const o=a.createOscillator(),gn=a.createGain(),f=a.createBiquadFilter();
+    o.type='triangle';o.frequency.setValueAtTime(440,t);o.frequency.exponentialRampToValueAtTime(330,t+0.05);
+    f.type='bandpass';f.frequency.value=900;f.Q.value=4;
+    gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(0.7,t+0.003);
+    gn.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+    o.connect(f);f.connect(gn);gn.connect(master);o.start(t);o.stop(t+0.13);
+  } else { // high tick — short noise-ish square
+    const o=a.createOscillator(),gn=a.createGain(),f=a.createBiquadFilter();
+    o.type='square';o.frequency.setValueAtTime(1500,t);
+    f.type='highpass';f.frequency.value=2000;
+    gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(0.4,t+0.002);
+    gn.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+    o.connect(f);f.connect(gn);gn.connect(master);o.start(t);o.stop(t+0.07);
+  }
+}
+
+// ---- LIVE interaction: click a ring to add a hit, shift-click to remove; drag radially to change n ----
+function ringAt(mx,my){const dx=mx-CX,dy=my-CY,d=Math.hypot(dx,dy);
+  let best=-1,bd=1e9;for(let i=0;i<RINGS.length;i++){const e=Math.abs(d-RINGS[i].r);if(e<34&&e<bd){bd=e;best=i;}}return best;}
+function regen(R){R.k=Math.max(0,Math.min(R.n,R.k));R.pat=euclid(R.k,R.n);}
+cv.addEventListener('pointerdown',e=>{audio();const b=cv.getBoundingClientRect();
+  const mx=(e.clientX-b.left)*(W/b.width),my=(e.clientY-b.top)*(H/b.height);
+  const ri=ringAt(mx,my);if(ri<0)return;const R=RINGS[ri];
+  if(e.shiftKey)R.k--;else R.k++;if(R.k>R.n)R.k=1;if(R.k<0)R.k=0;regen(R);perc(ri);
+  hintE.style.opacity='0';});
+// vertical drag changes N of the nearest ring
+let dragRing=-1,dragY=0;
+cv.addEventListener('pointerdown',e=>{const b=cv.getBoundingClientRect();
+  const mx=(e.clientX-b.left)*(W/b.width),my=(e.clientY-b.top)*(H/b.height);
+  dragRing=ringAt(mx,my);dragY=e.clientY;});
+window.addEventListener('pointermove',e=>{if(dragRing<0)return;
+  const dy=dragY-e.clientY;if(Math.abs(dy)>22){const R=RINGS[dragRing];
+    R.n=Math.max(2,Math.min(16,R.n+(dy>0?1:-1)));R.k=Math.min(R.k,R.n);regen(R);dragY=e.clientY;}});
+window.addEventListener('pointerup',()=>dragRing=-1);
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);window.__seek(0);window.__ready=true;}
+else{
+  let playing=false,start=0;const lastD=RINGS.map(()=>1);
+  function tick(n){
+    let u;
+    if(playing){u=(((n-start)%LOOP)+LOOP)%LOOP/LOOP;
+      // trigger voices when the shared playhead crosses each ring's lit steps
+      for(let ri=0;ri<RINGS.length;ri++){const R=RINGS[ri];
+        for(let s=0;s<R.n;s++){if(!R.pat[s])continue;
+          const stepU=((s/R.n)+PH[ri])%1;let d=((u+0.18)%1)-stepU;d=((d%1)+1)%1;
+          if(d<0.02 && lastD[ri]>=0.5){perc(ri);} }
+        // crude per-ring crossing flag using min distance
+        let md=1;for(let s=0;s<R.n;s++){if(!R.pat[s])continue;const stepU=((s/R.n)+PH[ri])%1;let d=((u+0.18)%1)-stepU;d=((d%1)+1)%1;md=Math.min(md,d);}lastD[ri]=md;
+      }
+    } else { u=(((n)%LOOP)+LOOP)%LOOP/LOOP; }
+    render(u);requestAnimationFrame(tick);
+  }
+  window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();
+    audio();playing=!playing;if(playing)start=performance.now();hintE.style.opacity='0';}});
+  requestAnimationFrame(tick);
+}
+</script></body></html>

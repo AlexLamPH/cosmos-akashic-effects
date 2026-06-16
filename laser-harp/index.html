@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Laser Harp</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);color:#9fd2ff;font:13px/1.4 system-ui,sans-serif;
+opacity:.72;letter-spacing:.04em;pointer-events:none;text-shadow:0 0 8px rgba(70,180,255,.6)}</style></head>
+<body><canvas id="c"></canvas><div id="hint">▶ move / click across the laser beams to PLAY — held beams sustain</div><script>
+// Cosmos Laser Harp — 8 vertical laser beams. Breaking a beam (hover/click) sounds a synth note: a sawtooth through a
+// lowpass filter, sustained while the beam stays "broken". Beams flicker and bloom where touched, with a haze glow.
+// LIVE: real Web Audio, held beams sustain. AUTO: a seeded hand sweeps across the beams silently, note-glow travels.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=6500,TAU=6.28318530718,N=8;
+// minor pentatonic over an octave : pleasant whatever you sweep — A minor pentatonic from A3
+const SCALE=[0,3,5,7,10,12,15,17],BASE=220.0; // A3
+function freq(i){return BASE*Math.pow(2,SCALE[i]/12);}
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let W,H,DPR,m,topY,botY,bx=[];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  m=W*0.13;topY=H*0.09;botY=H*0.91;bx=[];
+  for(let i=0;i<N;i++)bx.push(m+(W-2*m)*i/(N-1));}
+rs();addEventListener('resize',rs);
+// per-beam "broken" intensity 0..1 for live; plus sustaining voices
+const liveOn=new Array(N).fill(0);     // target broken amount
+const liveVis=new Array(N).fill(0);    // smoothed visual broken amount
+// ---- audio (live only): saw -> lowpass, sustained voices per beam ----
+let actx,master;
+const voices=new Array(N).fill(null);
+function audio(){if(!actx){actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();
+  master.gain.value=0.2;const comp=actx.createDynamicsCompressor();master.connect(comp);comp.connect(actx.destination);}
+  if(actx.state==='suspended')actx.resume();return actx;}
+function beamOn(i){const a=audio();if(voices[i])return;const t=a.currentTime;
+  const o=a.createOscillator();o.type='sawtooth';o.frequency.value=freq(i);
+  const f=a.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(400,t);
+  f.frequency.linearRampToValueAtTime(Math.min(freq(i)*6,4200),t+0.25);f.Q.value=6;
+  const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.5,t+0.03); // attack
+  o.connect(f);f.connect(g);g.connect(master);o.start(t);
+  voices[i]={o,g,f};liveOn[i]=1;}
+function beamOff(i){const v=voices[i];if(!v)return;const a=actx,t=a.currentTime;
+  v.g.gain.cancelScheduledValues(t);v.g.gain.setValueAtTime(v.g.gain.value,t);
+  v.g.gain.linearRampToValueAtTime(0.0001,t+0.12); // release, no click
+  v.o.stop(t+0.14);voices[i]=null;liveOn[i]=0;}
+function hex(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+const COS=hex('#46b4ff'),NEB=hex('#ff5cc2'),AUR=hex('#36d39a');
+// AUTO: a hand sweeps back and forth; the nearest beam(s) to the hand are "broken". Note-glow travels with the hand.
+function handPos(u){const p=u*2;const tri=p<1?p:2-p;return tri*(N-1);} // 0..N-1..0 ping-pong
+function autoBroken(i,u){
+  const h=handPos(u);const d=Math.abs(h-i);
+  // a beam is broken when the hand is within ~0.55 of it; soft falloff for bloom
+  return Math.max(0,1-d/0.7);
+}
+function render(u){
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // haze backdrop
+  const vg=x.createRadialGradient(W/2,H*0.5,0,W/2,H*0.5,Math.max(W,H)*0.7);
+  vg.addColorStop(0,'rgba(20,60,110,0.20)');vg.addColorStop(1,'rgba(70,180,255,0)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  // emitter bars top & bottom
+  x.fillStyle='rgba(20,24,40,0.95)';
+  x.fillRect(m*0.5,topY-14*DPR,W-m,9*DPR);
+  x.fillRect(m*0.5,botY+5*DPR,W-m,9*DPR);
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<N;i++){
+    const X=bx[i];
+    let b;
+    if(AUTO){b=autoBroken(i,u);}
+    else{liveVis[i]+=(liveOn[i]-liveVis[i])*0.25;b=liveVis[i];}
+    const col=b>0.05?(i%3===0?NEB:(i%3===1?COS:AUR)):COS;
+    // flicker (deterministic in u so AUTO loops; live uses time too)
+    const fl=0.85+0.15*Math.sin(u*TAU*40+i*1.7);
+    const baseA=0.16+0.10*Math.sin(u*TAU*6+i);   // idle shimmer
+    const a=(baseA+0.75*b)*fl;
+    // beam line glow (wide soft + bright core)
+    const grad=x.createLinearGradient(X-12*DPR,0,X+12*DPR,0);
+    grad.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+    grad.addColorStop(0.5,`rgba(${col[0]},${col[1]},${col[2]},${a})`);
+    grad.addColorStop(1,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+    x.fillStyle=grad;x.fillRect(X-12*DPR,topY,24*DPR,botY-topY);
+    // bright core
+    x.strokeStyle=`rgba(255,255,255,${(0.25+0.6*b)*fl})`;x.lineWidth=(0.8+1.6*b)*DPR;
+    x.beginPath();x.moveTo(X,topY);x.lineTo(X,botY);x.stroke();
+    // bloom where touched: a note-glow orb riding the beam
+    if(b>0.06){
+      const cyG=(topY+botY)/2;
+      const Rr=Math.min(W,H)*0.10*(0.4+b);
+      const gr=x.createRadialGradient(X,cyG,0,X,cyG,Rr);
+      gr.addColorStop(0,`rgba(255,255,255,${0.55*b})`);
+      gr.addColorStop(0.35,`rgba(${col[0]},${col[1]},${col[2]},${0.5*b})`);
+      gr.addColorStop(1,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+      x.fillStyle=gr;x.beginPath();x.arc(X,cyG,Rr,0,TAU);x.fill();
+      // emitter node glow top+bottom
+      for(const ey of [topY,botY]){const eg=x.createRadialGradient(X,ey,0,X,ey,18*DPR*(0.5+b));
+        eg.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},${0.7*b})`);eg.addColorStop(1,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+        x.fillStyle=eg;x.beginPath();x.arc(X,ey,18*DPR*(0.5+b),0,TAU);x.fill();}
+    }
+  }
+  // AUTO: the sweeping "hand" — a soft haze orb tracing across the beams
+  if(AUTO){const h=handPos(u);const X=m+(W-2*m)*h/(N-1);const cyG=(topY+botY)/2;
+    const gr=x.createRadialGradient(X,cyG,0,X,cyG,Math.min(W,H)*0.16);
+    gr.addColorStop(0,'rgba(255,255,255,0.16)');gr.addColorStop(0.4,'rgba(255,92,194,0.14)');gr.addColorStop(1,'rgba(255,92,194,0)');
+    x.fillStyle=gr;x.beginPath();x.arc(X,cyG,Math.min(W,H)*0.16,0,TAU);x.fill();}
+  x.globalCompositeOperation='source-over';
+}
+// ---- live interaction: pointer position breaks the nearest beam(s); click latches a sustain ----
+if(!AUTO){
+  let down=false;
+  function beamAt(mx){let best=-1,bd=1e9;for(let i=0;i<N;i++){const d=Math.abs(bx[i]-mx);if(d<bd){bd=d;best=i;}}
+    return bd<(W/N)*0.45?best:-1;}
+  function setBeams(mx){const hit=beamAt(mx);for(let i=0;i<N;i++){
+    if(i===hit){if(!voices[i])beamOn(i);} else {if(voices[i])beamOff(i);} }}
+  function mx(ev){const rect=cv.getBoundingClientRect();return(ev.clientX-rect.left)*DPR;}
+  cv.addEventListener('pointerdown',ev=>{audio();down=true;setBeams(mx(ev));document.getElementById('hint').style.opacity=0;});
+  cv.addEventListener('pointermove',ev=>{if(down)setBeams(mx(ev));});
+  addEventListener('pointerup',()=>{down=false;for(let i=0;i<N;i++)if(voices[i])beamOff(i);});
+  // hover (no button) also plays the touched beam for a theremin-like feel
+  cv.addEventListener('pointermove',ev=>{if(!down){audio();setBeams(mx(ev));}});
+  cv.addEventListener('pointerleave',()=>{for(let i=0;i<N;i++)if(voices[i])beamOff(i);});
+}
+// ---- boilerplate ----
+if(AUTO){
+  // offset so t=0 lands mid-sweep with a beam broken/blooming
+  const OFF=LOOP*0.22;
+  window.__seek=t=>render(((((t+OFF)%LOOP)+LOOP)%LOOP)/LOOP);
+  window.__seek(0);window.__ready=true;
+}else{
+  const s=performance.now();
+  (function l(n){render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

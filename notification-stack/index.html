@@ -1,0 +1,122 @@
+<!-- Cosmos Notification Stack: cards push in from the top and stack (newest on top, full size), older ones settle down with slight scale+offset behind, and the oldest slides out the bottom — a continuously cycling stack. Deterministic render(u). -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Notification Stack</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+/* the stack lives in a fixed-size frame so cards transform around its centre */
+#stack{position:relative;width:340px;height:300px}
+.card{position:absolute;left:0;top:0;width:340px;
+  display:flex;gap:13px;align-items:flex-start;padding:15px 15px 15px 16px;
+  border-radius:15px;background:linear-gradient(160deg,rgba(30,25,50,.97),rgba(19,16,34,.98));
+  border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 20px 46px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.25);
+  backdrop-filter:blur(8px);overflow:hidden;transform-origin:top center;will-change:transform,opacity}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc)}
+.card::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 80% at 0% 0%,color-mix(in srgb,var(--acc) 18%,transparent),transparent 58%)}
+.ic{flex:0 0 34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--acc) 18%,#15122a);border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);
+  color:var(--acc);position:relative;z-index:1}
+.ic svg{width:19px;height:19px}
+.body{flex:1;min-width:0;position:relative;z-index:1}
+.ttl{font-size:14px;font-weight:650;color:#f3f1fb;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg{margin-top:3px;font-size:12.5px;line-height:1.45;color:#a9a4c4}
+.tm{margin-top:6px;font-size:11px;color:#6f6a8f;font-weight:500}
+.close{flex:0 0 22px;height:22px;border-radius:7px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.05);color:#9a95b8;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:1;transition:background .15s,color .15s}
+.close:hover{background:rgba(255,255,255,.12);color:#fff}
+.close svg{width:12px;height:12px}
+</style></head>
+<body><div id="stage"><div id="stack"></div></div>
+<script>
+const stack=document.getElementById('stack');
+const I={
+  success:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  message:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12 7.7L3 21l1.8-6A8.5 8.5 0 1 1 21 11.5z"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9 6.7 19.1l1-5.8L3.5 9.2l5.9-.9L12 3z"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>'
+};
+// type, accent, title, message, time
+const FEED=[
+  ['success','#36d39a','Payment received','$1,240.00 from Acme Corp.','just now'],
+  ['message','#46b4ff','New message','Jordan: “Can we sync at 3pm?”','1m ago'],
+  ['heart','#ff5cc2','Maya liked your post','“Shipping the new build today 🚀”','2m ago'],
+  ['star','#e0b24a','You earned a badge','Streak master — 30 days in a row.','4m ago'],
+  ['bell','#8b5cff','Deploy finished','build #482 is live in production.','6m ago'],
+  ['info','#46b4ff','Backup complete','12.4 GB archived to cloud storage.','9m ago']
+];
+const VISIBLE=4;                 // cards shown in the stack at once
+const N=FEED.length;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const LOOP=7200;                 // one card-advance per slot
+// build the card pool once (one DOM node per feed item, reused)
+const nodes=FEED.map(()=>{const d=document.createElement('div');d.className='card';
+  d.innerHTML='<div class="ic"></div><div class="body"><div class="ttl"></div><div class="msg"></div><div class="tm"></div></div>'+
+  '<button class="close" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>';
+  stack.appendChild(d);return d;});
+function fill(node,item){node.querySelector('.ic').innerHTML=I[item[0]];node.style.setProperty('--acc',item[1]);
+  node.querySelector('.ttl').textContent=item[2];node.querySelector('.msg').textContent=item[3];node.querySelector('.tm').textContent=item[4];}
+// depth d: 0 = top/newest (full), increasing = further back/down. Returns layout for a given depth (can be fractional during transition).
+const STEP_Y=16, STEP_S=0.05, BASE_Y=10;
+function layout(node,d,extraY,op){
+  const y=BASE_Y+d*STEP_Y+extraY;
+  const s=clamp(1-d*STEP_S,0.55,1);
+  node.style.transform=`translate(-50%,0) translateY(${y.toFixed(1)}px) scale(${s.toFixed(4)})`;
+  node.style.left='50%';
+  node.style.opacity=clamp(op,0,1).toFixed(3);
+  node.style.zIndex=String(100-Math.round(d*10));
+}
+function render(u){
+  // global advance: which feed item currently occupies the "top" slot, plus the in-between progress p
+  const adv=u*N;                 // 0..N
+  const base=Math.floor(adv);    // index of card that is just-arriving / settling to top
+  const p=adv-base;              // 0..1 progress of the current advance
+  const inE=easeOut(p);          // newest card sliding/fading in
+  const outE=easeInOut(p);       // oldest card sliding out
+  // hide all first
+  for(const n of nodes)n.style.opacity='0';
+  // The incoming card (depth slides from -1 toward 0 as p:0->1)
+  // Each visible card k=0..VISIBLE-1 corresponds to feed index (base - k) mod N at depth (k - p... )
+  // We render VISIBLE+1 layers so the entering (top) and the exiting (bottom) both animate.
+  for(let k=-1;k<VISIBLE;k++){
+    const idx=((base-k)%N+N)%N;
+    const node=nodes[idx];
+    fill(node,FEED[idx]);
+    // target depth for this card = k; during the advance the whole stack shifts up by p,
+    // so effective depth = k - p (everything moves one slot toward the top).
+    let d=k-p;
+    let op=1, extraY=0;
+    if(k===-1){            // the entering card: comes from above (depth -1 -> 0)
+      // depth goes from -1 (off top) to 0; fade in over the slide
+      op=inE; extraY=lerp(-46,0,inE);
+      d=lerp(-1,0,inE)-0;     // ease its depth approach
+    }else if(k===VISIBLE-1){ // the oldest visible card heading out the bottom
+      op=lerp(1,0,outE);
+      extraY=lerp(0,52,outE);
+      d=k-p;
+    }else{
+      op=1;
+    }
+    layout(node,d,extraY,op);
+  }
+}
+// frame-0 offset so the thumbnail lands mid-settle (a card mid-arrival) — rich, not a static rest pose
+const OFF=0.06/N;   // a little way into slot 0's advance
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render((((t/LOOP+OFF)%1)+1)%1);window.__seek(0);window.__ready=true;}
+else{
+  // live: clicking a card's close dismisses it (jumps the cycle forward by one slot)
+  let start=performance.now();
+  stack.addEventListener('click',e=>{if(e.target.closest('.close'))start=performance.now()-LOOP/N;});
+  (function l(n){render((((n-start)/LOOP+OFF)%1+1)%1);requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

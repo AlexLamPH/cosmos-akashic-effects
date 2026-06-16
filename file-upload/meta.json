@@ -1,0 +1,11 @@
+{
+  "slug": "file-upload",
+  "title": "Cosmos File Upload — drag-and-drop dropzone with file drop, progress bar and success state",
+  "title_vi": "Cosmos File Upload — vùng kéo-thả với tệp rơi vào, thanh tiến trình và trạng thái thành công",
+  "W": 640, "H": 480, "LOOP": 6000, "N": 75, "START": 2700,
+  "tags": ["file-upload","dropzone","progress","interactive","css"],
+  "summary": "A polished, self-contained file-upload dropzone component on the Cosmos Phantom-dark theme: a dashed drag-and-drop zone where a file card drops in, an upload progress bar fills with a live percentage and the filename, then settles into a green success state with an animated checkmark. Zero dependencies (HTML+CSS+vanilla JS, DOM-based), genuinely interactive in live mode (click to replay the upload) and a deterministic, seamlessly looping auto-demo for capture.",
+  "usage_notes": "RUN: double-click index.html. LIVE: the dashed zone reacts on hover and clicking it replays the drop -> upload -> done sequence; an idle autoplay runs the same cycle. KEY TECHNIQUES: a single render(u) function drives every visual from u in [0,1) across four eased sub-phases (file falls in, progress fills, success hold, fade-out reset) so state is a pure function of u and never depends on CSS-transition timing; the falling file card uses translateY+opacity, the bar width is prog*100%, the % label flips to 'Done' and a scale-popped checkmark on completion; easeInOutCubic shapes the fall and fill. CAPTURE: ?auto=1 + window.__seek(t); START offsets frame 0 into the mid-upload state. TUNE: LOOP for overall speed, phase boundaries inside render(), filename/size text, accent gradient colours, START for the captured frame-0 moment.",
+  "summary_vi": "Một component vùng tải tệp kéo-thả hoàn chỉnh trên nền Cosmos Phantom tối: vùng nét đứt nơi thẻ tệp rơi vào, thanh tiến trình chạy kèm phần trăm trực tiếp và tên tệp, rồi chuyển sang trạng thái thành công màu xanh với dấu tích bật lên. Không phụ thuộc thư viện (HTML+CSS+JS thuần, dựng bằng DOM), tương tác thật ở chế độ live (bấm để chạy lại) và auto-demo loop liền mạch để chụp.",
+  "notes": "render(u) điều khiển toàn bộ trạng thái qua 4 pha eased (tệp rơi, thanh chạy, giữ thành công, mờ dần reset) nên hình ảnh là hàm thuần của u, loop liền mạch."
+}

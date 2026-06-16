@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Typing Terminal</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Typing Terminal — retro monospace prompt typing code lines with a blinking cursor, scanlines + glow. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318;
+let W,H,DPR;
+function rnd(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}
+rs();addEventListener('resize',rs);
+// Script lines (concrete code/commands). Colours: prompt cosmic, text violet/aurora/sacred.
+const LINES=[
+  {t:'> initializing cosmos...',c:'#46b4ff'},
+  {t:'> loading nebula.core  [OK]',c:'#36d39a'},
+  {t:'> mount /dev/stars --seamless',c:'#8b5cff'},
+  {t:'> for(u=0; u<1; u+=dt) render();',c:'#e0b24a'},
+  {t:'> warp.engage(phantom)',c:'#ff5cc2'},
+  {t:'> ready ▮',c:'#46b4ff'}];
+const TOTAL=LINES.reduce((a,l)=>a+l.t.length,0); // chars across all lines
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // typing cycle: type (0..0.72) -> pause (0.72..0.92) -> clear/retype wrap (0.92..1)
+  const p=u<0.92? Math.min(1,u/0.72) : 1-((u-0.92)/0.08); // fraction of script revealed (deterministic of u)
+  const shown=Math.max(0,Math.round(p*TOTAL));
+  const fs=Math.round(Math.min(W*0.046,H*0.058)),lh=fs*1.7,pad=W*0.10;
+  x.font=`${fs}px "SF Mono",ui-monospace,monospace`;x.textAlign='left';x.textBaseline='middle';
+  let y=H*0.5-(LINES.length-1)*lh/2, used=0, curX=pad, curY=y, drewCursor=false;
+  for(let i=0;i<LINES.length;i++){const L=LINES[i];
+    const visN=Math.max(0,Math.min(L.t.length,shown-used)); used+=L.t.length;
+    if(visN<=0){if(!drewCursor){curY=y;} y+=lh; continue;}
+    const seg=L.t.slice(0,visN), ly=y;
+    x.save();x.globalCompositeOperation='lighter';x.shadowColor=L.c;x.shadowBlur=10*DPR;
+    x.fillStyle=L.c;x.fillText(seg,pad,ly);x.restore();
+    if(visN<L.t.length || i===LINES.length-1){curX=pad+x.measureText(seg).width;curY=ly;drewCursor=true;}
+    y+=lh;}
+  // blinking cursor: blink is deterministic fn of u (4 integer cycles -> seamless)
+  if(Math.sin(TAU*u*4)>-0.2){x.save();x.globalCompositeOperation='lighter';x.shadowColor='#46b4ff';x.shadowBlur=14*DPR;
+    x.fillStyle='#46b4ff';x.fillRect(curX+2*DPR,curY-fs*0.55,fs*0.6,fs*1.1);x.restore();}
+  // faint scanlines
+  x.globalAlpha=0.35;x.fillStyle='#000';for(let yy=0;yy<H;yy+=3*DPR)x.fillRect(0,yy,W,1.2*DPR);x.globalAlpha=1;
+  // ambient screen glow + vignette
+  x.save();x.globalCompositeOperation='lighter';const g=x.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.6);
+  g.addColorStop(0,'rgba(70,90,160,0.10)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
+  const v=x.createRadialGradient(W/2,H/2,Math.min(W,H)*0.25,W/2,H/2,Math.max(W,H)*0.62);
+  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.6)');x.fillStyle=v;x.fillRect(0,0,W,H);}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

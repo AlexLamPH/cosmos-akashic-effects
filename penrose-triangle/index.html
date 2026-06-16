@@ -1,0 +1,70 @@
+<!-- Cosmos Penrose Triangle: true 3D tribar — three square beams chained head-to-tail along +X, +Y, +Z and orthographically (isometric) projected so the wrap-around corner reads as a closed, impossible triangle; lit tops, shaded sides, glowing edges, one full in-plane turn per loop for a seamless spin. Pure Canvas 2D, hand-rolled 3D math. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Penrose Triangle</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+const LOOP=8000;
+let W,H,DPR,cx,cy,S;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;S=Math.min(W,H)*0.052;}
+rs();addEventListener('resize',rs);
+const COLS=[[139,92,255],[70,180,255],[54,211,154]]; // violet, cosmic, aurora
+// Isometric basis: 3D (X,Y,Z) -> 2D. X lower-right, Y lower-left, Z up.
+const A30=Math.PI/6;
+const ix=[Math.cos(-A30),-Math.sin(-A30)], iy=[-Math.cos(-A30),-Math.sin(-A30)], iz=[0,-1];
+function iso(p){return [p[0]*ix[0]+p[1]*iy[0]+p[2]*iz[0], p[0]*ix[1]+p[1]*iy[1]+p[2]*iz[1]];}
+// One square beam of thickness w running length L along +axis a, starting at corner o (3D).
+const w=1, L=4.4;
+const AX=[[1,0,0],[0,1,0],[0,0,1]]; // beam k runs along AX[k]
+function add(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
+function mul(a,s){return [a[0]*s,a[1]*s,a[2]*s];}
+// Each beam is a w-square cuboid spanning length L along its axis, occupying the
+// thickness slab [0,w] x [0,w] in the other two axes — but shifted along the NEXT
+// axis by L so that consecutive beams form L-elbows that interlock into a closed ring.
+// Beam0 runs +X at base; beam1 runs +Y starting at beam0's +X end; beam2 runs +Z
+// starting at beam1's +Y end and its far end wraps back over beam0's start.
+// Origins (near, min corner of each beam's bounding box):
+const O=[ [0,0,0], [L,0,0], [L,L,0] ];
+function beamFaces(k){
+  const o=O[k], a=AX[k], u=AX[(k+1)%3], v=AX[(k+2)%3]; // a=long, u,v=thickness
+  const A=mul(a,L+w), U=mul(u,w), V=mul(v,w);          // extend by w to fill the corner cube
+  const c=(...vs)=>{let p=o.slice();for(const s of vs)p=add(p,s);return p;};
+  return [
+    {pts:[c(V),c(A,V),c(A,U,V),c(U,V)],sh:1.00},   // top (+v, lit)
+    {pts:[c(),c(A),c(A,V),c(V)],sh:0.46},          // long side (-u)
+    {pts:[c(A),c(A,U),c(A,U,V),c(A,V)],sh:0.66}    // far end cap (+a)
+  ];
+}
+// centroid for centering
+let CXo=0,CYo=0;(function(){let n=0,sx=0,sy=0;for(let k=0;k<3;k++)for(const f of beamFaces(k))for(const p of f.pts){const s=iso(p);sx+=s[0];sy+=s[1];n++;}CXo=sx/n;CYo=sy/n;})();
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  let bg=x.createRadialGradient(cx,cy,0,cx,cy,S*9);
+  bg.addColorStop(0,'rgba(90,70,170,0.22)');bg.addColorStop(0.5,'rgba(40,90,150,0.07)');bg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=bg;x.beginPath();x.arc(cx,cy,S*9,0,TAU);x.fill();
+  const rot=TAU*u, cr=Math.cos(rot), sr=Math.sin(rot); // one in-plane turn => seamless
+  function project(p){const s=iso(p);let px=(s[0]-CXo)*S, py=(s[1]-CYo)*S;return [cx+px*cr-py*sr, cy+px*sr+py*cr];}
+  function drawFace(pts3,col,sh,top){
+    const p=pts3.map(project);
+    x.globalCompositeOperation='source-over';
+    x.fillStyle='rgb('+(col[0]*sh*0.55|0)+','+(col[1]*sh*0.55|0)+','+(col[2]*sh*0.55|0)+')';
+    x.beginPath();x.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)x.lineTo(p[i][0],p[i][1]);x.closePath();x.fill();
+    x.strokeStyle='#05030d';x.lineWidth=2.2*DPR;x.lineJoin='round';x.stroke(); // crisp dark seam
+    x.globalCompositeOperation='lighter';
+    x.strokeStyle='rgba('+col[0]+','+col[1]+','+col[2]+','+(0.30+sh*0.55)+')';
+    x.lineWidth=(1.6+sh*1.6)*DPR;x.stroke();
+    if(top){x.strokeStyle='rgba(255,255,255,'+(0.2+sh*0.34)+')';x.lineWidth=0.9*DPR;x.stroke();}
+  }
+  // FIXED painter order beam0->beam1->beam2: each beam's far end is overdrawn by the next
+  // beam's near end, producing the cyclic over/under that makes the tribar impossible.
+  for(let k=0;k<3;k++){const f=beamFaces(k);for(let fi=0;fi<f.length;fi++)drawFace(f[fi].pts,COLS[k],f[fi].sh,fi===0);}
+  // glowing corner nodes where the three beams interlock
+  x.globalCompositeOperation='lighter';
+  const NODES=[[L+w/2,w/2,w/2],[L+w/2,L+w/2,w/2],[w/2,w/2,w/2]];
+  for(let k=0;k<3;k++){const c=COLS[k],q=project(NODES[k]);const g=x.createRadialGradient(q[0],q[1],0,q[0],q[1],S*1.5);
+    g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+',0.5)');g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+    x.fillStyle=g;x.beginPath();x.arc(q[0],q[1],S*1.5,0,TAU);x.fill();}
+  x.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

@@ -1,0 +1,14 @@
+{
+  "slug": "pixel-dissolve",
+  "title": "Cosmos Pixel Dissolve — the logo scattering into and reassembling from pixel blocks",
+  "title_vi": "Cosmos Pixel Dissolve — logo tan rã thành và tái hợp từ các khối pixel",
+  "W": 600,
+  "H": 600,
+  "LOOP": 4800,
+  "N": 60,
+  "tags": ["dissolve", "pixel", "logo", "particles", "glitch"],
+  "summary": "The Cosmos logo is sampled into a grid of pixel blocks that scatter outward with per-block seeded direction and spin, then ping-pong back into a clean assembled logo. Blocks are tinted by the sampled logo colour.",
+  "usage_notes": "RUN: open index.html (auto-animates) or pass ?auto=1 for frame control. KEY TECHNIQUES: the inlined logo data-URI is drawn once into a 42x42 offscreen and sampled per cell for colour+alpha; a mulberry32 seed assigns each block an angle, scatter distance and phase; a triangle wave of u drives a ping-pong dissolve amount d, with a smoothstep + per-block phase stagger so blocks scatter at different times; additive blending gives a glowing reassembly. GATE: window.__ready is set true only after img load + sample. CAPTURE: ?auto=1 + window.__seek(t). TUNE: GRID for block resolution, dist multiplier for scatter spread, the +0.06 offset for how assembled frame 0 looks, and LOOP for speed.",
+  "summary_vi": "Logo Cosmos được lấy mẫu thành lưới các khối pixel văng ra ngoài với hướng và xoay seeded riêng từng khối, rồi ping-pong trở lại thành logo hoàn chỉnh. Mỗi khối được tô màu theo màu logo lấy mẫu.",
+  "notes": "Vòng lặp liền mạch 4.8s qua sóng tam giác của u nên frame(0)==frame(LOOP). Logo nhúng trực tiếp dưới dạng data-URI; __ready chỉ true sau khi ảnh tải và lấy mẫu xong (gate img.onload/decode + poll rAF). Seed mulberry32 gán pha/góc/khoảng cách một lần khi khởi tạo. Frame 0 lệch 0.06 để hiển thị logo gần như hoàn chỉnh kèm chút văng."
+}

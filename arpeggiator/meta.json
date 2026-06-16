@@ -1,0 +1,14 @@
+{
+  "slug": "arpeggiator",
+  "title": "Cosmos Arpeggiator — chord arp with plucky Web Audio oscillators",
+  "title_vi": "Bộ Rải Hợp Âm Cosmos",
+  "W": 560,
+  "H": 480,
+  "LOOP": 6400,
+  "N": 80,
+  "tags": ["arpeggiator", "audio", "webaudio", "interactive", "sound", "synth", "sequencer", "canvas2d", "generative", "glow"],
+  "summary": "An arpeggiator that makes REAL sound via the Web Audio API: pick a chord (maj/min/sus/maj7) and a pattern (up/down/updown) and it arpeggiates through the chord tones at a tempo using short plucky triangle-oscillator notes. A ring of note dots lights in sequence with the active note glowing, a rotating playhead spoke and a central pulse fire on each step, and a bottom step row mirrors the up/down sequence. Fully self-contained, zero deps, runs offline. Ships with a silent deterministic looping visual demo (a seeded chord arpeggiating) for capture.",
+  "usage_notes": "RUN: open index.html and press SPACE to start/stop and HEAR it (audio needs a user gesture); click the maj/min/sus/maj7 buttons to change chord, up/down/updown to change pattern, +/- to change tempo. KEY TECHNIQUES: each note is a triangle OscillatorNode -> lowpass BiquadFilter (sweeping 4k->800Hz) -> gain with a fast attack / 0.32s exponential decay envelope -> master gain (0.2) -> compressor, giving a plucky tone; notes are scheduled on a look-ahead clock (setInterval feeds actx.currentTime); chord tones are semitone offsets (freq = root * 2**(semi/12)) so it stays in tune. CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) drives a seeded chord+pattern arp that loops. TUNE: CHORDS/ROOT for harmony, bpm for tempo, the envelope times in pluck() for pluckiness, AUTO_STEPS for the demo cycle length.",
+  "summary_vi": "Bộ rải hợp âm tạo âm thanh THẬT qua Web Audio API: chọn hợp âm (maj/min/sus/maj7) và kiểu (lên/xuống/lên-xuống), nó rải lần lượt các nốt theo nhịp bằng tiếng gảy ngắn từ bộ dao động tam giác. Một vòng các chấm nốt sáng theo trình tự với nốt đang chơi rực sáng, kim chỉ quay và xung trung tâm nảy theo mỗi bước, hàng bước phía dưới phản chiếu trình tự lên/xuống. Tự chứa, không phụ thuộc, chạy ngoại tuyến; kèm demo hình lặp tất định không tiếng để chụp.",
+  "notes": "Mở ra rồi bấm SPACE và click các nút hợp âm/kiểu để nghe nó rải nốt."
+}

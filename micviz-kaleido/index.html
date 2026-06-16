@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos MicViz Kaleido</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);font:600 13px/1 system-ui,sans-serif;
+color:#cbb6ff;background:rgba(20,8,40,.55);border:1px solid rgba(139,92,255,.4);padding:8px 14px;border-radius:20px;
+letter-spacing:.04em;cursor:pointer;user-select:none;transition:opacity .8s;z-index:2}</style></head>
+<body><canvas id="c"></canvas><div id="hint">🎤 enable mic</div><script>
+// Cosmos MicViz Kaleido — a mirrored k-fold kaleidoscope; spectrum bins scale/rotate the shapes,
+// beats recolor the whole bloom. Reacts to the live mic, with a deterministic synthetic fallback.
+const cv=document.getElementById('c'),x=cv.getContext('2d'),hint=document.getElementById('hint');
+const LOOP=8400,TAU=6.283185307,N=64,FOLDS=10;
+const PALS=[['#8b5cff','#46b4ff','#ff5cc2'],['#36d39a','#46b4ff','#8b5cff'],
+['#ff6a3d','#ff5cc2','#e0b24a'],['#46b4ff','#36d39a','#ffffff'],['#ff5cc2','#8b5cff','#ff6a3d']];
+let W,H,DPR,cx,cy,RAD;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;RAD=Math.min(W,H)*0.46;}
+rs();addEventListener('resize',rs);
+// ---- deterministic synthetic spectrum (mulberry32 seeded once) ----
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const rng=mb(0x10A1D0),SEED=[];for(let i=0;i<N;i++)SEED.push({ph:rng()*TAU,sp:0.5+rng()*2.5,w:0.4+rng()*0.7});
+function synthSpectrum(u){const spec=new Float32Array(N);const a=TAU*u;
+  // moving formant bumps
+  const f1=0.18+0.12*Math.sin(a),f2=0.52+0.16*Math.sin(a*2+1.3),f3=0.80+0.10*Math.sin(a*3+2.1);
+  let lvl=0;
+  for(let i=0;i<N;i++){const p=i/N;const s=SEED[i];
+    let v=Math.exp(-Math.pow((p-f1)/0.10,2))*0.9
+         +Math.exp(-Math.pow((p-f2)/0.13,2))*0.7
+         +Math.exp(-Math.pow((p-f3)/0.09,2))*0.6;
+    v*=0.6+0.4*Math.sin(a*s.sp+s.ph);
+    v=Math.max(0,v)*s.w;
+    spec[i]=v;lvl+=v;}
+  // kick on the beat (4 beats per loop)
+  const beat=Math.pow(0.5+0.5*Math.cos(TAU*4*u),6);
+  for(let i=0;i<10;i++)spec[i]+=beat*1.2*(1-i/10);
+  lvl=Math.min(1,lvl/N*2.2+beat*0.6);
+  // normalise each bin into [0..1]
+  for(let i=0;i<N;i++)spec[i]=Math.min(1,spec[i]);
+  return {spec,level:lvl};
+}
+// ---- beat detector for recolor ----
+let curPal=0,lastLow=0,flash=0;
+function detectBeat(spec){let low=0;for(let i=0;i<8;i++)low+=spec[i];low/=8;
+  if(low-lastLow>0.18&&flash<=0){curPal=(curPal+1)%PALS.length;flash=1;}
+  lastLow=lastLow*0.6+low*0.4;flash*=0.90;return flash;}
+// ---- render: draws scene from abstract spectrum ----
+function render(spec,level,t){
+  const fl=detectBeat(spec),pal=PALS[curPal];
+  // fade trails (slight, additive bloom)
+  x.globalCompositeOperation='source-over';x.fillStyle='rgba(5,3,13,'+(0.22+0.10*level)+')';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const spin=TAU*t*0.55+level*0.6;
+  x.save();x.translate(cx,cy);x.rotate(spin);
+  const seg=TAU/FOLDS;
+  for(let f=0;f<FOLDS;f++){
+    x.save();x.rotate(f*seg);if(f%2)x.scale(1,-1); // mirror alternating wedges
+    // draw spectrum-driven shapes inside one wedge
+    for(let i=0;i<N;i+=2){
+      const p=i/N,m=spec[i];
+      const r=RAD*(0.10+0.82*p);
+      const sz=(3+m*34)*DPR*(0.7+0.6*level);
+      const ang=p*seg*0.9+m*0.4+t*TAU*(0.3+p)*0.5; // shapes rotate with bins
+      const px=Math.cos(ang)*r,py=Math.sin(ang)*r;
+      const col=pal[i%3];
+      x.globalAlpha=0.22+0.65*m;
+      x.fillStyle=col;
+      x.beginPath();
+      // petal/triangle whose size scales with the bin
+      const k=3+(i%3);
+      for(let v=0;v<k;v++){const va=ang+v/k*TAU;x.lineTo(px+Math.cos(va)*sz,py+Math.sin(va)*sz);}
+      x.closePath();x.fill();
+      // connecting filament toward centre
+      x.globalAlpha=0.10+0.30*m;x.strokeStyle=col;x.lineWidth=(0.8+1.6*m)*DPR;
+      x.beginPath();x.moveTo(px*0.4,py*0.4);x.lineTo(px,py);x.stroke();
+    }
+    x.restore();
+  }
+  x.restore();
+  // glowing recolour core; flashes on beat
+  const cr=RAD*(0.13+0.10*level+0.10*fl);
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,cr);
+  g.addColorStop(0,'#ffffff');g.addColorStop(0.4,pal[0]);g.addColorStop(1,'rgba(5,3,13,0)');
+  x.globalAlpha=0.9;x.fillStyle=g;x.beginPath();x.arc(cx,cy,cr,0,TAU);x.fill();
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+// ================= sources =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+// LIVE attract / mic plumbing
+let analyser=null,bytes=null,useSynth=true,t0=performance.now();
+async function mic(){try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    const src=ctx.createMediaStreamSource(s);analyser=ctx.createAnalyser();analyser.fftSize=128;
+    src.connect(analyser);bytes=new Uint8Array(analyser.frequencyBinCount);useSynth=false;
+    hint.style.opacity='0';setTimeout(()=>hint.remove(),900);
+  }catch(e){useSynth=true;hint.textContent='🎤 mic unavailable';hint.style.opacity='0';}}
+function liveSpectrum(){const spec=new Float32Array(N);analyser.getByteFrequencyData(bytes);
+  let lvl=0;const M=bytes.length;
+  for(let i=0;i<N;i++){const v=(bytes[Math.min(M-1,(i*M/N)|0)]||0)/255;spec[i]=v;lvl+=v;}
+  return {spec,level:Math.min(1,lvl/N*1.6)};}
+function startLiveLoop(){(function loop(now){const t=now-t0;const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+    let s;if(useSynth||!analyser){s=synthSpectrum(u);}else s=liveSpectrum();
+    render(s.spec,s.level,u);requestAnimationFrame(loop);})(performance.now());}
+if(AUTO){window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP;const s=synthSpectrum(u);render(s.spec,s.level,u);};window.__seek(0);window.__ready=true;}
+else{useSynth=true;addEventListener('pointerdown',()=>{if(useSynth)mic();},{once:false});startLiveLoop();}
+</script></body></html>

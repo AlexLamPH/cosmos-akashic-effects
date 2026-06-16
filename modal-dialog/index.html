@@ -1,0 +1,102 @@
+<!-- Cosmos Modal Dialog: a blurred backdrop fades in and a glassy centred dialog scales+fades up (title/text/Cancel+Confirm); deterministic open->hold->close->pause loop. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Modal Dialog</title><style>
+*{margin:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:#0a0816;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
+/* faux page content sitting behind the modal so the blur/dim reads */
+#page{position:absolute;inset:0;padding:42px 48px;color:#3a3460;user-select:none}
+#page h1{font-size:30px;font-weight:700;letter-spacing:-.5px;margin-bottom:18px;color:#4a4470}
+#page .row{height:13px;border-radius:7px;background:linear-gradient(90deg,#211c3a,#181430);margin:13px 0}
+#page .row:nth-child(2){width:78%}#page .row:nth-child(3){width:92%}#page .row:nth-child(4){width:64%}
+#page .row:nth-child(5){width:85%}#page .row:nth-child(6){width:40%}
+#page .card{margin-top:26px;height:120px;border-radius:16px;background:linear-gradient(135deg,#1a1533,#13102a);border:1px solid #241e42}
+/* backdrop */
+#backdrop{position:absolute;inset:0;background:rgba(6,4,16,.62);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);will-change:opacity}
+/* dialog */
+#dialog{position:relative;width:404px;padding:30px 30px 26px;border-radius:20px;
+  background:linear-gradient(160deg,rgba(38,31,68,.94),rgba(22,17,44,.96));
+  border:1px solid rgba(139,92,255,.30);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04) inset,0 0 60px -18px rgba(139,92,255,.55);
+  will-change:transform,opacity;transform-origin:center}
+#dialog .ic{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+  background:linear-gradient(150deg,rgba(139,92,255,.28),rgba(139,92,255,.08));border:1px solid rgba(139,92,255,.4)}
+#dialog .ic svg{width:26px;height:26px;stroke:#b79bff;stroke-width:2.2;fill:none}
+#dialog h2{color:#f3f0ff;font-size:21px;font-weight:650;letter-spacing:-.3px;margin-bottom:10px}
+#dialog p{color:#a9a2cc;font-size:14.5px;line-height:1.55;margin-bottom:24px}
+#dialog .acts{display:flex;gap:12px;justify-content:flex-end}
+#dialog button{font:inherit;font-size:14px;font-weight:600;padding:11px 20px;border-radius:11px;cursor:pointer;border:1px solid transparent;transition:transform .12s,background .15s,border-color .15s,box-shadow .15s}
+#dialog .cancel{background:rgba(255,255,255,.05);color:#c5bfe2;border-color:rgba(255,255,255,.12)}
+#dialog .cancel:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22)}
+#dialog .confirm{color:#fff;background:linear-gradient(135deg,#8b5cff,#7a45ff);box-shadow:0 8px 22px -8px rgba(139,92,255,.9)}
+#dialog .confirm:hover{box-shadow:0 10px 28px -8px rgba(139,92,255,1);transform:translateY(-1px)}
+#dialog button:active{transform:translateY(0) scale(.97)}
+#open{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:5;font:inherit;font-size:14px;font-weight:600;color:#fff;
+  padding:12px 24px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#8b5cff,#7a45ff);box-shadow:0 8px 22px -8px rgba(139,92,255,.9)}
+</style></head>
+<body>
+<div id="page">
+  <h1>Workspace settings</h1>
+  <div class="row"></div><div class="row"></div><div class="row"></div>
+  <div class="row"></div><div class="row"></div>
+  <div class="card"></div>
+</div>
+<div id="backdrop"></div>
+<div id="dialog">
+  <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+  <h2>Delete this project?</h2>
+  <p>This will permanently remove the project and all of its files. This action cannot be undone.</p>
+  <div class="acts"><button class="cancel">Cancel</button><button class="confirm">Delete project</button></div>
+</div>
+<button id="open">Open dialog</button>
+<script>
+const backdrop=document.getElementById('backdrop'),dialog=document.getElementById('dialog');
+const LOOP=6000;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+// easeOutBack for a lively pop on open
+function outBack(t){t=clamp(t,0,1);const c1=1.70158,c3=c1+1;const x=t-1;return 1+c3*x*x*x+c1*x*x;}
+// vis: 0 = closed (dialog gone), 1 = fully open
+function setState(vis,pop){
+  backdrop.style.opacity=vis.toFixed(4);
+  // scale: start small, overshoot via pop; fade with vis; lift up slightly
+  const sc=0.86+0.14*pop;
+  const ty=14*(1-pop);
+  dialog.style.opacity=clamp(vis*1.15,0,1).toFixed(4);
+  dialog.style.transform=`translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`;
+  dialog.style.pointerEvents=vis>0.5?'auto':'none';
+}
+// phases over u in [0,1): open(0-.16) hold(.16-.62) close(.62-.74) pause(.74-1)
+function render(u){
+  let vis,pop;
+  if(u<0.16){const t=smooth(u/0.16);vis=t;pop=outBack(u/0.16);}
+  else if(u<0.62){vis=1;pop=1;}
+  else if(u<0.74){const t=smooth((u-0.62)/0.12);vis=1-t;pop=1-t;}
+  else {vis=0;pop=0;}
+  setState(vis,pop);
+}
+const OPEN_AT=0.07; // frame-0 offset: dialog already mid-open / open
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render((((t/LOOP+OPEN_AT)%1)+1)%1);window.__seek(0);window.__ready=true;}
+else{
+  // real interactivity: open/close buttons
+  let manual=null;
+  const openBtn=document.getElementById('open');
+  function show(){manual=performance.now();}
+  function hide(){manual=null;render(0.70);} // jump to closing state then settle
+  openBtn.addEventListener('click',show);
+  dialog.querySelector('.cancel').addEventListener('click',hide);
+  dialog.querySelector('.confirm').addEventListener('click',hide);
+  backdrop.addEventListener('click',hide);
+  const s=performance.now();
+  (function l(n){
+    if(manual!==null){
+      // quick manual open animation then hold open
+      const e=(n-manual)/1000;render(clamp(0.04+e*0.6,0,0.5));
+    } else {
+      render((((n-s)/LOOP+OPEN_AT)%1+1)%1);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

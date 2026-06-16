@@ -1,0 +1,21 @@
+{
+  "slug": "iridescent",
+  "title": "Cosmos Iridescent — a holographic oil-slick sheen of flowing hue bands",
+  "title_vi": "Cosmos Iridescent — lớp ánh hologram dầu loang với dải màu chảy mượt",
+  "W": 372,
+  "H": 372,
+  "LOOP": 8000,
+  "N": 80,
+  "tags": [
+    "iridescent",
+    "holographic",
+    "gradient",
+    "generative",
+    "canvas2d",
+    "shader"
+  ],
+  "summary": "A holographic oil-slick / soap-bubble iridescence — angle-based hue bands flow smoothly across the frame like thin-film interference on a bubble, rendered through the Cosmos accent ramp for a soft, premium sheen. The colour is computed per-pixel from a flowing thin-film thickness (warped wave centres), view angle and radius, with a moving specular glare crossing the surface and a gentle vignette. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: iridescence is rendered per-pixel into a small 176px offscreen buffer (GIF-friendly) then upscaled and bloomed to fill the frame; for each pixel a thin-film 'thickness' is summed from a few seeded warped wave centres using INTEGER spatial frequencies and INTEGER temporal harmonics of w=2*pi*u so the flow loops seamlessly; that thickness plus the pixel's view angle (atan2) and radius forms a hue value sampled through the six-colour Cosmos accent ramp with linear interpolation, drifting exactly one full cycle per loop (hue wraps mod 1); a soft brightness band makes the colours read as flowing light, an additive bloom copy and a radial specular sweep moving on cos/sin of w add premium glare, and a vignette keeps the edges dark. CAPTURE: ?auto=1 + window.__seek(t). TUNE: S (buffer resolution), NW (wave count), wave fx/fy/amp, the hue formula coefficients, bloom alpha, specular sweep radius, vignette strength, LOOP, RAMP palette.",
+  "summary_vi": "Lớp ánh sắc cầu vồng kiểu dầu loang / bong bóng xà phòng — các dải màu theo góc nhìn chảy mượt khắp khung như giao thoa màng mỏng, tô qua dải màu accent Cosmos cho cảm giác cao cấp, mềm mại. Màu được tính theo từng pixel từ độ dày màng mỏng đang chảy, góc nhìn và bán kính, kèm vệt loé chuyển động và vignette nhẹ. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Sắc cầu vồng tính per-pixel trên buffer 176px rồi phóng to và bloom; độ dày màng mỏng dùng tần số không gian và sóng hài thời gian nguyên của w=2*pi*u nên loop liền, hue tô qua ramp 6 màu wrap mod 1."
+}

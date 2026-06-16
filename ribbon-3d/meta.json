@@ -1,0 +1,14 @@
+{
+  "slug": "ribbon-3d",
+  "title": "Cosmos Ribbon 3D — a flowing band of quads twisting through space",
+  "title_vi": "Dải Lụa 3D Cosmos",
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "3d", "generative", "ribbon", "glow"],
+  "summary": "A flowing 3D ribbon of connected quads twists along a sine path through space, shaded by facing and depth and glowing in Cosmos accents. Built by hand with rotate + perspective math. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a centerline is sampled along a sine path with a per-length twist vector; left/right edges form quads sorted back-to-front by depth, brightness driven by depth + screen-space facing area; integer-harmonic sin/cos phases make it loop. CAPTURE: ?auto=1 + window.__seek(t). TUNE: SEG (resolution), half (band width), F (perspective), the harmonic counts in the y/z path.",
+  "summary_vi": "Một dải lụa 3D gồm các tứ giác nối tiếp xoắn theo đường sin trong không gian, tô màu theo hướng mặt và độ sâu, phát sáng theo bảng màu Cosmos. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Toán 3D tự viết: xoay + phối cảnh scale=F/(F+z); pha là bội số nguyên nên lặp liền mạch."
+}

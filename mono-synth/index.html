@@ -1,0 +1,276 @@
+<!-- Cosmos Mono Synth: a classic monophonic subtractive synth. LIVE: play 1.5-octave keys (click / QWERTY) — one oscillator (saw/square) through a resonant lowpass with an ADSR filter envelope + LFO vibrato and portamento between notes; knobs set cutoff/resonance; a scope draws the waveform. AUTO: a seeded bassline/lead riff plays silently — keys depress in sequence, the cutoff glow sweeps, the scope wiggles — looping. Frame 0 mid-riff with a key down. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mono Synth</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.panel{--acc:#46b4ff;width:740px;padding:18px;border-radius:20px;
+  background:linear-gradient(165deg,rgba(24,26,42,.96),rgba(12,14,24,.97));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.2)}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:0 4px}
+.title{font-size:13px;font-weight:680;color:#eef3fa;letter-spacing:.5px;flex:0 0 auto}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc)}
+#scope{flex:1;height:64px;border-radius:10px;background:#070a14;border:1px solid rgba(255,255,255,.07);
+  box-shadow:inset 0 4px 14px rgba(0,0,0,.5)}
+.hint{font-size:11px;color:#7e889d;flex:0 0 auto;transition:opacity .3s}
+.row{display:flex;gap:14px;align-items:flex-end}
+.knobs{display:flex;gap:18px;padding:6px 8px 0}
+.knob{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:ns-resize;user-select:none}
+.knob canvas{filter:drop-shadow(0 0 6px rgba(70,180,255,.25))}
+.knob span{font-size:9.5px;color:#8a93a8;font-weight:600;letter-spacing:.4px}
+.wave-sel{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.wbtn{font-size:10px;font-weight:600;color:#8a93a8;padding:5px 10px;border-radius:7px;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:.15s}
+.wbtn.on{color:#0a0816;background:var(--acc);border-color:var(--acc);box-shadow:0 0 12px rgba(70,180,255,.5)}
+.keys{position:relative;flex:1;height:160px;border-radius:12px;overflow:hidden;
+  background:linear-gradient(180deg,#121620,#080b12);border:1px solid rgba(255,255,255,.07);
+  box-shadow:inset 0 6px 18px rgba(0,0,0,.5)}
+.wk{position:absolute;top:0;bottom:0;border-radius:0 0 6px 6px;cursor:pointer;
+  background:linear-gradient(180deg,#eaeef5,#c6ccd8 78%,#aab0bf);border:1px solid #181c26;
+  box-shadow:inset 0 -8px 14px rgba(0,0,0,.18);transition:transform .04s,filter .06s}
+.wk .lab{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:9.5px;color:#69707f;font-weight:600}
+.bk{position:absolute;top:0;z-index:3;border-radius:0 0 5px 5px;cursor:pointer;
+  background:linear-gradient(180deg,#323848,#11141c 80%);border:1px solid #000;
+  box-shadow:inset 0 -6px 10px rgba(0,0,0,.5),0 4px 8px rgba(0,0,0,.5);transition:transform .04s,filter .06s}
+.bk .lab{position:absolute;bottom:5px;left:0;right:0;text-align:center;font-size:8px;color:#9aa3b5;font-weight:600}
+.wk.on{transform:translateY(3px);
+  background:linear-gradient(180deg,#bfe0ff,#8fc4f5 80%);box-shadow:inset 0 0 16px rgba(70,180,255,.55),inset 0 -6px 12px rgba(0,0,0,.2)}
+.bk.on{transform:translateY(2px);
+  background:linear-gradient(180deg,#46b4ff,#2470b0 85%);box-shadow:inset 0 0 14px rgba(140,210,255,.7),0 2px 6px rgba(0,0,0,.5)}
+</style></head>
+<body><div id="stage">
+  <div class="panel" id="panel">
+    <div class="top">
+      <span class="dot"></span><span class="title">MONO SYNTH</span>
+      <canvas id="scope" width="900" height="128"></canvas>
+      <span class="hint" id="hint">▶ click / press a,s,d…</span>
+    </div>
+    <div class="row">
+      <div class="knobs">
+        <div class="knob" id="kCut"><canvas width="96" height="96"></canvas><span>CUTOFF</span></div>
+        <div class="knob" id="kRes"><canvas width="96" height="96"></canvas><span>RESO</span></div>
+        <div class="wave-sel">
+          <div class="wbtn on" id="wSaw">SAW</div>
+          <div class="wbtn" id="wSqr">SQUARE</div>
+        </div>
+      </div>
+      <div class="keys" id="keys"></div>
+    </div>
+  </div>
+</div>
+<script>
+const LOOP=5600, TAU=Math.PI*2;
+// 1.5 octaves: 11 white keys, semitone offsets from C3 (base 130.81)
+const WHITE=[0,2,4,5,7,9,11,12,14,16,17];
+const WLAB=['A','S','D','F','G','H','J','K','L',';','\''];
+const BLACKS=[{w:0,s:1,l:'W'},{w:1,s:3,l:'E'},{w:3,s:6,l:'T'},{w:4,s:8,l:'Y'},{w:5,s:10,l:'U'},
+  {w:7,s:13,l:'O'},{w:8,s:15,l:'P'},{w:10,s:18,l:']'}];
+const BASE=130.81;
+const keysE=document.getElementById('keys'),hintE=document.getElementById('hint');
+const scope=document.getElementById('scope'),sx=scope.getContext('2d');
+let panelW=740-36-2-150; // keys flex region approx; recomputed below from element
+const whiteEls=[],blackEls=[];
+const NW=WHITE.length;
+for(let i=0;i<NW;i++){const d=document.createElement('div');d.className='wk';
+  d.innerHTML='<span class="lab">'+WLAB[i]+'</span>';keysE.appendChild(d);whiteEls.push(d);}
+for(const b of BLACKS){const d=document.createElement('div');d.className='bk';
+  d.innerHTML='<span class="lab">'+b.l+'</span>';keysE.appendChild(d);blackEls.push(d);}
+function layoutKeys(){
+  const KW=keysE.clientWidth, ww=KW/NW;
+  for(let i=0;i<NW;i++){whiteEls[i].style.left=(i*ww)+'px';whiteEls[i].style.width=(ww-1)+'px';}
+  for(let i=0;i<BLACKS.length;i++){const b=BLACKS[i],bw=ww*0.62;
+    blackEls[i].style.left=((b.w+1)*ww-bw/2)+'px';blackEls[i].style.width=bw+'px';blackEls[i].style.height='98px';}
+}
+addEventListener('resize',layoutKeys);
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(20260615);
+const ACC='#46b4ff';
+
+// --- seeded mono riff (minor pentatonic bassline/lead) ---
+const RIFF_SCALE=[0,3,5,7,10,12,15];
+const STEPS=16, RIFF=[];
+for(let i=0;i<STEPS;i++){
+  const on=rnd()<0.82;
+  const deg=Math.floor(rnd()*RIFF_SCALE.length);
+  RIFF.push({on, semi:RIFF_SCALE[deg]});
+}
+// map a riff semitone to nearest playable key index (for the visual key-down)
+function semiToKey(semi){
+  let best={w:0,b:-1},bd=99;
+  for(let i=0;i<NW;i++){const d=Math.abs(WHITE[i]-semi);if(d<bd){bd=d;best={w:i,b:-1};}}
+  for(let i=0;i<BLACKS.length;i++){const d=Math.abs(BLACKS[i].s-semi);if(d<bd){bd=d;best={w:-1,b:i};}}
+  return best;
+}
+// knob values 0..1
+let knobCut=0.62, knobRes=0.74, wave='sawtooth';
+
+// scope: deterministic waveform for AUTO; in live, fed by analyser-like synth params
+function drawScope(u, cutGlow, curSemi, on){
+  const w=scope.width,h=scope.height;
+  sx.clearRect(0,0,w,h);
+  // glow background tinted by cutoff
+  sx.globalCompositeOperation='source-over';
+  sx.fillStyle='#070a14';sx.fillRect(0,0,w,h);
+  // grid mid line
+  sx.globalAlpha=0.25;sx.strokeStyle='#1c2740';sx.lineWidth=1;sx.beginPath();sx.moveTo(0,h/2);sx.lineTo(w,h/2);sx.stroke();
+  sx.globalCompositeOperation='lighter';
+  // waveform: filtered saw/square — fewer harmonics when cutoff is low
+  const f=on?(0.25+(curSemi/24)):0;
+  const cycles=2.2+f*4;
+  const harmonics=2+Math.round(cutGlow*8);
+  const amp=on?(0.62+0.3*cutGlow):0.12;
+  sx.globalAlpha=0.85;sx.strokeStyle=ACC;sx.lineWidth=2;sx.beginPath();
+  for(let i=0;i<=w;i++){ const t=i/w; const ph=(t*cycles+u*2)%1;
+    let s=0;
+    if(wave==='sawtooth'){ for(let k=1;k<=harmonics;k++) s+= Math.sin(TAU*ph*k)/k; s*=0.55; }
+    else { for(let k=1;k<=harmonics;k+=2) s+= Math.sin(TAU*ph*k)/k; s*=0.7; }
+    // resonance bump: add a ringing at the cutoff
+    s += 0.18*knobRes*cutGlow*Math.sin(TAU*ph*(harmonics+1));
+    const y=h/2 - s*amp*(h*0.42);
+    if(i===0)sx.moveTo(i,y);else sx.lineTo(i,y);
+  }
+  sx.stroke();
+  // soft glow pass
+  sx.globalAlpha=0.3;sx.lineWidth=5;sx.stroke();
+  sx.globalAlpha=1;sx.globalCompositeOperation='source-over';
+}
+
+function drawKnob(el,val,col){
+  const c=el.querySelector('canvas'),k=c.getContext('2d'),w=c.width,h=c.height,cx=w/2,cy=h/2,r=w*0.36;
+  k.clearRect(0,0,w,h);
+  k.fillStyle='#0c1018';k.beginPath();k.arc(cx,cy,r,0,TAU);k.fill();
+  k.strokeStyle='#26314a';k.lineWidth=3;k.beginPath();k.arc(cx,cy,r,0,TAU);k.stroke();
+  // arc
+  const a0=Math.PI*0.75, sweep=Math.PI*1.5;
+  k.globalCompositeOperation='lighter';
+  k.strokeStyle=col;k.lineWidth=4;k.beginPath();k.arc(cx,cy,r,a0,a0+sweep*val);k.stroke();
+  k.globalCompositeOperation='source-over';
+  // indicator
+  const ang=a0+sweep*val;
+  k.strokeStyle='#fff';k.lineWidth=2.5;k.beginPath();
+  k.moveTo(cx+Math.cos(ang)*r*0.35,cy+Math.sin(ang)*r*0.35);
+  k.lineTo(cx+Math.cos(ang)*r*0.78,cy+Math.sin(ang)*r*0.78);k.stroke();
+}
+
+function render(u){
+  // offset so frame 0 sits mid-riff with a key down
+  const p=((u+0.158)%1+1)%1, fpos=p*STEPS, step=Math.floor(fpos), frac=fpos-step;
+  const cur=RIFF[step%STEPS];
+  // filter envelope: opens on attack, decays over the step (ADSR-ish), plus LFO sweep
+  const env=Math.exp(-frac*2.2);
+  const lfo=0.5+0.5*Math.sin(u*TAU*3);
+  const cutGlow=Math.min(1, knobCut*(0.45+0.5*env)+0.08*lfo);
+  // clear keys
+  for(const e of whiteEls)e.classList.remove('on');
+  for(const e of blackEls)e.classList.remove('on');
+  let curSemi=0, on=false;
+  if(cur.on){ on=true; curSemi=cur.semi;
+    const km=semiToKey(cur.semi);
+    if(km.w>=0)whiteEls[km.w].classList.add('on'); else blackEls[km.b].classList.add('on');
+    // portamento overlap: faintly hold previous near step start
+    if(frac<0.22){ const pr=RIFF[(step-1+STEPS)%STEPS]; if(pr.on){ const pk=semiToKey(pr.semi);
+      if(pk.w>=0)whiteEls[pk.w].classList.add('on'); else blackEls[pk.b].classList.add('on'); } }
+  }
+  // cutoff glow tint on panel border (the audible sweep made visible)
+  const g=Math.round(120+cutGlow*135);
+  document.getElementById('panel').style.boxShadow=
+    '0 30px 70px rgba(0,0,0,.55), 0 0 '+(8+cutGlow*30).toFixed(0)+'px rgba(70,'+g+',255,'+(0.15+cutGlow*0.35).toFixed(2)+')';
+  drawScope(u, cutGlow, curSemi, on);
+  drawKnob(document.getElementById('kCut'), Math.min(1,knobCut*(0.7+0.3*env)+0.05*lfo), ACC);
+  drawKnob(document.getElementById('kRes'), knobRes, '#8b5cff');
+}
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx,master,osc,filt,vca,lfo,lfoG,curFreq=BASE,voiceOn=false,heldCount=0;
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function ensureVoice(){
+  if(master)return; const a=audio();
+  master=a.createGain();master.gain.value=0.22;
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);
+  osc=a.createOscillator();osc.type=wave;osc.frequency.value=BASE;
+  filt=a.createBiquadFilter();filt.type='lowpass';
+  filt.frequency.value=300; filt.Q.value=2+knobRes*22;
+  vca=a.createGain();vca.gain.value=0.0001;
+  // LFO vibrato into osc.frequency
+  lfo=a.createOscillator();lfo.type='sine';lfo.frequency.value=5.2;
+  lfoG=a.createGain();lfoG.gain.value=3.5; // cents-ish detune depth (Hz at low notes)
+  lfo.connect(lfoG);lfoG.connect(osc.frequency);
+  osc.connect(filt);filt.connect(vca);vca.connect(master);
+  osc.start();lfo.start();
+}
+function noteOn(semi){
+  ensureVoice(); const a=actx,t=a.currentTime;
+  const f=BASE*Math.pow(2,semi/12);
+  osc.type=wave;
+  // portamento glide
+  osc.frequency.cancelScheduledValues(t);
+  osc.frequency.setValueAtTime(curFreq,t);
+  osc.frequency.exponentialRampToValueAtTime(f,t+0.07);
+  curFreq=f;
+  // filter ADSR envelope
+  const peak=400+knobCut*6500;
+  filt.Q.setValueAtTime(2+knobRes*22,t);
+  filt.frequency.cancelScheduledValues(t);
+  filt.frequency.setValueAtTime(filt.frequency.value,t);
+  filt.frequency.linearRampToValueAtTime(peak,t+0.04);                 // filter attack
+  filt.frequency.exponentialRampToValueAtTime(Math.max(300,peak*0.4),t+0.5); // decay→sustain
+  // amp envelope
+  vca.gain.cancelScheduledValues(t);
+  vca.gain.setValueAtTime(vca.gain.value,t);
+  vca.gain.linearRampToValueAtTime(0.9,t+0.012);                       // attack
+  vca.gain.linearRampToValueAtTime(0.6,t+0.12);                        // decay→sustain
+  voiceOn=true;
+}
+function noteOff(){
+  if(!actx||!voiceOn)return; const t=actx.currentTime;
+  vca.gain.cancelScheduledValues(t);
+  vca.gain.setValueAtTime(vca.gain.value,t);
+  vca.gain.linearRampToValueAtTime(0.0001,t+0.18);                     // release, click-free
+  filt.frequency.cancelScheduledValues(t);
+  filt.frequency.setTargetAtTime(300,t,0.2);
+  voiceOn=false;
+}
+function semitoneOfWhite(i){return WHITE[i];}
+function flash(el){if(!el)return;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),160);}
+function hideHint(){hintE.style.opacity='0';}
+
+const KEYMAP={};
+WLAB.forEach((k,i)=>KEYMAP[k.toLowerCase()]={st:WHITE[i],el:whiteEls[i]});
+BLACKS.forEach((b,i)=>KEYMAP[b.l.toLowerCase()]={st:b.s,el:blackEls[i]});
+const held={};
+
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  layoutKeys(); window.__seek(0); window.__ready=true;
+} else {
+  layoutKeys();
+  whiteEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>{e.preventDefault();heldCount++;noteOn(semitoneOfWhite(i));el.classList.add('on');hideHint();}));
+  blackEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>{e.preventDefault();heldCount++;noteOn(BLACKS[i].s);el.classList.add('on');hideHint();}));
+  function up(el){ el.classList.remove('on'); heldCount=Math.max(0,heldCount-1); if(heldCount===0)noteOff(); }
+  whiteEls.forEach(el=>['pointerup','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>{if(el.classList.contains('on'))up(el);})));
+  blackEls.forEach(el=>['pointerup','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>{if(el.classList.contains('on'))up(el);})));
+  addEventListener('keydown',e=>{const m=KEYMAP[e.key.toLowerCase()];
+    if(m&&!held[e.key]){held[e.key]=1;heldCount++;noteOn(m.st);m.el.classList.add('on');hideHint();}});
+  addEventListener('keyup',e=>{const m=KEYMAP[e.key.toLowerCase()];
+    if(m&&held[e.key]){held[e.key]=0;m.el.classList.remove('on');heldCount=Math.max(0,heldCount-1);if(heldCount===0)noteOff();}});
+  // knob drag
+  function wireKnob(el,get,set){ let y0=null,v0=0;
+    el.addEventListener('pointerdown',e=>{audio();y0=e.clientY;v0=get();el.setPointerCapture(e.pointerId);});
+    el.addEventListener('pointermove',e=>{if(y0!=null){set(Math.max(0,Math.min(1,v0-(e.clientY-y0)*0.006)));}});
+    el.addEventListener('pointerup',()=>y0=null);
+  }
+  wireKnob(document.getElementById('kCut'),()=>knobCut,v=>knobCut=v);
+  wireKnob(document.getElementById('kRes'),()=>knobRes,v=>{knobRes=v;if(filt)filt.Q.value=2+v*22;});
+  // wave select
+  const wSaw=document.getElementById('wSaw'),wSqr=document.getElementById('wSqr');
+  wSaw.addEventListener('click',()=>{wave='sawtooth';wSaw.classList.add('on');wSqr.classList.remove('on');if(osc)osc.type=wave;});
+  wSqr.addEventListener('click',()=>{wave='square';wSqr.classList.add('on');wSaw.classList.remove('on');if(osc)osc.type=wave;});
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

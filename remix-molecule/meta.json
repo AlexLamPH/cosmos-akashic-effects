@@ -1,0 +1,11 @@
+{
+  "slug": "remix-molecule",
+  "title": "Cosmos Remix — Molecule you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "molecule", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle molecule: an orbiting atomic cluster of a few central nuclei (bonded like a molecule), each ringed by electrons on inclined orbital rings, the whole structure tumbling in 3D as time advances and depth-shaded so points nearer the camera are bigger and brighter. Live glass panel retunes palette, shape, density, speed, spread, dot size plus an Atoms knob for the number of nuclei; reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, and drag Atoms to set how many nuclei the molecule has, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: nuclei are placed on a small sphere via a golden-spiral distribution; each nucleus carries electrons on several inclined orbital rings (a circle tilted by ring index); every point is rotated by a shared 3D tumble (Y then X rotation driven by u, integer turns so the loop is seamless) and projected with perspective shrink s = persp·R/(persp·R + z), which also sets per-point size and brightness for depth shading; colour from a per-point ramp of the active palette, drawn additively. PARAMS convention: window.__params describes knobs and window.setParam(key,value) applies them so a generic remix harness can auto-build the panel; theme tokens = a PALETTES map driving a CSS accent var and the dot ramp; SHAPES picks the cheap canvas glyph (try 'atom'). CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Atoms for a bigger molecule, add palettes to PALETTES, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

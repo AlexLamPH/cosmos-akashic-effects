@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Epicycloid</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Epicycloid — a small circle rolls around a big one, the pen traces glowing looping epi/hypocycloid curves. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318530718;
+let W,H,DPR,cx,cy,scale,rings=[];
+// seeded RNG (mulberry32)
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;scale=Math.min(W,H)*0.30;
+  const r=mul(7);rings=[];
+  for(let i=0;i<5;i++){
+    const R=3+(r()*5|0);                       // big circle radius (integer cusps)
+    let rr=1+(r()*3|0); if(rr>=R)rr=R-1; if(rr<1)rr=1; // rolling circle radius (integer)
+    const hypo=i%2===1;                          // alternate epicycloid / hypocycloid
+    const K=R*2;                                 // integer turns of the parameter so curve closes
+    rings.push({R,rr,hypo,K,col:AC[i%AC.length],ring:0.95-i*0.14,dir:i%2?1:-1,ph:r()});
+  }}
+rs();addEventListener('resize',rs);
+// position on the (epi/hypo)cycloid for parameter angle a (radians of the base roll)
+function curvePt(c,a,sc){
+  const R=c.R,rr=c.rr; let px,py;
+  if(c.hypo){ px=(R-rr)*Math.cos(a)+rr*Math.cos((R-rr)/rr*a); py=(R-rr)*Math.sin(a)-rr*Math.sin((R-rr)/rr*a); }
+  else      { px=(R+rr)*Math.cos(a)-rr*Math.cos((R+rr)/rr*a); py=(R+rr)*Math.sin(a)-rr*Math.sin((R+rr)/rr*a); }
+  return [px*sc,py*sc];
+}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);                  // full repaint each frame (pure of t)
+  x.globalCompositeOperation='lighter';
+  const cg=x.createRadialGradient(cx,cy,0,cx,cy,scale*1.6);
+  cg.addColorStop(0,'rgba(139,92,255,0.16)');cg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=cg;x.fillRect(0,0,W,H);
+  rings.forEach((c,ci)=>{
+    const spin=c.dir*u*TAU + c.ph*TAU;                         // exactly one rotation per loop
+    const cos=Math.cos(spin),sin=Math.sin(spin);
+    const col=c.col;
+    const ext=c.hypo?c.R:(c.R+2*c.rr), sc=scale*c.ring/ext;    // normalize size to ring
+    const tr=(px,py)=>[cx+ (px*cos-py*sin), cy+ (px*sin+py*cos)];
+    // the rolling angle sweeps 2*PI*u*K (integer K) so the curve completes & loops
+    const phi=TAU*u*c.K;
+    // faint rolling circles: base circle + the small rolling circle at its current contact
+    const baseR=c.R*sc;
+    x.lineWidth=Math.max(1,0.8*DPR);
+    x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},0.10)`;
+    const [bx,by]=tr(0,0); x.beginPath();x.arc(bx,by,baseR,0,TAU);x.stroke();
+    // rolling circle centre (epi: outside, hypo: inside)
+    const a=phi/c.K* (c.hypo?(c.R-c.rr):(c.R+c.rr)) /1; // unused fallback
+    const ang=phi, cenR=(c.hypo?(c.R-c.rr):(c.R+c.rr))*sc;
+    const ccx=cenR*Math.cos(ang), ccy=cenR*Math.sin(ang);
+    const [rcx,rcy]=tr(ccx,ccy);
+    x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},0.16)`;
+    x.beginPath();x.arc(rcx,rcy,c.rr*sc,0,TAU);x.stroke();
+    // the bright traced curve, drawn fully (always complete & closed)
+    const SEG=720, span=TAU*c.K;
+    x.lineWidth=Math.max(1,(1.5-ci*0.12)*DPR);
+    const al=0.5+0.32*Math.sin(TAU*(u+ci/5));
+    x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${al})`;
+    x.beginPath();
+    for(let s=0;s<=SEG;s++){
+      const aa=s/SEG*span; const [px,py]=curvePt(c,aa,sc); const [X,Y]=tr(px,py);
+      if(s===0)x.moveTo(X,Y);else x.lineTo(X,Y);
+    }
+    x.stroke();
+    // glowing pen head at the live contact point on the traced curve
+    const [px,py]=curvePt(c,phi,sc); const [PX,PY]=tr(px,py);
+    const g=x.createRadialGradient(PX,PY,0,PX,PY,7*DPR);
+    g.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},0.95)`);g.addColorStop(1,'rgba(5,3,13,0)');
+    x.fillStyle=g;x.beginPath();x.arc(PX,PY,7*DPR,0,TAU);x.fill();
+    // small line from rolling centre to pen (the "pen arm")
+    x.lineWidth=Math.max(1,0.8*DPR);x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},0.22)`;
+    x.beginPath();x.moveTo(rcx,rcy);x.lineTo(PX,PY);x.stroke();
+  });
+  x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

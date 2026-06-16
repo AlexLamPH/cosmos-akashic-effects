@@ -1,0 +1,11 @@
+{
+  "slug": "pinwheel",
+  "title": "Cosmos Pinwheel — spinning colour-blade pinwheel",
+  "title_vi": "Cosmos Pinwheel — chong chóng nhiều màu xoay",
+  "W": 560, "H": 560, "LOOP": 5000, "N": 63,
+  "tags": ["pinwheel", "spin", "radial", "colorful", "canvas2d"],
+  "summary": "A cheerful pinwheel of twelve curved colour blades in the Cosmos accents spinning around a glowing hub and gently breathing. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: twelve quadratic-curve blades fanned around the centre, each filled with a radial accent gradient; the whole wheel rotates 2π·u (one integer turn per LOOP) and breathes via sin(2π·u·2), with an additive glowing hub. CAPTURE: ?auto=1 + window.__seek(t). TUNE: blade count N, curl, AC colours.",
+  "summary_vi": "Một chiếc chong chóng vui mắt gồm 12 cánh cong nhiều màu theo bảng accent Cosmos, xoay quanh trục sáng và 'thở' nhẹ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Effect #150 — Ra tự viết (mốc 150!). 12 cánh quadratic, xoay 2π·u + breathe sin → seamless."
+}

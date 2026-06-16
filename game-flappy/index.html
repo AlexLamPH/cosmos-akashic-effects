@@ -1,0 +1,174 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Flap</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:480px;height:620px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(70,180,255,.06) inset;}
+  #hud{position:absolute;top:14px;left:0;right:0;display:flex;justify-content:space-between;
+    padding:0 22px;pointer-events:none;font-weight:700;letter-spacing:.5px;}
+  #score{font-size:30px;color:#fff;text-shadow:0 0 14px rgba(70,180,255,.8);}
+  #best{font-size:14px;color:#8b5cff;align-self:center;opacity:.85;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:26px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tap{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="480" height="620"></canvas>
+  <div id="hud"><div id="score">0</div><div id="best">BEST 0</div></div>
+  <div id="over"><h1>CRASHED</h1><p id="fin">Score 0</p><button id="btn">Restart ▸</button></div>
+  <div id="tap">SPACE / TAP / CLICK to flap · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=480,H=620;
+// palette
+const VIO='139,92,255',COS='70,180,255',NEB='255,92,194',AUR='54,211,154',SOL='255,106,61',SAC='224,178,74';
+// sim constants
+const GRAV=1700, FLAP=-470, ORBX=150, GAP=168, PW=70, SPEED=185, SPACING=255, R=15;
+const GY=560; // ground y
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// pipe gap centers from a seeded stream, deterministic by index
+function gapCenter(i){const r=mul(1337+i*97);const v=r();return 150+v*(GY-300);}
+// ---- deterministic sim state ----
+let S;
+function reset(){
+  S={t:0,y:H*0.42,vy:0,score:0,dead:false,passed:0,best:S?S.best:0,shake:0};
+}
+reset();
+// world x scroll: distance traveled
+function pipeXAt(i,scroll){ return ORBX + 120 + i*SPACING - scroll; }
+// auto-player: decide flap to thread the next gap (smooth, reliable threading)
+function autoWantsFlap(st,scroll){
+  let next=-1, gc=GY/2;
+  for(let i=0;i<60;i++){const px=pipeXAt(i,scroll); if(px+PW>ORBX-2){next=i;gc=gapCenter(i);break;}}
+  // aim a touch above gap center so gravity settles us into it
+  const target=gc-14;
+  // flap when at/below target and not already rising fast
+  if(st.y>=target && st.vy>-120) return true;
+  return false;
+}
+const DT=16; // ms fixed step
+function step(st,auto){
+  const dt=DT/1000;
+  const scroll=st.t/1000*SPEED;
+  if(auto && autoWantsFlap(st,scroll)){ st.vy=FLAP; }
+  st.vy+=GRAV*dt; st.y+=st.vy*dt;
+  for(let i=0;i<60;i++){const px=pipeXAt(i,scroll); if(px+PW/2<ORBX && i>=st.passed){st.score++;st.passed=i+1;}}
+  st.t+=DT;
+}
+// AUTO sim: always alive (auto-player threads every gap), pure function of time.
+// START offset puts frame 0 mid-flight between pipes with score already > 0.
+function simTo(ms){ reset(); const START=2200; const target=START+ms;
+  while(S.t<target){ step(S,true); }
+  return S;
+}
+// drawing
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function draw(st){
+  const scroll=st.t/1000*SPEED;
+  const sx=st.shake>0.4?(Math.sin(st.t*0.7)*st.shake):0, sy=st.shake>0.4?(Math.cos(st.t*0.9)*st.shake):0;
+  x.save(); x.translate(sx,sy);
+  // bg
+  x.clearRect(-20,-20,W+40,H+40);
+  const bg=x.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#120c2c');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  // star dots (deterministic parallax)
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<46;i++){const r=mul(7+i*13);const bx=((r()*W*2 - scroll*0.25)% (W+40)+W+40)%(W+40)-20;
+    const by=r()*GY; const tw=0.3+0.5*r(); const rad=0.6+1.6*r();
+    x.fillStyle=`rgba(${COS},${tw*0.5})`; x.beginPath();x.arc(bx,by,rad,0,7); x.fill();}
+  x.globalCompositeOperation='source-over';
+  // pipes
+  for(let i=0;i<60;i++){const px=pipeXAt(i,scroll); if(px>W)continue; if(px<-PW)continue;
+    const gc=gapCenter(i); const topH=gc-GAP/2, botY=gc+GAP/2;
+    drawPipe(px,0,topH,true); drawPipe(px,botY,GY-botY,false);
+  }
+  // ground
+  x.fillStyle='#0e0a22'; x.fillRect(0,GY,W,H-GY);
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${VIO},.5)`; x.fillRect(0,GY,W,2);
+  x.globalCompositeOperation='source-over';
+  // orb
+  drawOrb(ORBX,st.y,st.vy,st.dead,st.t);
+  x.restore();
+  // HUD via DOM
+  document.getElementById('score').textContent=st.score;
+  document.getElementById('best').textContent='BEST '+Math.max(st.best,st.score);
+}
+function drawPipe(px,py,h,top){
+  if(h<=0)return;
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${COS},.10)`; rr(px-6,py-6,PW+12,h+12,12); x.fill();
+  x.globalCompositeOperation='source-over';
+  const g=x.createLinearGradient(px,0,px+PW,0);
+  g.addColorStop(0,'rgba(40,28,90,1)');g.addColorStop(.5,`rgba(${VIO},.95)`);g.addColorStop(1,'rgba(40,28,90,1)');
+  x.fillStyle=g; rr(px,py,PW,h, 8); x.fill();
+  // rim cap
+  const capY= top? py+h-16 : py;
+  x.fillStyle=`rgba(${COS},.9)`; rr(px-5,capY,PW+10,16,7); x.fill();
+  x.globalCompositeOperation='lighter';
+  x.fillStyle=`rgba(${COS},.35)`; x.fillRect(px+8,py,3,h);
+  x.globalCompositeOperation='source-over';
+}
+function drawOrb(ox,oy,vy,dead,t){
+  const tilt=Math.max(-0.5,Math.min(0.9,vy/700));
+  x.save(); x.translate(ox,oy); x.rotate(tilt);
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(0,0,0,0,0,R*3.2);
+  const c= dead? NEB: COS;
+  gg.addColorStop(0,`rgba(255,255,255,.95)`);gg.addColorStop(.3,`rgba(${c},.8)`);gg.addColorStop(1,`rgba(${c},0)`);
+  x.fillStyle=gg; x.beginPath();x.arc(0,0,R*3.2,0,7);x.fill();
+  // trail
+  for(let k=1;k<7;k++){const a=(1-k/7)*0.4; x.fillStyle=`rgba(${VIO},${a})`;
+    x.beginPath();x.arc(-k*7,k*1.5,R*(1-k*0.09),0,7);x.fill();}
+  x.globalCompositeOperation='source-over';
+  // core
+  const cg=x.createRadialGradient(-4,-4,1,0,0,R);
+  cg.addColorStop(0,'#ffffff');cg.addColorStop(.5,`rgba(${c},1)`);cg.addColorStop(1,`rgba(${dead?NEB:VIO},1)`);
+  x.fillStyle=cg; x.beginPath();x.arc(0,0,R,0,7);x.fill();
+  x.fillStyle='rgba(255,255,255,.9)'; x.beginPath();x.arc(-4,-4,3.4,0,7);x.fill();
+  x.restore();
+}
+const LOOP=11000;
+function drawAt(ms){ const st=simTo(ms); draw(st); }
+// ---- live game ----
+let live, raf, last;
+function initGame(){
+  reset(); S.t=0; live=true;
+  const over=document.getElementById('over'), btn=document.getElementById('btn');
+  function flap(){ if(S.dead){return;} S.vy=FLAP; }
+  function restart(){ const b=S.best; reset(); S.best=b; S.t=0; live=true; over.style.display='none'; }
+  function loop(now){ if(!last)last=now; let dt=now-last; last=now; if(dt>60)dt=60;
+    if(live && !S.dead){ // step using real dt accumulator
+      acc+=dt; while(acc>=DT){ stepLive(); acc-=DT; }
+    }
+    draw(S);
+    if(S.dead && live){ live=false; if(S.score>S.best)S.best=S.score;
+      document.getElementById('fin').textContent='Score '+S.score+'  ·  Best '+S.best;
+      over.style.display='flex'; }
+    raf=requestAnimationFrame(loop); }
+  let acc=0;
+  function stepLive(){ const dt=DT/1000; const scroll=S.t/1000*SPEED;
+    S.vy+=GRAV*dt; S.y+=S.vy*dt;
+    for(let i=0;i<60;i++){const px=pipeXAt(i,scroll); if(px+PW/2<ORBX && i>=S.passed){S.score++;S.passed=i+1;}}
+    if(S.y>GY-R||S.y<R){S.dead=true;S.shake=12;}
+    for(let i=0;i<60;i++){const px=pipeXAt(i,scroll);if(px>W)break;if(px<-PW)continue;
+      if(ORBX+R>px&&ORBX-R<px+PW){const gc=gapCenter(i);if(S.y-R<gc-GAP/2||S.y+R>gc+GAP/2){S.dead=true;S.shake=12;}}}
+    S.t+=DT; if(S.dead)S.shake*=0.9; }
+  addEventListener('keydown',e=>{ if(e.code==='Space'){e.preventDefault(); S.dead?restart():flap();}
+    if(e.key==='r'||e.key==='R')restart(); });
+  cv.addEventListener('pointerdown',()=>{ S.dead?restart():flap(); });
+  btn.addEventListener('click',e=>{e.stopPropagation();restart();});
+  raf=requestAnimationFrame(loop);
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

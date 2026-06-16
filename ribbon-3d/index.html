@@ -1,0 +1,60 @@
+<!doctype html><!-- Cosmos Ribbon 3D — a band of connected quads twisting along a sine path, shaded by facing+depth -->
+<meta charset="utf-8"><title>Cosmos Ribbon 3D</title>
+<style>html,body{margin:0;height:100%;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const BG='#05030d',LOOP=8000;
+const ACC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+let DPR=1,W=0,H=0;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function rot(p,ax,ay){let[x,y,z]=p;let c=Math.cos(ay),s=Math.sin(ay);[x,z]=[x*c-z*s,x*s+z*c];c=Math.cos(ax);s=Math.sin(ax);[y,z]=[y*c-z*s,y*s+z*c];return[x,y,z];}
+function frame(t){
+  const u=(((t%LOOP)+LOOP)%LOOP)/LOOP,ph=2*Math.PI*u;
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,F=560,scale=Math.min(W,H)/520;
+  const ay=ph,ax=0.42*Math.sin(ph)-0.25; // integer-harmonic tumble, returns to start
+  const SEG=120,half=58;
+  // build ribbon centerline + side edges in 3D, twisting along a sine path
+  const pts=[];
+  for(let i=0;i<=SEG;i++){
+    const f=i/SEG, x=(f-0.5)*640;
+    const y=130*Math.sin(2*Math.PI*(2*f)+ph)+50*Math.sin(2*Math.PI*(3*f)-ph);
+    const z=160*Math.cos(2*Math.PI*(1*f)-ph);
+    const twist=2*Math.PI*(2*f)+ph; // band rolls along its length
+    // ribbon "up" vector spun by twist
+    const ux=0,uy=Math.cos(twist),uz=Math.sin(twist);
+    pts.push({c:[x,y,z],u:[ux,uy,uz],f});
+  }
+  const proj=p=>{const r=rot(p,ax,ay);const s=F/(F+r[2]);return{x:cx+r[0]*s*scale,y:cy+r[1]*s*scale,z:r[2],s};};
+  // emit quads back-to-front by depth
+  const quads=[];
+  for(let i=0;i<SEG;i++){
+    const a=pts[i],b=pts[i+1];
+    const aL=[a.c[0]+a.u[0]*half,a.c[1]+a.u[1]*half,a.c[2]+a.u[2]*half];
+    const aR=[a.c[0]-a.u[0]*half,a.c[1]-a.u[1]*half,a.c[2]-a.u[2]*half];
+    const bL=[b.c[0]+b.u[0]*half,b.c[1]+b.u[1]*half,b.c[2]+b.u[2]*half];
+    const bR=[b.c[0]-b.u[0]*half,b.c[1]-b.u[1]*half,b.c[2]-b.u[2]*half];
+    const pa=proj(aL),pb=proj(aR),pc=proj(bR),pd=proj(bL);
+    const zm=(pa.z+pb.z+pc.z+pd.z)/4;
+    // facing via screen-space cross product (sign of winding)
+    const e1x=pb.x-pa.x,e1y=pb.y-pa.y,e2x=pd.x-pa.x,e2y=pd.y-pa.y;
+    const facing=Math.abs(e1x*e2y-e1y*e2x);
+    quads.push({pa,pb,pc,pd,zm,f:a.f,facing});
+  }
+  quads.sort((p,q)=>p.zm-q.zm);
+  ctx.globalCompositeOperation='lighter';
+  for(const q of quads){
+    const depth=(q.zm+260)/520; // 0..1 near..far
+    const bri=Math.max(0.06,Math.min(1,0.18+0.82*depth))*Math.min(1,0.25+q.facing/9000);
+    const ci=q.f*5%6, c=ACC[Math.floor(ci)], c2=ACC[(Math.floor(ci)+2)%6];
+    const mix=ci-Math.floor(ci);
+    const r=c[0]*(1-mix)+c2[0]*mix,g=c[1]*(1-mix)+c2[1]*mix,bl=c[2]*(1-mix)+c2[2]*mix;
+    ctx.beginPath();ctx.moveTo(q.pa.x,q.pa.y);ctx.lineTo(q.pb.x,q.pb.y);ctx.lineTo(q.pc.x,q.pc.y);ctx.lineTo(q.pd.x,q.pd.y);ctx.closePath();
+    ctx.fillStyle='rgba('+(r|0)+','+(g|0)+','+(bl|0)+','+(0.5*bri).toFixed(3)+')';ctx.fill();
+    ctx.lineWidth=1.4;ctx.strokeStyle='rgba('+Math.min(255,r+60|0)+','+Math.min(255,g+60|0)+','+Math.min(255,bl+60|0)+','+(0.7*bri).toFixed(3)+')';ctx.stroke();
+  }
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

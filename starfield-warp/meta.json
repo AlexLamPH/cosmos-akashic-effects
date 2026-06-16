@@ -1,0 +1,11 @@
+{
+  "slug": "starfield-warp",
+  "title": "Cosmos Starfield Warp — hyperspace streaks",
+  "title_vi": "Cosmos Starfield Warp — vệt sao siêu không gian",
+  "W": 720, "H": 560, "LOOP": 5000, "N": 70,
+  "tags": ["starfield","warp","hyperspace","space","background","canvas2d"],
+  "summary": "Stars streak outward from the centre and accelerate into a hyperspace warp, leaving glowing tapering trails in the Cosmos accents over a violet core glow. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. Each star has a fixed angle + phase; its radius follows p*p (acceleration) where p=((u+phase) mod 1), and a streak is drawn from the previous radius to the current one with width/alpha growing as it nears the edge. The mod-1 phase makes it loop seamlessly. CAPTURE: ?auto=1 + window.__seek(t). TUNE: star count, maxR, AC colours.",
+  "summary_vi": "Các ngôi sao lao ra từ tâm, tăng tốc thành cú warp siêu không gian, để lại vệt sáng thon tông Cosmos trên quầng tím trung tâm. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Batch factory #3. Bán kính theo p*p (tăng tốc), p=((u+phase)mod1) → loop; vệt rộng/sáng dần ra rìa. B-tier."
+}

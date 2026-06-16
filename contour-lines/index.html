@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Contour Lines</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Contour Lines — animated topographic iso-contours of a seeded value-noise field sampled on a looping circular time orbit, glowing like a living map. Seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=8000,TAU=6.283185307;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let W,H,DPR,GRID,perm;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';GRID=Math.max(40,Math.round(Math.min(W,H)/14));}
+const r=mb(2027);perm=new Float32Array(256);for(let i=0;i<256;i++)perm[i]=r();   // seeded lattice values
+rs();addEventListener('resize',rs);
+function sm(t){return t*t*(3-2*t);}
+function vn(px,py){                                          // value noise on integer lattice
+  const xi=Math.floor(px),yi=Math.floor(py),fx=px-xi,fy=py-yi;
+  const h=(a,b)=>perm[(((a&255)*73+(b&255)*151)&255)];
+  const v00=h(xi,yi),v10=h(xi+1,yi),v01=h(xi,yi+1),v11=h(xi+1,yi+1);
+  const u=sm(fx),v=sm(fy);
+  return v00*(1-u)*(1-v)+v10*u*(1-v)+v01*(1-u)*v+v11*u*v;}
+function field(px,py,ox,oy){                                // 2 octaves, time orbit offset
+  return 0.65*vn(px+ox,py+oy)+0.35*vn(px*2.1+ox*1.7+11,py*2.1+oy*1.7+7);}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';x.lineCap='round';
+  const A=1.4, ox=Math.cos(TAU*u)*A, oy=Math.sin(TAU*u)*A; // circular orbit → seamless
+  const f=3.2/GRID*Math.min(W,H)/Math.min(W,H), sc=3.2;     // noise frequency in cells
+  const cw=W/GRID, ch=H/GRID;
+  const LV=7;                                                // contour threshold levels
+  for(let gy=0;gy<GRID;gy++)for(let gx=0;gx<GRID;gx++){
+    const nx=gx/GRID*sc, ny=gy/GRID*sc;
+    const c00=field(nx,ny,ox,oy), c10=field(nx+sc/GRID,ny,ox,oy), c01=field(nx,ny+sc/GRID,ox,oy);
+    for(let l=1;l<=LV;l++){const th=l/(LV+1);
+      // stroke a short iso-segment where the level crosses this cell's edges (marching-style)
+      const ax=(c00-th)*(c10-th), ay=(c00-th)*(c01-th);
+      if(ax<0||ay<0){
+        const X=gx*cw, Y=gy*ch;
+        x.strokeStyle=COL[l%6];
+        const lvl=0.5+0.5*Math.sin(TAU*u + l*0.9);          // gentle per-band breathing
+        x.globalAlpha=0.16+0.46*lvl;x.lineWidth=(0.6+1.3*lvl)*DPR;
+        x.beginPath();
+        if(ax<0){const ix=X+cw*(th-c00)/(c10-c00);x.moveTo(ix,Y);}else x.moveTo(X+cw*0.5,Y);
+        if(ay<0){const iy=Y+ch*(th-c00)/(c01-c00);x.lineTo(X,iy);}else x.lineTo(X,Y+ch*0.5);
+        x.stroke();
+      }
+    }
+  }
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

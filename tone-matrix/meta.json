@@ -1,0 +1,14 @@
+{
+  "slug": "tone-matrix",
+  "title": "Cosmos Tone Matrix — Tenori-on style 16x16 grid sequencer that plays real bells",
+  "title_vi": "Ma Trận Âm Cosmos",
+  "W": 640,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["tone-matrix", "tenori-on", "sequencer", "grid", "bells", "pentatonic", "audio", "webaudio", "interactive", "sound", "canvas2d", "generative"],
+  "summary": "A 16x16 Tenori-on style tone matrix: lit cells are notes (row = pitch on a minor-pentatonic scale, column = time step) and a playhead column sweeps left to right on a loop, ringing a soft sine+triangle bell for every lit cell it crosses. It PLAYS REAL SOUND via the Web Audio API — click cells to toggle notes and the AudioContext starts on your first gesture, synthesizing every bell with oscillators, a lowpass filter and a ramped envelope through a master gain of ~0.2. Fully self-contained, zero dependencies, runs offline. Ships with a silent, deterministic, seamlessly looping visual demo for capture: a seeded pleasant melody where the playhead sweeps and struck cells bloom.",
+  "usage_notes": "RUN: open index.html and click cells to HEAR it — audio needs a user gesture, so the AudioContext is created on your first click. PLAY: click any cell to toggle a note on/off; lit cells glow, the column under the playhead highlights cyan, and each cell blooms nebula-pink as the playhead strikes it. The grid loops continuously. KEY TECHNIQUES: synthesis = two detuned oscillators (sine + triangle one octave up) per bell through a lowpass filter with an 8ms attack / ~1.1s exponential decay envelope; tuning = a 5-note minor-pentatonic ladder spread over the rows so any pattern sounds consonant; master gain ~0.2 into a compressor to protect ears. CAPTURE: ?auto=1 is SILENT (no AudioContext) and window.__seek(t) sets the exact deterministic visual state; struck-cell blooms are a pure function of the playhead position. TUNE: LOOP for tempo, GRID for resolution, PENT/BASE for the scale, BLOOM_MS for bloom length.",
+  "summary_vi": "Một ma trận âm thanh 16x16 kiểu Tenori-on: ô sáng là nốt (hàng = cao độ trên thang ngũ cung thứ, cột = bước thời gian) và một cột đầu đọc quét từ trái sang phải theo vòng lặp, ngân một tiếng chuông sine+triangle mềm cho mỗi ô sáng. Phát ÂM THANH THẬT qua Web Audio API khi bạn bấm ô — AudioContext khởi tạo từ thao tác đầu tiên. Hoàn toàn độc lập, không phụ thuộc, chạy offline. Kèm bản demo hình ảnh tất định, im lặng, lặp liền mạch để chụp.",
+  "notes": "Mở ra rồi bấm chuột vào các ô để nghe — cột đầu đọc quét qua sẽ ngân chuông cho từng ô sáng."
+}

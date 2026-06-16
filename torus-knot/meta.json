@@ -1,0 +1,11 @@
+{
+  "slug": "torus-knot",
+  "title": "Cosmos Torus Knot — a rotating 3D torus-knot traced by glowing points",
+  "title_vi": "Cosmos Torus Knot — nút xuyến 3D phát sáng đang quay",
+  "W": 600, "H": 600, "LOOP": 9000, "N": 113,
+  "tags": ["torus-knot", "3d", "glow", "knot", "additive", "canvas2d"],
+  "summary": "A (p=2, q=3) torus-knot drawn as a ribbon of glowing dots spinning in 3D. Built with pure Canvas 2D doing its own 3D rotation and perspective projection (scale=F/(F+z)), zero dependencies, runs fully offline; rendering is deterministic and the loop is seamless (frame(0)===frame(LOOP)).",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each point comes from the torus-knot parametric form (r=2+cos(q*ph); X=r*cos(p*ph), Y=-sin(q*ph), Z=r*sin(p*ph)); the trace's internal phase advances by integer harmonics of u so the curve animates and closes on itself; the whole knot rotates exactly 2*pi*u about Y with a constant tilt about X; points project with scale=F/(F+z) so nearer dots are bigger and brighter, drawn additively ('lighter') as radial-gradient glows over a faint violet core. CAPTURE: ?auto=1 + window.__seek(t). TUNE: p/q (knot winding), SC (size), N (point count), F (focal length), tilt.",
+  "summary_vi": "Nút xuyến (p=2, q=3) vẽ bằng dải chấm phát sáng quay trong không gian 3D. Thuần Canvas 2D tự tính xoay 3D và phép chiếu phối cảnh (scale=F/(F+z)), không phụ thuộc thư viện, chạy offline; tất định và loop liền mạch.",
+  "notes": "Nút xuyến 3D: điểm theo công thức tham số, pha trong là bội nguyên của u, xoay 2*pi*u quanh Y kèm nghiêng cố định, chiếu F/(F+z), chấm gần to/sáng hơn, glow cộng dồn."
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "gravity-orbit",
+  "title": "Cosmos Gravity Orbit — a mini solar system of planets sweeping a glowing star",
+  "title_vi": "Cosmos Gravity Orbit — hệ mặt trời thu nhỏ quay quanh ngôi sao phát sáng",
+  "W": 620, "H": 620, "LOOP": 12000, "N": 150,
+  "tags": ["orbit","planets","solar-system","ellipse","glow","canvas2d"],
+  "summary": "Six glowing accent-coloured planets sweep tilted elliptical orbits around a bright pulsing star at the centre, each tracing a faint fading trail behind it; inner bodies orbit faster than outer ones, all on integer periods so every world realigns at the loop point. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each body angle = th0 + 2PI*u*period with an INTEGER period (N-i, faster inner / slower outer), evaluated on a rotated ellipse (semi-axes a,b) centred on the star — since all periods are integers, every body returns to its start angle at u=1, giving frame(0)==frame(LOOP). Trails are short back-sampled arcs of the same pos(u) function; star core and bodies drawn additively ('lighter') as halo+core+highlight over a seeded starfield. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N body count, base orbit radius, ellipse eccentricity (b/a), period assignment, SEG/sp trail length, AC palette, LOOP period.",
+  "summary_vi": "Sáu hành tinh phát sáng màu accent quét quỹ đạo elip nghiêng quanh ngôi sao sáng đập nhịp ở tâm, mỗi hành tinh kéo theo vệt mờ phía sau; thiên thể trong quay nhanh hơn ngoài, tất cả theo chu kỳ nguyên nên mọi hành tinh thẳng hàng lại tại điểm loop. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Góc = th0 + 2PI*u*period với period nguyên trên elip xoay quanh sao; mọi thiên thể về góc đầu tại u=1 nên loop liền mạch."
+}

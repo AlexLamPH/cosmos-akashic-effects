@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Flow Field</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Flow Field — particles flowing along a Perlin-ish noise field as glowing dashes. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318;
+let W,H,DPR,lines=[];
+function rnd(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hash(ix,iy){let h=(ix*374761393+iy*668265263)|0;h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967295;}
+const sm=t=>t*t*(3-2*t);
+function vn(px,py){const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;const a=hash(ix,iy),b=hash(ix+1,iy),c=hash(ix,iy+1),d=hash(ix+1,iy+1),u=sm(fx),v=sm(fy);return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;}
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154]];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  const r=rnd(21),fs=2.6,ST=90,step=Math.min(W,H)*0.016;lines=[];
+  for(let i=0;i<170;i++){let px=r()*W,py=r()*H;const pts=[{x:px,y:py}];
+    for(let s=0;s<ST;s++){const ang=vn(px/W*fs,py/H*fs)*TAU*2.2;px+=Math.cos(ang)*step;py+=Math.sin(ang)*step;
+      if(px<0||px>W||py<0||py>H)break;pts.push({x:px,y:py});}
+    if(pts.length>14)lines.push({pts,ph:r(),c:AC[r()*AC.length|0]});}}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);x.globalCompositeOperation='lighter';x.lineCap='round';
+  for(const L of lines){const n=L.pts.length,head=((u+L.ph)%1)*n;const dash=Math.min(12,n*0.25);const c=L.c;
+    for(let k=0;k<dash;k++){const idx=Math.floor(head)-k;if(idx<1||idx>=n)continue;const f=1-k/dash;const a=Math.sin((idx/n)*Math.PI)*f*0.8;
+      x.strokeStyle=`rgba(${c[0]+40},${c[1]+40},${c[2]+40},${a})`;x.lineWidth=(0.6+f*1.8)*DPR;
+      x.beginPath();x.moveTo(L.pts[idx-1].x,L.pts[idx-1].y);x.lineTo(L.pts[idx].x,L.pts[idx].y);x.stroke();}}
+  x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

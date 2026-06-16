@@ -1,0 +1,200 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Lights Out</title>
+<style>
+  :root{--violet:#8b5cff;--cosmic:#46b4ff;--nebula:#ff5cc2;--aurora:#36d39a;--solaris:#ff6a3d;--sacred:#e0b24a}
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f4;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}
+  #frame{width:520px;height:600px;background:#120e25;border-radius:18px;
+    box-shadow:0 0 0 1px #261d44,0 18px 60px #0006;padding:20px;box-sizing:border-box;
+    display:flex;flex-direction:column;gap:14px}
+  #hud{display:flex;align-items:center;justify-content:space-between;font-size:15px}
+  #hud .t{font-weight:700;letter-spacing:.5px;color:var(--cosmic)}
+  #hud .r{display:flex;gap:18px;font-variant-numeric:tabular-nums}
+  #hud b{color:var(--aurora);font-size:19px}
+  #hud .pz b{color:var(--sacred)}
+  #wrap{position:relative;flex:1;border-radius:14px;overflow:hidden;display:flex;
+    align-items:center;justify-content:center;
+    box-shadow:inset 0 0 0 1px #2a2050,inset 0 0 40px #8b5cff18}
+  canvas{display:block;background:radial-gradient(120% 120% at 50% 0%,#13102e,#0b0820)}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0a0816cc;backdrop-filter:blur(2px);gap:10px;text-align:center}
+  #over h2{margin:0;color:var(--aurora);font-size:26px}
+  #over p{margin:0;opacity:.8;font-size:14px}
+  .btn{margin-top:4px;background:var(--cosmic);color:#06121f;border:0;border-radius:10px;
+    padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #46b4ff55}
+  #ctl{display:flex;gap:10px;align-self:center}
+  #ctl button{background:#1d1640;color:#cfc7ef;border:1px solid #322763;border-radius:10px;
+    padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation}
+  @media (hover:hover){#ctl{opacity:.9}}
+</style></head><body>
+<div id="frame">
+  <div id="hud"><span class="t">COSMOS LIGHTS OUT</span>
+    <span class="r"><span>MOVES <b id="mv">0</b></span><span class="pz">PUZZLE <b id="pz">1</b></span></span></div>
+  <div id="wrap"><canvas id="cv"></canvas>
+    <div id="over"><h2 id="ot">SOLVED!</h2><p id="op">New puzzle loading…</p><button class="btn" id="rb">New Puzzle</button></div>
+  </div>
+  <div id="ctl"><button id="newb">New Puzzle</button><button id="resetb">Reset (R)</button></div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const C={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const N=5, LOOP=11000;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+// fixed-size square canvas
+const SIZE=440, PAD=12, GAP=10;
+cv.style.width=SIZE+'px';cv.style.height=SIZE+'px';
+cv.width=Math.round(SIZE*devicePixelRatio);cv.height=Math.round(SIZE*devicePixelRatio);
+ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+const CELL=(SIZE-2*PAD-(N-1)*GAP)/N;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function cellRect(r,c){ return {x:PAD+c*(CELL+GAP), y:PAD+r*(CELL+GAP), w:CELL, h:CELL}; }
+function roundRect(x,y,w,h,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.arcTo(x+w,y,x+w,y+h,rad);ctx.arcTo(x+w,y+h,x,y+h,rad);ctx.arcTo(x,y+h,x,y,rad);ctx.arcTo(x,y,x+w,y,rad);ctx.closePath();}
+
+// board = Uint8Array(25); 1 = on (lit)
+function toggle(board,r,c){
+  const t=(rr,cc)=>{ if(rr>=0&&rr<N&&cc>=0&&cc<N) board[rr*N+cc]^=1; };
+  t(r,c);t(r-1,c);t(r+1,c);t(r,c-1);t(r,c+1);
+}
+// build a solvable puzzle: start all-off, apply K seeded clicks (its own solution exists)
+function makePuzzle(seed){
+  const rng=mulberry32(seed);
+  const board=new Uint8Array(N*N);
+  const sol=[]; // the clicks that created it (reverse = a valid solution)
+  const K=6+Math.floor(rng()*5); // 6..10 setup clicks
+  const used=new Set();
+  let made=0, guard=0;
+  while(made<K && guard++<200){
+    const r=Math.floor(rng()*N), c=Math.floor(rng()*N), key=r*N+c;
+    if(used.has(key))continue; used.add(key);
+    toggle(board,r,c); sol.push([r,c]); made++;
+  }
+  // if it ended up all-off (degenerate), force one extra click
+  if(board.every(v=>!v)){ toggle(board,2,2); sol.push([2,2]); }
+  return {board, sol};
+}
+
+function draw(st){
+  ctx.clearRect(0,0,SIZE,SIZE);
+  const ph=st.t/1000;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const q=cellRect(r,c), on=st.board[r*N+c];
+    if(on){
+      const col=C.violet;
+      ctx.shadowColor=col;ctx.shadowBlur=18;
+      ctx.fillStyle=col;roundRect(q.x,q.y,q.w,q.h,12);ctx.fill();ctx.shadowBlur=0;
+      // inner glow gradient
+      const g=ctx.createRadialGradient(q.x+q.w/2,q.y+q.h*0.38,4,q.x+q.w/2,q.y+q.h/2,q.w*0.7);
+      g.addColorStop(0,'#cdb6ff');g.addColorStop(.45,C.cosmic);g.addColorStop(1,'#8b5cff00');
+      ctx.fillStyle=g;roundRect(q.x,q.y,q.w,q.h,12);ctx.fill();
+      ctx.fillStyle='#ffffff30';roundRect(q.x,q.y,q.w,q.h*0.4,12);ctx.fill();
+    } else {
+      ctx.fillStyle='#171232';roundRect(q.x,q.y,q.w,q.h,12);ctx.fill();
+      ctx.fillStyle='#221a45';roundRect(q.x+2,q.y+2,q.w-4,q.h-4,10);ctx.fill();
+      ctx.fillStyle='#2c2356';ctx.beginPath();ctx.arc(q.x+q.w/2,q.y+q.h/2,3,0,7);ctx.fill();
+    }
+  }
+  // cursor highlight (where AI/last click landed)
+  if(st.cursor){
+    const q=cellRect(st.cursor[0],st.cursor[1]);
+    ctx.strokeStyle=C.aurora;ctx.lineWidth=3;ctx.shadowColor=C.aurora;ctx.shadowBlur=14;
+    roundRect(q.x-2,q.y-2,q.w+4,q.h+4,13);ctx.stroke();ctx.shadowBlur=0;
+  }
+}
+
+// ---- deterministic AUTO sim ----
+// We replay a seeded puzzle, then click its solution one move at a time, then reset to a NEW seeded puzzle.
+const SEED=0x10D7;
+// precompute a deterministic schedule independent of wall clock
+function buildSchedule(seed){
+  // returns {board0, moves:[[r,c]...] solution clicks, count}
+  const p=makePuzzle(seed);
+  // solution = reverse of setup clicks (toggling is self-inverse and order-independent)
+  const moves=p.sol.slice().reverse();
+  // dedupe: a cell clicked even # of times nets zero — collapse parity
+  const parity=new Map();
+  for(const [r,c] of moves){ const k=r*N+c; parity.set(k,(parity.get(k)||0)^1); }
+  const clean=[]; for(const [k,v] of parity){ if(v) clean.push([Math.floor(k/N),k%N]); }
+  return {board0:p.board, moves:clean};
+}
+function drawAt(ms){
+  // one cycle: puzzleA solve, then puzzleB partial. Offset so frame 0 is mid-solve.
+  const MOVE_MS=620;     // time per click
+  const offset=2*MOVE_MS+260; // frame-0: already 2 clicks into the solve
+  let T=ms+offset;
+  // chain puzzles deterministically; figure which puzzle & move-index we're in
+  let puzzleIdx=0, seed=SEED;
+  // each puzzle phase length = (its moves +  a 1-move "solved pause") * MOVE_MS
+  // walk forward through puzzles consuming time
+  for(let safety=0; safety<50; safety++){
+    const sch=buildSchedule(seed);
+    const phaseMoves=sch.moves.length;
+    const phaseLen=(phaseMoves+1)*MOVE_MS; // +1 = solved-board pause
+    if(T<phaseLen || safety===49){
+      const mi=Math.min(phaseMoves, Math.floor(T/MOVE_MS));
+      const board=Uint8Array.from(sch.board0);
+      let cursor=null;
+      for(let i=0;i<mi;i++){ const [r,c]=sch.moves[i]; toggle(board,r,c); cursor=[r,c]; }
+      // highlight the NEXT move about to be made (or last one during pause)
+      if(mi<phaseMoves) cursor=sch.moves[mi];
+      const st={board,t:ms,cursor,moves:mi,puzzle:puzzleIdx+1};
+      document.getElementById('mv').textContent=mi;
+      document.getElementById('pz').textContent=puzzleIdx+1;
+      draw(st);
+      return;
+    }
+    T-=phaseLen; puzzleIdx++; seed=(seed*1664525+1013904223)>>>0;
+  }
+}
+
+// ---- LIVE ----
+let live=null, raf=0, puzzleNo=1, solveFx=0;
+function setHud(){document.getElementById('mv').textContent=live.moves;
+  document.getElementById('pz').textContent=puzzleNo;}
+function newPuzzle(){
+  const seed=(Math.random()*1e9)|0;
+  const p=makePuzzle(seed);
+  live={board:p.board,moves:0,t:0,cursor:null,solved:false};
+  document.getElementById('over').style.display='none';
+  setHud(); render();
+}
+function resetPuzzle(){ if(!live)return; live.board.fill(0); /* reset to all-off is trivial-solved; reshuffle instead */ newPuzzle(); puzzleNo=puzzleNo; }
+function render(){ if(live){live.t=performance.now(); draw(live);} }
+function loop(){ raf=requestAnimationFrame(loop); render(); }
+function hitTest(x,y){
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const q=cellRect(r,c);
+    if(x>=q.x&&x<=q.x+q.w&&y>=q.y&&y<=q.y+q.h)return [r,c]; }
+  return null;
+}
+function clickCell(r,c){
+  if(!live||live.solved)return;
+  toggle(live.board,r,c); live.moves++; live.cursor=[r,c]; blip(520,.04);
+  setHud();
+  if(live.board.every(v=>!v)){ live.solved=true; blip(820,.2);
+    document.getElementById('ot').textContent='SOLVED!';
+    document.getElementById('op').textContent=live.moves+' moves · next puzzle';
+    document.getElementById('over').style.display='flex';
+    setTimeout(()=>{ puzzleNo++; newPuzzle(); },1100);
+  }
+}
+cv.addEventListener('pointerdown',e=>{ arm(); const r=cv.getBoundingClientRect();
+  const x=(e.clientX-r.left)*(SIZE/r.width), y=(e.clientY-r.top)*(SIZE/r.height);
+  const hit=hitTest(x,y); if(hit)clickCell(hit[0],hit[1]); });
+addEventListener('keydown',e=>{ if(e.key.toLowerCase()==='r')resetPuzzle(); });
+document.getElementById('newb').addEventListener('click',()=>{puzzleNo++;newPuzzle();});
+document.getElementById('resetb').addEventListener('click',resetPuzzle);
+document.getElementById('rb').addEventListener('click',()=>{puzzleNo++;newPuzzle();});
+// audio
+let actx=null,armed=false;
+function arm(){if(!armed&&!AUTO){armed=true;try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+addEventListener('keydown',arm,{once:true});
+function blip(f,d){if(!actx||AUTO)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type='sine';o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.05,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+  o.start();o.stop(actx.currentTime+d);}
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { newPuzzle(); raf=requestAnimationFrame(loop); }
+</script></body></html>

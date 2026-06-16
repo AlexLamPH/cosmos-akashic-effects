@@ -1,0 +1,11 @@
+{
+  "slug": "micviz-bars",
+  "title": "Cosmos Mic Bars — mic-reactive spectrum bar visualizer with mirrored reflection and peak-hold caps",
+  "title_vi": "",
+  "W": 640, "H": 420, "LOOP": 8400, "N": 93,
+  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "summary": "A classic spectrum bar visualizer: ~48 vertical bars across the bottom whose heights track the frequency spectrum, with a fading mirrored reflection, a per-bar Cosmos gradient, peak-hold caps, and a glow that brightens with the overall level. It reacts to the MICROPHONE live (and gracefully falls back to a synthetic signal if the mic is unavailable or denied), plus a deterministic synthetic demo for capture. Self-contained, zero dependencies.",
+  "usage_notes": "RUN: open & click \"enable mic\" to react to your voice/music; falls back to a built-in beat if no mic. KEY TECHNIQUES: an AnalyserNode (fftSize 128) feeds getByteFrequencyData into a 64-bin spectrum + RMS level which drive render(spec,level,t); render samples 48 bars from the bins, applies a vertical Cosmos gradient, holds peak caps with slow decay, mirrors a faded reflection below the baseline, and scales bar/baseline glow by level. synthSpectrum(u) is a seeded (mulberry32) sum of moving Gaussian formant bumps plus a low-bin beat kick, normalised and looping at u=1, used for auto capture and as the live fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: BARS (bar count), maxH (amplitude), formant table, peak decay rate, glow scaling, LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

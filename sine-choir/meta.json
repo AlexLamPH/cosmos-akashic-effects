@@ -1,0 +1,15 @@
+{
+  "slug": "sine-choir",
+  "title": "Cosmos Sine Choir — stacked pure-sine voices that shimmer into angelic chords",
+  "title_vi": "Dàn Hợp Xướng Sine Cosmos",
+  "W": 720,
+  "H": 480,
+  "LOOP": 8000,
+  "N": 100,
+  "START": 2400,
+  "tags": ["sine-choir", "pad", "drone", "vocal", "audio", "webaudio", "interactive", "sound", "canvas2d", "glow"],
+  "summary": "A vertical pitch field that makes REAL sound via the Web Audio API: click anywhere to add a sustained pure-sine voice, and the voices stack into shimmering angelic chords with slow vibrato and slight detune (an Aaah-style choir pad); dragging up and down keeps adding voices along a pleasant major scale so any interaction sounds consonant. Each voice is drawn as a glowing wavy horizontal band with a breathing orb and shimmer sparkles. Double-click to release the whole choir. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
+  "usage_notes": "RUN: open index.html and CLICK the field to add choir voices and HEAR them (audio needs a user gesture to start the AudioContext); higher = higher pitch, lower = lower. Drag up/down to stack more voices into a chord; double-click to fade the whole choir out. KEY TECHNIQUES (synthesis): each voice is a single sine oscillator detuned a few cents, pitch-modulated by a ~4-6Hz sine LFO for gentle vibrato, with a slow ~1.2s exponential swell and ~1.4s release (no clicks); voices auto-balance gain by polyphony, summed into master gain ~0.2 with a compressor; pitches snap to a C-major/pentatonic scale via 440*2^((midi-69)/12) so stacks stay consonant. CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded chord fades in voice-by-voice, shimmers with vibrato breathing, then thins out, looping seamlessly. TUNE: LOOP for build/release speed, SCALE for the available pitches, AUTO_CHORD for the demo chord, vibrato rate/depth and swell times for feel, master gain for level.",
+  "summary_vi": "Một vùng cao độ dọc phát ra âm thanh THẬT qua Web Audio API: bấm vào bất kỳ đâu để thêm một giọng sine thuần ngân dài, các giọng xếp chồng thành những hợp âm lấp lánh tựa thiên thần với vibrato chậm và lệch tông nhẹ (kiểu dàn hợp xướng Aaah); kéo lên xuống để thêm giọng theo thang âm trưởng dễ chịu. Mỗi giọng là một dải sáng gợn sóng với quầng thở. Bấm đúp để tắt cả dàn. Tự chứa, không phụ thuộc, kèm demo hình lặp tất định và im lặng để chụp.",
+  "notes": "Mở ra rồi bấm chuột vào vùng để thêm các giọng sine ngân lên thành hợp âm lấp lánh."
+}

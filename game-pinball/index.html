@@ -1,0 +1,283 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Pinball</title>
+<style>
+  :root{--violet:#8b5cff;--cosmic:#46b4ff;--nebula:#ff5cc2;--aurora:#36d39a;--solaris:#ff6a3d;--sacred:#e0b24a}
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f4;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}
+  #frame{width:520px;height:660px;background:#120e25;border-radius:18px;
+    box-shadow:0 0 0 1px #261d44,0 18px 60px #0006;padding:18px;box-sizing:border-box;
+    display:flex;flex-direction:column;gap:12px}
+  #hud{display:flex;align-items:center;justify-content:space-between;font-size:15px}
+  #hud .t{font-weight:700;letter-spacing:.5px;color:var(--cosmic)}
+  #hud .r{display:flex;gap:18px;font-variant-numeric:tabular-nums}
+  #hud b{color:var(--aurora);font-size:19px}
+  #hud .lv b{color:var(--nebula)}
+  #wrap{position:relative;flex:1;border-radius:14px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px #2a2050,inset 0 0 40px #46b4ff15}
+  canvas{display:block;width:100%;height:100%;background:radial-gradient(120% 120% at 50% 0%,#16122f,#0b0820)}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0a0816cc;backdrop-filter:blur(2px);gap:10px;text-align:center}
+  #over h2{margin:0;color:var(--nebula);font-size:26px}
+  #over p{margin:0;opacity:.8;font-size:14px}
+  .btn{margin-top:4px;background:var(--cosmic);color:#06121f;border:0;border-radius:10px;
+    padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #46b4ff55}
+  #ctl{display:flex;gap:10px;align-self:center}
+  #ctl button{background:#1d1640;color:#cfc7ef;border:1px solid #322763;border-radius:10px;
+    width:150px;height:48px;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation}
+  @media (hover:hover){#ctl{opacity:.9}}
+</style></head><body>
+<div id="frame">
+  <div id="hud"><span class="t">COSMOS PINBALL</span>
+    <span class="r"><span>SCORE <b id="sc">0</b></span><span class="lv">BALLS <b id="lf">3</b></span></span></div>
+  <div id="wrap"><canvas id="cv"></canvas>
+    <div id="over"><h2 id="ot">GAME OVER</h2><p id="op">Press R to restart</p><button class="btn" id="rb">Restart</button></div>
+  </div>
+  <div id="ctl"><button data-d="L">◀ LEFT</button><button data-d="R">RIGHT ▶</button></div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const C={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const LOOP=12000;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+// fixed logical table; render in logical px, scale via CSS
+let W=484,H=540;
+function fit(){ const r=cv.getBoundingClientRect(); W=r.width||484; H=r.height||540;
+  cv.width=Math.round(W*devicePixelRatio); cv.height=Math.round(H*devicePixelRatio);
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---- table layout (fractions of W,H) ----
+function table(){
+  const wallL=14, wallR=W-14, top=14;
+  const bumpers=[ {x:W*0.30,y:H*0.26,r:30,c:C.nebula},
+                  {x:W*0.70,y:H*0.26,r:30,c:C.cosmic},
+                  {x:W*0.50,y:H*0.42,r:34,c:C.aurora},
+                  {x:W*0.22,y:H*0.50,r:24,c:C.solaris},
+                  {x:W*0.78,y:H*0.50,r:24,c:C.sacred} ];
+  // flippers pivot points
+  const fy=H-58, sp=W*0.16, len=70, fw=12;
+  const flip=[ {side:-1,px:W/2-sp,py:fy,len,fw,rest:0.32,up:-0.42},
+               {side:1, px:W/2+sp,py:fy,len,fw,rest:Math.PI-0.32,up:Math.PI+0.42} ];
+  const drainL=W/2-sp-len*0.5, drainR=W/2+sp+len*0.5;
+  const ballR=10;
+  return {wallL,wallR,top,bumpers,flip,fy,drainL,drainR,ballR};
+}
+
+// ---- state ----
+function freshState(seed){
+  const rng=mulberry32(seed);
+  const T=table();
+  const st={rng,score:0,balls:3,dead:false,t:0,
+    ball:{x:W*0.84,y:H*0.30,vx:-2.2-rng()*1.2,vy:0.5+rng()*0.6},
+    flip:[T.flip[0].rest,T.flip[1].rest], flipTarget:[T.flip[0].rest,T.flip[1].rest],
+    bumperFlash:[0,0,0,0,0], lInput:0, rInput:0 };
+  return st;
+}
+function resetBall(st,T){ st.ball={x:W*0.84,y:H*0.22,vx:-2.0-st.rng()*1.0,vy:0.4}; }
+
+const GRAV=0.16, FRICTION=0.995, FLIP_SPEED=0.42;
+
+// reflect ball off a circle bumper, add score+flash
+function bumperHit(st,b,bm,i){
+  const dx=st.ball.x-bm.x, dy=st.ball.y-bm.y, d=Math.hypot(dx,dy)||1;
+  const nx=dx/d, ny=dy/d;
+  // push out
+  st.ball.x=bm.x+nx*(bm.r+T0.ballR); st.ball.y=bm.y+ny*(bm.r+T0.ballR);
+  const vdot=st.ball.vx*nx+st.ball.vy*ny;
+  st.ball.vx-=2*vdot*nx; st.ball.vy-=2*vdot*ny;
+  st.ball.vx*=1.06; st.ball.vy*=1.06; // bumper kick
+  st.ball.vx+=nx*2.2; st.ball.vy+=ny*2.2;
+  st.score+=100; st.bumperFlash[i]=1;
+}
+let T0=null;
+// flipper as a fat line segment from pivot; reflect + impart velocity if moving up
+function flipperCollide(st,fi,ang,prevAng){
+  const F=T0.flip[fi];
+  const ex=F.px+Math.cos(ang)*F.len, ey=F.py+Math.sin(ang)*F.len;
+  // closest point on segment to ball
+  const bx=st.ball.x,by=st.ball.y;
+  const dx=ex-F.px, dy=ey-F.py, L2=dx*dx+dy*dy;
+  let t=((bx-F.px)*dx+(by-F.py)*dy)/L2; t=Math.max(0,Math.min(1,t));
+  const cx=F.px+dx*t, cy=F.py+dy*t;
+  const ddx=bx-cx, ddy=by-cy, dist=Math.hypot(ddx,ddy)||1;
+  const rad=F.fw+T0.ballR;
+  if(dist<rad){
+    const nx=ddx/dist, ny=ddy/dist;
+    st.ball.x=cx+nx*rad; st.ball.y=cy+ny*rad;
+    const vdot=st.ball.vx*nx+st.ball.vy*ny;
+    if(vdot<0){ st.ball.vx-=2*vdot*nx; st.ball.vy-=2*vdot*ny; }
+    // flipper swing imparts upward kick
+    const swing=ang-prevAng;
+    if(Math.abs(swing)>0.01){ const kick=swing*F.len*t*1.7;
+      st.ball.vx+=nx*Math.abs(kick)*0.4; st.ball.vy-=Math.abs(kick)*0.9; }
+    st.ball.vy-=1.0; // base lift on contact
+    return true;
+  }
+  return false;
+}
+
+// one physics tick. controls: lUp,rUp booleans
+function tick(st,lUp,rUp){
+  T0=table();
+  // flipper target angles
+  st.flipTarget[0]=lUp?T0.flip[0].up:T0.flip[0].rest;
+  st.flipTarget[1]=rUp?T0.flip[1].up:T0.flip[1].rest;
+  const prev=[st.flip[0],st.flip[1]];
+  for(let i=0;i<2;i++){ const d=st.flipTarget[i]-st.flip[i];
+    st.flip[i]+=Math.max(-FLIP_SPEED,Math.min(FLIP_SPEED,d)); }
+  // ball physics
+  const b=st.ball;
+  b.vy+=GRAV; b.vx*=FRICTION; b.vy*=FRICTION;
+  // clamp speed
+  const sp=Math.hypot(b.vx,b.vy); const MX=11; if(sp>MX){b.vx*=MX/sp;b.vy*=MX/sp;}
+  b.x+=b.vx; b.y+=b.vy;
+  // walls
+  if(b.x<T0.wallL+T0.ballR){b.x=T0.wallL+T0.ballR;b.vx=Math.abs(b.vx)*0.9;}
+  if(b.x>T0.wallR-T0.ballR){b.x=T0.wallR-T0.ballR;b.vx=-Math.abs(b.vx)*0.9;}
+  if(b.y<T0.top+T0.ballR){b.y=T0.top+T0.ballR;b.vy=Math.abs(b.vy)*0.9;}
+  // angled drain guides near bottom funnel
+  // left guide: from (wallL, fy-30) toward (drainL, fy+20)
+  funnelWall(st,T0.wallL,T0.fy-40,T0.drainL,T0.fy+8,1);
+  funnelWall(st,T0.wallR,T0.fy-40,T0.drainR,T0.fy+8,-1);
+  // bumpers
+  for(let i=0;i<T0.bumpers.length;i++){ const bm=T0.bumpers[i];
+    if(Math.hypot(b.x-bm.x,b.y-bm.y)<bm.r+T0.ballR) bumperHit(st,b,bm,i); }
+  // flippers
+  flipperCollide(st,0,st.flip[0],prev[0]);
+  flipperCollide(st,1,st.flip[1],prev[1]);
+  // flash decay
+  for(let i=0;i<st.bumperFlash.length;i++) st.bumperFlash[i]*=0.86;
+  // drain
+  if(b.y>H+T0.ballR){
+    st.balls--;
+    if(st.balls<=0) st.dead=true; else resetBall(st,T0);
+  }
+  st.t+=16;
+}
+// reflect off a line wall segment (drain funnel)
+function funnelWall(st,x1,y1,x2,y2,sign){
+  const b=st.ball; const dx=x2-x1,dy=y2-y1,L2=dx*dx+dy*dy;
+  let t=((b.x-x1)*dx+(b.y-y1)*dy)/L2; t=Math.max(0,Math.min(1,t));
+  const cx=x1+dx*t, cy=y1+dy*t; const ddx=b.x-cx,ddy=b.y-cy,dist=Math.hypot(ddx,ddy)||1;
+  const rad=6+T0.ballR;
+  if(dist<rad){ const nx=ddx/dist,ny=ddy/dist;
+    b.x=cx+nx*rad; b.y=cy+ny*rad;
+    const vdot=b.vx*nx+b.vy*ny; if(vdot<0){b.vx-=2*vdot*nx;b.vy-=2*vdot*ny;} b.vx*=0.92;b.vy*=0.92; }
+}
+
+// ---- AUTO flipper AI: flip the side the ball is approaching when it's low ----
+function aiFlippers(st){
+  const T=T0||table(); const b=st.ball;
+  let lUp=false,rUp=false;
+  const low=b.y>H*0.62 && b.vy>0;        // descending into flipper zone
+  if(low){
+    if(b.x<W/2) lUp=true; else rUp=true;
+    // if heading toward center drain, flip the nearer one
+  }
+  // pre-emptive nudge when near a flipper
+  if(b.y>T.fy-90){ if(b.x<W/2) lUp=true; else rUp=true; }
+  return [lUp,rUp];
+}
+
+// ---- draw ----
+function roundRectPath(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function draw(st){
+  const T=table(); ctx.clearRect(0,0,W,H);
+  // outer walls
+  ctx.strokeStyle='#34276b';ctx.lineWidth=4;
+  roundRectPath(T.wallL,T.top,T.wallR-T.wallL,H-T.top-2,16);ctx.stroke();
+  // drain funnel guides
+  ctx.strokeStyle='#3a2c70';ctx.lineWidth=6;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(T.wallL,T.fy-40);ctx.lineTo(T.drainL,T.fy+8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(T.wallR,T.fy-40);ctx.lineTo(T.drainR,T.fy+8);ctx.stroke();
+  // bumpers
+  for(let i=0;i<T.bumpers.length;i++){ const bm=T.bumpers[i], f=st.bumperFlash[i];
+    ctx.shadowColor=bm.c;ctx.shadowBlur=14+f*30;
+    let rg=ctx.createRadialGradient(bm.x,bm.y,2,bm.x,bm.y,bm.r);
+    rg.addColorStop(0,'#ffffff'+(f>0.3?'ff':'aa'));rg.addColorStop(.4,bm.c);rg.addColorStop(1,bm.c+'66');
+    ctx.fillStyle=rg;ctx.beginPath();ctx.arc(bm.x,bm.y,bm.r*(1+f*0.12),0,7);ctx.fill();ctx.shadowBlur=0;
+    ctx.strokeStyle='#ffffff'+(f>0.2?'cc':'33');ctx.lineWidth=2;ctx.beginPath();ctx.arc(bm.x,bm.y,bm.r*0.6,0,7);ctx.stroke();
+  }
+  // flippers
+  for(let i=0;i<2;i++){ const F=T.flip[i], ang=st.flip[i];
+    const ex=F.px+Math.cos(ang)*F.len, ey=F.py+Math.sin(ang)*F.len;
+    ctx.strokeStyle=C.violet;ctx.lineWidth=F.fw*2;ctx.lineCap='round';
+    ctx.shadowColor=C.violet;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.moveTo(F.px,F.py);ctx.lineTo(ex,ey);ctx.stroke();ctx.shadowBlur=0;
+    ctx.fillStyle='#1a1338';ctx.beginPath();ctx.arc(F.px,F.py,5,0,7);ctx.fill();
+  }
+  // ball
+  const b=st.ball;
+  let bg=ctx.createRadialGradient(b.x-3,b.y-3,1,b.x,b.y,T.ballR*2.4);
+  bg.addColorStop(0,'#ffffff');bg.addColorStop(.35,C.sacred);bg.addColorStop(1,'#e0b24a00');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(b.x,b.y,T.ballR*2,0,7);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(b.x,b.y,T.ballR,0,7);ctx.fill();
+  ctx.fillStyle='#cfd6ff';ctx.beginPath();ctx.arc(b.x+2,b.y+2,T.ballR*0.55,0,7);ctx.fill();
+  document.getElementById('sc').textContent=st.score;
+  document.getElementById('lf').textContent=st.balls;
+}
+
+// ---- deterministic AUTO sim ----
+const SEED=0x9C3F1, FT=16;
+function drawAt(ms){
+  const offset=2400;                 // frame-0 rich: ball already bouncing near a bumper, score>0
+  const Tm=ms+offset;
+  const ticks=Math.floor(Tm/FT);
+  const st=freshState(SEED);
+  for(let i=0;i<ticks;i++){ if(st.dead)break; T0=table(); const[l,r]=aiFlippers(st); tick(st,l,r); }
+  draw(st);
+}
+
+// ---- LIVE ----
+let live=null, raf=0, lastTs=0, acc=0, keyL=false, keyR=false;
+function initGame(){ fit();
+  live=freshState((Math.random()*1e9)|0);
+  document.getElementById('over').style.display='none';
+  acc=0; lastTs=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+}
+function loop(ts){ raf=requestAnimationFrame(loop);
+  const dt=ts-lastTs; lastTs=ts;
+  if(!live.dead){
+    acc+=dt; let guard=0;
+    while(acc>=FT&&guard++<6){ acc-=FT; const pre=live.score; tick(live,keyL,keyR);
+      if(live.score!==pre)blip(420+Math.random()*120,.05); if(live.dead)break; }
+    if(live.dead) showOver('GAME OVER','Score '+live.score+' · Press R');
+  }
+  draw(live);
+}
+function showOver(t,p){blip(130,.2);
+  document.getElementById('ot').textContent=t;document.getElementById('op').textContent=p;
+  document.getElementById('over').style.display='flex';}
+// input
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a')keyL=true; else if(k==='arrowright'||k==='d')keyR=true;
+  else if(k==='r')initGame();
+  if(['arrowleft','arrowright',' '].includes(k))e.preventDefault();});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a')keyL=false; if(k==='arrowright'||k==='d')keyR=false;});
+// touch buttons (hold)
+document.querySelectorAll('#ctl button').forEach(b=>{ const d=b.dataset.d;
+  const set=v=>{ if(d==='L')keyL=v; else keyR=v; };
+  b.addEventListener('pointerdown',e=>{e.preventDefault();set(true);});
+  b.addEventListener('pointerup',()=>set(false));
+  b.addEventListener('pointerleave',()=>set(false)); });
+// tap halves of the board to flip
+cv.addEventListener('pointerdown',e=>{ const r=cv.getBoundingClientRect();
+  if(e.clientX-r.left<r.width/2)keyL=true; else keyR=true; });
+cv.addEventListener('pointerup',()=>{keyL=false;keyR=false;});
+document.getElementById('rb').addEventListener('click',initGame);
+addEventListener('resize',()=>{fit();if(live)draw(live);});
+// audio
+let actx=null,armed=false;
+function arm(){if(!armed&&!AUTO){armed=true;try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+addEventListener('pointerdown',arm,{once:true});addEventListener('keydown',arm,{once:true});
+function blip(f,d){if(!actx||AUTO)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.05,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+  o.start();o.stop(actx.currentTime+d);}
+
+if(AUTO){ fit(); window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

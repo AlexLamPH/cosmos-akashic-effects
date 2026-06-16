@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Lorenz Attractor</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Lorenz Attractor — the butterfly strange attractor precomputed once, faint full curve + a bright glowing comet flowing along the path; hand-rolled 3D, deterministic & seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=9000,TAU=6.283185307,F=620;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let W,H,DPR,cx,cy;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;}
+rs();addEventListener('resize',rs);
+// PRECOMPUTE the Lorenz trajectory ONCE: integrate the ODE (sigma=10, rho=28, beta=8/3) for many steps.
+const NP=4200, SIG=10, RHO=28, BET=8/3, DT=0.006;
+const PTS=new Array(NP);
+(function(){let px=0.9,py=0.0,pz=20.0;             // seeded start near the attractor
+  for(let i=0;i<NP;i++){
+    const dx=SIG*(py-px), dy=px*(RHO-pz)-py, dz=px*py-BET*pz;   // Lorenz ODE
+    px+=dx*DT; py+=dy*DT; pz+=dz*DT;
+    PTS[i]=[px,py-0,pz-27];                                     // center on z~27
+  }})();
+function proj(p,cry,sry,cy0,sy0,SC){
+  let X=p[0]*SC, Y=p[2]*SC, Z=p[1]*SC;               // map lorenz x->X, z->Y(up), y->depth
+  let x1=X*cry+Z*sry, z1=-X*sry+Z*cry;               // rotate about Y
+  let y2=Y*cy0-z1*sy0, z2=Y*sy0+z1*cy0;              // constant tilt about X
+  const s=F/(F+z2);
+  return [cx+x1*s, cy+y2*s, z2, s];
+}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const ry=TAU*u, tilt=0.32;                          // ONE integer turn about Y + constant tilt
+  const cry=Math.cos(ry),sry=Math.sin(ry);
+  const cy0=Math.cos(tilt),sy0=Math.sin(tilt);
+  const SC=Math.min(W,H)*0.020;
+  // faint full curve with accent gradient along its length
+  x.lineWidth=1.1*DPR;
+  for(let i=1;i<NP;i++){
+    const a=proj(PTS[i-1],cry,sry,cy0,sy0,SC), b=proj(PTS[i],cry,sry,cy0,sy0,SC);
+    x.strokeStyle=COL[(i*6/NP|0)%6];x.globalAlpha=0.13;
+    x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();
+  }
+  x.globalAlpha=1;
+  // bright glowing comet/dash flowing along the precomputed path: head = (u mod 1)*len, loops
+  const head=(u*NP)|0, TAIL=520;
+  for(let k=0;k<TAIL;k++){
+    const idx=((head-k)%NP+NP)%NP;
+    const p=proj(PTS[idx],cry,sry,cy0,sy0,SC);
+    const fade=1-k/TAIL;                               // brightest at the head
+    const col=COL[((idx*6/NP|0))%6];
+    const r=Math.max(0.6,(1.0+3.2*fade)*p[3]*DPR);
+    const g=x.createRadialGradient(p[0],p[1],0,p[0],p[1],r*3);
+    g.addColorStop(0,col);g.addColorStop(0.3,col);g.addColorStop(1,'rgba(0,0,0,0)');
+    x.globalAlpha=Math.min(1,0.25+0.75*fade);x.fillStyle=g;
+    x.beginPath();x.arc(p[0],p[1],r*3,0,TAU);x.fill();
+  }
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

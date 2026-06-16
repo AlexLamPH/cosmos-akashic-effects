@@ -1,0 +1,190 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Flood-It</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:520px;height:620px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 26px;pointer-events:none;}
+  #title{font-size:23px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:12px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 14px;text-align:center;min-width:60px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:20px;font-weight:800;color:#fff;}
+  #pal{position:absolute;left:0;right:0;bottom:42px;display:flex;justify-content:center;gap:12px;}
+  .sw{width:50px;height:50px;border-radius:13px;border:2px solid rgba(255,255,255,.14);cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,.5);transition:transform .08s;}
+  .sw:active{transform:scale(.92);}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="520" height="620"></canvas>
+  <div id="hud"><div id="title">FLOOD-IT</div>
+    <div id="scores"><div class="box"><div class="lab">MOVES</div><div class="val" id="moves">0</div></div>
+    <div class="box"><div class="lab">LIMIT</div><div class="val" id="limit">25</div></div></div></div>
+  <div id="pal"></div>
+  <div id="over"><h1 id="otitle">SOLVED!</h1><p id="fin"></p><button id="btn">Play Again ▸</button></div>
+  <div id="tip">Pick a color · flood from top-left · fill the board · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const N=12, BX=30, BY=120, BW=460, CS=BW/N; // 12x12 board
+const COLORS=6;
+// Cosmos palette: violet, cosmic, nebula, aurora, solaris, sacred
+const PC=[ '#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a' ];
+const LIMIT=25;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---------- board helpers (flat N*N, color 0..COLORS-1) ----------
+function idx(r,c){return r*N+c;}
+function makeBoard(rnd){ const b=new Array(N*N); for(let i=0;i<N*N;i++)b[i]=(rnd()*COLORS)|0; return b; }
+// the connected region containing top-left (0,0) sharing the anchor color
+function region(b){ const anchor=b[0]; const seen=new Array(N*N).fill(false); const st=[0]; seen[0]=true; const cells=[0];
+  while(st.length){ const i=st.pop(); const r=(i/N)|0,c=i%N;
+    const nb=[]; if(r>0)nb.push(i-N); if(r<N-1)nb.push(i+N); if(c>0)nb.push(i-1); if(c<N-1)nb.push(i+1);
+    for(const j of nb){ if(!seen[j]&&b[j]===anchor){ seen[j]=true; st.push(j); cells.push(j); } } }
+  return {anchor,seen,cells};
+}
+// apply a color to the anchor region; returns new board (mutates copy)
+function applyColor(b,color){ const {cells}=region(b); for(const i of cells)b[i]=color; return b; }
+function solved(b){ const v=b[0]; for(let i=0;i<N*N;i++)if(b[i]!==v)return false; return true; }
+// greedy solver: pick color that maximizes region growth (deterministic, index tie-break by color order)
+function greedyPick(b){ const cur=b[0]; let best=-1,bestGain=-1;
+  for(let col=0;col<COLORS;col++){ if(col===cur)continue;
+    const t=b.slice(); applyColor(t,col); const after=region(t).cells.length;
+    if(after>bestGain){ bestGain=after; best=col; } }
+  return best;
+}
+
+// ---------- AUTO: deterministic scripted solve, animated flood waves ----------
+// Each move: flood region grows to include newly-absorbed neighbors of the chosen color.
+// We precompute steps: {before(board), color, newCells:[indices ordered by BFS distance], movesDone}
+const STEP_MS=620; // per move (includes flood-wave animation)
+function buildAuto(){
+  const rnd=mul(4480931); let b=makeBoard(rnd);
+  const steps=[]; let moves=0;
+  for(let m=0; m<60 && !solved(b); m++){
+    const col=greedyPick(b); if(col<0)break;
+    const before=b.slice();
+    // compute the cells that will be newly added to the region after recolor, with BFS distance for wave
+    const oldRegion=region(before); const oldSet=oldRegion.seen.slice();
+    const tmp=before.slice(); applyColor(tmp,col); const newRegion=region(tmp);
+    // BFS distance from current region boundary over the newly absorbed cells
+    const dist=new Array(N*N).fill(-1); const q=[];
+    for(let i=0;i<N*N;i++) if(oldSet[i]){ dist[i]=0; q.push(i); }
+    const added=[];
+    let head=0;
+    while(head<q.length){ const i=q[head++]; const r=(i/N)|0,c=i%N;
+      const nb=[]; if(r>0)nb.push(i-N); if(r<N-1)nb.push(i+N); if(c>0)nb.push(i-1); if(c<N-1)nb.push(i+1);
+      for(const j of nb){ if(dist[j]<0 && newRegion.seen[j] && !oldSet[j]){ dist[j]=dist[i]+1; added.push({i:j,d:dist[j]}); q.push(j); } }
+    }
+    const maxD=added.reduce((a,o)=>Math.max(a,o.d),1);
+    moves++;
+    steps.push({before,color:col,oldSet,added,maxD,moves});
+    b=tmp;
+  }
+  return {steps,finalSolved:solved(b)};
+}
+let AUTODATA=null;
+function totalDur(){ return AUTODATA.steps.length*STEP_MS; }
+const START_OFFSET=3.2*STEP_MS; // begin a few moves into the solve so frame 0 shows a grown region
+function simTo(ms){
+  if(!AUTODATA)AUTODATA=buildAuto();
+  const total=totalDur();
+  let m=((ms+START_OFFSET)%total+total)%total;
+  const si=Math.min(AUTODATA.steps.length-1,(m/STEP_MS)|0);
+  const p=Math.min(1,(m-si*STEP_MS)/STEP_MS);
+  return {step:AUTODATA.steps[si],p};
+}
+
+// ---------- rendering ----------
+function cellXY(r,c){ return [BX+c*CS, BY+r*CS]; }
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function clearBoard(){
+  x.clearRect(0,0,520,620);
+  const bg=x.createLinearGradient(0,0,0,620); bg.addColorStop(0,'#120c2c');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,520,620);
+  x.fillStyle='#15102e'; rr(BX-6,BY-6,BW+12,BW+12,16); x.fill();
+  x.strokeStyle='rgba(139,92,255,.18)'; x.lineWidth=1; rr(BX-6,BY-6,BW+12,BW+12,16); x.stroke();
+}
+function drawCell(r,c,colorIdx,pulse){ const[px,py]=cellXY(r,c); const col=PC[colorIdx];
+  const grad=x.createLinearGradient(px,py,px+CS,py+CS);
+  grad.addColorStop(0,col); grad.addColorStop(1,hexA(col,0.78));
+  x.fillStyle=grad; const pad=0.8; rr(px+pad,py+pad,CS-pad*2,CS-pad*2,4); x.fill();
+  if(pulse>0){ x.save(); x.globalCompositeOperation='lighter'; x.globalAlpha=pulse*0.6;
+    x.fillStyle=col; rr(px+pad,py+pad,CS-pad*2,CS-pad*2,4); x.fill(); x.restore(); }
+}
+function ease(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+function drawBoardState(b,highlight){ for(let r=0;r<N;r++)for(let c=0;c<N;c++) drawCell(r,c,b[idx(r,c)],0);
+  // anchor marker (top-left) ring
+  const[ax,ay]=cellXY(0,0); x.strokeStyle='rgba(255,255,255,.9)'; x.lineWidth=2.5; rr(ax+2,ay+2,CS-4,CS-4,5); x.stroke();
+}
+
+function drawStep(view){
+  clearBoard();
+  const st=view.step, p=view.p; const e=ease(p);
+  // base: render 'before' board
+  const b=st.before.slice();
+  // animate flood: cells in oldSet already recolored to chosen color; added cells recolor by wave front
+  const waveFront=e*(st.maxD+0.6);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const i=idx(r,c);
+    let colorIdx=b[i]; let pulse=0;
+    if(st.oldSet[i]){ colorIdx=st.color; }
+    drawCell(r,c, st.oldSet[i]?st.color:b[i], 0);
+  }
+  // overlay newly absorbed cells as the wave passes
+  for(const o of st.added){ const r=(o.i/N)|0,c=o.i%N;
+    if(o.d<=waveFront){ const local=Math.min(1,(waveFront-o.d)); drawCell(r,c,st.color, (1-local)*0.9); }
+  }
+  // anchor ring
+  const[ax,ay]=cellXY(0,0); x.strokeStyle='rgba(255,255,255,.9)'; x.lineWidth=2.5; rr(ax+2,ay+2,CS-4,CS-4,5); x.stroke();
+  // HUD + active color highlight on palette
+  document.getElementById('moves').textContent=st.moves;
+  document.getElementById('limit').textContent=LIMIT;
+  highlightSwatch(st.color);
+}
+function highlightSwatch(active){ const sws=document.querySelectorAll('.sw');
+  sws.forEach((s,i)=>{ s.style.outline = (i===active)?'3px solid #fff':'none'; s.style.outlineOffset='2px'; }); }
+const LOOP=12000;
+function drawAt(ms){ if(!AUTODATA)AUTODATA=buildAuto(); drawStep(simTo(ms)); }
+
+// build palette swatches (used by both modes for visibility)
+function buildPalette(onPick){ const pal=document.getElementById('pal'); pal.innerHTML='';
+  for(let i=0;i<COLORS;i++){ const d=document.createElement('div'); d.className='sw'; d.style.background=PC[i];
+    if(onPick) d.addEventListener('click',()=>onPick(i)); pal.appendChild(d); } }
+
+// ---------------- LIVE GAME ----------------
+let LG=null, busy=false;
+function newGame(){ const rnd=Math.random; LG={b:makeBoard(rnd),moves:0,over:false}; busy=false;
+  document.getElementById('over').style.display='none'; renderLive(); }
+function renderLive(){ clearBoard(); for(let r=0;r<N;r++)for(let c=0;c<N;c++)drawCell(r,c,LG.b[idx(r,c)],0);
+  const[ax,ay]=cellXY(0,0); x.strokeStyle='rgba(255,255,255,.9)'; x.lineWidth=2.5; rr(ax+2,ay+2,CS-4,CS-4,5); x.stroke();
+  document.getElementById('moves').textContent=LG.moves;
+  document.getElementById('limit').textContent=LIMIT;
+  highlightSwatch(LG.b[0]); }
+function pick(col){ if(LG.over||busy)return; if(col===LG.b[0])return;
+  applyColor(LG.b,col); LG.moves++; renderLive();
+  if(solved(LG.b)){ end(true); } else if(LG.moves>=LIMIT){ end(false); } }
+function end(win){ LG.over=true; const o=document.getElementById('over');
+  document.getElementById('otitle').textContent=win?'SOLVED!':'OUT OF MOVES';
+  document.getElementById('otitle').style.color=win?'#36d39a':'#ff5cc2';
+  document.getElementById('fin').textContent=win?('Filled the board in '+LG.moves+' moves'):('Used all '+LIMIT+' moves');
+  o.style.display='flex'; }
+function initGame(){ buildPalette(pick); newGame();
+  addEventListener('keydown',e=>{ if(e.key==='r'||e.key==='R')newGame();
+    const n=parseInt(e.key,10); if(n>=1&&n<=COLORS)pick(n-1); });
+  document.getElementById('btn').addEventListener('click',ev=>{ev.stopPropagation();newGame();}); }
+if(AUTO){ buildPalette(null); window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

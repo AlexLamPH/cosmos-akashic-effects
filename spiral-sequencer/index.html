@@ -1,0 +1,180 @@
+<!doctype html><meta charset=utf8><title>Cosmos Spiral Sequencer</title>
+<!-- Cosmos Spiral Sequencer — notes sit along a spiral; a rotating arm sweeps outer-to-inner and triggers each node it passes (pentatonic bells); the spiral pulses with the beat. LIVE: click nodes to toggle, drag up/down to change tempo. AUTO: a silent seeded pattern plays — the arm rotates integer turns per LOOP, passed nodes bloom + ring — frame 0 mid-rotation with a node blooming. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font:12px/1.4 system-ui,sans-serif;color:#b9a8ff}
+canvas{position:fixed;inset:0;touch-action:none}
+#hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);padding:7px 14px;border:1px solid #8b5cff55;border-radius:20px;background:#150c2acc;color:#cbb8ff;letter-spacing:.3px;pointer-events:none;transition:opacity .4s}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ click nodes to toggle · drag up/down for tempo</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H,CX,CY;
+const LOOP=6400, TAU=Math.PI*2;
+const TURNS=3;                 // integer turns of the arm per LOOP → seamless
+const NODES=28;               // nodes along the spiral
+const COILS=2.6;              // spiral coil count
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const ACC='#8b5cff';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;CX=W/2;CY=H/2;}
+addEventListener('resize',resize);resize();
+
+// pentatonic bell scale (major pentatonic over ~2.5 octaves), low at outer edge
+const SCALE=[0,2,4,7,9,12,14,16,19,21,24,26,28];
+const BASE=523.25;            // C5 bell-ish base
+// build spiral node geometry + seeded on/off pattern
+const node=[];
+(function(){ const r=mulberry32(20260615);
+  for(let i=0;i<NODES;i++){
+    const f=i/(NODES-1);                 // 0=outer .. 1=inner (arm sweeps outer→inner)
+    const ang=f*COILS*TAU;               // angle along spiral
+    const rad=0.94-0.78*f;               // normalized radius (outer→inner)
+    const semi=SCALE[Math.min(SCALE.length-1, Math.floor(f*SCALE.length))];
+    node.push({ ang, rad, semi, on:r()<0.5, // seeded toggles
+      phase: r()*TAU, fired:0 });
+  }
+})();
+let tempoMul=1;                // live tempo scale (visual only effect via LOOP-equiv)
+
+// arm angle for u: integer TURNS over the loop, spinning so it sweeps the spiral
+function armAngle(u){ return u*TURNS*TAU; }
+// the parametric "pass position" of the arm along the spiral as it rotates:
+// node i is "passed" when the rotating arm angle aligns with its spiral angle (mod TAU),
+// progressing outer→inner over the loop. We map each node to a trigger-time in [0,1).
+function nodeTrigT(i){ const f=i/(NODES-1); return f; }   // outer first → inner last
+// bloom envelope for node i at u (how recently it was passed)
+function bloom(i,u){
+  const tt=nodeTrigT(i);
+  let d=((u-tt)%1+1)%1;          // time since this node's trigger, wrapping
+  return Math.exp(-d*7.5);       // sharp attack, decay
+}
+
+function xy(rad,ang){ const R=Math.min(W,H)*0.42; return [CX+Math.cos(ang)*rad*R, CY+Math.sin(ang)*rad*R]; }
+
+function render(u){
+  // offset so frame 0 sits mid-rotation with a node blooming
+  u=((u+0.085)%1+1)%1;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const R=Math.min(W,H)*0.42;
+  // beat pulse (4 beats per loop)
+  const beat=u*8, beatFrac=beat-Math.floor(beat);
+  const pulse=Math.exp(-beatFrac*4.5);
+
+  // faint spiral guide line
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=0.22;ctx.strokeStyle=PAL[1];ctx.lineWidth=1.3*DPR;ctx.beginPath();
+  for(let s=0;s<=240;s++){ const f=s/240; const ang=f*COILS*TAU; const rad=0.94-0.78*f;
+    const [x,y]=xy(rad,ang); if(s===0)ctx.moveTo(x,y);else ctx.lineTo(x,y); }
+  ctx.stroke();
+
+  // pulsing center ring (the "beat")
+  const cr=(0.10+0.05*pulse)*R;
+  let cg=ctx.createRadialGradient(CX,CY,0,CX,CY,cr*1.8);
+  cg.addColorStop(0,'#ffffff');cg.addColorStop(0.3,ACC);cg.addColorStop(1,ACC+'00');
+  ctx.globalAlpha=0.5+0.4*pulse;ctx.fillStyle=cg;ctx.beginPath();ctx.arc(CX,CY,cr*1.8,0,TAU);ctx.fill();
+  ctx.globalAlpha=0.6;ctx.strokeStyle=ACC;ctx.lineWidth=2*DPR;ctx.beginPath();ctx.arc(CX,CY,cr,0,TAU);ctx.stroke();
+
+  // nodes
+  for(let i=0;i<NODES;i++){ const nd=node[i]; const [x,y]=xy(nd.rad,nd.ang);
+    const b=nd.on?bloom(i,u):0;
+    const col=PAL[(i%5)+1>5?1:(nd.semi%6)];
+    const baseR=(nd.on?5:3)*DPR;
+    if(nd.on){
+      // expanding ring on trigger (the "bell ring")
+      if(b>0.05){ const rr=baseR + (1-b)*34*DPR;
+        ctx.globalCompositeOperation='lighter';ctx.globalAlpha=b*0.7;
+        ctx.strokeStyle=col;ctx.lineWidth=2*DPR;ctx.beginPath();ctx.arc(x,y,rr,0,TAU);ctx.stroke(); }
+      // glow blob
+      ctx.globalCompositeOperation='lighter';
+      const gr=baseR+ (2+b*10)*DPR;
+      let g=ctx.createRadialGradient(x,y,0,x,y,gr*2.2);
+      g.addColorStop(0,'#ffffff');g.addColorStop(0.35,col);g.addColorStop(1,col+'00');
+      ctx.globalAlpha=0.45+0.5*b;ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,gr*2.2,0,TAU);ctx.fill();
+      ctx.globalAlpha=0.9;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,baseR+b*3*DPR,0,TAU);ctx.fill();
+    } else {
+      // dim off node
+      ctx.globalCompositeOperation='source-over';
+      ctx.globalAlpha=0.28;ctx.fillStyle='#2a2350';ctx.beginPath();ctx.arc(x,y,baseR,0,TAU);ctx.fill();
+      ctx.globalAlpha=0.4;ctx.strokeStyle=PAL[0];ctx.lineWidth=1*DPR;ctx.beginPath();ctx.arc(x,y,baseR,0,TAU);ctx.stroke();
+    }
+  }
+
+  // the rotating arm — sweeps from center out, integer turns
+  const aang=armAngle(u);
+  ctx.globalCompositeOperation='lighter';
+  let ag=ctx.createLinearGradient(CX,CY,CX+Math.cos(aang)*R,CY+Math.sin(aang)*R);
+  ag.addColorStop(0,ACC+'00');ag.addColorStop(0.15,ACC+'aa');ag.addColorStop(1,'#ffffffcc');
+  ctx.globalAlpha=0.85;ctx.strokeStyle=ag;ctx.lineWidth=2.5*DPR;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(aang)*R*0.98,CY+Math.sin(aang)*R*0.98);ctx.stroke();
+  // arm tip glow
+  const tx=CX+Math.cos(aang)*R*0.98, ty=CY+Math.sin(aang)*R*0.98;
+  let tg=ctx.createRadialGradient(tx,ty,0,tx,ty,16*DPR);
+  tg.addColorStop(0,'#ffffff');tg.addColorStop(0.4,ACC);tg.addColorStop(1,ACC+'00');
+  ctx.globalAlpha=0.9;ctx.fillStyle=tg;ctx.beginPath();ctx.arc(tx,ty,16*DPR,0,TAU);ctx.fill();
+
+  // title
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.7;ctx.fillStyle='#cbb8ff';
+  ctx.font=(13*DPR)+'px system-ui';ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText('SPIRAL SEQUENCER · pentatonic bells', 18*DPR, 16*DPR);
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx, master, playing=false, schedTimer=null, nextTime=0, stepIdx=0;
+let STEP_DUR=(LOOP/NODES)/1000;
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function ensureMaster(){ if(master)return; const a=audio();
+  master=a.createGain();master.gain.value=0.2;
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);
+}
+// FM-ish bell: carrier + ring-mod sine with fast-decaying envelope
+function bell(semi,when,vel){
+  const a=actx; const f=BASE*Math.pow(2,semi/12);
+  const o=a.createOscillator(),m=a.createOscillator(),mg=a.createGain(),g=a.createGain();
+  o.type='sine';m.type='sine';
+  o.frequency.value=f; m.frequency.value=f*2.76;     // inharmonic bell ratio
+  mg.gain.value=f*1.4; m.connect(mg);mg.connect(o.frequency);
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=f*5+1200;lp.Q.value=0.6;
+  g.gain.setValueAtTime(0.0001,when);
+  g.gain.exponentialRampToValueAtTime(0.9*vel,when+0.004);   // attack, click-free
+  g.gain.exponentialRampToValueAtTime(0.0001,when+1.4);      // long bell decay
+  o.connect(lp);lp.connect(g);g.connect(master);
+  o.start(when);m.start(when);o.stop(when+1.5);m.stop(when+1.5);
+}
+function scheduler(){
+  const a=actx;
+  while(nextTime < a.currentTime+0.12){
+    const nd=node[stepIdx%NODES];
+    if(nd.on) bell(nd.semi,nextTime,1);
+    nextTime+=STEP_DUR; stepIdx=(stepIdx+1)%NODES;
+  }
+  schedTimer=setTimeout(scheduler,25);
+}
+function startSeq(){ ensureMaster(); if(playing)return; playing=true; stepIdx=0; nextTime=actx.currentTime+0.06; scheduler(); hint.style.opacity='0'; }
+
+function hitNode(e){
+  const R=Math.min(W,H)*0.42;
+  const mx=(e.clientX*DPR), my=(e.clientY*DPR);
+  let best=-1,bd=1e9;
+  for(let i=0;i<NODES;i++){ const nd=node[i]; const [x,y]=xy(nd.rad,nd.ang);
+    const d=(x-mx)*(x-mx)+(y-my)*(y-my); if(d<bd){bd=d;best=i;} }
+  if(best>=0 && bd < (22*DPR)*(22*DPR)){ node[best].on=!node[best].on; return true; }
+  return false;
+}
+
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  let dragY=null, dragMoved=false;
+  cv.addEventListener('pointerdown',e=>{ audio(); dragY=e.clientY; dragMoved=false; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove',e=>{ if(dragY!=null){ const dy=e.clientY-dragY;
+    if(Math.abs(dy)>6){ dragMoved=true; tempoMul=Math.max(0.5,Math.min(2.2,tempoMul - dy*0.004)); dragY=e.clientY;
+      STEP_DUR=((LOOP/NODES)/1000)/tempoMul; } } });
+  cv.addEventListener('pointerup',e=>{ if(!dragMoved){ hitNode(e); startSeq(); } dragY=null; });
+  const s=performance.now();
+  (function l(n){ render((((n-s)/tempoMul%LOOP+LOOP)%LOOP)/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script>

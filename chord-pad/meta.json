@@ -1,0 +1,15 @@
+{
+  "slug": "chord-pad",
+  "title": "Cosmos Chord Pad — grid of named chord pads voicing a lush Rhodes-ish synth",
+  "title_vi": "Bàn Hợp Âm Cosmos",
+  "W": 720,
+  "H": 480,
+  "LOOP": 8000,
+  "N": 100,
+  "START": 1000,
+  "tags": ["chord-pad", "synth-pad", "rhodes", "chords", "audio", "webaudio", "interactive", "sound", "canvas2d", "glow"],
+  "summary": "An XY grid of large chord pads (Cmaj7, Am9, Fmaj7, G13, Em7, Dm9, Bb6, Csus2) that makes REAL sound via the Web Audio API: click or press number keys 1-8 to voice a whole named chord through soft detuned triangle oscillators routed into a lush opening lowpass filter with a slow swelling attack — a warm Rhodes-ish pad that sustains while held and fades cleanly on release. Each pressed pad glows, ripples, shows mini note bars, and a chord-name readout updates. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
+  "usage_notes": "RUN: open index.html and CLICK a pad or press keys 1-8 to HEAR a chord (audio needs a user gesture to start the AudioContext). Hold to sustain the chord, release to let it fade. KEY TECHNIQUES (synthesis): each chord note is built from two slightly detuned triangle oscillators (lush chorus-like beating) summed into a resonant lowpass biquad whose cutoff slowly opens (700→2400Hz), a per-chord gain with a ~400ms exponential attack and ~800ms release (no clicks), master gain ~0.2 with a compressor; pitches use 440*2^((midi-69)/12) over musical jazz voicings. CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded 8-step progression presses pads in sequence, each swelling with glow + an expanding ripple while the name readout updates, looping seamlessly. TUNE: LOOP for progression speed, the CHORDS bank for voicings, filter ramp for brightness, attack/release times for feel, master gain for level.",
+  "summary_vi": "Một lưới các bàn hợp âm lớn (Cmaj7, Am9, Fmaj7, G13…) phát ra âm thanh THẬT qua Web Audio API: bấm vào bàn hoặc nhấn phím 1-8 để vang lên cả hợp âm bằng các dao động tam giác lệch tông nhẹ qua bộ lọc mở dần — một âm pad ấm kiểu Rhodes, giữ để ngân, thả thì tắt mượt. Mỗi bàn được bấm sẽ sáng lên, gợn sóng và hiện tên hợp âm. Tự chứa, không phụ thuộc, kèm demo hình lặp tất định và im lặng để chụp.",
+  "notes": "Mở ra rồi bấm chuột vào bàn hoặc nhấn phím 1-8 để nghe cả hợp âm vang lên."
+}

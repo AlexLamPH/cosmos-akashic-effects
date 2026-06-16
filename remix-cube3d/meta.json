@@ -1,0 +1,11 @@
+{
+  "slug": "remix-cube3d",
+  "title": "Cosmos Remix — 3D Cube Lattice you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "cube-lattice", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle 3D cube lattice: a regular grid of glowing points filling a cube, rotated around the X and Y axes and perspective-projected so it reads as a rotating, glowing box of points; depth maps to point size and brightness for a real volumetric feel. A live glass control panel retunes palette (brand theme tokens), shape, density, spread, speed and dot size in real time, plus a Layers knob that sets the lattice resolution; reskins to any brand colour in one click. Self-contained, zero dependencies; the ?auto=1 capture hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot size, drag Layers to change the lattice resolution (points per cube edge), press the seed button to cycle palettes, Copy to copy your config. KEY TECHNIQUES: an L×L×L lattice (L = Layers) mapped to the cube [-1,1]³ is built ONCE per Layers value into a point array, then each frame the points are rotated around Y by a full turn and around X at 2/3 rate (so frame(0)===frame(LOOP)) and perspective-projected; depth drives both point size and brightness so near faces glow brighter and read as 3D; particles sample the lattice evenly when the grid is denser than Density; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays seamless; theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; window.__params + setParam(key,value) is the contract a generic remix harness uses to auto-build panels for ANY effect. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: add palettes to PALETTES, adjust Layers, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

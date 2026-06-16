@@ -1,0 +1,20 @@
+{
+  "slug": "data-stream",
+  "title": "Cosmos Data Stream — glowing packets flowing along fibre-optic routes between nodes",
+  "title_vi": "Cosmos Data Stream — gói dữ liệu phát sáng chạy dọc các tuyến cáp quang giữa các nút",
+  "W": 760,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "network",
+    "packets",
+    "fibre",
+    "pulse",
+    "canvas2d"
+  ],
+  "summary": "A seeded network of glowing nodes linked by straight fibre-optic routes, with violet, cosmic and nebula data packets (dot-then-dash) streaming along every link over a faint nebula wash. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a mulberry32 seed places 18 nodes and connects each to its 2 nearest neighbours, forming a network of straight routes; dim base traces are stroked once, then bright packets flow along each via setLineDash (a short dot + a dash + a gap) with lineDashOffset = -dir*((u*sp+off) mod 1)*patternLen where sp is an integer so the offset matches at u=0 and u=1 (mod-1 seamless); packets glow with shadowBlur; nodes use a violet/cosmic radial gradient twinkling on sin(2*pi*u*2) with a sacred-gold core; everything additive ('lighter') over a radial nebula wash. CAPTURE: ?auto=1 + window.__seek(t). TUNE: node count NN, neighbours per node, dash pattern (packet shape), packet speed sp, route colours RC, node glow radius.",
+  "summary_vi": "Mạng lưới các nút phát sáng có seed, nối với nhau bằng các tuyến cáp quang thẳng, với gói dữ liệu màu tím, xanh vũ trụ và nebula (chấm rồi gạch) chạy dọc từng tuyến trên nền tinh vân mờ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Gói dữ liệu dùng setLineDash + lineDashOffset = -dir·((u·sp+off) mod 1)·patt với sp nguyên nên offset bằng nhau ở u=0 và u=1 (loop liền)."
+}

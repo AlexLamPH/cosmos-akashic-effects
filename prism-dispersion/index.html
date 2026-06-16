@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Prism Dispersion</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Prism Dispersion — a white beam enters a triangular prism and fans out into a Cosmos-accent spectrum with subtle shimmer; perfectly periodic. Deterministic, seamless, pure Canvas 2D.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=7600,TAU=6.28318530718;
+let W,H,DPR;const NR=7;
+// seeded RNG (mulberry32) — only at setup/resize, never in frame()
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents (spectrum order): violet, cosmic, aurora, sacred, solaris, nebula
+const SPEC=[[139,92,255],[70,180,255],[54,211,154],[224,178,74],[255,106,61],[255,92,194]];
+let dust=[];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  const r=mul(23);dust=[];for(let i=0;i<26;i++){dust.push({px:0.55+r()*0.4,py:r(),k:1+((r()*3)|0),ph:r(),c:SPEC[(r()*SPEC.length)|0]});}
+}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // prism geometry: equilateral triangle centred slightly left
+  const cxp=W*0.46,cyp=H*0.52,sz=Math.min(W,H)*0.30;
+  const P=[[cxp,cyp-sz],[cxp-sz*0.866,cyp+sz*0.5],[cxp+sz*0.866,cyp+sz*0.5]];
+  // entry point on the left face; beam angle wobbles on integer harmonic
+  const wob=0.10*Math.sin(TAU*u);                 // returns to 0 at u=0,.5,1
+  const entry=[(P[0][0]+P[1][0])/2,(P[0][1]+P[1][1])/2];
+  // incoming white beam from far left
+  const inStart=[0,entry[1]-W*0.5*Math.tan(wob)];
+  x.globalCompositeOperation='lighter';
+  x.lineCap='round';
+  for(const[w,a]of[[14*DPR,0.06],[6*DPR,0.18],[2.4*DPR,0.85]]){
+    x.strokeStyle=`rgba(245,245,255,${a})`;x.lineWidth=w;
+    x.beginPath();x.moveTo(inStart[0],inStart[1]);x.lineTo(entry[0],entry[1]);x.stroke();}
+  // dispersed spectrum fan from the right face apex region
+  const exit=[cxp+sz*0.30,cyp+sz*0.05];
+  const baseAng=0.12+wob*0.6;const spread=0.62;
+  for(let i=0;i<NR;i++){const f=i/(NR-1);const c=SPEC[i%SPEC.length];
+    const shimmer=0.5+0.5*Math.sin(TAU*(u*2+f));   // integer harmonic shimmer
+    const ang=baseAng+(f-0.5)*spread;
+    const len=W*0.62;const ex=exit[0]+Math.cos(ang)*len,ey=exit[1]+Math.sin(ang)*len;
+    const cc=`${c[0]},${c[1]},${c[2]}`;
+    x.strokeStyle=`rgba(${cc},${0.05+0.05*shimmer})`;x.lineWidth=12*DPR;
+    x.beginPath();x.moveTo(exit[0],exit[1]);x.lineTo(ex,ey);x.stroke();
+    x.strokeStyle=`rgba(${cc},${0.45+0.4*shimmer})`;x.lineWidth=3.2*DPR;
+    x.beginPath();x.moveTo(exit[0],exit[1]);x.lineTo(ex,ey);x.stroke();
+    x.strokeStyle=`rgba(${Math.min(255,c[0]+60)},${Math.min(255,c[1]+60)},${Math.min(255,c[2]+60)},${0.5*shimmer})`;
+    x.lineWidth=1.2*DPR;x.beginPath();x.moveTo(exit[0],exit[1]);x.lineTo(ex,ey);x.stroke();}
+  // bright dispersion point + internal refracted streak through the glass
+  x.strokeStyle='rgba(220,230,255,0.5)';x.lineWidth=2.2*DPR;
+  x.beginPath();x.moveTo(entry[0],entry[1]);x.lineTo(exit[0],exit[1]);x.stroke();
+  x.fillStyle='rgba(255,255,255,0.85)';x.beginPath();x.arc(exit[0],exit[1],4*DPR,0,TAU);x.fill();
+  // floating dust motes catching the light, drifting on integer harmonics
+  for(const d of dust){const ph=(d.ph+u*d.k)%1;const dx=(d.px)*W,dy=((d.py+ph)%1)*H;
+    const a=0.10+0.16*Math.sin(TAU*ph);
+    x.fillStyle=`rgba(${d.c[0]},${d.c[1]},${d.c[2]},${Math.max(0,a)})`;
+    x.beginPath();x.arc(dx,dy,1.6*DPR,0,TAU);x.fill();}
+  // the glass prism outline (drawn last, faint, over the light)
+  x.globalCompositeOperation='lighter';
+  const g=x.createLinearGradient(P[1][0],cyp,P[2][0],cyp);
+  g.addColorStop(0,'rgba(120,140,200,0.10)');g.addColorStop(1,'rgba(180,160,220,0.16)');
+  x.fillStyle=g;x.beginPath();x.moveTo(P[0][0],P[0][1]);x.lineTo(P[1][0],P[1][1]);x.lineTo(P[2][0],P[2][1]);x.closePath();x.fill();
+  x.strokeStyle='rgba(200,210,255,0.55)';x.lineWidth=2.5*DPR;x.lineJoin='round';
+  x.beginPath();x.moveTo(P[0][0],P[0][1]);x.lineTo(P[1][0],P[1][1]);x.lineTo(P[2][0],P[2][1]);x.closePath();x.stroke();
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

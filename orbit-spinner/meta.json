@@ -1,0 +1,11 @@
+{
+  "slug": "orbit-spinner",
+  "title": "Cosmos Orbit Spinner — concentric rings of orbiting dots circling a glowing core",
+  "title_vi": "Cosmos Orbit Spinner — vòng tròn đồng tâm gồm các chấm quay quanh lõi phát sáng",
+  "W": 560, "H": 560, "LOOP": 3000, "N": 38,
+  "tags": ["spinner","loader","orbit","rings","glow","canvas2d"],
+  "summary": "A premium loading spinner: six concentric rings of orbiting dots and leading arc sweeps rotate at integer speeds in alternating directions around a pulsing glowing core. Every ring angle is 2*pi*u*speed with integer speed, and the core pulse is sin(2*pi*u), so frame(0) equals frame(LOOP) exactly. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each ring rotates by angle=2*pi*u*speed with INTEGER signed speeds (alternating direction) so the loop is seamless; dots are placed evenly via a/dots*TAU and drawn as additive 'lighter' radial-gradient glows with a white core; a faint orbit track plus a leading arc sweep per ring; central radial-gradient glow pulses via sin(2*pi*u); mulberry32 seeds phases/arcs once at setup. CAPTURE: ?auto=1 + window.__seek(t). TUNE: RINGS count, per-ring dots/speed/arc, base radius scale, pulse amount, COLS palette, LOOP.",
+  "summary_vi": "Spinner tải cao cấp: sáu vòng đồng tâm gồm các chấm quay và cung quét dẫn đầu xoay với tốc độ nguyên theo hướng xen kẽ quanh lõi phát sáng đập nhịp. Mỗi góc vòng là 2*pi*u*speed với speed nguyên, nhịp lõi là sin(2*pi*u), nên frame(0) bằng frame(LOOP) chính xác. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Góc mỗi vòng = 2*pi*u*tốc-độ-nguyên xen kẽ hướng nên loop liền; chấm vẽ bằng gradient tròn additive, lõi đập nhịp sin; gieo bằng mulberry32."
+}

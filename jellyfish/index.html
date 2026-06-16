@@ -1,0 +1,85 @@
+<!-- Cosmos Jellyfish — bioluminescent jellies drift upward, bells pulse (squash/stretch on a sine), wavy tentacles trail -->
+<!doctype html><meta charset=utf-8><title>Jellyfish</title>
+<style>html,body{margin:0;height:100%;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const LOOP=8000, ACCENT=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let W,H,DPR,jellies=[];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hex(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function setup(){
+  DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);
+  const r=mulberry32(20260614);const N=11;jellies=[];
+  for(let i=0;i<N;i++){
+    jellies.push({
+      bx:0.06+r()*0.88,           // base x fraction
+      ph:r(),                     // upward drift phase (mod 1)
+      sway:18+r()*34, sk:1+((r()*2)|0), swp:r(), // horizontal sway amp/harmonic/phase
+      R:34+r()*44,                // bell radius
+      pk:2+((r()*2)|0), pp:r(),   // pulse integer harmonic + phase
+      tent:5+((r()*4)|0),         // tentacle count
+      wk:2+((r()*3)|0), wp:r(),   // tentacle wave harmonic + phase
+      rgb:hex(ACCENT[(r()*ACCENT.length)|0])});
+  }
+}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP, TAU=Math.PI*2;
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // deep-sea bioluminescent wash so frame 0 is rich
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<5;i++){const a=TAU*u+i*1.257;
+    const gx=W*(0.5+0.42*Math.cos(a)),gy=H*(0.5+0.42*Math.sin(a));
+    const g=x.createRadialGradient(gx,gy,0,gx,gy,Math.max(W,H)*0.45);
+    const rc=hex(ACCENT[i%ACCENT.length]);
+    g.addColorStop(0,`rgba(${rc[0]},${rc[1]},${rc[2]},0.05)`);g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g;x.fillRect(0,0,W,H);}
+  for(const j of jellies){
+    // drift upward, wrap seamlessly; sway side to side on a sine
+    const fy=((j.ph - u)%1+1)%1;          // 1=bottom,0=top -> moves up
+    const cy=fy*(H+220)-110;
+    const cx=j.bx*W + j.sway*Math.sin(TAU*j.sk*u+j.swp*TAU);
+    // pulse: squash/stretch on a sine (volume-ish preserving)
+    const pulse=Math.sin(TAU*j.pk*u+j.pp*TAU);
+    const sx=1+0.20*pulse, sy=1-0.16*pulse; // bell wide when squashed
+    const R=j.R, [Rr,Gg,Bb]=j.rgb;
+    const br=0.55+0.45*(0.5+0.5*pulse);
+    // glow halo
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,R*2.1);
+    g.addColorStop(0,`rgba(${Rr},${Gg},${Bb},${0.30*br})`);
+    g.addColorStop(0.5,`rgba(${Rr},${Gg},${Bb},${0.10*br})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g;x.beginPath();x.arc(cx,cy,R*2.1,0,TAU);x.fill();
+    // tentacles: trailing wavy lines below the bell
+    for(let k=0;k<j.tent;k++){
+      const tx0=cx+(k/(j.tent-1)-0.5)*R*1.3*sx;
+      x.beginPath();x.moveTo(tx0,cy+R*0.4*sy);
+      const len=R*2.4, seg=10;
+      for(let s=1;s<=seg;s++){
+        const f=s/seg, yy=cy+R*0.4*sy+len*f;
+        const wob=Math.sin(TAU*j.wk*u+j.wp*TAU+k*0.9+f*4.2)*R*0.32*f;
+        x.lineTo(tx0+wob,yy);
+      }
+      x.lineWidth=2.2;x.strokeStyle=`rgba(${Rr},${Gg},${Bb},${0.42*br})`;x.stroke();
+    }
+    // bell dome (squash/stretch)
+    x.save();x.translate(cx,cy);x.scale(sx,sy);
+    const bg=x.createRadialGradient(0,-R*0.2,0,0,0,R);
+    bg.addColorStop(0,`rgba(255,255,255,${0.55*br})`);
+    bg.addColorStop(0.35,`rgba(${Rr},${Gg},${Bb},${0.85*br})`);
+    bg.addColorStop(1,`rgba(${Rr},${Gg},${Bb},0)`);
+    x.fillStyle=bg;x.beginPath();
+    x.ellipse(0,0,R,R*0.86,0,Math.PI,TAU);   // dome half
+    x.ellipse(0,0,R,R*0.34,0,0,Math.PI);     // wavy lower fringe approximated
+    x.fill();
+    // bright rim
+    x.lineWidth=2.6;x.strokeStyle=`rgba(255,255,255,${0.5*br})`;
+    x.beginPath();x.ellipse(0,0,R,R*0.86,0,Math.PI,TAU);x.stroke();
+    x.restore();
+  }
+}
+addEventListener('resize',setup);setup();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

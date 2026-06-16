@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Flower Bloom</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Flower Bloom — a glowing geometric flower that unfurls open then closes (ping-pong) with gently rotating accent petals and a bright pistil core, all driven by integer harmonics of u.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318530718;
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const rnd=mulberry32(0x10E5);
+let W,H,DPR,CX,CY,RAD;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  CX=W/2;CY=H/2;RAD=Math.min(W,H)*0.40;}
+rs();addEventListener('resize',rs);
+// one teardrop petal pointing up (+y), as a closed path centred at origin pre-transform
+function petal(len,wid,curl){
+  x.beginPath();x.moveTo(0,0);
+  for(let s=0;s<=1.0001;s+=0.05){
+    const r=Math.sin(s*Math.PI), sx=Math.sin(s*Math.PI*0.5+curl)*wid*r, sy=s*len;
+    x.lineTo(sx,sy);
+  }
+  for(let s=1;s>=-0.0001;s-=0.05){
+    const r=Math.sin(s*Math.PI), sx=-Math.sin(s*Math.PI*0.5+curl)*wid*r, sy=s*len;
+    x.lineTo(sx,sy);
+  }
+  x.closePath();
+}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP, ph=u*TAU;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';x.lineJoin='round';
+  // ping-pong bloom factor: open at t=0 (offset by π) so frame 0 is full, closes mid-loop, returns open at u=1
+  const bloom=0.5+0.5*Math.cos(ph);            // 1..0..1 across the loop, seamless
+  const open=0.12+0.88*bloom;                  // scale-out amount
+  // two corolla rings of petals + one accent ring rotating gently
+  const RINGS=[{n:8,rad:1.00,len:0.78,wid:0.30,col:0},{n:6,rad:0.66,len:0.60,wid:0.34,col:2},{n:5,rad:0.40,len:0.42,wid:0.30,col:3}];
+  for(let ri=0;ri<RINGS.length;ri++){
+    const R=RINGS[ri], base=R.rad*RAD*open;
+    // gentle accent rotation, integer harmonic so it returns at u=1
+    const spin=ph*(ri+1) + ri*0.9 + 0.18*Math.sin(ph*2);
+    for(let i=0;i<R.n;i++){
+      const ang=spin + i/R.n*TAU;
+      const len=base*R.len*(0.92+0.16*bloom), wid=base*R.wid*(0.7+0.5*bloom);
+      x.save();x.translate(CX,CY);x.rotate(ang);
+      petal(len,wid,0.25*(1-bloom));
+      // soft filled glow body
+      const col=AC[(R.col+i)%AC.length];
+      x.fillStyle=col;x.globalAlpha=0.12+0.10*bloom;x.fill();
+      x.lineWidth=DPR*(1.0+1.6*(1-ri/RINGS.length));
+      x.strokeStyle=col;x.globalAlpha=0.30+0.30*bloom;x.stroke();
+      x.restore();
+    }
+  }
+  // bright white edge accents on outermost ring for crisp definition
+  {const R=RINGS[0], base=R.rad*RAD*open, spin=ph + 0.18*Math.sin(ph*2);
+   for(let i=0;i<R.n;i++){const ang=spin+i/R.n*TAU;
+     x.save();x.translate(CX,CY);x.rotate(ang);
+     petal(base*R.len*(0.92+0.16*bloom),base*R.wid*(0.7+0.5*bloom),0.25*(1-bloom));
+     x.lineWidth=DPR*0.9;x.strokeStyle='#ffffff';x.globalAlpha=0.10+0.18*bloom;x.stroke();x.restore();}}
+  // bright pistil core — pulses with bloom
+  const cr=RAD*(0.10+0.10*bloom)*(1+0.12*Math.sin(ph*3));
+  const g=x.createRadialGradient(CX,CY,0,CX,CY,cr);
+  g.addColorStop(0,'rgba(255,235,180,0.95)');g.addColorStop(0.4,'rgba(255,170,90,0.6)');g.addColorStop(1,'rgba(255,90,194,0)');
+  x.globalAlpha=1;x.fillStyle=g;x.beginPath();x.arc(CX,CY,cr,0,TAU);x.fill();
+  // tiny stamen dots ringing the core
+  const sn=10, sr=cr*1.5;
+  for(let i=0;i<sn;i++){const a=ph*2+i/sn*TAU, dx=CX+Math.cos(a)*sr, dy=CY+Math.sin(a)*sr;
+    x.fillStyle=AC[5];x.globalAlpha=0.4+0.4*bloom;x.beginPath();x.arc(dx,dy,DPR*2.2,0,TAU);x.fill();}
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+const AUTO2=new URLSearchParams(location.search).has('auto'); if(AUTO2){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

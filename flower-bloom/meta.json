@@ -1,0 +1,21 @@
+{
+  "slug": "flower-bloom",
+  "title": "Cosmos Flower Bloom — a glowing geometric flower unfurling open then closing in a ping-pong loop",
+  "title_vi": "Cosmos Flower Bloom — đoá hoa hình học phát sáng nở bung rồi khép lại theo vòng lặp ping-pong",
+  "W": 600,
+  "H": 600,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "flower",
+    "bloom",
+    "canvas2d",
+    "generative",
+    "geometric",
+    "cosmos"
+  ],
+  "summary": "A glowing geometric flower whose layered teardrop petals scale outward to bloom open, then collapse closed in a smooth ping-pong cycle, with accent petal rings rotating gently at different harmonic speeds and a bright pulsing pistil core ringed by stamen dots. The bloom factor is driven by cos(2πu) so opening and closing are symmetric and seamless. Pure Canvas 2D, zero deps, runs offline, deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each petal is a procedurally swept teardrop closed path (sin envelope) drawn with additive 'lighter' glow; three concentric petal rings (8/6/5 petals) scale out by an open factor; bloom = 0.5+0.5*cos(2πu) gives a symmetric ping-pong open->close->open that is identical at u=0 and u=1; each ring rotates at an integer-harmonic spin (ph*(ri+1)) so rotation returns exactly at u=1; radial-gradient pistil core plus orbiting stamen dots; white edge strokes on the outer ring for crisp definition. Frame 0 is fully open (offset by π). CAPTURE: ?auto=1 + window.__seek(t). TUNE: RINGS array (petal counts/radii/widths), bloom curve, spin harmonics, core size, LOOP.",
+  "summary_vi": "Một đoá hoa hình học phát sáng với các lớp cánh hình giọt nước phóng to ra để nở bung rồi khép lại theo chu kỳ ping-pong mượt mà, kèm các vòng cánh phụ xoay nhẹ ở tốc độ hài khác nhau và một lõi nhuỵ sáng đập nhịp được bao quanh bởi các chấm nhị. Hệ số nở dùng cos(2πu) nên mở và khép đối xứng, liền mạch. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Vòng lặp 8s liền mạch nhờ bloom=0.5+0.5*cos(2πu) và các vòng xoay theo hài bậc nguyên quay về tại u=1. Đổi mảng RINGS để chỉnh số cánh và bán kính."
+}

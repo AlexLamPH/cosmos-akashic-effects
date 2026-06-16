@@ -1,0 +1,11 @@
+{
+  "slug": "remix-ribbon",
+  "title": "Cosmos Remix — Ribbon you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "ribbon", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle ribbon: particles form a wide undulating band — a sine ribbon in 3D that waves and twists as it flows — depth-shaded with perspective so the sheet folds through space like a glowing aurora streamer. Live glass panel: palette, shape, density, speed, dot size plus a Waves knob; reskins to any brand colour in one click. Self-contained, zero dependencies; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Waves to change how many undulations cross the band, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: a band gridded into rows-along-length × columns-across-width, each point lifted by a travelling sine wave and the whole sheet rolled about its axis by a matching cosine twist, then yawed and perspective-projected so nearer points are larger and brighter; the geometry is a pure function of params + time so the panel updates instantly and the capture loop stays deterministic; theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; window.__params + setParam(key,value) is the contract a generic remix harness uses to auto-build panels for ANY effect. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: change Waves, add palettes to PALETTES, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

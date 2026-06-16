@@ -1,0 +1,178 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Fifteen</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:540px;height:640px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 26px;pointer-events:none;}
+  #title{font-size:24px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:12px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 14px;text-align:center;min-width:62px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:20px;font-weight:800;color:#fff;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;color:#36d39a;text-shadow:0 0 18px rgba(54,211,154,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="540" height="640"></canvas>
+  <div id="hud"><div id="title">FIFTEEN</div>
+    <div id="scores"><div class="box"><div class="lab">MOVES</div><div class="val" id="moves">0</div></div>
+    <div class="box"><div class="lab">BEST</div><div class="val" id="best">—</div></div></div></div>
+  <div id="over"><h1>SOLVED ✦</h1><p id="fin">0 moves</p><button id="btn">Shuffle ▸</button></div>
+  <div id="tip">Arrows slide · click a tile by the gap · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const N=4, BX=30, BY=120, BW=480, PAD=12, CS=(BW-PAD*(N+1))/N;
+// Cosmos tile accent ramp by value 1..15
+const ACC=['#46b4ff','#5c9dff','#6f8cff','#8b5cff','#a07cff','#b673ff','#ff5cc2','#ff6ab0',
+  '#ff7c9a','#ff6a3d','#ff8a4d','#e0b24a','#d3c24a','#8ad34a','#36d39a'];
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// board = array[16]; 0 = gap. solved = [1..15,0]
+function solved(){const a=[];for(let i=1;i<16;i++)a.push(i);a.push(0);return a;}
+function gapIdx(b){return b.indexOf(0);}
+// neighbors of gap that can slide into it; returns the tile index moved
+function applyMove(b,tileIdx){const gi=gapIdx(b);b[gi]=b[tileIdx];b[tileIdx]=0;}
+function adj(i,j){const ri=i/N|0,ci=i%N,rj=j/N|0,cj=j%N;return Math.abs(ri-rj)+Math.abs(ci-cj)===1;}
+// slide by direction the GAP should logically move (player presses arrow = move a tile into gap from that side)
+// dir: which tile relative to gap slides in. We accept arrow = direction tile travels.
+function tileForArrow(b,dir){ // dir 0 left,1 right,2 up,3 down (direction the tile moves)
+  const gi=gapIdx(b),gr=gi/N|0,gc=gi%N;
+  // tile moving left means it sits to the right of gap, etc.
+  let tr=gr,tc=gc;
+  if(dir===0)tc=gc+1; else if(dir===1)tc=gc-1; else if(dir===2)tr=gr+1; else tr=gr-1;
+  if(tr<0||tr>=N||tc<0||tc>=N)return -1;
+  return tr*N+tc;
+}
+
+// ---- deterministic scramble: apply K random legal gap-slides from solved ----
+function scramble(seed,K){const rnd=mul(seed);const b=solved();let last=-1;
+  const path=[]; // record the sequence of tile indices moved (the scramble)
+  for(let s=0;s<K;s++){const gi=gapIdx(b);const nb=[];
+    for(let j=0;j<16;j++)if(adj(gi,j)&&j!==last)nb.push(j);
+    const t=nb[(rnd()*nb.length)|0]; path.push({tile:t,gap:gi}); applyMove(b,t); last=gi; }
+  return {board:b,path};
+}
+
+// ---- AUTO: scramble, then the recorded solution = reverse of scramble path ----
+// Reversing the scramble guarantees a valid, deterministic solve sequence.
+function buildAuto(){
+  const SCR=60; const sc=scramble(12152026,SCR);
+  // solution: undo each scramble move in reverse. Undo of (move tile t into gap@gi) is: move the tile now at gi back to t.
+  // After scramble, replay forward building a list of board snapshots for each solve step.
+  // Simplest: reconstruct by reversing path. At step end the gap is at sc.path[last].tile position.
+  const solSteps=[]; let b=sc.board.slice();
+  for(let i=sc.path.length-1;i>=0;i--){
+    const before=b.slice();
+    // the gap is currently where the last moved tile landed = path[i].gap; we move tile at path[i].gap??
+    // After forward move p: tile moved from p.tile -> p.gap (gap was at p.gap, went to p.tile).
+    // To undo: gap is now at p.tile; move tile at p.gap into gap -> gap returns to p.gap.
+    const tileIdx=sc.path[i].gap; // tile to slide
+    const from=tileIdx, to=sc.path[i].tile; // tile travels from 'from' to 'to' (the old gap pos = current gap)
+    applyMove(b,tileIdx);
+    solSteps.push({before,after:b.slice(),from,to,move:solSteps.length+1});
+  }
+  return {steps:solSteps};
+}
+
+let AUTODATA=null;
+const MOVE_MS=170;
+const START_STEP=8; // frame 0 mid-solve
+function simTo(ms){
+  if(!AUTODATA)AUTODATA=buildAuto();
+  const steps=AUTODATA.steps;const total=steps.length*MOVE_MS;
+  let m=((ms+START_STEP*MOVE_MS)%total+total)%total;
+  const si=Math.min(steps.length-1,(m/MOVE_MS)|0);
+  const p=Math.min(1,(m-si*MOVE_MS)/MOVE_MS);
+  return {step:steps[si],p,move:steps[si].move};
+}
+
+function cellXY(r,c){return [BX+PAD+c*(CS+PAD),BY+PAD+r*(CS+PAD)];}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function drawBoard(){
+  x.clearRect(0,0,540,640);
+  const bg=x.createLinearGradient(0,0,0,640);bg.addColorStop(0,'#120c2c');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg;x.fillRect(0,0,540,640);
+  x.fillStyle='#15102e';rr(BX,BY,BW,BW,18);x.fill();
+  x.strokeStyle='rgba(139,92,255,.18)';x.lineWidth=1;rr(BX,BY,BW,BW,18);x.stroke();
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const[px,py]=cellXY(r,c);x.fillStyle='#1b1638';rr(px,py,CS,CS,10);x.fill();}
+}
+function drawTile(px,py,v,scale){
+  if(!v)return; const acc=ACC[v-1]; const s=scale||1; const sz=CS*s; const off=(CS-sz)/2;
+  x.save();x.translate(px+off,py+off);
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz*0.85);
+  gg.addColorStop(0,hexA(acc,0.34));gg.addColorStop(1,hexA(acc,0));
+  x.fillStyle=gg;rr(-6,-6,sz+12,sz+12,14);x.fill();
+  x.globalCompositeOperation='source-over';
+  const tg=x.createLinearGradient(0,0,0,sz);tg.addColorStop(0,'#231a44');tg.addColorStop(1,'#19122f');
+  x.fillStyle=tg;rr(0,0,sz,sz,10);x.fill();
+  x.strokeStyle=hexA(acc,0.85);x.lineWidth=2;rr(1,1,sz-2,sz-2,9);x.stroke();
+  x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
+  x.font=`800 ${(38*s)|0}px system-ui,sans-serif`;
+  x.shadowColor=acc;x.shadowBlur=14*s;x.fillText(String(v),sz/2,sz/2+1);x.shadowBlur=0;
+  x.restore();
+}
+function draw(view){
+  drawBoard();
+  const {step,p}=view; const e=ease(Math.min(1,p));
+  const fr=step.from, to=step.to, movingV=step.before[fr];
+  for(let i=0;i<16;i++){const v=step.before[i]; if(!v||i===fr)continue;
+    const[px,py]=cellXY(i/N|0,i%N); drawTile(px,py,v,1);}
+  // animate the moving tile from 'fr' to 'to'
+  const[fx,fy]=cellXY(fr/N|0,fr%N);const[tx,ty]=cellXY(to/N|0,to%N);
+  drawTile(fx+(tx-fx)*e,fy+(ty-fy)*e,movingV,1);
+  document.getElementById('moves').textContent=view.move;
+}
+const LOOP=12000;
+function drawAt(ms){if(!AUTODATA)AUTODATA=buildAuto();draw(simTo(ms));}
+
+// ---------------- LIVE GAME ----------------
+let LG=null, anim=null, best=null;
+function isSolved(b){for(let i=0;i<15;i++)if(b[i]!==i+1)return false;return b[15]===0;}
+function newGame(){const seed=(Math.random()*1e9)|0;const sc=scramble(seed,120);
+  LG={b:sc.board,moves:0,solved:false};document.getElementById('over').style.display='none';renderLive();}
+function tryArrow(dir){if(!LG||LG.solved||anim)return;const t=tileForArrow(LG.b,dir);if(t<0)return;startMove(t);}
+function tryClick(idx){if(!LG||LG.solved||anim)return;const gi=gapIdx(LG.b);if(!adj(idx,gi))return;startMove(idx);}
+function startMove(tileIdx){const before=LG.b.slice();const gi=gapIdx(LG.b);
+  applyMove(LG.b,tileIdx);LG.moves++;
+  anim={before,from:tileIdx,to:gi,move:LG.moves,start:performance.now()};
+  if(isSolved(LG.b)){LG.solved=true;if(best===null||LG.moves<best)best=LG.moves;}}
+function renderLive(){drawBoard();
+  for(let i=0;i<16;i++){const v=LG.b[i];if(!v)continue;const[px,py]=cellXY(i/N|0,i%N);drawTile(px,py,v,1);}
+  document.getElementById('moves').textContent=LG.moves;
+  document.getElementById('best').textContent=best===null?'—':best;}
+function liveLoop(now){
+  if(anim){const p=Math.min(1,(now-anim.start)/MOVE_MS);
+    draw({step:{before:anim.before,from:anim.from,to:anim.to,move:anim.move},p,move:anim.move});
+    document.getElementById('best').textContent=best===null?'—':best;
+    if(p>=1){anim=null;renderLive();
+      if(LG.solved){document.getElementById('fin').textContent=LG.moves+' moves'+(best===LG.moves?' · new best!':'');
+        document.getElementById('over').style.display='flex';}}}
+  requestAnimationFrame(liveLoop);}
+function initGame(){newGame();
+  const DIRS={ArrowLeft:0,KeyA:0,ArrowRight:1,KeyD:1,ArrowUp:2,KeyW:2,ArrowDown:3,KeyS:3};
+  addEventListener('keydown',e=>{if(e.code in DIRS){e.preventDefault();tryArrow(DIRS[e.code]);}
+    if(e.key==='r'||e.key==='R')newGame();});
+  cv.addEventListener('pointerdown',e=>{const rect=cv.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(cv.width/rect.width),my=(e.clientY-rect.top)*(cv.height/rect.height);
+    const c=Math.floor((mx-BX-PAD)/(CS+PAD)),r=Math.floor((my-BY-PAD)/(CS+PAD));
+    if(r>=0&&r<N&&c>=0&&c<N)tryClick(r*N+c);});
+  document.getElementById('btn').addEventListener('click',e=>{e.stopPropagation();newGame();});
+  requestAnimationFrame(liveLoop);}
+if(AUTO){window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP);window.__seek(0);window.__ready=true;}
+else{initGame();}
+</script></body></html>

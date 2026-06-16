@@ -1,0 +1,14 @@
+{
+  "slug": "lens-flare",
+  "title": "Cosmos Lens Flare — an anamorphic flare sweeping across the frame",
+  "title_vi": "Lóa Ống Kính Cosmos — vệt lóa anamorphic quét ngang khung hình",
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "lensflare", "generative", "glow", "anamorphic"],
+  "summary": "An anamorphic lens flare: a bright light source with a wide horizontal streak, ringed iris ghosts spaced along the optical axis, and rotating starburst spikes, the whole flare sweeping a looping Lissajous path across the frame. Everything is a deterministic function of normalized time. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: source travels a Lissajous path of cos(2pi*u)/sin(2pi*u*2) with INTEGER harmonics so frame(0)==frame(LOOP); iris ghosts (rings + discs) placed by interpolating along the optical axis source->center with fixed axial fractions, seeded once with mulberry32; additive 'lighter' compositing, linear-gradient anamorphic streak, rotating starburst spikes, radial-gradient core. CAPTURE: ?auto=1 + window.__seek(t). TUNE: NG ghost count, axial pos spacing, streak width sw, NS spike count, flicker harmonic, path amplitudes.",
+  "summary_vi": "Một vệt lóa ống kính anamorphic: nguồn sáng với vệt ngang rộng, những bóng ma mống mắt hình vòng dọc theo trục quang học, và các gai tỏa sáng xoay, toàn bộ vệt lóa quét theo đường Lissajous lặp ngang khung hình. Mọi thứ là hàm tất định của thời gian. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Nguồn sáng đi theo đường Lissajous với hài số nguyên; bóng ma mống mắt nội suy dọc trục quang học, gieo bằng mulberry32 nên frame(0) trùng frame(LOOP)."
+}

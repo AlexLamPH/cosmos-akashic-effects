@@ -1,0 +1,14 @@
+{
+  "slug": "gears",
+  "title": "Cosmos Gears — interlocking glowing gear train meshing in the dark",
+  "title_vi": "Bánh Răng Cosmos — cụm bánh răng phát sáng ăn khớp xoay trong bóng tối",
+  "W": 620,
+  "H": 620,
+  "LOOP": 7200,
+  "N": 90,
+  "tags": ["canvas2d", "gears", "mechanical", "generative", "glow"],
+  "summary": "A cluster of interlocking mechanical gears with glowing teeth and rims meshes and rotates in the Phantom dark. Meshed gears rotate at angular speeds inversely proportional to their tooth counts and complete integer turns per loop, so they stay perfectly meshed and the loop is seamless. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: shared module (pitch radius = MOD*teeth/2) keeps tooth pitch identical so gears physically interlock; pitch-line tooth-units are conserved across the whole train, so each gear's angle = dir*(driverAngle*T_driver)/T_gear with sign flips at each mesh; tooth counts {12,16,18,24,36,48} all divide DRIVER_TURNS*T_driver=144, guaranteeing every gear completes an integer number of turns at u=1 so frame(0)==frame(LOOP); additive 'lighter' glow for teeth, rims, spokes, hub and a radial center glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: MOD tooth pitch, DRIVER_TURNS speed, tooth counts (keep them divisors of DRIVER_TURNS*T_driver), satellite angles.",
+  "summary_vi": "Một cụm bánh răng cơ khí ăn khớp với răng và vành phát sáng xoay trong nền tối Phantom. Các bánh răng ăn khớp xoay với tốc độ tỉ lệ nghịch với số răng và quay đúng số vòng nguyên mỗi chu kỳ, nên luôn ăn khớp và vòng lặp liền mạch. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Số răng đều là ước của DRIVER_TURNS*T_driver=144 nên mọi bánh răng quay đúng số vòng nguyên, frame(0) trùng frame(LOOP)."
+}

@@ -1,0 +1,75 @@
+<!-- Cosmos Rain — slanted streaks falling fast with occasional splash rings over Phantom dark, cool cosmic glow -->
+<!doctype html><meta charset=utf-8><title>Cosmos Rain</title>
+<style>html,body{margin:0;height:100%;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const LOOP=7000, COOL=[[139,92,255],[70,180,255],[120,210,255],[54,211,154]];
+let W,H,DPR,drops=[],splashes=[],stars=[];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function setup(){
+  DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);
+  const r=mulberry32(20260614);
+  const slant=0.30; // horizontal drift per unit fall (slanted streaks)
+  drops=[];const N=150;
+  for(let i=0;i<N;i++){
+    const near=r()<0.3;
+    const reps=2+((r()*3)|0); // integer falls per loop -> seamless mod 1
+    drops.push({ph:r(), col:COOL[(r()*COOL.length)|0],
+      sx:-0.2*W+r()*1.4*W, len:near?70+r()*60:30+r()*40,
+      w:near?1.6+r()*0.9:0.7+r()*0.6, a:near?0.85:0.45+r()*0.3,
+      reps, slant});
+  }
+  // splash rings keyed to a fixed ground row, seeded times across the loop
+  splashes=[];for(let i=0;i<26;i++)splashes.push({px:0.05*W+r()*0.9*W,py:0.78*H+r()*0.18*H,
+    t0:r(),dur:0.10+r()*0.06,rad:14+r()*22,col:COOL[(r()*COOL.length)|0]});
+  stars=[];for(let i=0;i<90;i++)stars.push({px:r()*W,py:r()*H*0.85,s:0.3+r()*1.0,tw:1+((r()*3)|0),tp:r(),b:0.25+r()*0.5});
+}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP, TAU=Math.PI*2;
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // faint glow vignette toward bottom (wet ground)
+  const vg=x.createLinearGradient(0,H*0.55,0,H);
+  vg.addColorStop(0,'rgba(70,180,255,0)');vg.addColorStop(1,'rgba(60,120,200,0.10)');
+  x.fillStyle=vg;x.fillRect(0,H*0.55,W,H*0.45);
+  x.globalCompositeOperation='lighter';
+  // twinkling cosmic stars behind the rain
+  for(const s of stars){
+    const tw=0.5+0.5*Math.sin(TAU*s.tw*u+s.tp*TAU);
+    x.fillStyle=`rgba(200,215,255,${s.b*(0.3+0.7*tw)})`;
+    x.beginPath();x.arc(s.px,s.py,s.s,0,TAU);x.fill();
+  }
+  // falling slanted streaks; phase wraps mod 1 for seamless loop
+  x.lineCap='round';
+  const groundY=H*1.05;
+  for(const d of drops){
+    const p=((u*d.reps+d.ph)%1);     // 0..1 fall progress, wraps cleanly
+    const hy=-0.1*H+p*(groundY+0.1*H);
+    const hx=d.sx+p*d.slant*H;
+    const tx=hx-d.slant*d.len, ty=hy-d.len;
+    const[R,G,B]=d.col;
+    const g=x.createLinearGradient(tx,ty,hx,hy);
+    g.addColorStop(0,`rgba(${R},${G},${B},0)`);
+    g.addColorStop(1,`rgba(${Math.min(255,R+60)},${Math.min(255,G+60)},${Math.min(255,B+60)},${d.a})`);
+    x.strokeStyle=g;x.lineWidth=d.w;
+    x.beginPath();x.moveTo(tx,ty);x.lineTo(hx,hy);x.stroke();
+  }
+  // occasional splash rings expanding at the bottom
+  for(const sp of splashes){
+    const lp=((u-sp.t0)%1+1)%1;
+    if(lp>sp.dur) continue;
+    const f=lp/sp.dur;
+    const env=Math.sin(Math.PI*f)*(1-f*0.4);
+    const rad=sp.rad*f;
+    const[R,G,B]=sp.col;
+    x.strokeStyle=`rgba(${R},${G},${B},${0.6*env})`;x.lineWidth=1.4;
+    x.beginPath();x.ellipse(sp.px,sp.py,rad,rad*0.4,0,0,TAU);x.stroke();
+    x.strokeStyle=`rgba(${Math.min(255,R+70)},${Math.min(255,G+70)},${Math.min(255,B+70)},${0.4*env})`;
+    x.beginPath();x.ellipse(sp.px,sp.py,rad*0.6,rad*0.24,0,0,TAU);x.stroke();
+  }
+}
+addEventListener('resize',setup);setup();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

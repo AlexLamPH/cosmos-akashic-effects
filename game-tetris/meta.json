@@ -1,0 +1,11 @@
+{
+  "slug": "game-tetris",
+  "title": "Cosmos Tetris — stack falling tetrominoes and clear glowing lines",
+  "title_vi": "",
+  "W": 520, "H": 620, "LOOP": 12000, "N": 109, "live_fit": true,
+  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, self-contained playable Tetris in one HTML file with zero dependencies. Seven tetrominoes fall into a 10x20 well; move and rotate them, soft- or hard-drop, and clear full rows for an escalating score with a live Next preview and ghost piece. Keyboard plus on-screen touch buttons, win-by-survival scoring, game over on stack-out, and instant restart. Ships with a deterministic self-playing attract demo for capture.",
+  "usage_notes": "RUN: open index.html (double-click) — no server, no deps. CONTROLS: Left/Right arrows move, Up or X rotate, Down soft-drops, Space hard-drops; touch buttons mirror every action; R restarts. GOAL: clear horizontal lines to score (100/300/500/800 for 1-4 lines), survive as long as you can; game over when a new piece can't spawn. KEY TECHNIQUES: fixed-timestep deterministic simulation with a mulberry32-seeded 7-bag and a heuristic auto-player (line/holes/bumpiness/height weights) that places each piece by rotating, sliding, then hard-dropping toward the best column; frame 0 is offset mid-game so the well is partially filled with a piece in flight. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: COLW/ROWS well size, TICK (auto step ms), T_OFFSET (frame-0 offset), evalPlacement weights, gravity rate.",
+  "summary_vi": "",
+  "notes": ""
+}

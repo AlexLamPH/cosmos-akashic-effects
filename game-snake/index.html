@@ -1,0 +1,210 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Snake</title>
+<style>
+  :root{--violet:#8b5cff;--cosmic:#46b4ff;--nebula:#ff5cc2;--aurora:#36d39a;--solaris:#ff6a3d;--sacred:#e0b24a}
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f4;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}
+  #frame{width:560px;height:640px;background:#120e25;border-radius:18px;
+    box-shadow:0 0 0 1px #261d44,0 18px 60px #0006;padding:18px;box-sizing:border-box;
+    display:flex;flex-direction:column;gap:12px}
+  #hud{display:flex;align-items:center;justify-content:space-between;font-size:15px}
+  #hud .t{font-weight:700;letter-spacing:.5px;color:var(--violet)}
+  #hud .s{font-variant-numeric:tabular-nums}
+  #hud .s b{color:var(--aurora);font-size:19px}
+  #wrap{position:relative;flex:1;border-radius:14px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px #2a2050,inset 0 0 40px #8b5cff18}
+  canvas{display:block;width:100%;height:100%;background:radial-gradient(120% 120% at 50% 0%,#161031,#0c0820)}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0a0816cc;backdrop-filter:blur(2px);gap:10px;text-align:center}
+  #over h2{margin:0;color:var(--nebula);font-size:26px}
+  #over p{margin:0;opacity:.8;font-size:14px}
+  .btn{margin-top:4px;background:var(--violet);color:#fff;border:0;border-radius:10px;
+    padding:10px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px #8b5cff55}
+  #pad{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);
+    gap:8px;width:200px;align-self:center}
+  #pad button{background:#1d1640;color:#cfc7ef;border:1px solid #322763;border-radius:10px;
+    height:44px;font-size:18px;cursor:pointer;touch-action:manipulation}
+  #pad .up{grid-column:2}#pad .lf{grid-column:1;grid-row:2}#pad .dn{grid-column:2;grid-row:2}#pad .rt{grid-column:3;grid-row:2}
+  @media (hover:hover){#pad{opacity:.85}}
+</style></head><body>
+<div id="frame">
+  <div id="hud"><span class="t">COSMOS SNAKE</span><span class="s">SCORE <b id="sc">0</b></span></div>
+  <div id="wrap"><canvas id="cv"></canvas>
+    <div id="over"><h2 id="ot">GAME OVER</h2><p id="op">Press R to restart</p><button class="btn" id="rb">Restart</button></div>
+  </div>
+  <div id="pad">
+    <button class="up" data-d="U">▲</button><button class="lf" data-d="L">◀</button>
+    <button class="dn" data-d="D">▼</button><button class="rt" data-d="R">▶</button>
+  </div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const C={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const GRID=17, LOOP=11000, STEP=110;           // ms per move in AUTO
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let CSS_W=524,CSS_H=524, cell=CSS_W/GRID;
+function fit(){ const r=cv.getBoundingClientRect(); CSS_W=r.width||524; CSS_H=r.height||524;
+  cell=Math.min(CSS_W,CSS_H)/GRID;
+  cv.width=Math.round(CSS_W*devicePixelRatio); cv.height=Math.round(CSS_H*devicePixelRatio);
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---- shared draw of a state {snake:[{x,y}], food:{x,y}, score, dead, t} ----
+function clamp(v){return v<0?0:v>1?1:v;}
+function draw(st){
+  const ox=(CSS_W-cell*GRID)/2, oy=(CSS_H-cell*GRID)/2;
+  ctx.clearRect(0,0,CSS_W,CSS_H);
+  // grid dots
+  ctx.fillStyle='#ffffff08';
+  for(let y=0;y<GRID;y++)for(let x=0;x<GRID;x++){ctx.beginPath();ctx.arc(ox+(x+.5)*cell,oy+(y+.5)*cell,1.1,0,7);ctx.fill();}
+  // food glow
+  const f=st.food, fx=ox+(f.x+.5)*cell, fy=oy+(f.y+.5)*cell;
+  const pulse=.5+.5*Math.sin(st.t/180);
+  let g=ctx.createRadialGradient(fx,fy,1,fx,fy,cell*1.6);
+  g.addColorStop(0,C.sacred);g.addColorStop(.4,'#e0b24a88');g.addColorStop(1,'#e0b24a00');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(fx,fy,cell*(1.2+.3*pulse),0,7);ctx.fill();
+  ctx.fillStyle=C.sacred;ctx.beginPath();ctx.arc(fx,fy,cell*0.3,0,7);ctx.fill();
+  // snake
+  const n=st.snake.length;
+  for(let i=n-1;i>=0;i--){ const s=st.snake[i], head=i===0;
+    const px=ox+s.x*cell, py=oy+s.y*cell, pad=cell*0.10, r=cell*0.28;
+    const u=i/Math.max(1,n-1);
+    const col=head?'#ffffff':lerpHex(C.aurora,C.violet,clamp(u));
+    if(head){ctx.shadowColor=C.cosmic;ctx.shadowBlur=18;} else {ctx.shadowColor=C.violet;ctx.shadowBlur=8*(1-u)+2;}
+    ctx.fillStyle=col;roundRect(px+pad,py+pad,cell-2*pad,cell-2*pad,r);ctx.fill();
+  }
+  ctx.shadowBlur=0;
+  // head eyes
+  const h=st.snake[0];
+  ctx.fillStyle='#0a0816';
+  const ex=ox+(h.x+.5)*cell, ey=oy+(h.y+.5)*cell, d=cell*0.16;
+  ctx.beginPath();ctx.arc(ex-d,ey-d,cell*0.07,0,7);ctx.arc(ex+d,ey-d,cell*0.07,0,7);ctx.fill();
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function lerpHex(a,b,t){const pa=hx(a),pb=hx(b);return `rgb(${Math.round(pa[0]+(pb[0]-pa[0])*t)},${Math.round(pa[1]+(pb[1]-pa[1])*t)},${Math.round(pa[2]+(pb[2]-pa[2])*t)})`;}
+function hx(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+
+// ---- deterministic simulation (used by both AUTO and to seed greedy AI) ----
+const DIRS={U:{x:0,y:-1},D:{x:0,y:1},L:{x:-1,y:0},R:{x:1,y:0}};
+function placeFood(rng,snake){
+  // deterministic: scan from a seeded random index for first free cell
+  const total=GRID*GRID; let start=Math.floor(rng()*total);
+  for(let k=0;k<total;k++){ const idx=(start+k)%total; const x=idx%GRID,y=(idx/GRID|0);
+    if(!snake.some(s=>s.x===x&&s.y===y)) return {x,y}; }
+  return {x:0,y:0};
+}
+function greedyDir(snake,food,curDir){
+  const head=snake[0];
+  // candidate dirs ordered by reducing Manhattan distance to food, never reverse
+  const opp={U:'D',D:'U',L:'R',R:'L'};
+  const order=Object.keys(DIRS).filter(d=>d!==opp[curDir]);
+  let best=null,bestScore=1e9;
+  for(const d of order){
+    const nx=head.x+DIRS[d].x, ny=head.y+DIRS[d].y;
+    if(nx<0||ny<0||nx>=GRID||ny>=GRID) continue;
+    // avoid body (except tail tip which will move)
+    let hit=false;
+    for(let i=0;i<snake.length-1;i++){ if(snake[i].x===nx&&snake[i].y===ny){hit=true;break;} }
+    if(hit) continue;
+    const dist=Math.abs(nx-food.x)+Math.abs(ny-food.y);
+    // small bias to keep going straight to look natural
+    const turnPen=d===curDir?-0.4:0;
+    const sc=dist+turnPen;
+    if(sc<bestScore){bestScore=sc;best=d;}
+  }
+  if(best) return best;
+  // no good move: pick any non-reversing in-bounds
+  for(const d of order){ const nx=head.x+DIRS[d].x,ny=head.y+DIRS[d].y;
+    if(nx>=0&&ny>=0&&nx<GRID&&ny<GRID) return d; }
+  return curDir;
+}
+function freshState(){
+  const rng=mulberry32(0x51A7E);
+  const snake=[{x:6,y:8},{x:5,y:8},{x:4,y:8}];
+  const st={snake,food:null,score:0,dead:false,dir:'R',rng,t:0};
+  st.food=placeFood(rng,snake);
+  return st;
+}
+function stepSim(st){
+  if(st.dead) return;
+  st.dir=greedyDir(st.snake,st.food,st.dir);
+  const head=st.snake[0], nx=head.x+DIRS[st.dir].x, ny=head.y+DIRS[st.dir].y;
+  if(nx<0||ny<0||nx>=GRID||ny>=GRID){st.dead=true;return;}
+  const ate=(nx===st.food.x&&ny===st.food.y);
+  const body=st.snake.slice(0,ate?st.snake.length:st.snake.length-1);
+  if(body.some(s=>s.x===nx&&s.y===ny)){st.dead=true;return;}
+  st.snake.unshift({x:nx,y:ny});
+  if(ate){st.score+=10;st.food=placeFood(st.rng,st.snake);} else st.snake.pop();
+}
+// simulate to ms then draw — pure function of time, restart at LOOP
+function drawAt(ms){
+  const offset=6400;                 // frame-0 rich: snake already grown, score>0
+  const T=ms+offset;
+  const st=freshState();
+  const moves=Math.floor(T/STEP);
+  for(let i=0;i<moves && !st.dead;i++) stepSim(st);
+  st.t=T;
+  document.getElementById('sc').textContent=st.score;   // reflect sim score in HUD
+  draw(st);
+}
+
+// ---- LIVE game ----
+let live=null, raf=0, acc=0, lastTs=0;
+function initGame(){
+  fit();
+  live=freshState(); live.dir='R'; live.next='R'; live.score=0;
+  document.getElementById('over').style.display='none';
+  document.getElementById('sc').textContent='0';
+  acc=0; lastTs=performance.now();
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+}
+function liveStep(){
+  // apply queued turn (block reversing)
+  const opp={U:'D',D:'U',L:'R',R:'L'};
+  if(live.next!==opp[live.dir]) live.dir=live.next;
+  const head=live.snake[0], nx=head.x+DIRS[live.dir].x, ny=head.y+DIRS[live.dir].y;
+  if(nx<0||ny<0||nx>=GRID||ny>=GRID){return die();}
+  const ate=(nx===live.food.x&&ny===live.food.y);
+  const body=live.snake.slice(0,ate?live.snake.length:live.snake.length-1);
+  if(body.some(s=>s.x===nx&&s.y===ny)) return die();
+  live.snake.unshift({x:nx,y:ny});
+  if(ate){live.score+=10;document.getElementById('sc').textContent=live.score;
+    live.food=placeFood(live.rng,live.snake); blip(660,.05);} else live.snake.pop();
+}
+function die(){live.dead=true;blip(120,.18);
+  document.getElementById('ot').textContent='GAME OVER';
+  document.getElementById('op').textContent='Score '+live.score+' · Press R to restart';
+  document.getElementById('over').style.display='flex';}
+const SPEED=120;                       // ms per move (live)
+function loop(ts){
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastTs; lastTs=ts; live.t=ts;
+  if(!live.dead){ acc+=dt; while(acc>=SPEED){acc-=SPEED; liveStep(); if(live.dead)break;} }
+  draw(live);
+}
+// input
+function turn(d){ if(live&&!live.dead) live.next=d; }
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='arrowup'||k==='w')turn('U'); else if(k==='arrowdown'||k==='s')turn('D');
+  else if(k==='arrowleft'||k==='a')turn('L'); else if(k==='arrowright'||k==='d')turn('R');
+  else if(k==='r')initGame();
+  if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
+});
+document.getElementById('pad').addEventListener('click',e=>{const b=e.target.closest('button');if(b)turn(b.dataset.d);});
+document.getElementById('rb').addEventListener('click',initGame);
+addEventListener('resize',()=>{fit();if(live)draw(live);});
+// optional audio (live + gesture only)
+let actx=null,armed=false;
+function arm(){if(!armed&&!AUTO){armed=true;try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+addEventListener('pointerdown',arm,{once:true});addEventListener('keydown',arm,{once:true});
+function blip(f,d){if(!actx||AUTO)return;const o=actx.createOscillator(),g=actx.createGain();
+  o.type='square';o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.06,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+  o.start();o.stop(actx.currentTime+d);}
+
+if(AUTO){ fit(); window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

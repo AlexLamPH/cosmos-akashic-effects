@@ -1,0 +1,14 @@
+{
+  "slug": "chladni",
+  "title": "Cosmos Chladni — cymatic standing-wave plate figures",
+  "title_vi": "Cosmos Chladni — hình sóng dừng cymatic",
+  "W": 600,
+  "H": 600,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "generative", "cymatics", "waves", "math", "offscreen"],
+  "summary": "Cymatic Chladni plate figures: bright nodal lines trace where the standing-wave field sin(aπx)sin(bπy)+sin(bπx)sin(aπy) crosses zero, while the mode numbers a,b morph between integer modes to shift the sand pattern. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a small 200x200 offscreen evaluates the two-term Chladni field per pixel; |f| near 0 is brightened (squared falloff) to draw the nodal lines where sand collects; mode numbers a,b are smoothstep-interpolated through a ring of integer modes over u so it returns at u=1; accent colours blend on integer harmonics; additive 'lighter' draw plus a halo pass gives glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: MODES ring, RW resolution, line-width via the /0.10 threshold, LOOP.",
+  "summary_vi": "Hình Chladni cymatic: các đường nút sáng vẽ nơi trường sóng dừng bằng 0, trong khi các số mode a,b biến đổi mượt giữa các mode nguyên để dịch chuyển hoạ tiết cát. Thuần Canvas 2D, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
+  "notes": "Trường tính trên offscreen 200x200 rồi phóng to; mode nội suy smoothstep vòng tròn nên frame(0)==frame(LOOP)."
+}

@@ -1,0 +1,195 @@
+<!doctype html><meta charset=utf8><title>Cosmos Chord Pad</title>
+<!-- Cosmos Chord Pad — grid of named chord pads; press/hold to voice a lush detuned Rhodes-ish chord via real Web Audio; AUTO is a silent seeded progression that lights pads with swelling glow + ripple. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font:12px/1.4 system-ui,sans-serif;color:#b9a8ff}
+canvas{position:fixed;inset:0;touch-action:none}
+#hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);padding:7px 14px;border:1px solid #8b5cff55;border-radius:20px;background:#140e2acc;color:#cbbaff;letter-spacing:.3px;pointer-events:none;transition:opacity .4s}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ click / press 1-8 to play chords</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=8000, TAU=Math.PI*2;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a','#9a7bff','#5cd0ff'];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+
+// ---- chord bank: name + semitone offsets from a root (relative to C2=36) ----
+const ROOT=48; // C3 base for voicing
+const CHORDS=[
+  {name:'Cmaj7', root:0,  semis:[0,4,7,11]},
+  {name:'Am9',   root:-3, semis:[0,3,7,10,14]},
+  {name:'Fmaj7', root:-7, semis:[0,4,7,11]},
+  {name:'G13',   root:-5, semis:[0,4,10,14,21]},
+  {name:'Em7',   root:4,  semis:[0,3,7,10]},
+  {name:'Dm9',   root:2,  semis:[0,3,7,10,14]},
+  {name:'Bb6',   root:-2, semis:[0,4,7,9]},
+  {name:'Csus2', root:0,  semis:[0,2,7,12]}
+];
+const COLS=4, ROWS=2; // 8 pads
+// per-pad live glow level (0..1), eased toward target
+const glow=new Float32Array(8), ripple=new Float32Array(8); // ripple = age in [0,1] of last press, -1 idle
+ripple.fill(-1);
+let curName=''; // chord-name readout
+
+// seeded AUTO progression: which pad is pressed at phase u, plus its press-age
+const rng=mulberry32(0x51A33);
+const PROG=[]; { // 8 steps over the loop, seeded but musical-ish order
+  const order=[0,2,5,3,4,1,6,7];
+  for(let i=0;i<8;i++) PROG.push(order[i]);
+}
+function autoState(u){
+  // 8 steps; each lights one pad with attack/sustain/release within its slot
+  const steps=PROG.length, sp=1/steps, si=Math.floor(u*steps)%steps;
+  const local=(u*steps)%1; // 0..1 within step
+  const pad=PROG[si];
+  // envelope: quick swell, hold, gentle fade so glow breathes
+  const env=Math.min(1, local/0.18) * (1-Math.max(0,(local-0.7)/0.3)*0.55);
+  return {pad, env:Math.max(0,env), age:local};
+}
+
+function padRect(i){
+  const pad=14*DPR, gx=pad,gy=pad+22*DPR,gw=W-pad*2,gh=H-pad*2-22*DPR;
+  const gap=12*DPR, cw=(gw-gap*(COLS-1))/COLS, ch=(gh-gap*(ROWS-1))/ROWS;
+  const col=i%COLS, row=(i/COLS)|0;
+  return {x:gx+col*(cw+gap), y:gy+row*(ch+gap), w:cw, h:ch};
+}
+
+function render(u){
+  // AUTO drive: compute glow/ripple deterministically from u (no live state)
+  if(typeof window!=='undefined' && window.__driveAuto){
+    const st=autoState(u);
+    for(let i=0;i<8;i++){ glow[i]=(i===st.pad)?st.env:glow[i]*0.0; ripple[i]=(i===st.pad)? st.age : -1; }
+    // light a soft secondary echo of the previous pad for richness
+    const steps=PROG.length, si=Math.floor(u*steps)%steps, prev=PROG[(si-1+steps)%steps];
+    glow[prev]=Math.max(glow[prev],0.18*(1-((u*steps)%1)));
+    curName=CHORDS[st.pad].name;
+  }
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+
+  // title / chord-name readout
+  ctx.globalAlpha=0.9;ctx.fillStyle='#9b8aff';ctx.font='600 '+(15*DPR)+'px system-ui';ctx.textBaseline='top';
+  ctx.fillText('CHORD PAD', 16*DPR, 10*DPR);
+  if(curName){ ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.font='700 '+(17*DPR)+'px system-ui';
+    ctx.globalAlpha=0.95; ctx.fillText('▶ '+curName, W-16*DPR, 9*DPR); ctx.textAlign='left'; }
+
+  for(let i=0;i<8;i++){
+    const r=padRect(i), g=glow[i], col=PAL[i%PAL.length];
+    const cx=r.x+r.w/2, cy=r.y+r.h/2, rad=10*DPR;
+    // base pad
+    ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=1;ctx.fillStyle='#100b22';rr(r.x,r.y,r.w,r.h,rad);ctx.fill();
+    ctx.globalAlpha=0.5;ctx.lineWidth=1.2*DPR;ctx.strokeStyle=col+'40';rr(r.x,r.y,r.w,r.h,rad);ctx.stroke();
+    // glow fill
+    if(g>0.001){
+      ctx.globalCompositeOperation='lighter';
+      let bg=ctx.createRadialGradient(cx,cy,2*DPR,cx,cy,Math.max(r.w,r.h)*0.7);
+      bg.addColorStop(0,col+hex(0.7*g));bg.addColorStop(0.6,col+hex(0.28*g));bg.addColorStop(1,col+'00');
+      ctx.globalAlpha=1;ctx.fillStyle=bg;rr(r.x,r.y,r.w,r.h,rad);ctx.fill();
+      // bright border
+      ctx.globalAlpha=Math.min(1,g);ctx.lineWidth=2*DPR;ctx.strokeStyle=col;rr(r.x,r.y,r.w,r.h,rad);ctx.stroke();
+    }
+    // ripple ring expanding from center on press
+    if(ripple[i]>=0){ const a=ripple[i]; const rr2=a*Math.min(r.w,r.h)*0.9;
+      ctx.globalCompositeOperation='lighter';ctx.globalAlpha=(1-a)*0.6;
+      ctx.lineWidth=2.5*DPR;ctx.strokeStyle=col;ctx.beginPath();ctx.arc(cx,cy,rr2,0,TAU);ctx.stroke();
+    }
+    // voiced "keys" mini-viz inside pad: little bars for each chord note that rise with glow
+    const ch=CHORDS[i], n=ch.semis.length;
+    ctx.globalCompositeOperation='lighter';
+    for(let k=0;k<n;k++){ const fx=r.x+r.w*0.16 + (r.w*0.68)*(k/(n-1||1));
+      const bh=(r.h*0.22)*(0.3+0.7*g)*(0.6+0.4*Math.sin(u*TAU*2+k+i));
+      ctx.globalAlpha=0.2+0.6*g;ctx.fillStyle=col;
+      ctx.fillRect(fx-2*DPR, cy+r.h*0.22-bh, 4*DPR, bh);
+    }
+    // chord name label
+    ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=0.55+0.45*Math.min(1,g);ctx.fillStyle= g>0.3?'#fff':col;
+    ctx.font='600 '+(Math.min(20,r.w*0.13)|0)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(ch.name, cx, r.y+r.h*0.30);
+    // key hint number
+    ctx.globalAlpha=0.4;ctx.fillStyle=col;ctx.font=(11*DPR)+'px system-ui';
+    ctx.fillText((i+1)+'', cx, r.y+r.h*0.82);
+    ctx.textAlign='left';ctx.textBaseline='top';
+  }
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+function hex(a){ a=Math.max(0,Math.min(1,a)); const v=Math.round(a*255).toString(16).padStart(2,'0'); return v; }
+function rr(x,y,w,h,r){ ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath(); }
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx, master, comp;
+const voices={}; // padIndex -> {gain, oscs:[]}
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function ensureMaster(){ const a=audio(); if(master)return a;
+  master=a.createGain();master.gain.value=0.2;
+  comp=a.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=4;
+  master.connect(comp);comp.connect(a.destination); return a; }
+function noteFreq(semi){ return 440*Math.pow(2,(ROOT+semi-69)/12); }
+function pressPad(i){
+  if(voices[i])return; const a=ensureMaster();
+  const ch=CHORDS[i], t=a.currentTime;
+  const filt=a.createBiquadFilter();filt.type='lowpass';filt.frequency.value=1600;filt.Q.value=0.7;
+  const vg=a.createGain();vg.gain.value=0.0001; // slow attack
+  filt.connect(vg);vg.connect(master);
+  const oscs=[];
+  for(const s of ch.semis){
+    const f=noteFreq(ch.root+s);
+    // two slightly detuned oscillators per note = lush Rhodes-ish
+    for(const det of [-5,5]){
+      const o=a.createOscillator();o.type='triangle';o.frequency.value=f;o.detune.value=det;
+      const og=a.createGain();og.gain.value=1/(ch.semis.length*2);
+      o.connect(og);og.connect(filt);o.start();oscs.push(o);
+    }
+  }
+  // slow swell envelope
+  vg.gain.cancelScheduledValues(t);
+  vg.gain.setValueAtTime(0.0001,t);
+  vg.gain.exponentialRampToValueAtTime(0.9,t+0.4); // ~400ms attack
+  filt.frequency.setValueAtTime(700,t);
+  filt.frequency.linearRampToValueAtTime(2400,t+0.6); // opening filter
+  voices[i]={vg,filt,oscs};
+}
+function releasePad(i){
+  const v=voices[i]; if(!v)return; const a=actx,t=a.currentTime;
+  v.vg.gain.cancelScheduledValues(t);
+  v.vg.gain.setValueAtTime(v.vg.gain.value,t);
+  v.vg.gain.exponentialRampToValueAtTime(0.0001,t+0.8); // gentle release
+  v.filt.frequency.linearRampToValueAtTime(600,t+0.8);
+  const oscs=v.oscs; setTimeout(()=>{oscs.forEach(o=>{try{o.stop();}catch(e){}});},900);
+  delete voices[i];
+}
+function triggerVisual(i){ glow[i]=1; ripple[i]=0;
+  const start=performance.now();
+  (function anim(){ const a=Math.min(1,(performance.now()-start)/700); ripple[i]= voices[i]?Math.min(0.9,a):a;
+    if(!voices[i]&&a>=1){ripple[i]=-1;} if(ripple[i]>=0&&ripple[i]<1)requestAnimationFrame(anim); })();
+}
+
+function padAt(cx,cy){ for(let i=0;i<8;i++){ const r=padRect(i);
+  if(cx>=r.x&&cx<=r.x+r.w&&cy>=r.y&&cy<=r.y+r.h)return i; } return -1; }
+
+if(AUTO){
+  window.__driveAuto=true;
+  window.__seek=t=>{ const u=((t%LOOP)+LOOP)%LOOP/LOOP; render(u); };
+  window.__seek(0); window.__ready=true;
+} else {
+  window.__driveAuto=true; // attract loop runs the seeded progression until touched
+  let held=-1;
+  cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId);
+    const i=padAt(e.clientX*DPR,e.clientY*DPR); if(i<0)return;
+    window.__driveAuto=false; hint.style.opacity='0';
+    held=i; pressPad(i); curName=CHORDS[i].name; for(let k=0;k<8;k++)glow[k]=0; triggerVisual(i); });
+  const up=()=>{ if(held>=0){ releasePad(held); glow[held]=0; held=-1; }
+    setTimeout(()=>{ if(Object.keys(voices).length===0&&held<0)window.__driveAuto=true; },1500); };
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  addEventListener('keydown',e=>{ const n=parseInt(e.key); if(n>=1&&n<=8){ const i=n-1;
+    window.__driveAuto=false; hint.style.opacity='0'; if(!voices[i]){ pressPad(i); curName=CHORDS[i].name; triggerVisual(i);} } });
+  addEventListener('keyup',e=>{ const n=parseInt(e.key); if(n>=1&&n<=8){ const i=n-1; releasePad(i); glow[i]=0;
+    setTimeout(()=>{ if(Object.keys(voices).length===0)window.__driveAuto=true; },1500); } });
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script>

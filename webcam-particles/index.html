@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Motion Sparks — webcam motion throws particles</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font:13px/1.4 system-ui,sans-serif;color:#b9a8ff;
+background:rgba(20,10,40,.55);padding:7px 14px;border-radius:20px;letter-spacing:.3px;pointer-events:none;
+transition:opacity 1s;opacity:.9;border:1px solid rgba(139,92,255,.35)}</style></head>
+<body><canvas id="c"></canvas><div id="hint">📷 click to enable camera</div><script>
+// Cosmos Motion Sparks — a 32×24 webcam {brightness,motion} field drives a particle fountain: wherever
+// frame-to-frame MOTION is high, glowing sparks spawn and burst outward in Cosmos colors, then drift and
+// fade — so waving a hand throws sparks. SIG is the abstract field; the source is the live webcam
+// (mirrored, downsampled, frame-diffed) or synthSig(u) (a fake waving silhouette) for ?auto=1 / fallback.
+const cv=document.getElementById('c'),x=cv.getContext('2d'),hint=document.getElementById('hint');
+const LOOP=8400,TAU=6.283185307,GW=32,GH=24,MAXP=520;
+// Cosmos accent palette (violet/blue/pink/green/orange/gold)
+const COL=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let W,H,DPR,P=[];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(innerWidth*DPR);H=cv.height=Math.round(innerHeight*DPR);
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}
+rs();addEventListener('resize',rs);
+
+// ---- SIG: a 32×24 field of {bright[],motion[]} in [0,1] ----
+// ---- deterministic synthetic signal: moving Gaussian blobs = a fake waving silhouette ----
+const srnd=mb(101);
+const BLOB=[]; for(let k=0;k<3;k++)BLOB.push({cx:0.3+0.4*srnd(),cy:0.4+0.3*srnd(),
+  ax:0.18+0.18*srnd(),ay:0.18+0.18*srnd(),sx:0.6+1.8*srnd(),sy:0.5+1.6*srnd(),
+  rx:0.10+0.14*srnd(),ry:0.10+0.16*srnd(),ph:srnd()*TAU});
+let prevB=new Float32Array(GW*GH); // for synthetic motion = frame diff
+function synthSig(u){
+  const bright=new Float32Array(GW*GH), motion=new Float32Array(GW*GH);
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){
+    const fx=gx/(GW-1), fy=gy/(GH-1); let v=0.04;
+    for(const b of BLOB){
+      const bx=b.cx+b.rx*Math.sin(TAU*b.sx*u+b.ph), by=b.cy+b.ry*Math.cos(TAU*b.sy*u+b.ph*1.7);
+      const dx=(fx-bx)/b.ax, dy=(fy-by)/b.ay; v+=0.95*Math.exp(-(dx*dx+dy*dy));
+    }
+    const i=gy*GW+gx; bright[i]=Math.min(1,v);
+    motion[i]=Math.min(1,Math.abs(bright[i]-prevB[i])*7.0);
+  }
+  prevB=bright.slice();
+  return {bright,motion};
+}
+
+// ---- live webcam source (LIVE only, behind a gesture) ----
+let video=null,oc=null,octx=null,prevLive=null,useSynth=true;
+async function cam(){try{
+  const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+  video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;video.srcObject=s;
+  await video.play();
+  oc=document.createElement('canvas');oc.width=GW;oc.height=GH;octx=oc.getContext('2d',{willReadFrequently:true});
+  prevLive=new Float32Array(GW*GH);useSynth=false;
+  hint.textContent='📷 camera live — wave to throw sparks';setTimeout(()=>hint.style.opacity=0,1600);
+}catch(e){useSynth=true;hint.textContent='📷 camera unavailable — synthetic motion';setTimeout(()=>hint.style.opacity=0,1800);}}
+function liveSig(){
+  // mirror horizontally (selfie), downsample to GW×GH, frame-diff for motion
+  octx.save();octx.scale(-1,1);octx.drawImage(video,-GW,0,GW,GH);octx.restore();
+  const d=octx.getImageData(0,0,GW,GH).data;
+  const bright=new Float32Array(GW*GH), motion=new Float32Array(GW*GH);
+  for(let i=0;i<GW*GH;i++){const b=(d[i*4]*0.299+d[i*4+1]*0.587+d[i*4+2]*0.114)/255;
+    bright[i]=b;motion[i]=Math.min(1,Math.abs(b-prevLive[i])*5.0);}
+  prevLive=bright;
+  return {bright,motion};
+}
+
+// ---- single draw path ----
+function spawn(sig){
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){
+    const m=sig.motion[gy*GW+gx]; if(m<0.16)continue;
+    const n=m>0.55?3:(m>0.3?2:1);
+    for(let k=0;k<n&&P.length<MAXP;k++){
+      const px=(gx+Math.random())/GW*W, py=(gy+Math.random())/GH*H;
+      const ang=Math.random()*TAU, sp=(0.4+2.6*m)*DPR;
+      P.push({x:px,y:py,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-0.6*DPR,
+        life:1,sz:(1.4+4.2*m)*DPR,col:COL[(gx+gy)%6|0]});
+    }
+  }
+}
+function render(sig,t){
+  x.globalCompositeOperation='source-over';x.fillStyle='rgba(5,3,13,0.30)';x.fillRect(0,0,W,H);
+  // faint motion heat underglow so the field reads even before sparks build up
+  x.globalCompositeOperation='lighter';
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){
+    const i=gy*GW+gx, m=sig.motion[i]; if(m<0.12)continue;
+    const cx=(gx+0.5)/GW*W, cy=(gy+0.5)/GH*H, r=(W/GW)*1.1, c=COL[(gx+gy)%6|0];
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+','+(0.10+0.22*m)+')');
+    g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+    x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,TAU);x.fill();
+  }
+  spawn(sig);
+  for(let i=P.length-1;i>=0;i--){const p=P[i];
+    p.vy+=0.05*DPR;p.vx*=0.985;p.vy*=0.985;p.x+=p.vx;p.y+=p.vy;p.life-=0.018;
+    if(p.life<=0||p.y>H+20){P.splice(i,1);continue;}
+    const a=Math.max(0,p.life), sz=p.sz*(0.4+0.6*a), c=p.col;
+    const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,sz);
+    g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')');
+    g.addColorStop(0.5,'rgba('+c[0]+','+c[1]+','+c[2]+','+(a*0.5)+')');
+    g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+    x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,sz,0,TAU);x.fill();
+  }
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+
+function startLiveLoop(){const s=performance.now();
+  (function loop(now){const t=((now-s)%LOOP)/LOOP;
+    let sig; if(!useSynth&&video){sig=liveSig();} else {sig=synthSig(t);}
+    render(sig,t);requestAnimationFrame(loop);})(performance.now());}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){ window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP; render(synthSig(u),u);};
+  // warm up the field so frame 0 already has sparks in flight
+  for(let i=0;i<14;i++)render(synthSig(i/30),i/30);
+  window.__tick=()=>{}; window.__seek(0); window.__ready=true; }
+else { addEventListener('pointerdown',()=>cam(),{once:true}); startLiveLoop(); }
+</script></body></html>

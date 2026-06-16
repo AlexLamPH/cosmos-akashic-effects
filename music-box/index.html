@@ -1,0 +1,191 @@
+<!-- Cosmos Music Box: a rotating pinned cylinder whose pins pluck a comb of tuned tines as it turns, playing a gentle seeded melody (soft triangle/sine with short bell decay). Pins approaching the comb glow; struck tines vibrate + chime-glow. LIVE: click/hold to crank faster, release to slow (REAL sound on first gesture). AUTO: cylinder rotates at a steady rate playing silently, seamless loop (integer rotations per LOOP); frame 0 mid-rotation with a tine struck. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Music Box</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+.hint{position:fixed;left:0;right:0;bottom:18px;text-align:center;color:#6f6896;font-family:-apple-system,system-ui,sans-serif;font-size:12px;letter-spacing:.5px;pointer-events:none;transition:opacity .4s}
+</style></head>
+<body><canvas id="c"></canvas><div class="hint" id="hint">▶ click & hold to crank — faster turns, brighter chimes</div><script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=6400,TAU=6.283185307;
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+// --- musical scale: C major pentatonic over ~2 octaves, low->high = comb tine order (top tine = highest) ---
+const PENTA=[0,2,4,7,9]; const NT=14; // number of tines
+const SCALE=[]; for(let i=0;i<NT;i++){const o=Math.floor(i/PENTA.length),d=PENTA[i%PENTA.length];SCALE.push(60+ (o*12)+d - 12);} // semitone numbers, low first
+function freqOf(semi){return 261.63*Math.pow(2,(semi-60)/12);}
+const COL=['#8b5cff','#46b4ff','#36d39a','#e0b24a','#ff5cc2','#ff6a3d'];
+// --- seeded pin pattern: ROTS integer rotations per loop; each rotation a set of pins (angle->tine) ---
+const ROTS=2; // integer rotations per LOOP => seamless
+const rnd=mb(20260615);
+// build a gentle melody: a list of {ang in [0,1) around cylinder, tine index}
+const PINS=[];
+(function build(){
+  // 18 notes spread around the cylinder forming a lilting melody (favour stepwise motion)
+  let tine=7;
+  const n=18;
+  for(let i=0;i<n;i++){
+    const ang=i/n + (rnd()-0.5)*0.012;
+    // melodic walk: mostly small steps, occasional leap, stay in range
+    const step=[-2,-1,-1,1,1,2,3,-3][Math.floor(rnd()*8)];
+    tine=clamp(tine+step,0,NT-1);
+    PINS.push({ang:((ang%1)+1)%1, tine});
+  }
+})();
+const cv=document.getElementById('c'),x=cv.getContext('2d'),hintEl=document.getElementById('hint');
+let W,H,DPR,cx,cyl,combX,combTop,combH,cylR,cylX,cylY;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  cylY=H*0.5; cylR=Math.min(W*0.18,H*0.30); cylX=W*0.40;
+  combX=cylX+cylR*1.18; // comb sits to the right of cylinder
+  combH=cylR*2*0.92; combTop=cylY-combH/2;}
+rs();addEventListener('resize',rs);
+// tine y for index i (0=bottom/low ... NT-1=top/high). higher tine = shorter = higher pitch
+function tineY(i){return combTop+combH*(1-(i+0.5)/NT);}
+function tineLen(i){return cylR*(0.55+0.55*(1-i/(NT-1)));} // higher tines shorter
+// strike state computed from rotation: a tine is "struck" the instant a pin crosses the comb contact angle.
+// contact at angle 0 (the rightmost point of cylinder facing the comb).
+// returns array of vibration amplitude per tine (0..1) given rotation phase rot (turns).
+function strikeAmps(rot){
+  const amps=new Array(NT).fill(0);
+  // for each pin, how long ago (in turns) did it cross contact angle?
+  for(const p of PINS){
+    // pin absolute angle = p.ang + rot (turns); contact when angle ≡ 0 (mod 1)
+    let phase=((p.ang+rot)%1+1)%1; // 0 just struck, ->1 about to come round again
+    // "ago" = phase (just after contact small); amplitude decays over ~0.5 turns worth scaled by speed handled by caller
+    const ago=phase;
+    const a=Math.exp(-ago*9.0); // sharp bell decay after strike
+    if(a>amps[p.tine]) amps[p.tine]=a;
+  }
+  return amps;
+}
+// glow for pins approaching contact (just before phase wraps to 0 => phase near 1)
+function draw(rot){
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // ---- cylinder ----
+  x.save();x.translate(cylX,cylY);
+  // body
+  const bg=x.createLinearGradient(-cylR,0,cylR,0);
+  bg.addColorStop(0,'#140e2a');bg.addColorStop(0.5,'#2a2050');bg.addColorStop(1,'#0e0a20');
+  x.fillStyle=bg;x.strokeStyle='rgba(139,92,255,.35)';x.lineWidth=2*DPR;
+  x.beginPath();x.arc(0,0,cylR,0,TAU);x.fill();x.stroke();
+  // inner ring + axle
+  x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=1*DPR;
+  x.beginPath();x.arc(0,0,cylR*0.72,0,TAU);x.stroke();
+  // pins on the cylinder surface; each pin near contact (right side, angle 0) glows
+  x.globalCompositeOperation='lighter';
+  for(const p of PINS){
+    const ang=(p.ang+rot)*TAU; // screen angle
+    // place pin at radius slightly > cylR, around the drum, mapped so angle 0 = facing comb (right, +x)
+    const px=Math.cos(ang)*(cylR*0.98), py=Math.sin(ang)*(cylR*0.98);
+    // depth: pins on the back (cos<0) dimmer
+    const front=0.35+0.65*(Math.cos(ang)*0.5+0.5);
+    let phase=((p.ang+rot)%1+1)%1;
+    const approach=phase>0.88?(phase-0.88)/0.12:0; // brighten as it nears contact
+    const just=Math.exp(-phase*10)*1.0; // bright flash right at/after strike
+    const glow=clamp(Math.max(approach,just),0,1);
+    const col=COL[p.tine%6];
+    const r=(2.0+2.4*front+3.2*glow)*DPR;
+    x.fillStyle=col;x.globalAlpha=(0.25+0.5*front+0.6*glow);
+    if(glow>0.1){x.shadowColor=col;x.shadowBlur=12*glow*DPR;}else x.shadowBlur=0;
+    x.beginPath();x.arc(px,py,r,0,TAU);x.fill();x.shadowBlur=0;
+  }
+  x.globalCompositeOperation='source-over';
+  // glowing core
+  const cr=cylR*0.26;const cg=x.createRadialGradient(0,0,0,0,0,cr);
+  cg.addColorStop(0,'#cdbfff');cg.addColorStop(.5,'#6b4fd0');cg.addColorStop(1,'rgba(20,14,40,0)');
+  x.globalAlpha=0.9;x.fillStyle=cg;x.beginPath();x.arc(0,0,cr,0,TAU);x.fill();x.globalAlpha=1;
+  x.restore();
+  // ---- comb of tines ----
+  const amps=strikeAmps(rot);
+  x.lineCap='round';
+  // comb spine
+  x.strokeStyle='rgba(160,150,210,.4)';x.lineWidth=4*DPR;
+  x.beginPath();x.moveTo(combX,combTop-6*DPR);x.lineTo(combX,combTop+combH+6*DPR);x.stroke();
+  for(let i=0;i<NT;i++){
+    const y=tineY(i),len=tineLen(i),a=amps[i],col=COL[i%6];
+    const x0=combX, x1=combX+len;
+    // vibration: free end wobbles vertically
+    const wobN=10;
+    x.beginPath();
+    for(let k=0;k<=wobN;k++){
+      const t=k/wobN, xx=x0+t*len;
+      const wob=Math.sin(t*2.0)*Math.sin(t*16+rot*40)*a*len*0.14*t;
+      k?x.lineTo(xx,y+wob):x.moveTo(xx,y+wob);
+    }
+    x.lineWidth=(1.4+1.6*a)*DPR;
+    x.globalAlpha=0.40+0.55*a;
+    x.strokeStyle=col;
+    if(a>0.15){x.shadowColor=col;x.shadowBlur=16*a*DPR;}else x.shadowBlur=0;
+    x.stroke();x.shadowBlur=0;
+    // chime burst at the tine tip when struck
+    if(a>0.2){x.globalCompositeOperation='lighter';
+      const g=x.createRadialGradient(x1,y,0,x1,y,len*0.5*a);
+      g.addColorStop(0,'rgba(255,255,255,'+(0.6*a)+')');g.addColorStop(1,'rgba(139,92,255,0)');
+      x.fillStyle=g;x.beginPath();x.arc(x1,y,len*0.5*a,0,TAU);x.fill();
+      x.globalCompositeOperation='source-over';}
+  }
+  x.globalAlpha=1;
+  // ---- hand crank on the cylinder axle (visual) ----
+  x.save();x.translate(cylX,cylY);x.rotate(rot*TAU);
+  x.strokeStyle='rgba(224,178,74,.7)';x.lineWidth=3*DPR;x.lineCap='round';
+  x.beginPath();x.moveTo(0,0);x.lineTo(cylR*0.5,0);x.stroke();
+  x.fillStyle='#e0b24a';x.globalAlpha=.85;x.beginPath();x.arc(cylR*0.5,0,4*DPR,0,TAU);x.fill();
+  x.restore();x.globalAlpha=1;
+}
+// MAIN: render(u) u in [0,1). steady rotation = ROTS integer turns per loop => seamless.
+function render(u){ draw(u*ROTS); }
+// ---- boilerplate ----
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  // REAL Web Audio, gated behind first gesture
+  let actx,master;
+  function audio(){ if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)();
+      master=actx.createGain();master.gain.value=0.2;
+      const comp=actx.createDynamicsCompressor();master.connect(comp);comp.connect(actx.destination);}
+    if(actx.state==='suspended')actx.resume();return actx;}
+  function chime(freq,when,vel){
+    const a=actx;
+    // soft triangle + sine partial, short bell decay
+    [['triangle',1,0.5],['sine',2.01,0.18]].forEach(([type,mul,amp])=>{
+      const o=a.createOscillator(),g=a.createGain();
+      o.type=type;o.frequency.value=freq*mul;
+      const peak=amp*vel*0.5;
+      g.gain.setValueAtTime(0.0001,when);
+      g.gain.exponentialRampToValueAtTime(peak,when+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001,when+1.1/mul);
+      o.connect(g);g.connect(master);o.start(when);o.stop(when+1.3);
+    });
+  }
+  // rotation driven by speed; cranking (hold) speeds up, release slows toward base.
+  let rot=0.12, speed=0.00018, base=0.00016, target=base, cranking=false;
+  let firedAng=-1; // last contact-phase value to detect crossings
+  // detect when a pin crosses contact (phase wraps past 0) between frames
+  let prevRot=rot;
+  function fireStrikes(r0,r1){
+    if(!actx)return;
+    for(const p of PINS){
+      const a0=((p.ang+r0)%1+1)%1, a1=((p.ang+r1)%1+1)%1;
+      // crossing 0 (mod 1) when a0 > a1 (wrapped) given forward motion
+      if(a1<a0){ // wrapped => crossed contact this frame
+        const f=freqOf(SCALE[p.tine]);
+        chime(f,actx.currentTime+0.005,clamp(speed/0.0006,0.4,1.3));
+      }
+    }
+  }
+  const hide=()=>hintEl.style.opacity='0';
+  addEventListener('pointerdown',()=>{audio();hide();cranking=true;target=0.00060;});
+  addEventListener('pointerup',()=>{cranking=false;target=base;});
+  addEventListener('pointerleave',()=>{cranking=false;target=base;});
+  let last=performance.now();
+  (function l(n){
+    const dt=Math.min(50,n-last);last=n;
+    speed+=(target-speed)*0.06;
+    const r0=rot; rot+=speed*dt; fireStrikes(r0,rot);
+    draw(rot);
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

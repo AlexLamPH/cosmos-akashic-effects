@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Metatron's Cube</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Metatron's Cube — 13 circles + all connecting lines, glowing edges with a travelling light pulse, slow rotation. Pure Canvas 2D, deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318530718;
+let W,H,DPR,R;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';R=Math.min(W,H)*0.40;}
+rs();addEventListener('resize',rs);
+// 13 node centres of Metatron's Cube: centre + inner hex (r=1) + outer hex (r=2), in units of circle-spacing.
+const P=[[0,0]]; for(let k=0;k<6;k++){const a=k*TAU/6 - TAU/12; P.push([Math.cos(a),Math.sin(a)]);} for(let k=0;k<6;k++){const a=k*TAU/6 - TAU/12; P.push([2*Math.cos(a),2*Math.sin(a)]);}
+// all unique connecting segments between the 13 nodes (the sacred-geometry web)
+const E=[]; for(let i=0;i<13;i++)for(let j=i+1;j<13;j++)E.push([i,j]);
+// precompute segment lengths for pulse param
+const EL=E.map(([i,j])=>Math.hypot(P[i][0]-P[j][0],P[i][1]-P[j][1])); const ELmax=Math.max(...EL);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#070514';x.fillRect(0,0,W,H);
+  const bg=x.createRadialGradient(W/2,H/2,0,W/2,H/2,R*2.6); bg.addColorStop(0,'rgba(60,40,120,0.22)'); bg.addColorStop(1,'rgba(7,5,20,0)'); x.fillStyle=bg; x.fillRect(0,0,W,H);
+  const S=R*0.34, rot=TAU*u, breathe=1+0.03*Math.sin(TAU*u);
+  x.save(); x.translate(W/2,H/2); x.rotate(rot); x.scale(breathe,breathe);
+  x.globalCompositeOperation='lighter'; x.lineCap='round';
+  const sc=P.map(([px,py])=>[px*S,py*S]);
+  // 1) base web — faint cosmic-blue lines
+  x.strokeStyle='rgba(70,180,255,0.16)'; x.lineWidth=1.0*DPR;
+  x.beginPath(); for(const[i,j]of E){x.moveTo(sc[i][0],sc[i][1]);x.lineTo(sc[j][0],sc[j][1]);} x.stroke();
+  // 2) accent glow lines — phantom violet, brighter
+  x.strokeStyle='rgba(139,92,255,0.28)'; x.lineWidth=1.8*DPR;
+  x.beginPath(); for(const[i,j]of E){x.moveTo(sc[i][0],sc[i][1]);x.lineTo(sc[j][0],sc[j][1]);} x.stroke();
+  // 3) travelling light pulse along every edge (param d sweeps with u; periodic)
+  for(let e=0;e<E.length;e++){const[i,j]=E[e];const ax=sc[i][0],ay=sc[i][1],bx=sc[j][0],by=sc[j][1];
+    const d=((u*1 + EL[e]/ELmax*0.5)%1); // pulse position 0..1 along edge, integer freq k=1 => seamless
+    const px=ax+(bx-ax)*d, py=ay+(by-ay)*d;
+    const g=x.createRadialGradient(px,py,0,px,py,10*DPR); g.addColorStop(0,'rgba(255,180,240,0.9)'); g.addColorStop(0.4,'rgba(255,92,194,0.5)'); g.addColorStop(1,'rgba(255,92,194,0)');
+    x.fillStyle=g; x.beginPath(); x.arc(px,py,10*DPR,0,TAU); x.fill();}
+  // 4) the 13 circles
+  const cr=S; // each circle radius equals node spacing => Fruit-of-Life style touching circles
+  for(let n=0;n<13;n++){const[cx,cy]=sc[n];
+    const col=n===0?'rgba(224,178,74,0.55)':n<7?'rgba(70,180,255,0.5)':'rgba(139,92,255,0.45)';
+    x.strokeStyle=col; x.lineWidth=1.6*DPR; x.beginPath(); x.arc(cx,cy,cr,0,TAU); x.stroke();
+    // node bloom
+    const ds=(2.6+1.2*Math.sin(TAU*u*2+n))*DPR;
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,ds*4); g.addColorStop(0,'rgba(255,240,210,0.95)'); g.addColorStop(0.5,'rgba(139,92,255,0.5)'); g.addColorStop(1,'rgba(139,92,255,0)');
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,ds*4,0,TAU); x.fill();}
+  // central core bloom
+  const cg=x.createRadialGradient(0,0,0,0,0,S*0.9); cg.addColorStop(0,'rgba(255,245,220,0.85)'); cg.addColorStop(0.45,'rgba(224,178,74,0.35)'); cg.addColorStop(1,'rgba(224,178,74,0)');
+  x.fillStyle=cg; x.beginPath(); x.arc(0,0,S*0.9,0,TAU); x.fill();
+  x.restore();}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

@@ -1,0 +1,14 @@
+{
+  "slug": "cassette-tape",
+  "title": "Cosmos Cassette Tape — retro reels winding tape with glowing label",
+  "title_vi": "Băng Cassette Cosmos",
+  "W": 600,
+  "H": 600,
+  "LOOP": 7600,
+  "N": 95,
+  "tags": ["canvas2d", "retro", "generative", "loop", "glow"],
+  "summary": "A retro cassette tape whose two reels wind the tape back and forth across the loop, spokes spinning and a glowing accent label band. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: reel 'fill' radius driven by a cosine winding wave (one reel empties as the other fills), spokes rotate via sin(2pi*u) so they return to start at u=0 and u=1, playback direction flips at the half-loop, additive 'lighter' glow for label/tape/dust. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for speed, 'turns' for spoke spin rate, Rmax/Rmin in reel() for reel size, PAL indices for reel/label colors.",
+  "summary_vi": "Một cuốn băng cassette hoài cổ với hai cuộn quay cuốn dải băng qua lại theo vòng lặp, nan hoa xoay và nhãn phát sáng. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Bán kính cuộn băng điều khiển bằng sóng cosine; nan hoa xoay bằng sin(2pi*u) nên khớp đầu/cuối vòng lặp."
+}

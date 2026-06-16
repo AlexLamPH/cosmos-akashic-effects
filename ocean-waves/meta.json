@@ -1,0 +1,14 @@
+{
+  "slug": "ocean-waves",
+  "title": "Cosmos Ocean Waves — stylized rolling sea of parallax sine bands under a moon",
+  "title_vi": "Sóng Biển Vũ Trụ — biển cuộn cách điệu từ những dải sin thị sai dưới ánh trăng",
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["waves", "ocean", "parallax", "sine", "aurora", "canvas2d"],
+  "summary": "A stylized rolling ocean built from layered sine-wave bands that drift horizontally with parallax, each crest catching glinting foam highlights, beneath a faint moon glow and twinkling stars in cosmic violet, blue and aurora-green tones. Pure Canvas 2D, zero deps, runs offline, deterministic and seamless. Every band's roll advances by 2*pi*u*k with integer harmonics so frame(0) equals frame(LOOP).",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: mulberry32-seeded per-band wave params, integer-harmonic horizontal phase (dir*sp*k) for a seamless loop, far-to-near painting for parallax depth, additive ('lighter') filled bands plus a crest stroke with foam glints sampled where the slope is near flat, plus a radial moon glow and twinkling stars on integer harmonics. CAPTURE: ?auto=1 + window.__seek(t). TUNE: NB (band count), LOOP, a1/a2/a3 (amplitudes), k1/k2/k3 (loop harmonics), f1/f2/f3 (spatial frequency), PAL (accent tones), moon position/size.",
+  "summary_vi": "Một đại dương cuộn cách điệu dựng từ các dải sóng sin xếp lớp trôi ngang theo hiệu ứng thị sai, mỗi đỉnh sóng lóe bọt sáng, dưới ánh trăng mờ và những vì sao lấp lánh trong tông tím, xanh dương và xanh aurora vũ trụ. Thuần Canvas 2D, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
+  "notes": "Pha cuộn ngang của mỗi dải tăng theo 2*pi*u*k với k nguyên nên vòng lặp liền mạch tuyệt đối."
+}

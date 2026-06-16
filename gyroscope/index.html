@@ -1,0 +1,96 @@
+<!-- Cosmos Gyroscope: three nested perpendicular gimbal rings each spinning about its own axis (integer turns/loop), hand-rolled 3D rotation + perspective, with a glowing accent-tinted core. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Gyroscope</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x61905C0A);
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#e0b24a','#ff6a3d'];
+const STARS=[];for(let i=0;i<70;i++)STARS.push({a:rnd()*TAU,d:0.4+rnd()*0.85,s:0.5+rnd()*1.5,c:COL[i%6],ph:rnd()});
+// three rings: radius, base plane axis (which axis the ring's normal points along before global rot),
+// spin turns/loop (integer, seamless), accent colour.
+const RINGS=[
+  {rad:1.00, plane:0, turns:2, col:'#8b5cff', cc:[139,92,255]},  // ring normal = X axis, spins about X
+  {rad:0.78, plane:1, turns:3, col:'#46b4ff', cc:[70,180,255]},  // ring normal = Y axis, spins about Y
+  {rad:0.58, plane:2, turns:4, col:'#ff5cc2', cc:[255,92,194]},  // ring normal = Z axis, spins about Z
+];
+const SEG=120;
+const F=3.0; // perspective focal distance, scale = F/(F+z)
+// build a circle of unit radius lying in the plane perpendicular to its normal axis, then spin about that axis.
+function ringPoints(r,plane,spin){
+  const cs=Math.cos(spin),sn=Math.sin(spin),pts=[];
+  for(let i=0;i<SEG;i++){const th=TAU*i/SEG, cx0=Math.cos(th)*r, cy0=Math.sin(th)*r;
+    // local circle (cx0,cy0) in a 2D plane; map to 3D so its normal is along the chosen axis, then spin about that axis.
+    let X,Y,Z;
+    if(plane===0){ // normal = X: circle in YZ, spin rotates Y/Z
+      X=0; Y=cx0; Z=cy0;
+      const Y2=Y*cs-Z*sn, Z2=Y*sn+Z*cs; Y=Y2; Z=Z2;
+    }else if(plane===1){ // normal = Y: circle in XZ, spin rotates X/Z
+      Y=0; X=cx0; Z=cy0;
+      const X2=X*cs-Z*sn, Z2=X*sn+Z*cs; X=X2; Z=Z2;
+    }else{ // normal = Z: circle in XY, spin rotates X/Y
+      Z=0; X=cx0; Y=cy0;
+      const X2=X*cs-Y*sn, Y2=X*sn+Y*cs; X=X2; Y=Y2;
+    }
+    pts.push([X,Y,Z]);
+  }
+  return pts;
+}
+function frame(t){
+  const LOOP=7800,u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.setTransform(DPR,0,0,DPR,0,0);x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.34;
+  x.globalCompositeOperation='lighter';
+  let bg=x.createRadialGradient(cx,cy,0,cx,cy,R*2.4);
+  bg.addColorStop(0,'rgba(139,92,255,0.20)');bg.addColorStop(0.5,'rgba(70,180,255,0.07)');bg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=bg;x.beginPath();x.arc(cx,cy,R*2.4,0,TAU);x.fill();
+  for(const s of STARS){const rad=R*(1.3+s.d*0.95),px=cx+Math.cos(s.a)*rad,py=cy+Math.sin(s.a)*rad*0.92;
+    const tw=0.4+0.6*Math.sin(TAU*(u+s.ph));x.globalAlpha=0.18+0.4*tw;x.fillStyle=s.c;
+    x.beginPath();x.arc(px,py,s.s*(0.7+tw),0,TAU);x.fill();}
+  x.globalAlpha=1;
+  // global tilt (fixed) + slow whole-assembly precession (1 turn/loop, seamless) about Y.
+  const pre=TAU*u, cp=Math.cos(pre), sp=Math.sin(pre);
+  const tilt=0.62, ct=Math.cos(tilt), st=Math.sin(tilt);
+  function proj(p){
+    let X=p[0],Y=p[1],Z=p[2];
+    let X2=X*cp + Z*sp, Z2=-X*sp + Z*cp;     // precession about Y
+    const Y2=Y*ct - Z2*st, Z3=Y*st + Z2*ct;  // fixed tilt about X
+    const sc=F/(F+Z3);                         // perspective
+    return [cx+X2*R*sc, cy+Y2*R*sc, Z3, sc];
+  }
+  // draw rings far-to-near by mean z so nearer arcs glow over farther ones.
+  const built=RINGS.map(rg=>{
+    const spin=TAU*rg.turns*u;               // integer turns => seamless
+    const P=ringPoints(rg.rad,rg.plane,spin).map(proj);
+    const mz=P.reduce((a,p)=>a+p[2],0)/P.length;
+    return {rg,P,mz};
+  }).sort((a,b)=>b.mz-a.mz);
+  const zAll=built.flatMap(o=>o.P.map(p=>p[2]));
+  const zmin=Math.min(...zAll),zmax=Math.max(...zAll),zr=(zmax-zmin)||1;
+  for(const {rg,P} of built){
+    for(let i=0;i<SEG;i++){const A=P[i],B=P[(i+1)%SEG];
+      const dd=1-((A[2]+B[2])/2 - zmin)/zr;   // 0..1 nearness
+      const w=(0.8+dd*3.2)*A[3], al=0.16+dd*0.82;
+      x.strokeStyle=rg.col;x.globalAlpha=al;x.lineWidth=w;x.lineCap='round';
+      x.beginPath();x.moveTo(A[0],A[1]);x.lineTo(B[0],B[1]);x.stroke();
+      if(dd>0.62){x.strokeStyle='rgba(255,255,255,'+((dd-0.62)*0.85)+')';x.lineWidth=w*0.4;
+        x.beginPath();x.moveTo(A[0],A[1]);x.lineTo(B[0],B[1]);x.stroke();}}
+  }
+  // glowing core at the centre (projected origin).
+  const o=proj([0,0,0]),coreR=R*0.16*o[3];
+  let cg=x.createRadialGradient(o[0],o[1],0,o[0],o[1],coreR*3.2);
+  cg.addColorStop(0,'rgba(255,255,255,0.95)');
+  cg.addColorStop(0.25,'rgba(224,178,74,0.7)');
+  cg.addColorStop(0.6,'rgba(255,106,61,0.35)');
+  cg.addColorStop(1,'rgba(5,3,13,0)');
+  x.globalAlpha=1;x.fillStyle=cg;x.beginPath();x.arc(o[0],o[1],coreR*3.2,0,TAU);x.fill();
+  const pulse=0.7+0.3*Math.sin(TAU*u*2);
+  x.fillStyle='rgba(255,255,255,'+(0.7*pulse+0.25)+')';x.beginPath();x.arc(o[0],o[1],coreR*0.55,0,TAU);x.fill();
+  x.globalCompositeOperation='source-over';x.globalAlpha=1;
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

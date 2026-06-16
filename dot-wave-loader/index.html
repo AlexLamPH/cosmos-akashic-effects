@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Dot Wave Loader</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Dot Wave Loader — a grid of glowing dots; a travelling wave drives per-dot scale, lift & colour via sin of (2PI*u*k + index*phase). Deterministic, seamless, pure Canvas 2D.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=2600,TAU=6.28318530718;
+let W,H,DPR,cx,cy,dots=[];const COLS=11,ROWS=5,K=1,PHASE=0.62;
+// seeded RNG (mulberry32) — called only at setup/resize, never inside frame()
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+function lerpC(p){p=((p%1)+1)%1*(AC.length);const i=p|0,f=p-i,a=AC[i%AC.length],b=AC[(i+1)%AC.length];return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];}
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;
+  const r=mul(7);dots=[];const span=Math.min(W,H)*0.7,gx=span/(COLS-1),gy=span/(COLS-1);
+  const ox=cx-span/2,oy=cy-gy*(ROWS-1)/2;
+  for(let j=0;j<ROWS;j++)for(let i=0;i<COLS;i++){
+    const idx=i+j*COLS;                                  // wave index sweeps left->right, row->row
+    const px=ox+i*gx, py=oy+j*gy;
+    const base=(Math.min(W,H)*0.024);                    // base dot radius
+    const jit=0.9+r()*0.2;                               // tiny seeded size jitter
+    dots.push({px,py,idx,base:base*jit});
+  }}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;     // 0..1 normalized loop time
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);            // full repaint each frame (pure fn of t)
+  x.globalCompositeOperation='lighter';                 // additive glow
+  for(const d of dots){
+    const ph=TAU*u*K + d.idx*PHASE;                      // travelling-wave phase
+    const w=Math.sin(ph);                                // -1..1
+    const sc=0.45+0.55*(0.5+0.5*Math.sin(ph));          // scale pulse 0.45..1.0
+    const lift=-w*d.base*1.4;                            // vertical bob along the wave
+    const c=lerpC(d.idx*0.045 + u);                      // colour rolls through accents
+    const col=`${c[0]|0},${c[1]|0},${c[2]|0}`;
+    const rr=d.base*sc, px=d.px, py=d.py+lift;
+    const a=0.35+0.65*(0.5+0.5*w);                       // brightness rides the crest
+    x.fillStyle=`rgba(${col},${0.14*a})`;x.beginPath();x.arc(px,py,rr*3.4,0,TAU);x.fill();
+    x.fillStyle=`rgba(${col},${0.4*a})`;x.beginPath();x.arc(px,py,rr*1.8,0,TAU);x.fill();
+    x.fillStyle=`rgba(${col},${0.95*a})`;x.beginPath();x.arc(px,py,rr,0,TAU);x.fill();
+    x.fillStyle=`rgba(255,255,255,${0.6*a})`;x.beginPath();x.arc(px,py,rr*0.38,0,TAU);x.fill();
+  }
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

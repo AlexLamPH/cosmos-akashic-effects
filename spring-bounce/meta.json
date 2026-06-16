@@ -1,0 +1,11 @@
+{
+  "slug": "spring-bounce",
+  "title": "Cosmos Spring Bounce — a coiled helix spring stretches and compresses as a glowing bob bounces on a sine",
+  "title_vi": "Cosmos Spring Bounce — lò xo xoắn co giãn khi quả nặng phát sáng nảy theo sóng sin",
+  "W": 600, "H": 760, "LOOP": 7200, "N": 90,
+  "tags": ["spring","helix","oscillation","physics","glow","canvas2d"],
+  "summary": "A coiled slinky-style spring hangs from a top bracket with a glowing weight at its end; the bob bounces up and down on a clean periodic sine, stretching and compressing the helix and brightening the front of each coil. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the bob's vertical position is restLen + amp*sin(2PI*u), so it returns to rest at u=0,0.5,1 for a seamless loop and starts mid-bounce at t=0. The spring is a helix drawn as a stretched sine: px = cx + sin(phi)*width with phi sweeping COILS full turns down the current spring length; cos(phi) gives a front/back depth that drives per-coil glow and dot brightness for a 3D wrap. All layers drawn additively ('lighter') as wide glow + bright core + highlight, plus ambient sparks on integer harmonics. CAPTURE: ?auto=1 + window.__seek(t). TUNE: COILS turn count, amp bounce range, width coil radius, R bob size, AC palette, LOOP period.",
+  "summary_vi": "Lò xo kiểu slinky treo trên giá đỡ với quả nặng phát sáng ở đầu; quả nặng nảy lên xuống theo sóng sin tuần hoàn, kéo giãn và nén lò xo, làm sáng mặt trước từng vòng xoắn. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Vị trí quả nặng = restLen + amp*sin(2PI*u) nên về vị trí nghỉ tại u=0,0.5,1; lò xo là helix vẽ bằng sin(phi) với phi quét COILS vòng theo chiều dài hiện tại."
+}

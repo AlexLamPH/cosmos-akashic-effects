@@ -1,0 +1,176 @@
+<!-- Cosmos Stat Cards: a row of polished dashboard stat cards — a big metric counts up, an accent sparkline draws in, a trend arrow + % change pill (green up / red down) and a label; demo loops count-up + sparkline draw + a subtle highlight sweep. Self-contained, zero deps. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Stat Cards</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;gap:18px}
+.card{position:relative;width:210px;background:linear-gradient(160deg,#16122c,#0e0b20);
+  border:1px solid rgba(139,92,255,.16);border-radius:18px;
+  box-shadow:0 20px 48px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.02) inset;
+  padding:18px 18px 16px;overflow:hidden}
+.sweep{position:absolute;top:0;bottom:0;width:140px;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.07),transparent);
+  transform:skewX(-14deg);opacity:0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.label{font-size:12px;font-weight:600;color:#9590b6;letter-spacing:.3px}
+.ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:15px}
+.big{font-size:30px;font-weight:700;color:#fff;line-height:1;letter-spacing:-.5px;
+  font-variant-numeric:tabular-nums}
+.pillrow{display:flex;align-items:center;gap:8px;margin-top:9px}
+.pill{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;
+  padding:3px 9px;border-radius:20px}
+.pill.up{color:#36d39a;background:rgba(54,211,154,.12)}
+.pill.dn{color:#ff6a6a;background:rgba(255,106,106,.12)}
+.arr{font-size:9px;line-height:1}
+.cap{font-size:11px;color:#6f6b8c}
+.spark{margin-top:14px;height:46px;position:relative}
+.spark svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.sline{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.sdot{stroke:#fff;stroke-width:2}
+</style></head>
+<body><div id="wrap">
+  <div class="card" data-i="0">
+    <div class="sweep"></div>
+    <div class="top">
+      <div class="label">Active Users</div>
+      <div class="ico" style="background:rgba(139,92,255,.16);color:#b79bff">◉</div>
+    </div>
+    <div class="big">0</div>
+    <div class="pillrow">
+      <div class="pill up"><span class="arr">▲</span><span class="pct">0%</span></div>
+      <span class="cap">vs last week</span>
+    </div>
+    <div class="spark"><svg viewBox="0 0 200 46" preserveAspectRatio="none">
+      <defs><linearGradient id="ga0" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8b5cff" stop-opacity=".30"/><stop offset="1" stop-color="#8b5cff" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path class="sarea" fill="url(#ga0)"></path>
+      <path class="sline" stroke="#8b5cff"></path>
+      <circle class="sdot" r="3.4" fill="#8b5cff"></circle>
+    </svg></div>
+  </div>
+
+  <div class="card" data-i="1">
+    <div class="sweep"></div>
+    <div class="top">
+      <div class="label">Revenue</div>
+      <div class="ico" style="background:rgba(70,180,255,.16);color:#7fcbff">＄</div>
+    </div>
+    <div class="big">0</div>
+    <div class="pillrow">
+      <div class="pill up"><span class="arr">▲</span><span class="pct">0%</span></div>
+      <span class="cap">vs last week</span>
+    </div>
+    <div class="spark"><svg viewBox="0 0 200 46" preserveAspectRatio="none">
+      <defs><linearGradient id="ga1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#46b4ff" stop-opacity=".30"/><stop offset="1" stop-color="#46b4ff" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path class="sarea" fill="url(#ga1)"></path>
+      <path class="sline" stroke="#46b4ff"></path>
+      <circle class="sdot" r="3.4" fill="#46b4ff"></circle>
+    </svg></div>
+  </div>
+
+  <div class="card" data-i="2">
+    <div class="sweep"></div>
+    <div class="top">
+      <div class="label">Conversion</div>
+      <div class="ico" style="background:rgba(54,211,154,.16);color:#5fe3b6">↗</div>
+    </div>
+    <div class="big">0</div>
+    <div class="pillrow">
+      <div class="pill up"><span class="arr">▲</span><span class="pct">0%</span></div>
+      <span class="cap">vs last week</span>
+    </div>
+    <div class="spark"><svg viewBox="0 0 200 46" preserveAspectRatio="none">
+      <defs><linearGradient id="ga2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#36d39a" stop-opacity=".30"/><stop offset="1" stop-color="#36d39a" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path class="sarea" fill="url(#ga2)"></path>
+      <path class="sline" stroke="#36d39a"></path>
+      <circle class="sdot" r="3.4" fill="#36d39a"></circle>
+    </svg></div>
+  </div>
+</div>
+<script>
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const easeOut=t=>1-Math.pow(1-t,3), easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// per-card config: target value, formatter, % change, sparkline data, accent
+const cfg=[
+  {target:8421, pct:12.4, up:true, fmt:v=>Math.round(v).toLocaleString('en-US'), accent:'#8b5cff', seed:0xA1B2},
+  {target:48.2, pct:8.7,  up:true, fmt:v=>'$'+v.toFixed(1)+'k', accent:'#46b4ff', seed:0xC0FF},
+  {target:3.94, pct:2.1,  up:true, fmt:v=>v.toFixed(2)+'%', accent:'#36d39a', seed:0x77E5},
+];
+const SN=14;
+cfg.forEach(c=>{const r=mulberry32(c.seed);const d=[];let v=0.4+r()*0.2;
+  for(let i=0;i<SN;i++){v=clamp(v+(r()-0.42)*0.22,0.12,0.95);d.push(v);}
+  // bias the tail upward so the sparkline trends up
+  for(let i=0;i<SN;i++)d[i]=clamp(d[i]+ (i/(SN-1))*0.18,0.08,0.98);
+  c.data=d;});
+
+const VW=200,VH=46,PT=5,PB=5;
+const sx=i=>lerp(2,VW-2,i/(SN-1));
+const sy=v=>lerp(VH-PB,PT,v);
+
+const cards=[...document.querySelectorAll('.card')].map(card=>({
+  el:card, sweep:card.querySelector('.sweep'), big:card.querySelector('.big'),
+  pill:card.querySelector('.pill'), arr:card.querySelector('.arr'), pct:card.querySelector('.pct'),
+  line:card.querySelector('.sline'), area:card.querySelector('.sarea'), dot:card.querySelector('.sdot'),
+}));
+
+function render(u){
+  // phases: 0..0.62 count-up + sparkline draw (staggered per card), 0.62..1 highlight sweep + hold
+  cards.forEach((C,ci)=>{
+    const c=cfg[ci];
+    const st=ci*0.10;                                   // per-card stagger
+    const grow=clamp((u/0.62 - st)/(1-st),0,1);
+    const g=easeOut(grow);
+
+    // big metric counts up
+    C.big.textContent=c.fmt(c.target*g);
+
+    // pill: up=green, down=red; class + arrow + %
+    const up=c.up;
+    C.pill.className='pill '+(up?'up':'dn');
+    C.arr.textContent=up?'▲':'▼';
+    C.pct.textContent=(c.pct*easeIO(clamp(grow*1.2,0,1))).toFixed(1)+'%';
+    C.pill.style.opacity=clamp(grow*2,0,1).toFixed(2);
+
+    // sparkline draws in to fractional index P
+    const P=g*(SN-1);
+    const lw=Math.floor(P);
+    let d='M '+sx(0).toFixed(1)+' '+sy(c.data[0]).toFixed(1);
+    for(let i=1;i<=lw;i++) d+=' L '+sx(i).toFixed(1)+' '+sy(c.data[i]).toFixed(1);
+    let hx,hy;
+    if(lw<SN-1){const f=P-lw;hx=lerp(sx(lw),sx(lw+1),f);hy=lerp(sy(c.data[lw]),sy(c.data[lw+1]),f);d+=' L '+hx.toFixed(1)+' '+hy.toFixed(1);}
+    else{hx=sx(SN-1);hy=sy(c.data[SN-1]);}
+    C.line.setAttribute('d',d);
+    C.area.setAttribute('d', g>0.01 ? d+' L '+hx.toFixed(1)+' '+(VH-PB)+' L '+sx(0).toFixed(1)+' '+(VH-PB)+' Z' : '');
+    C.dot.setAttribute('cx',hx.toFixed(1));C.dot.setAttribute('cy',hy.toFixed(1));
+    C.dot.style.opacity=clamp(grow*3,0,1).toFixed(2);
+
+    // highlight sweep across the row of cards during the hold phase
+    let so=0;
+    if(u>=0.62){
+      const sw=(u-0.62)/0.38;                            // 0..1
+      const tri=0.5-0.5*Math.cos(Math.PI*2*sw);          // ping-pong, returns to 0 at end (seamless)
+      const head=tri*(cards.length-1+0.6);
+      const near=1-clamp(Math.abs(ci-head),0,1);
+      so=near*0.9;
+      C.sweep.style.left=lerp(-30,260,clamp((head-ci)+0.5,0,1)).toFixed(0)+'px';
+    }
+    C.sweep.style.opacity=so.toFixed(2);
+  });
+}
+
+const LOOP=6000, OFF=0.30;  // frame-0 lands mid count-up/draw so the thumbnail is rich
+const seek=u=>render(((u+OFF)%1+1)%1);
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>seek(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{ const s=performance.now(); (function l(n){ seek((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

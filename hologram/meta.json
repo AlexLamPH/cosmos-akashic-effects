@@ -1,0 +1,14 @@
+{
+  "slug": "hologram",
+  "title": "Cosmos Hologram — logo projected as a flickering cyan-violet sci-fi hologram",
+  "title_vi": "Cosmos Hologram — logo chiếu thành ảnh ba chiều khoa học viễn tưởng xanh-tím nhấp nháy",
+  "W": 600,
+  "H": 600,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": ["hologram", "logo", "scanlines", "cosmos", "glitch"],
+  "summary": "The Cosmos logo is sampled and recoloured into a cyan/violet hologram, then composited with additive chromatic offsets, a soft radial projection glow, horizontal scanlines, deterministic flicker dimming, and a thin bright bar sweeping vertically across the projection. A nebula-pink edge frame completes the holo-emitter look.",
+  "usage_notes": "RUN: open index.html (auto-anim) or append ?auto=1 for capture. KEY TECHNIQUES: offscreen sampling + luminance recolour of an inlined data-URI logo, additive chromatic RGB offset via hue-rotate filter, deterministic flicker (seeded table + sin harmonics), phase-stepped scanlines, sweeping linear-gradient scan bar, radial glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: off2 chromatic spread, flicker table depth, scanline spacing/phase ph, scan-bar height, glow radial stops.",
+  "summary_vi": "Logo Cosmos được lấy mẫu và tô lại thành ảnh ba chiều xanh lơ/tím, ghép thêm lệch màu cộng dồn, quầng chiếu tỏa tròn mềm, đường quét ngang, mờ nhấp nháy tất định, và thanh sáng mảnh quét dọc qua hình chiếu. Khung viền hồng tinh vân hoàn thiện vẻ máy chiếu holo.",
+  "notes": "Vòng lặp liền mạch 6000ms: nhấp nháy, đường quét và thanh quét đều là hàm tất định của u nên frame(0)===frame(LOOP). Logo nhúng inline data-URI, lấy mẫu và tô màu một lần sau khi ảnh tải để tránh lỗi taint canvas headless."
+}

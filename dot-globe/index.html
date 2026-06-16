@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Dot Globe</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Dot Globe — a rotating wireframe lat/long dotted sphere with tilted orbit arc rings and a core glow; hand-rolled 3D rotate+perspective, deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=12000,TAU=6.283185307,F=560;
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let W,H,DPR,cx,cy;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;}
+rs();addEventListener('resize',rs);
+function dot(px,py,z,rad,col,a){const s=F/(F+z);if(s<=0)return;const X=cx+px*s,Y=cy+py*s,R=Math.max(0.4,rad*s*DPR);
+  const g=x.createRadialGradient(X,Y,0,X,Y,R*3);g.addColorStop(0,col);g.addColorStop(0.3,col);g.addColorStop(1,'rgba(0,0,0,0)');
+  x.globalAlpha=a;x.fillStyle=g;x.beginPath();x.arc(X,Y,R*3,0,TAU);x.fill();x.globalAlpha=1;}
+function rot(X,Y,Z,cry,sry,ct,st){const x1=X*cry+Z*sry,z1=-X*sry+Z*cry; // rotate about Y
+  return[x1, Y*ct-z1*st, Y*st+z1*ct];}                                  // then constant tilt about X
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const ry=TAU*u, tilt=0.42, cry=Math.cos(ry),sry=Math.sin(ry),ct=Math.cos(tilt),st=Math.sin(tilt);
+  const R=Math.min(W,H)*0.30, LAT=22, LON=44;
+  dot(0,0,0,Math.min(W,H)*0.075/DPR,'rgba(70,140,255,0.5)',0.4); // faint core glow
+  for(let i=0;i<=LAT;i++){const la=(i/LAT-0.5)*Math.PI, cl=Math.cos(la), sl=Math.sin(la);
+    for(let j=0;j<LON;j++){const lo=(j/LON)*TAU;
+      const P=rot(R*cl*Math.cos(lo), R*sl, R*cl*Math.sin(lo), cry,sry,ct,st);
+      const near=(P[2]+R)/(2*R);                                  // 0 far .. 1 near
+      dot(P[0],P[1],P[2],1.4+1.8*near,COL[i%6],Math.min(1,0.2+0.8*near));}}
+  // 2 tilted orbit arc rings, spinning at integer harmonics of u
+  const rings=[{tl:1.15,ph:0,h:1,c:1},{tl:-0.85,ph:1.7,h:2,c:4}];
+  for(const rg of rings){const rr=R*1.34, cT=Math.cos(rg.tl), sT=Math.sin(rg.tl);
+    for(let k=0;k<150;k++){const a=(k/150)*TAU + TAU*u*rg.h + rg.ph;
+      const Y2=-rr*Math.sin(a)*sT, Z2=rr*Math.sin(a)*cT, X0=rr*Math.cos(a); // tilt ring plane
+      const P=rot(X0,Y2,Z2,cry,sry,ct,st);
+      const near=(P[2]+rr)/(2*rr);
+      dot(P[0],P[1],P[2],1.2+1.6*near,COL[rg.c],Math.min(1,0.2+0.75*near));}}
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

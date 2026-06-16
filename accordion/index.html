@@ -1,0 +1,88 @@
+<!-- Cosmos FAQ Accordion: the active item's panel expands (height+content fade) with a rotating chevron, others collapse; deterministic demo cycles which item is open. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Accordion</title><style>
+*{margin:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:#0a0816;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
+#wrap{width:540px}
+#wrap .head{margin:0 4px 18px;color:#8a83b4;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+#wrap .head b{display:block;color:#f2efff;font-size:23px;font-weight:700;letter-spacing:-.3px;text-transform:none;margin-top:6px}
+.item{border-radius:14px;margin-bottom:11px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(30,24,56,.72),rgba(20,15,40,.82));
+  border:1px solid rgba(255,255,255,.06);box-shadow:0 8px 26px -16px rgba(0,0,0,.7);
+  transition:border-color .25s,box-shadow .25s}
+.item.on{border-color:rgba(139,92,255,.42);box-shadow:0 12px 34px -14px rgba(139,92,255,.45),0 0 0 1px rgba(139,92,255,.10) inset}
+.q{display:flex;align-items:center;gap:14px;padding:17px 18px;cursor:pointer;user-select:none}
+.q .num{flex:none;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#b79bff;background:rgba(139,92,255,.14);border:1px solid rgba(139,92,255,.28)}
+.q .txt{flex:1;color:#e7e3fa;font-size:15.5px;font-weight:600;letter-spacing:-.1px}
+.q .chev{flex:none;width:18px;height:18px;stroke:#9d93c8;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;will-change:transform}
+.panelOuter{overflow:hidden;will-change:height}
+.panelInner{padding:0 18px 18px 58px}
+.panelInner p{color:#a59ecb;font-size:14px;line-height:1.62;will-change:opacity}
+</style></head>
+<body>
+<div id="wrap">
+  <div class="head">Help center<b>Frequently asked questions</b></div>
+  <div id="list"></div>
+</div>
+<script>
+const DATA=[
+  {q:"How does the free trial work?",a:"Your 14-day trial unlocks every feature with no credit card required. When it ends, you keep read-only access to everything you created — nothing is deleted, and you can upgrade at any time."},
+  {q:"Can I change my plan later?",a:"Absolutely. Upgrade, downgrade, or cancel from the billing page whenever you like. Changes apply instantly and we automatically prorate the difference on your next invoice."},
+  {q:"Is my data encrypted?",a:"Yes. All data is encrypted in transit with TLS 1.3 and at rest with AES-256. We run independent security audits every quarter and never sell your information to third parties."},
+  {q:"How do I contact support?",a:"Reach our team 24/7 from the in-app chat, or email support@cosmos.dev. Paid plans include priority response with a median first reply under two hours."}
+];
+const list=document.getElementById('list');
+const items=DATA.map((d,i)=>{
+  const el=document.createElement('div');el.className='item';
+  el.innerHTML=`<div class="q"><span class="num">${i+1}</span><span class="txt">${d.q}</span>
+    <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="panelOuter"><div class="panelInner"><p>${d.a}</p></div></div>`;
+  list.appendChild(el);
+  return {el,outer:el.querySelector('.panelOuter'),inner:el.querySelector('.panelInner'),
+          chev:el.querySelector('.chev'),p:el.querySelector('p')};
+});
+const N=DATA.length;
+const LOOP=8000;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+// set item i to openness o in [0,1]
+function setItem(i,o){
+  const it=items[i];
+  const full=it.inner.offsetHeight; // measured natural height
+  it.outer.style.height=(full*o).toFixed(2)+'px';
+  it.p.style.opacity=clamp((o-0.25)/0.75,0,1).toFixed(3); // content fades after height starts
+  it.chev.style.transform='rotate('+(180*o).toFixed(1)+'deg)';
+  it.el.classList.toggle('on',o>0.5);
+}
+// each item gets a time slot; within a slot it opens, holds, closes; one item open at a time
+function render(u){
+  const slot=1/N;
+  for(let i=0;i<N;i++){
+    let local=(u-i*slot)/slot; // this item's progress through its own slot, others <0 or >1
+    let o;
+    if(local<0||local>=1){o=0;}
+    else if(local<0.18){o=smooth(local/0.18);}        // open
+    else if(local<0.82){o=1;}                          // hold open
+    else {o=1-smooth((local-0.82)/0.18);}              // close
+    setItem(i,o);
+  }
+}
+const START=0.30; // frame-0 offset: item 0 already open (mid-hold)
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render((((t/LOOP+START)%1)+1)%1);window.__seek(0);window.__ready=true;}
+else{
+  // real interactivity: click a header to toggle that item (single-open)
+  let manual=-1;
+  items.forEach((it,i)=>it.el.querySelector('.q').addEventListener('click',()=>{
+    manual=(manual===i)?-1:i;
+    items.forEach((_,j)=>setItem(j,j===manual?1:0));
+  }));
+  const s=performance.now();
+  (function l(n){
+    if(manual===-1) render((((n-s)/LOOP+START)%1+1)%1);
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

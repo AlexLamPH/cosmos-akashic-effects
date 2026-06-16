@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Simon</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#0a0816;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none}
+body{display:flex;align-items:center;justify-content:center}
+#wrap{width:560px;height:620px;position:relative;display:flex;flex-direction:column;align-items:center}
+#hud{width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#cdb9ff;font-size:16px;letter-spacing:.5px}
+#hud .v{color:#8b5cff;font-weight:700;font-size:20px}
+#hud .best{color:#e0b24a}
+#stage{position:relative;width:440px;height:440px;margin-top:6px}
+canvas{display:block;border-radius:50%;box-shadow:0 0 60px #1a1238,0 0 0 1px #2a1f52}
+#center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#1a1138,#0a0816);box-shadow:0 0 0 1px #3a2c6e,0 0 26px #120c2a inset;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#cdb9ff;text-align:center;z-index:3}
+#center .big{font-size:30px;font-weight:700;color:#8b5cff;text-shadow:0 0 16px #8b5cff88}
+#center .sm{font-size:11px;color:#9d8fc8;margin-top:3px;letter-spacing:1px}
+#status{margin-top:14px;height:24px;color:#9d8fc8;font-size:14px;letter-spacing:1px}
+#status b{color:#36d39a}
+#hint{margin-top:6px;color:#6b5c98;font-size:12px;text-align:center;line-height:1.6}
+</style></head>
+<body><div id="wrap">
+<div id="hud"><div>ROUND <span class="v" id="rd">1</span></div><div class="best">BEST <span class="v best" id="bs">0</span></div></div>
+<div id="stage"><canvas id="c" width="440" height="440"></canvas>
+  <div id="center"><div class="big" id="cl">1</div><div class="sm" id="cs">WATCH</div></div>
+</div>
+<div id="status" id="st"><b id="stt">Watch the sequence…</b></div>
+<div id="hint">Keys 1-4 or click the pads &nbsp;•&nbsp; R to restart</div>
+</div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const SZ=440,CX=220,CY=220,TAU=Math.PI*2;
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=12000, DT=16;
+// 4 Cosmos pad colors: aurora, cosmic, nebula, solaris (idle + lit)
+const PADS=[
+  {idle:'#15402f',lit:'#36d39a',glow:'#36d39a'}, // top-left  (1) aurora
+  {idle:'#143a52',lit:'#46b4ff',glow:'#46b4ff'}, // top-right (2) cosmic
+  {idle:'#3a1140',lit:'#ff5cc2',glow:'#ff5cc2'}, // bot-left  (3) nebula
+  {idle:'#3a2410',lit:'#ff6a3d',glow:'#ff6a3d'}  // bot-right (4) solaris
+];
+const VIOLET='#8b5cff';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// geometry: 4 quadrant arcs. start angles per pad (canvas: 0=right, +y down)
+// pad index → arc start. We lay TL,TR,BL,BR.
+const ARC=[ [Math.PI,1.5*Math.PI], [1.5*Math.PI,TAU], [0.5*Math.PI,Math.PI], [0,0.5*Math.PI] ];
+const RIN=58, ROUT=210, GAP=0.045;
+
+function drawPads(litIndex,flash){
+  x.clearRect(0,0,SZ,SZ);
+  // outer ring
+  x.beginPath(); x.arc(CX,CY,ROUT+6,0,TAU); x.fillStyle='#0d0a1c'; x.fill();
+  for(let i=0;i<4;i++){ const A=ARC[i],lit=(i===litIndex);
+    const a0=A[0]+GAP,a1=A[1]-GAP;
+    x.beginPath(); x.arc(CX,CY,ROUT,a0,a1); x.arc(CX,CY,RIN,a1,a0,true); x.closePath();
+    if(lit){ x.fillStyle=PADS[i].lit; x.shadowColor=PADS[i].glow; x.shadowBlur=40*flash; }
+    else { x.fillStyle=PADS[i].idle; x.shadowBlur=0; }
+    x.fill(); x.shadowBlur=0;
+    // rim
+    x.lineWidth=2; x.strokeStyle=lit?'rgba(255,255,255,0.7)':'rgba(139,92,255,0.25)'; x.stroke();
+    if(lit){ // bright inner sheen
+      x.save(); x.globalCompositeOperation='lighter'; x.beginPath(); x.arc(CX,CY,ROUT,a0,a1); x.arc(CX,CY,RIN,a1,a0,true); x.closePath();
+      const g=x.createRadialGradient(CX,CY,RIN,CX,CY,ROUT); g.addColorStop(0,'rgba(255,255,255,0.0)'); g.addColorStop(1,'rgba(255,255,255,'+(0.35*flash)+')');
+      x.fillStyle=g; x.fill(); x.restore(); }
+  }
+  // violet center ring outline
+  x.beginPath(); x.arc(CX,CY,RIN-3,0,TAU); x.lineWidth=3; x.strokeStyle=VIOLET; x.shadowColor=VIOLET; x.shadowBlur=14; x.stroke(); x.shadowBlur=0;
+}
+
+// build seeded sequence up to length L
+function buildSeq(seed,L){ const r=mulberry32(seed); const s=[]; for(let i=0;i<L;i++) s.push((r()*4)|0); return s; }
+
+// ============ shared timeline model ============
+// A "round r" has sequence length r. Phases per round:
+//   show: each pad lights FLASH_ON then FLASH_OFF gap → r steps
+//   gap before repeat: PAUSE
+//   repeat (AUTO auto-plays / live: player input) → r steps same timing
+// We render purely from time for AUTO.
+const FLASH_ON=420, FLASH_OFF=180, PAUSE=520, STEP=FLASH_ON+FLASH_OFF;
+
+// total ms a round occupies in auto = show(r*STEP) + PAUSE + repeat(r*STEP) + PAUSE
+function roundDur(r){ return r*STEP + PAUSE + r*STEP + PAUSE; }
+
+const SEED=771013;
+// Determine state at absolute auto time t: which round, phase, lit pad, label.
+function autoStateAt(t){
+  let r=1, acc=0;
+  // advance rounds (cap so loop returns cleanly)
+  while(r<14){ const d=roundDur(r); if(acc+d>t) break; acc+=d; r++; }
+  const local=t-acc;
+  const seq=buildSeq(SEED,r);
+  let phase='show', lit=-1, flash=0, idx=0, label='WATCH';
+  const showEnd=r*STEP;
+  if(local<showEnd){ phase='show'; idx=(local/STEP)|0; const within=local-idx*STEP;
+    if(within<FLASH_ON){ lit=seq[idx]; flash=1; } else lit=-1; label='WATCH'; }
+  else if(local<showEnd+PAUSE){ phase='pause'; lit=-1; label='GO'; }
+  else { const t2=local-showEnd-PAUSE; const repEnd=r*STEP;
+    if(t2<repEnd){ phase='repeat'; idx=(t2/STEP)|0; const within=t2-idx*STEP;
+      if(within<FLASH_ON){ lit=seq[idx]; flash=1; } else lit=-1; label='REPEAT'; }
+    else { phase='done'; lit=-1; label='✓'; } }
+  return {round:r,phase,lit,flash,idx,label,seqLen:r};
+}
+
+function drawAt(ms){
+  const st=autoStateAt(OFFSET+ms);
+  drawPads(st.lit,st.flash||1);
+  document.getElementById('rd').textContent=st.round;
+  document.getElementById('bs').textContent=Math.max(1,st.round-1);
+  document.getElementById('cl').textContent=st.lit>=0?(st.lit+1):st.round;
+  document.getElementById('cs').textContent=st.label;
+  document.getElementById('stt').textContent= st.phase==='show'?'Watch the sequence…':st.phase==='repeat'?'Repeating…':st.phase==='pause'?'Your turn!':'Round clear!';
+}
+
+// frame-0 rich: start a couple rounds in, mid-sequence with a pad lit
+const OFFSET=(function(){ // find a t where a pad is lit in a later round
+  let acc=0; for(let r=1;r<3;r++) acc+=roundDur(r); // skip rounds 1,2 → land in round 3 show
+  return acc + STEP*1 + 80; // round 3, second pad flashing on
+})();
+
+// ================= LIVE =================
+let live=null, raf=0;
+function freshLive(){ return {round:1,seq:buildSeq((Math.random()*1e9)|0,1),seqMaster:(Math.random()*1e9)|0,
+  mode:'show',showIdx:0,showTimer:0,litPad:-1,flash:0,inputIdx:0,best:0,over:false,goPulse:0}; }
+function regen(s){ s.seq=buildSeq(s.seqMaster,s.round); }
+function initGame(){
+  live=freshLive(); live.seqMaster=(Math.random()*1e9)|0; regen(live);
+  startShow(live);
+  addEventListener('keydown',e=>{ const k=e.key.toLowerCase();
+    if(k==='r'){ initGame(); return; }
+    if(['1','2','3','4'].includes(k)) press(parseInt(k)-1); });
+  cv.addEventListener('pointerdown',e=>{ const rect=cv.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)/rect.width*SZ-CX, my=(e.clientY-rect.top)/rect.height*SZ-CY;
+    const d=Math.hypot(mx,my); if(d<RIN||d>ROUT) return; let a=Math.atan2(my,mx); if(a<0)a+=TAU;
+    let pad=-1; for(let i=0;i<4;i++){ let s=ARC[i][0],en=ARC[i][1]; if(a>=s&&a<en){pad=i;break;} } if(pad>=0) press(pad); });
+  let last=performance.now();
+  (function loop(now){ raf=requestAnimationFrame(loop); if(now-last<DT) return; const dtm=now-last; last=now;
+    update(live,dtm); render(live); })(performance.now());
+}
+function startShow(s){ s.mode='show'; s.showIdx=0; s.showTimer=0; s.litPad=-1; s.flash=0; s.inputIdx=0; setStatus('Watch the sequence…'); }
+function update(s,dt){
+  if(s.flash>0) s.flash=Math.max(0,s.flash-dt/220);
+  if(s.mode==='show'){ s.showTimer+=dt;
+    if(s.showTimer<FLASH_ON){ s.litPad=s.seq[s.showIdx]; s.flash=1; }
+    else if(s.showTimer<STEP){ s.litPad=-1; }
+    else { s.showTimer=0; s.showIdx++; if(s.showIdx>=s.seq.length){ s.mode='input'; s.litPad=-1; setStatus('Your turn!'); } }
+  }
+}
+function press(pad){ if(!live||live.mode!=='input'||live.over) return;
+  live.litPad=pad; live.flash=1; setTimeout(()=>{ if(live)live.litPad=-1; },200);
+  if(pad===live.seq[live.inputIdx]){ live.inputIdx++;
+    if(live.inputIdx>=live.seq.length){ live.best=Math.max(live.best,live.round); live.round++; regen(live);
+      document.getElementById('bs').textContent=live.best; setStatus('Correct! Round '+live.round); setTimeout(()=>{ if(live&&!live.over) startShow(live); },650); live.mode='wait'; }
+  } else { live.over=true; live.mode='over'; setStatus('Wrong! Reached round '+live.round+' — press R'); }
+}
+function render(s){ drawPads(s.litPad,s.flash||1);
+  document.getElementById('rd').textContent=s.round;
+  document.getElementById('bs').textContent=s.best;
+  document.getElementById('cl').textContent=s.litPad>=0?(s.litPad+1):s.round;
+  document.getElementById('cs').textContent=s.mode==='show'?'WATCH':s.mode==='input'?'GO':s.mode==='over'?'✗':'OK';
+}
+function setStatus(t){ document.getElementById('stt').textContent=t; }
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

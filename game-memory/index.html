@@ -1,0 +1,196 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Memory</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f2;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;}
+  #frame{width:560px;height:620px;position:relative;box-sizing:border-box;
+    padding:18px 20px;border-radius:20px;
+    background:radial-gradient(120% 90% at 50% 0%,#181233,#0d0a1e 70%);
+    border:1px solid #2a2150;box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);}
+  #hud{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  #title{font-weight:700;font-size:19px;letter-spacing:.4px;
+    background:linear-gradient(90deg,#8b5cff,#46b4ff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .stat{display:flex;gap:14px;font-size:13px;color:#b9b3d6;}
+  .stat b{color:#e0b24a;font-variant-numeric:tabular-nums;}
+  canvas{display:block;border-radius:14px;background:#0c0920;width:520px;height:480px;}
+  #bar{display:flex;gap:10px;margin-top:14px;align-items:center;justify-content:center;}
+  button{font:inherit;font-size:13px;color:#dcd6f5;background:#1c1640;border:1px solid #36306a;
+    padding:8px 16px;border-radius:10px;cursor:pointer;transition:.15s;}
+  button:hover{background:#262056;border-color:#5a4fb0;}
+  #msg{position:absolute;left:0;right:0;top:42%;text-align:center;font-size:26px;font-weight:700;
+    color:#36d39a;text-shadow:0 0 24px rgba(54,211,154,.6);pointer-events:none;opacity:0;transition:.4s;}
+</style></head><body>
+<div id="frame">
+  <div id="hud">
+    <div id="title">COSMOS MEMORY</div>
+    <div class="stat"><span>Moves <b id="mv">0</b></span><span>Pairs <b id="pr">0</b>/8</span></div>
+  </div>
+  <canvas id="cv" width="520" height="480"></canvas>
+  <div id="bar"><button id="rst">↻ Restart (R)</button></div>
+  <div id="msg">SOLVED!</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+const COLS=4,ROWS=4,PAIRS=8,LOOP=11000;
+const PAD=14,GAP=12;
+const CW=(520-PAD*2-GAP*(COLS-1))/COLS, CH=(480-PAD*2-GAP*(ROWS-1))/ROWS;
+// Cosmos accent palette per symbol
+const SYM=[
+ {c:'#8b5cff',g:'star'},{c:'#46b4ff',g:'orbit'},{c:'#ff5cc2',g:'bloom'},{c:'#36d39a',g:'leaf'},
+ {c:'#ff6a3d',g:'comet'},{c:'#e0b24a',g:'sun'},{c:'#7af0ff',g:'ring'},{c:'#c08bff',g:'diamond'}
+];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(arr,rnd){for(let i=arr.length-1;i>0;i--){const j=(rnd()*(i+1))|0;[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+// ---- state shape: card = {sym, flipped, matched, glow} ----
+let cards,moves,pairs,sel,lock,won,glowT=0;
+function buildDeck(seed){
+  const rnd=mulberry32(seed);
+  let ids=[];for(let i=0;i<PAIRS;i++){ids.push(i,i);}
+  shuffle(ids,rnd);
+  return ids.map(id=>({sym:id,flipped:false,matched:false,glow:0}));
+}
+function newGame(seed){cards=buildDeck(seed);moves=0;pairs=0;sel=[];lock=false;won=false;syncHUD();}
+function syncHUD(){document.getElementById('mv').textContent=moves;document.getElementById('pr').textContent=pairs;
+  document.getElementById('msg').style.opacity=won?1:0;}
+
+function cellRect(i){const c=i%COLS,r=(i/COLS)|0;return [PAD+c*(CW+GAP),PAD+r*(CH+GAP),CW,CH];}
+function rr(px,py,w,h,r){x.beginPath();x.moveTo(px+r,py);x.arcTo(px+w,py,px+w,py+h,r);x.arcTo(px+w,py+h,px,py+h,r);x.arcTo(px,py+h,px,py,r);x.arcTo(px,py,px+w,py,r);x.closePath();}
+
+function drawSymbol(cx,cy,s,col,scale){
+  x.save();x.translate(cx,cy);x.scale(scale,scale);
+  x.globalCompositeOperation='lighter';
+  x.strokeStyle=col;x.fillStyle=col;x.lineWidth=3;x.lineJoin='round';x.lineCap='round';
+  x.shadowColor=col;x.shadowBlur=16;
+  const R=26;
+  if(s==='star'){x.beginPath();for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5;const a2=a+Math.PI/5;
+    x.lineTo(Math.cos(a)*R,Math.sin(a)*R);x.lineTo(Math.cos(a2)*R*0.42,Math.sin(a2)*R*0.42);}x.closePath();x.fill();}
+  else if(s==='orbit'){x.beginPath();x.arc(0,0,7,0,7);x.fill();x.lineWidth=2.4;
+    for(let e=0;e<3;e++){x.save();x.rotate(e*Math.PI/3);x.beginPath();x.ellipse(0,0,R,R*0.42,0,0,7);x.stroke();x.restore();}}
+  else if(s==='bloom'){for(let k=0;k<6;k++){x.save();x.rotate(k*Math.PI/3);x.beginPath();x.ellipse(0,-14,8,16,0,0,7);x.fill();x.restore();}x.beginPath();x.arc(0,0,6,0,7);x.fillStyle='#fff';x.fill();}
+  else if(s==='leaf'){x.beginPath();x.moveTo(0,R);x.quadraticCurveTo(R,0,0,-R);x.quadraticCurveTo(-R,0,0,R);x.fill();x.strokeStyle='#0a0816';x.beginPath();x.moveTo(0,R);x.lineTo(0,-R);x.stroke();}
+  else if(s==='comet'){x.beginPath();x.arc(8,-8,9,0,7);x.fill();x.lineWidth=4;x.beginPath();x.moveTo(8,-8);x.lineTo(-R,R);x.stroke();}
+  else if(s==='sun'){x.beginPath();x.arc(0,0,11,0,7);x.fill();x.lineWidth=3;for(let k=0;k<8;k++){const a=k*Math.PI/4;x.beginPath();x.moveTo(Math.cos(a)*16,Math.sin(a)*16);x.lineTo(Math.cos(a)*R,Math.sin(a)*R);x.stroke();}}
+  else if(s==='ring'){x.lineWidth=5;x.beginPath();x.arc(0,0,R*0.7,0,7);x.stroke();x.lineWidth=2.4;x.beginPath();x.arc(0,0,R,0,7);x.stroke();}
+  else if(s==='diamond'){x.beginPath();x.moveTo(0,-R);x.lineTo(R*0.7,0);x.lineTo(0,R);x.lineTo(-R*0.7,0);x.closePath();x.fill();x.strokeStyle='#0a0816';x.lineWidth=1.5;x.beginPath();x.moveTo(-R*0.7,0);x.lineTo(R*0.7,0);x.moveTo(0,-R);x.lineTo(0,R);x.stroke();}
+  x.restore();
+}
+
+function draw(){
+  x.clearRect(0,0,520,480);
+  for(let i=0;i<cards.length;i++){
+    const cd=cards[i],[bx,by,bw,bh]=cellRect(i);
+    const cx=bx+bw/2,cy=by+bh/2;
+    const face=cd.flipped||cd.matched;
+    const sym=SYM[cd.sym];
+    // base tile
+    x.save();
+    if(cd.matched){
+      const gl=cd.glow;
+      x.shadowColor=sym.c;x.shadowBlur=18+gl*22;
+      rr(bx,by,bw,bh,12);x.fillStyle='#13102b';x.fill();
+      rr(bx+1.5,by+1.5,bw-3,bh-3,11);x.lineWidth=2;x.strokeStyle=sym.c;x.globalAlpha=0.55+0.45*gl;x.stroke();x.globalAlpha=1;
+    } else if(face){
+      x.shadowColor='#000';x.shadowBlur=10;
+      rr(bx,by,bw,bh,12);x.fillStyle='#171232';x.fill();
+      rr(bx+1.5,by+1.5,bw-3,bh-3,11);x.lineWidth=1.5;x.strokeStyle='#3a3270';x.stroke();
+    } else {
+      // face-down: cosmic back
+      x.shadowColor='#000';x.shadowBlur=8;
+      rr(bx,by,bw,bh,12);
+      const g=x.createLinearGradient(bx,by,bx+bw,by+bh);g.addColorStop(0,'#221a4a');g.addColorStop(1,'#150f30');
+      x.fillStyle=g;x.fill();
+      rr(bx+1.5,by+1.5,bw-3,bh-3,11);x.lineWidth=1.4;x.strokeStyle='#352c66';x.stroke();
+    }
+    x.restore();
+    if(face){
+      drawSymbol(cx,cy,sym.g,sym.c, cd.matched?(0.95+0.1*cd.glow):1);
+    } else {
+      // back glyph: small orbiting dot motif
+      x.save();x.globalCompositeOperation='lighter';x.fillStyle='rgba(139,92,255,.5)';
+      x.beginPath();x.arc(cx,cy,4,0,7);x.fill();
+      x.strokeStyle='rgba(70,180,255,.32)';x.lineWidth=1.4;x.beginPath();x.arc(cx,cy,14,0,7);x.stroke();
+      x.restore();
+    }
+  }
+}
+
+// ===== LIVE input =====
+function flipCard(i){
+  if(lock||won)return;const cd=cards[i];if(cd.flipped||cd.matched)return;
+  cd.flipped=true;sel.push(i);draw();
+  if(sel.length===2){moves++;syncHUD();lock=true;
+    const [a,b]=sel;
+    if(cards[a].sym===cards[b].sym){
+      setTimeout(()=>{cards[a].matched=cards[b].matched=true;pairs++;sel=[];lock=false;
+        if(pairs===PAIRS){won=true;}syncHUD();animMatch();},420);
+    } else {
+      setTimeout(()=>{cards[a].flipped=cards[b].flipped=false;sel=[];lock=false;draw();},760);
+    }
+  }
+}
+let animReq=null;
+function animMatch(){if(animReq)return;const t0=performance.now();(function l(t){
+  let busy=false;for(const cd of cards){if(cd.matched&&cd.glow<1){cd.glow=Math.min(1,cd.glow+0.06);busy=true;}}
+  draw();if(busy){animReq=requestAnimationFrame(l);}else{animReq=null;}})(t0);}
+
+function pick(mx,my){for(let i=0;i<cards.length;i++){const [bx,by,bw,bh]=cellRect(i);
+  if(mx>=bx&&mx<=bx+bw&&my>=by&&my<=by+bh){flipCard(i);return;}}}
+
+// ===== AUTO deterministic "perfect memory" attract =====
+// A scripted solver knows every card. It flips pairs in a fixed seeded order,
+// each pair takes FLIP ms; matched pairs lock+glow. Frame 0 is mid-game.
+const A_SEED=1337, FLIP=900, OFFSET=3300;
+let A_order; // array of [i,j] index pairs in solve order, derived from a seeded deck
+function autoInit(){
+  cards=buildDeck(A_SEED);
+  // group indices by symbol
+  const by={};cards.forEach((c,i)=>{(by[c.sym]=by[c.sym]||[]).push(i);});
+  // solve order = symbols 0..7 but lightly shuffled by seed for variety
+  const rnd=mulberry32(A_SEED^0x9e37);
+  const syms=shuffle([...Array(PAIRS).keys()],rnd);
+  A_order=syms.map(s=>by[s]);
+}
+function drawAt(ms){
+  if(!A_order)autoInit();
+  const t=ms+OFFSET; // frame 0 offset → mid-game
+  // reset deck state
+  for(const cd of cards){cd.flipped=false;cd.matched=false;cd.glow=0;}
+  const done=Math.floor(t/FLIP); // fully resolved pairs
+  const cur=t-done*FLIP;          // progress into current pair
+  let mp=Math.min(done,PAIRS);
+  moves=mp;pairs=0;
+  // matched/locked pairs
+  for(let k=0;k<mp;k++){const [a,b]=A_order[k];cards[a].matched=cards[b].matched=true;
+    cards[a].glow=cards[b].glow=Math.min(1,(t-(k+1)*FLIP)/300+1);pairs++;}
+  // current pair being flipped (two cards face up, not yet matched)
+  if(done<PAIRS){
+    const [a,b]=A_order[done];
+    cards[a].flipped=true;
+    if(cur>FLIP*0.42)cards[b].flipped=true; // second card flips slightly later
+    moves=mp+1;
+    // near end of window, snap current to matched glow rising
+    if(cur>FLIP*0.78){cards[a].glow=cards[b].glow=Math.min(1,(cur-FLIP*0.78)/(FLIP*0.22));}
+  }
+  won=pairs===PAIRS;
+  syncHUD();draw();
+}
+
+// ===== boot =====
+function initGame(){
+  newGame((Math.random()*1e9)|0);
+  draw();
+  cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect();
+    pick((e.clientX-r.left)*520/r.width,(e.clientY-r.top)*480/r.height);});
+  cv.addEventListener('touchstart',e=>{e.preventDefault();const r=cv.getBoundingClientRect();const tp=e.touches[0];
+    pick((tp.clientX-r.left)*520/r.width,(tp.clientY-r.top)*480/r.height);},{passive:false});
+  document.getElementById('rst').addEventListener('click',()=>{newGame((Math.random()*1e9)|0);draw();});
+  window.addEventListener('keydown',e=>{if(e.key==='r'||e.key==='R'){newGame((Math.random()*1e9)|0);draw();}});
+}
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

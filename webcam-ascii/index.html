@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos ASCII-Cam — see yourself rendered in glowing characters</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font:13px/1.4 system-ui,sans-serif;color:#b9a8ff;
+background:rgba(20,10,40,.55);padding:7px 14px;border-radius:20px;letter-spacing:.3px;pointer-events:none;
+transition:opacity 1s;opacity:.9;border:1px solid rgba(139,92,255,.35)}</style></head>
+<body><canvas id="c"></canvas><div id="hint">📷 click to enable camera</div><script>
+// Cosmos ASCII-Cam — the webcam is mirrored, downsampled to a 64x40 {brightness,motion} grid, and each cell
+// is drawn as a glowing Cosmos-tinted ASCII glyph chosen by brightness (dark→space/dots, bright→@#W). So you
+// see yourself flowing in characters; cells that just moved flare brighter/whiter. SIG is the abstract field;
+// the source is the live webcam (mirrored, downsampled, frame-diffed) or synthSig(u) (a fake waving
+// silhouette of moving Gaussian blobs) for ?auto=1 / fallback.
+const cv=document.getElementById('c'),x=cv.getContext('2d'),hint=document.getElementById('hint');
+const LOOP=8400,TAU=6.283185307,GW=64,GH=40;
+// brightness ramp: dark -> light. Index by brightness.
+const RAMP=" .,:;-~+=*ox%#W@";
+// Cosmos accent palette (violet/blue/pink/green/orange/gold) — tint by column band
+const COL=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let W,H,DPR,CW,CH;
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(innerWidth*DPR);H=cv.height=Math.round(innerHeight*DPR);
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';CW=W/GW;CH=H/GH;}
+rs();addEventListener('resize',rs);
+
+// ---- SIG: a 64x40 field of {bright[],motion[]} in [0,1] ----
+// ---- deterministic synthetic signal: moving Gaussian blobs = a fake waving silhouette ----
+const srnd=mb(101);
+const BLOB=[]; for(let k=0;k<3;k++)BLOB.push({cx:0.3+0.4*srnd(),cy:0.42+0.28*srnd(),
+  ax:0.20+0.16*srnd(),ay:0.22+0.18*srnd(),sx:0.6+1.6*srnd(),sy:0.5+1.4*srnd(),
+  rx:0.12+0.16*srnd(),ry:0.10+0.16*srnd(),ph:srnd()*TAU});
+let prevB=new Float32Array(GW*GH); // for synthetic motion = frame diff
+function synthSig(u){
+  const bright=new Float32Array(GW*GH), motion=new Float32Array(GW*GH);
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){
+    const fx=gx/(GW-1), fy=gy/(GH-1); let v=0.05;
+    for(const b of BLOB){
+      const bx=b.cx+b.rx*Math.sin(TAU*b.sx*u+b.ph), by=b.cy+b.ry*Math.cos(TAU*b.sy*u+b.ph*1.7);
+      const dx=(fx-bx)/b.ax, dy=(fy-by)/b.ay; v+=0.95*Math.exp(-(dx*dx+dy*dy));
+    }
+    const i=gy*GW+gx; bright[i]=Math.min(1,v);
+    motion[i]=Math.min(1,Math.abs(bright[i]-prevB[i])*7.0);
+  }
+  prevB=bright.slice();
+  return {bright,motion};
+}
+
+// ---- live webcam source (LIVE only, behind a gesture) ----
+let video=null,oc=null,octx=null,prevLive=null,useSynth=true;
+async function cam(){try{
+  const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+  video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;video.srcObject=s;
+  await video.play();
+  oc=document.createElement('canvas');oc.width=GW;oc.height=GH;octx=oc.getContext('2d',{willReadFrequently:true});
+  prevLive=new Float32Array(GW*GH);useSynth=false;
+  hint.textContent='📷 camera live — you are made of glyphs';setTimeout(()=>hint.style.opacity=0,1600);
+}catch(e){useSynth=true;hint.textContent='📷 camera unavailable — synthetic silhouette';setTimeout(()=>hint.style.opacity=0,1800);}}
+function liveSig(){
+  // mirror horizontally (selfie), downsample to GW×GH, frame-diff for motion
+  octx.save();octx.scale(-1,1);octx.drawImage(video,-GW,0,GW,GH);octx.restore();
+  const d=octx.getImageData(0,0,GW,GH).data;
+  const bright=new Float32Array(GW*GH), motion=new Float32Array(GW*GH);
+  for(let i=0;i<GW*GH;i++){const b=(d[i*4]*0.299+d[i*4+1]*0.587+d[i*4+2]*0.114)/255;
+    bright[i]=b;motion[i]=Math.min(1,Math.abs(b-prevLive[i])*5.0);}
+  prevLive=bright;
+  return {bright,motion};
+}
+
+// ---- single draw path ----
+function render(sig,t){
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const fs=Math.min(CW,CH)*1.5;
+  x.font=fs.toFixed(1)+'px ui-monospace,Menlo,Consolas,monospace';
+  x.textAlign='center';x.textBaseline='middle';
+  x.globalCompositeOperation='lighter';
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){
+    const i=gy*GW+gx, b=sig.bright[i], m=sig.motion[i];
+    if(b<0.06&&m<0.06)continue;
+    const gi=Math.min(RAMP.length-1, Math.floor(b*(RAMP.length-1)+m*4));
+    const ch=RAMP[gi]; if(ch===' ')continue;
+    const c=COL[(gx>>3)%6|0];
+    // motion pushes toward white-hot; brightness sets alpha & glow
+    const w=Math.min(1,m*1.6);
+    const r=Math.round(c[0]+(255-c[0])*w), g=Math.round(c[1]+(255-c[1])*w), bl=Math.round(c[2]+(255-c[2])*w);
+    const a=0.25+0.75*b;
+    const cx=(gx+0.5)*CW, cy=(gy+0.5)*CH;
+    x.shadowColor='rgba('+r+','+g+','+bl+','+(0.5+0.5*b)+')';
+    x.shadowBlur=(4+10*b+12*m)*DPR;
+    x.fillStyle='rgba('+r+','+g+','+bl+','+a+')';
+    x.fillText(ch,cx,cy);
+  }
+  x.shadowBlur=0;x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+
+function startLiveLoop(){const s=performance.now();
+  (function loop(now){const t=((now-s)%LOOP)/LOOP;
+    let sig; if(!useSynth&&video){sig=liveSig();} else {sig=synthSig(t);}
+    render(sig,t);requestAnimationFrame(loop);})(performance.now());}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){ window.__seek=t=>{const u=((t%LOOP)+LOOP)%LOOP/LOOP; render(synthSig(u),u);};
+  // warm up so frame 0 already has a moving silhouette with motion flares
+  for(let i=0;i<14;i++)synthSig(i/30);
+  window.__tick=()=>{}; window.__seek(0); window.__ready=true; }
+else { addEventListener('pointerdown',()=>cam(),{once:true}); startLiveLoop(); }
+</script></body></html>

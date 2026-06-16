@@ -1,0 +1,11 @@
+{
+  "slug": "liquid-fill",
+  "title": "Cosmos Liquid Fill — a circular container filling with wobbling glossy liquid",
+  "title_vi": "Cosmos Liquid Fill — bình tròn dâng đầy chất lỏng gợn sóng bóng loáng",
+  "W": 600, "H": 600, "LOOP": 8000, "N": 100,
+  "tags": ["liquid","wave","loader","fill","glossy","canvas2d"],
+  "summary": "A circular glass container fills with a wobbling liquid whose surface is a travelling sine wave; the level rises then falls in a smooth ping-pong so the motion loops seamlessly. A glossy accent sub-surface band, rising bubbles, and a bright meniscus crest line make it read as a premium loader. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: fill level uses 0.5-0.5*cos(2*pi*u) for a 0..1..0 ping-pong that equals at u=0 and u=1; the surface y is a sum of two travelling sine waves with INTEGER wavenumbers (2 and 3) and integer time multiples so frame(0)==frame(LOOP); the liquid body is a polygon traced along waveY(px) clipped to a circular arc; an additive glossy band sits just below the surface, mulberry32-seeded bubbles rise through it, and a double-stroked crest line gives the meniscus highlight; a left-top specular arc and gradient rim sell the glass shell. CAPTURE: ?auto=1 + window.__seek(t). TUNE: R, margin (min/max level), amp (wobble height), wavenumbers, bubble count, LOOP, liquid/rim palette stops.",
+  "summary_vi": "Bình thủy tinh tròn dâng đầy chất lỏng gợn sóng với mặt là sóng sine chuyển động; mực nước dâng rồi hạ theo kiểu ping-pong mượt nên chuyển động loop liền mạch. Dải bóng dưới bề mặt, bọt khí nổi lên và đường viền meniscus sáng tạo cảm giác loader cao cấp. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Mực nước dùng 0.5-0.5*cos(2*pi*u) cho ping-pong khép kín; mặt sóng là tổng hai sóng sine số nguyên nên frame(0)==frame(LOOP)."
+}

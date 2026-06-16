@@ -1,0 +1,15 @@
+{
+  "slug": "game-simon",
+  "title": "Cosmos Simon — repeat the growing sequence of glowing Cosmos-colored pads",
+  "title_vi": "",
+  "W": 560,
+  "H": 620,
+  "LOOP": 12000,
+  "N": 109,
+  "live_fit": true,
+  "tags": ["game","memory","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, fully playable Simon memory game in one self-contained HTML file with zero dependencies. Four glowing Cosmos-colored quadrant pads (aurora, cosmic, nebula, solaris) flash a growing sequence; you repeat it back by clicking the pads or pressing keys 1-4. Each round adds one more step, your score is the sequence length you reach, the best round is tracked, and a single mistake resets the game. Playable with keyboard and mouse/touch, with a restart affordance. It also ships a deterministic self-playing attract demo for capture: it builds a seeded growing sequence, shows it, then auto-repeats it pad-by-pad, rendered as a pure function of time with the round counter on screen.",
+  "usage_notes": "RUN: open index.html (double-click) — no server, no deps. CONTROLS: watch the pads flash the sequence, then repeat it — press keys 1 (top-left/aurora), 2 (top-right/cosmic), 3 (bottom-left/nebula), 4 (bottom-right/solaris), or click/tap the matching pad. GOAL: reproduce the full sequence each round; every correct round grows the sequence by one and your score is the round/length you reach; BEST tracks your longest run. A single wrong pad ends the game. RESTART: press R. KEY TECHNIQUES: the sequence is generated deterministically with a mulberry32 seed (buildSeq), and the whole attract demo is modeled as a pure timeline — roundDur(r) defines how long each round's show+pause+repeat phases take, and autoStateAt(t) computes exactly which round, phase and lit pad correspond to any time t, so drawAt(ms) is reproducible from t alone; a frame-0 OFFSET lands capture inside round 3 mid-sequence with a pad lit and the round counter shown. The live game runs the same flash/show/input state machine with real player input. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: SEED, FLASH_ON/FLASH_OFF/PAUSE timings, OFFSET (frame-0 round), pad colors PADS, max rounds, ring radii RIN/ROUT.",
+  "summary_vi": "",
+  "notes": ""
+}

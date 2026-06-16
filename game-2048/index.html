@@ -1,0 +1,254 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos 2048</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:560px;height:660px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 26px;pointer-events:none;}
+  #title{font-size:24px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:12px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 14px;text-align:center;min-width:64px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:20px;font-weight:800;color:#fff;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="560" height="660"></canvas>
+  <div id="hud"><div id="title">2048</div>
+    <div id="scores"><div class="box"><div class="lab">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="box"><div class="lab">BEST</div><div class="val" id="best">0</div></div></div></div>
+  <div id="over"><h1 id="otitle">GRID FULL</h1><p id="fin">Score 0</p><button id="btn">New Game ▸</button></div>
+  <div id="tip">Arrows / WASD / swipe to slide · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const N=4, BX=40, BY=120, BW=480, PAD=14, CS=(BW-PAD*(N+1))/N; // cell size
+// Cosmos tile colors by value
+const TC={
+  2:['#1c2740','#46b4ff'], 4:['#1d2a4a','#5cc2ff'], 8:['#241c46','#8b5cff'],
+  16:['#2a1c50','#a07cff'], 32:['#3a1c4a','#ff5cc2'], 64:['#4a1c3a','#ff7cd0'],
+  128:['#143a30','#36d39a'], 256:['#1a4438','#5ce3b4'], 512:['#3a2a14','#e0b24a'],
+  1024:['#4a2a14','#ffcf6a'], 2048:['#4a2410','#ff6a3d'], 4096:['#4a1810','#ff8a5d']
+};
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ----- core 2048 logic on a flat 16-array (0=empty) -----
+function clone(g){return g.slice();}
+function rowSlide(row){ // slide+merge left, returns {row, gain, moved}
+  let a=row.filter(v=>v); let gain=0; const out=[];
+  for(let i=0;i<a.length;i++){ if(i+1<a.length && a[i]===a[i+1]){ out.push(a[i]*2); gain+=a[i]*2; i++; } else out.push(a[i]); }
+  while(out.length<N) out.push(0);
+  const moved=out.some((v,i)=>v!==row[i]);
+  return {row:out,gain,moved};
+}
+function getRow(g,r){return [g[r*4],g[r*4+1],g[r*4+2],g[r*4+3]];}
+function getCol(g,c){return [g[c],g[c+4],g[c+8],g[c+12]];}
+// dir: 0 left,1 right,2 up,3 down
+function move(g,dir){ let ng=clone(g),gain=0,moved=false;
+  for(let i=0;i<N;i++){
+    let line = (dir<2)? getRow(g,i):getCol(g,i);
+    if(dir===1||dir===3) line=line.slice().reverse();
+    const s=rowSlide(line); let res=s.row; if(dir===1||dir===3)res=res.slice().reverse();
+    gain+=s.gain; if(s.moved)moved=true;
+    for(let k=0;k<N;k++){ if(dir<2) ng[i*4+k]=res[k]; else ng[k*4+i]=res[k]; }
+  }
+  return {g:ng,gain,moved};
+}
+function emptyCells(g){const e=[];for(let i=0;i<16;i++)if(!g[i])e.push(i);return e;}
+function canMove(g){ if(emptyCells(g).length)return true;
+  for(let d=0;d<4;d++)if(move(g,d).moved)return true; return false; }
+function addTile(g,rnd){ const e=emptyCells(g); if(!e.length)return -1;
+  const idx=e[(rnd()*e.length)|0]; g[idx]= rnd()<0.9?2:4; return idx; }
+
+// ----- deterministic AUTO heuristic AI (corner strategy) -----
+// Priority order biased to keep big tiles in the bottom-left corner.
+function aiMove(g){ const order=[3,0,1,2]; // down, left, right, up
+  for(const d of order){ const r=move(g,d); if(r.moved) return d; }
+  return -1;
+}
+
+// ----- AUTO simulation: returns a render state at simulated ms -----
+// Each "move" takes MOVE_MS; we interpolate the slide animation.
+const MOVE_MS=240;
+function buildAuto(){ // returns array of frames: {grid(before), moves:[{val,from,to,merge}], newTile, score}
+  const rnd=mul(20480702); let g=new Array(16).fill(0);
+  addTile(g,rnd); addTile(g,rnd); addTile(g,rnd); // start with 3 tiles
+  const steps=[]; let score=0;
+  for(let s=0;s<140;s++){
+    const dir=aiMove(g); if(dir<0)break;
+    // compute per-tile motion for animation
+    const before=clone(g);
+    const anim=computeAnim(before,dir);
+    const r=move(g,dir); score+=r.gain; g=r.g;
+    const ni=addTile(g,rnd);
+    steps.push({before,after:clone(g),anim,score,newTile:ni});
+    if(!canMove(g)) break;
+  }
+  return {steps,start:[clone(g)]};
+}
+// compute tile motions: list of {v,fr,fc,tr,tc,merge}
+function computeAnim(g,dir){
+  const moves=[];
+  for(let i=0;i<N;i++){
+    let cells=[]; // collect (pos,val) along the line in travel order
+    for(let k=0;k<N;k++){ let r,c;
+      if(dir===0){r=i;c=k;} else if(dir===1){r=i;c=N-1-k;}
+      else if(dir===2){r=k;c=i;} else {r=N-1-k;c=i;}
+      cells.push({r,c,v:g[r*4+c]});
+    }
+    const filled=cells.filter(o=>o.v);
+    let target=0; let j=0;
+    while(j<filled.length){
+      const a=filled[j];
+      if(j+1<filled.length && filled[j+1].v===a.v){
+        // merge a and next into slot `target`
+        let tr,tc; if(dir===0){tr=i;tc=target;}else if(dir===1){tr=i;tc=N-1-target;}else if(dir===2){tr=target;tc=i;}else{tr=N-1-target;tc=i;}
+        moves.push({v:a.v,fr:a.r,fc:a.c,tr,tc,merge:true});
+        moves.push({v:filled[j+1].v,fr:filled[j+1].r,fc:filled[j+1].c,tr,tc,merge:true});
+        j+=2;
+      } else {
+        let tr,tc; if(dir===0){tr=i;tc=target;}else if(dir===1){tr=i;tc=N-1-target;}else if(dir===2){tr=target;tc=i;}else{tr=N-1-target;tc=i;}
+        moves.push({v:a.v,fr:a.r,fc:a.c,tr,tc,merge:false});
+        j++;
+      }
+      target++;
+    }
+  }
+  return moves;
+}
+
+let AUTODATA=null;
+// START offset (in steps) so frame 0 is mid-game with a populated board incl. a big tile.
+const START_STEP=26;
+function simTo(ms){
+  if(!AUTODATA) AUTODATA=buildAuto();
+  const steps=AUTODATA.steps; const total=steps.length*MOVE_MS;
+  let m=((ms + START_STEP*MOVE_MS)%total+total)%total;
+  const si=Math.min(steps.length-1, (m/MOVE_MS)|0);
+  const p=Math.min(1,(m-si*MOVE_MS)/MOVE_MS);
+  return {step:steps[si],p,score:steps[si].score};
+}
+
+// cell pixel position
+function cellXY(r,c){ return [BX+PAD+c*(CS+PAD), BY+PAD+r*(CS+PAD)]; }
+function ease(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+
+function drawBoard(){
+  x.clearRect(0,0,560,660);
+  const bg=x.createLinearGradient(0,0,0,660); bg.addColorStop(0,'#120c2c');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,560,660);
+  // board panel
+  x.fillStyle='#15102e'; rr(BX,BY,BW,BW,18); x.fill();
+  x.globalCompositeOperation='lighter'; x.strokeStyle='rgba(139,92,255,.18)'; x.lineWidth=1; rr(BX,BY,BW,BW,18); x.stroke();
+  x.globalCompositeOperation='source-over';
+  // empty cells
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const[px,py]=cellXY(r,c);x.fillStyle='#1b1638';rr(px,py,CS,CS,10);x.fill();}
+}
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function tileColors(v){ return TC[v]||['#4a1810','#ff8a5d']; }
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function drawTile(px,py,v,scale){
+  const[bg,glow]=tileColors(v); const s=scale||1; const sz=CS*s; const off=(CS-sz)/2;
+  x.save(); x.translate(px+off,py+off);
+  // glow
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(sz/2,sz/2,2,sz/2,sz/2,sz*0.85);
+  gg.addColorStop(0,hexA(glow,0.42));gg.addColorStop(1,hexA(glow,0));
+  x.fillStyle=gg; rr(-6,-6,sz+12,sz+12,14); x.fill();
+  x.globalCompositeOperation='source-over';
+  x.fillStyle=bg; rr(0,0,sz,sz,10); x.fill();
+  x.strokeStyle=hexA(glow,0.8); x.lineWidth=2; rr(1,1,sz-2,sz-2,9); x.stroke();
+  // number
+  x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle';
+  const fs= v<100?40: v<1000?32: 26; x.font=`800 ${(fs*s)|0}px system-ui,sans-serif`;
+  x.shadowColor=glow; x.shadowBlur=14*s; x.fillText(String(v),sz/2,sz/2+1);
+  x.shadowBlur=0;
+  x.restore();
+}
+function draw(view){
+  drawBoard();
+  const {step,p}=view; const e=ease(Math.min(1,p/0.7)); // movement completes by 70% of step
+  const settled=p>=0.7;
+  // mergedTargets: position -> resulting value, for pop drawing
+  const targets={};
+  for(const mv of step.anim){ if(mv.merge){ const k=mv.tr*4+mv.tc; targets[k]=mv.v*2; } }
+  if(!settled){
+    // sliding tiles (sources move toward targets)
+    for(const mv of step.anim){
+      const[fx,fy]=cellXY(mv.fr,mv.fc); const[tx,ty]=cellXY(mv.tr,mv.tc);
+      drawTile(fx+(tx-fx)*e, fy+(ty-fy)*e, mv.v, 1);
+    }
+  } else {
+    // settled phase 0.7..1.0: show result grid with pop on new/merged tiles
+    const pp=(p-0.7)/0.3; // 0..1
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=step.after[r*4+c]; if(!v)continue; const k=r*4+c;
+      const[px,py]=cellXY(r,c); let sc=1;
+      if(k in targets) sc=1+0.18*Math.sin(pp*Math.PI);          // merged pop
+      else if(k===step.newTile) sc=0.2+0.8*ease(pp);            // new tile grow-in
+      drawTile(px,py,v,sc);
+    }
+  }
+  // HUD
+  document.getElementById('score').textContent=view.score;
+  const best=Math.max(view.score, +document.getElementById('best').textContent||0);
+  document.getElementById('best').textContent=best;
+}
+const LOOP=12000;
+function drawAt(ms){ if(!AUTODATA)AUTODATA=buildAuto(); draw(simTo(ms)); }
+
+// ---------------- LIVE GAME ----------------
+let LG, anim=null, best=0;
+function newGame(){ const rnd=Math.random; LG={g:new Array(16).fill(0),score:0,over:false,won:false};
+  // seed two tiles
+  addTileLive(); addTileLive(); document.getElementById('over').style.display='none'; renderLive(); }
+function addTileLive(){ const e=emptyCells(LG.g); if(!e.length)return; const idx=e[(Math.random()*e.length)|0];
+  LG.g[idx]=Math.random()<0.9?2:4; LG.pop=idx; }
+function tryMove(dir){ if(LG.over||anim)return; const before=clone(LG.g); const r=move(LG.g,dir); if(!r.moved)return;
+  const a=computeAnim(before,dir); LG.g=r.g; LG.score+=r.gain; if(LG.score>best)best=LG.score;
+  const ni=addTileLive();
+  // animate
+  const start=performance.now(); const stepObj={before,after:clone(LG.g),anim:a,score:LG.score,newTile: LG.pop!=null?LG.pop:-1};
+  anim={stepObj,start};
+  if(!canMove(LG.g)){ LG.over=true; }
+  if(LG.g.includes(2048)&&!LG.won){LG.won=true;}
+}
+function renderLive(){ // static render of current grid
+  drawBoard();
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=LG.g[r*4+c];if(!v)continue;const[px,py]=cellXY(r,c);
+    let sc=1; if(LG.pop===r*4+c)sc=1; drawTile(px,py,v,sc);}
+  document.getElementById('score').textContent=LG.score;
+  document.getElementById('best').textContent=Math.max(best,LG.score);
+}
+function liveLoop(now){
+  if(anim){ const p=Math.min(1,(now-anim.start)/MOVE_MS); draw({step:anim.stepObj,p,score:anim.stepObj.score});
+    if(p>=1){ anim=null; LG.pop=null; renderLive();
+      if(LG.over){ document.getElementById('otitle').textContent=LG.won?'YOU REACHED 2048':'GRID FULL';
+        document.getElementById('fin').textContent='Score '+LG.score+'  ·  Best '+Math.max(best,LG.score);
+        document.getElementById('over').style.display='flex'; } } }
+  requestAnimationFrame(liveLoop);
+}
+function initGame(){ newGame();
+  const DIRS={ArrowLeft:0,KeyA:0,ArrowRight:1,KeyD:1,ArrowUp:2,KeyW:2,ArrowDown:3,KeyS:3};
+  addEventListener('keydown',e=>{ if(e.code in DIRS){e.preventDefault();tryMove(DIRS[e.code]);}
+    if(e.key==='r'||e.key==='R')newGame(); });
+  let sx=0,sy=0;
+  cv.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;});
+  cv.addEventListener('pointerup',e=>{const dx=e.clientX-sx,dy=e.clientY-sy; if(Math.abs(dx)<24&&Math.abs(dy)<24)return;
+    if(Math.abs(dx)>Math.abs(dy)) tryMove(dx>0?1:0); else tryMove(dy>0?3:2); });
+  document.getElementById('btn').addEventListener('click',e=>{e.stopPropagation();newGame();});
+  requestAnimationFrame(liveLoop);
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

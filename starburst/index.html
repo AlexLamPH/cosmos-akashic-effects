@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Starburst</title><style>*{margin:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Starburst — rays of light radiate from a pulsing core, length/brightness on integer-harmonic phases, whole thing slowly rotates (1 turn per loop). Canvas 2D, deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const LOOP=7000,TAU=6.28318530718,SPIN=1; // SPIN = integer turns per LOOP
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+let W,H,DPR,cx,cy,maxR,rays=[];
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;maxR=Math.hypot(W,H)/2*0.96;
+  const r=mul(91017),N=56;rays=[];
+  for(let i=0;i<N;i++)rays.push({a0:i/N*TAU,k:1+(r()*4|0),ph:r()*TAU,base:0.4+r()*0.45,wob:0.12+r()*0.22,
+    c:AC[r()*AC.length|0],wide:0.6+r()*0.9});}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';
+  const rot=TAU*u*SPIN;                              // integer turns -> seamless rotation
+  const corePulse=0.5+0.5*Math.sin(TAU*u*2);         // core breathes twice per loop
+  for(const ry of rays){const a=ry.a0+rot;
+    const len=(ry.base+ry.wob*Math.sin(TAU*u*ry.k+ry.ph))*maxR;   // integer-harmonic length
+    const bri=0.45+0.55*(0.5+0.5*Math.sin(TAU*u*ry.k+ry.ph));     // brightness in sync with length
+    const ex=cx+Math.cos(a)*len,ey=cy+Math.sin(a)*len,c=ry.c;
+    const lg=x.createLinearGradient(cx,cy,ex,ey);
+    lg.addColorStop(0,`rgba(${Math.min(255,c[0]+50)},${Math.min(255,c[1]+50)},${Math.min(255,c[2]+50)},${0.55*bri})`);
+    lg.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+    x.strokeStyle=lg;x.lineWidth=ry.wide*DPR*(0.8+bri);x.lineCap='round';
+    x.beginPath();x.moveTo(cx,cy);x.lineTo(ex,ey);x.stroke();}
+  // bright pulsing core
+  const cr=maxR*(0.14+0.04*corePulse);
+  const cg=x.createRadialGradient(cx,cy,0,cx,cy,cr);
+  cg.addColorStop(0,`rgba(255,255,255,${0.85+0.15*corePulse})`);
+  cg.addColorStop(0.35,`rgba(224,178,74,${0.5+0.2*corePulse})`);
+  cg.addColorStop(0.7,'rgba(139,92,255,0.35)');cg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=cg;x.beginPath();x.arc(cx,cy,cr,0,TAU);x.fill();
+  // inner white hot dot
+  x.fillStyle=`rgba(255,255,255,${0.9})`;x.beginPath();x.arc(cx,cy,maxR*0.022*(0.8+0.4*corePulse),0,TAU);x.fill();
+  x.globalCompositeOperation='source-over';}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

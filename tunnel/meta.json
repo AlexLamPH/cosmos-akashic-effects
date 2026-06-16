@@ -1,0 +1,11 @@
+{
+  "slug": "tunnel",
+  "title": "Cosmos Tunnel — infinite hypnotic zoom through rushing rings",
+  "title_vi": "Cosmos Tunnel — đường hầm vô tận lao vào tâm thôi miên",
+  "W": 620, "H": 620, "LOOP": 6000, "N": 75,
+  "tags": ["tunnel","zoom","rings","hypnotic","perspective","canvas2d"],
+  "summary": "An infinite tunnel: concentric segmented rings rush from a dark vanishing centre toward the camera, recycling seamlessly so the zoom never ends. Each ring spins slightly and cycles through cosmos accent colours. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: ring depth d=((u+i/N) mod 1) gives each ring a phase so the whole set recycles every loop; radius=maxR*d^2.4 makes rings accelerate outward (perspective rush toward the camera); far rings drawn first so near ones overdraw; each ring is arc segments with gaps plus a slight per-ring rotation rot=spin*d*3+u*TAU*0.15; additive 'lighter' glow (wide dim pass + thin bright pass) and a radial dark gradient carve the vanishing centre; centre fade-in/edge fade-out hides recycling seams. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N, exponent 2.4, seg count, gap, spin range, colours.",
+  "summary_vi": "Đường hầm vô tận: các vòng phân đoạn đồng tâm lao từ tâm tối ra phía camera, tái sinh liền mạch nên cú zoom không bao giờ kết thúc. Mỗi vòng xoay nhẹ và đổi màu accent cosmos. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Batch factory. d=((u+i/N)mod1), bán kính maxR*d^2.4 → lao về camera; vẽ xa trước; fade tâm/biên giấu mối nối; 'lighter' glow + gradient tâm tối. B-tier."
+}

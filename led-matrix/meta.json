@@ -1,0 +1,14 @@
+{
+  "slug": "led-matrix",
+  "title": "Cosmos LED Matrix — dot-matrix display scrolling text and a pulsing heart",
+  "title_vi": "Ma trận LED Cosmos — bảng chấm điểm chữ chạy và trái tim đập",
+  "W": 760,
+  "H": 400,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "generative", "grid", "dotmatrix", "glow", "loop"],
+  "summary": "A retro dot-matrix LED panel: a grid of round LEDs where lit ones spell scrolling 'COSMOS ' text, then morph into a pulsing heart. Lit LEDs glow in the Cosmos accent palette while unlit ones stay as faint dim dots. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a hand-built 5x7 bitmap font is scrolled column-by-column across the LED grid for the first 66% of the loop, then a small heart bitmap pulses for the remainder; every LED is drawn as a glowing additive disc (lit) or a faint static dot (unlit); all motion is driven by u=t/LOOP with periodic functions so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for speed, the 0.66 phase split for text/heart ratio, TEXT string, and DOT/gap for LED size.",
+  "summary_vi": "Bảng LED chấm điểm cổ điển: lưới các LED tròn, những bóng sáng ghép thành chữ 'COSMOS ' chạy ngang rồi biến thành trái tim đập. LED sáng phát quang theo bảng màu Cosmos, LED tắt là chấm mờ. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
+  "notes": "Font bitmap 5x7 tự dựng, cuộn theo cột; chuyển động hoàn toàn từ u nên lặp liền mạch."
+}

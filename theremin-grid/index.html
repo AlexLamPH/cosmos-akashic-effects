@@ -1,0 +1,152 @@
+<!-- Cosmos Theremin Grid: a quantized tone-grid theremin. The cursor position picks a note (X = scale degree) and octave/timbre (Y = octave + waveform) from a glowing grid; the tone glides between cells with portamento. LIVE: move the mouse / click across the grid to play a continuous quantized lead; AudioContext only opens on first gesture. AUTO: a seeded path glides across the grid SILENTLY — the active cell lights, a glowing tail follows the path, a note readout updates — looping. Frame 0 is mid-path with a cell lit. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Theremin Grid</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#05030d;
+  font-family:ui-monospace,Menlo,monospace}
+canvas{position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);color:#46b4ff;
+  font-size:13px;letter-spacing:.5px;opacity:.85;pointer-events:none;text-shadow:0 0 12px #46b4ff88}
+</style></head><body>
+<canvas id=c></canvas>
+<div id=hint>▶ move across the grid · click to sustain</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=6400, TAU=Math.PI*2, ACC='#46b4ff';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// grid: COLS = scale degrees (minor pentatonic so any cell is pleasant), ROWS = octave+timbre
+const COLS=7, ROWS=4;
+const SCALE=[0,3,5,7,10,12,15]; // minor pentatonic degrees across one+ octave
+const NAMES=['A','C','D','E','G','A','C'];
+const WAVES=['sine','triangle','sine','triangle'];      // timbre per row
+const BASE=220; // A3 base
+function cellFreq(cx,cy){ // cx: col 0..COLS-1, cy: row 0..ROWS-1 (0=top=highest octave)
+  const oct=(ROWS-1-cy);                    // bottom row low, top row high
+  const semi=SCALE[cx]+oct*12; return BASE*Math.pow(2,semi/12);
+}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+function gridRect(){const pad=Math.min(W,H)*0.08; const x=pad,y=pad*1.4,w=W-pad*2,h=H-pad*2.6;
+  return {x,y,w,h,cw:w/COLS,ch:h/ROWS};}
+function posToCell(px,py){ // px,py normalized 0..1 -> {col,row,gx,gy} (gx,gy continuous for portamento glow)
+  const gx=Math.max(0,Math.min(COLS-0.001,px*COLS)), gy=Math.max(0,Math.min(ROWS-0.001,py*ROWS));
+  return {col:Math.floor(gx),row:Math.floor(gy),gx,gy};
+}
+
+// ---- seeded AUTO path: smooth waypoints gliding across the grid ----
+const rng=mulberry32(20260615);
+const WP=[]; for(let i=0;i<9;i++){WP.push({x:rng(),y:rng()});}
+function lerp(a,b,t){return a+(b-a)*t;}
+function smooth(t){return t*t*(3-2*t);}
+function autoPath(u){const n=WP.length,s=u*n,i=Math.floor(s)%n,f=smooth(s-Math.floor(s));
+  const a=WP[i],b=WP[(i+1)%n]; return {px:lerp(a.x,b.x,f),py:lerp(a.y,b.y,f)};}
+
+let live={x:0.5,y:0.5,on:false,active:false};
+const tail=[]; // recent path points {x,y} normalized for the glowing trace
+
+function render(u){
+  let px,py;
+  if(typeof RENDER_LIVE!=='undefined'&&RENDER_LIVE){ px=live.x; py=live.y; }
+  else { const h=autoPath(u); px=h.px; py=h.py;
+    tail.push({x:px,y:py}); if(tail.length>46)tail.shift(); }
+  const C=posToCell(px,py); const freq=cellFreq(C.col,C.row);
+  const G=gridRect();
+  // background
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  let bg=ctx.createRadialGradient(W/2,H*0.45,0,W/2,H*0.45,Math.max(W,H)*0.7);
+  bg.addColorStop(0,'#0c0a1e');bg.addColorStop(1,'#05030d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // grid cells
+  ctx.globalCompositeOperation='lighter';
+  for(let r=0;r<ROWS;r++)for(let cl=0;cl<COLS;cl++){
+    const x=G.x+cl*G.cw,y=G.y+r*G.ch;
+    const isActive=(cl===C.col&&r===C.row);
+    // distance-based glow from continuous cursor for portamento feel
+    const dcx=(cl+0.5)-C.gx, dcy=(r+0.5)-C.gy; const dist=Math.hypot(dcx,dcy);
+    const near=Math.max(0,1-dist/1.3);
+    ctx.globalAlpha=0.04+near*0.10;ctx.fillStyle=ACC;
+    rr(x+2*DPR,y+2*DPR,G.cw-4*DPR,G.ch-4*DPR,8*DPR);ctx.fill();
+    ctx.globalAlpha=0.10+near*0.4;ctx.strokeStyle=ACC;ctx.lineWidth=1.2*DPR;
+    rr(x+2*DPR,y+2*DPR,G.cw-4*DPR,G.ch-4*DPR,8*DPR);ctx.stroke();
+    if(isActive){
+      const pulse=0.6+0.4*Math.sin(u*TAU*6);
+      ctx.globalAlpha=0.85*pulse;ctx.strokeStyle='#fff';ctx.lineWidth=2.4*DPR;
+      ctx.shadowBlur=24*DPR;ctx.shadowColor=ACC;
+      rr(x+2*DPR,y+2*DPR,G.cw-4*DPR,G.ch-4*DPR,8*DPR);ctx.stroke();ctx.shadowBlur=0;
+      let cg=ctx.createRadialGradient(x+G.cw/2,y+G.ch/2,0,x+G.cw/2,y+G.ch/2,G.cw*0.7);
+      cg.addColorStop(0,'rgba(255,255,255,.55)');cg.addColorStop(0.4,'rgba(70,180,255,.4)');cg.addColorStop(1,'rgba(70,180,255,0)');
+      ctx.globalAlpha=0.9;ctx.fillStyle=cg;
+      rr(x+2*DPR,y+2*DPR,G.cw-4*DPR,G.ch-4*DPR,8*DPR);ctx.fill();
+    }
+    // note label per cell (faint)
+    ctx.globalAlpha=isActive?0.95:0.22;ctx.fillStyle=isActive?'#fff':ACC;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=(11*DPR)+'px ui-monospace,monospace';
+    ctx.fillText(NAMES[cl]+(ROWS-r),x+G.cw/2,y+G.ch/2);
+  }
+  // glowing tail tracing the path
+  ctx.globalAlpha=1;ctx.lineCap='round';
+  for(let i=1;i<tail.length;i++){
+    const a=tail[i-1],b=tail[i]; const t=i/tail.length;
+    ctx.globalAlpha=t*0.5;ctx.strokeStyle=ACC;ctx.lineWidth=(1+t*3)*DPR;
+    ctx.shadowBlur=10*DPR;ctx.shadowColor=ACC;
+    ctx.beginPath();ctx.moveTo(G.x+a.x*G.w,G.y+a.y*G.h);ctx.lineTo(G.x+b.x*G.w,G.y+b.y*G.h);ctx.stroke();
+  }
+  ctx.shadowBlur=0;
+  // cursor node
+  const curx=G.x+px*G.w, cury=G.y+py*G.h;
+  let hg=ctx.createRadialGradient(curx,cury,0,curx,cury,34*DPR);
+  hg.addColorStop(0,'#fff');hg.addColorStop(0.3,ACC);hg.addColorStop(1,'rgba(70,180,255,0)');
+  ctx.globalAlpha=0.95;ctx.fillStyle=hg;ctx.beginPath();ctx.arc(curx,cury,34*DPR,0,TAU);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(curx,cury,3.5*DPR,0,TAU);ctx.fill();
+  // readout (top-left)
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.textAlign='left';
+  ctx.fillStyle=ACC;ctx.textBaseline='top';ctx.font=(20*DPR)+'px ui-monospace,monospace';
+  ctx.fillText(NAMES[C.col]+(ROWS-C.row)+'  '+freq.toFixed(1)+' Hz',18*DPR,16*DPR);
+  ctx.globalAlpha=0.65;ctx.font=(12*DPR)+'px ui-monospace,monospace';
+  ctx.fillText('WAVE '+WAVES[C.row].toUpperCase()+' · CELL '+(C.col+1)+','+(C.row+1),18*DPR,44*DPR);
+  ctx.globalAlpha=1;
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+// ================= LIVE AUDIO (gated) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  window.RENDER_LIVE=true;
+  let actx,osc,master,filt,vca,curWave='sine';
+  function audio(){ if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();master.gain.value=0.2;
+    const comp=actx.createDynamicsCompressor();
+    filt=actx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=3000;filt.Q.value=4;
+    osc=actx.createOscillator();osc.type='sine';
+    vca=actx.createGain();vca.gain.value=0.0001;
+    osc.connect(filt);filt.connect(vca);vca.connect(master);master.connect(comp);comp.connect(actx.destination);
+    osc.start(); }
+    if(actx.state==='suspended')actx.resume(); return actx; }
+  function setTone(){ if(!actx)return; const C=posToCell(live.x,live.y); const freq=cellFreq(C.col,C.row);
+    const w=WAVES[C.row]; if(w!==curWave){osc.type=w;curWave=w;}
+    // portamento: glide to the quantized note
+    osc.frequency.setTargetAtTime(freq,actx.currentTime,0.06);
+    const tgt=(live.on?0.85:0.0001);
+    vca.gain.setTargetAtTime(tgt,actx.currentTime,0.05);
+    // brighter filter higher up the grid
+    filt.frequency.setTargetAtTime(1200+(1-live.y)*4500,actx.currentTime,0.06); }
+  function setLive(e){ const r=cv.getBoundingClientRect(); const G=gridRect();
+    const nx=((e.clientX-r.left)*DPR-G.x)/G.w, ny=((e.clientY-r.top)*DPR-G.y)/G.h;
+    live.x=Math.max(0,Math.min(0.999,nx)); live.y=Math.max(0,Math.min(0.999,ny));
+    live.active=true; tail.push({x:live.x,y:live.y}); if(tail.length>46)tail.shift(); setTone(); }
+  addEventListener('pointermove',e=>{ audio(); if(!live.on){} setLive(e); });
+  addEventListener('pointerdown',e=>{ audio(); live.on=!live.on; setLive(e); hint.style.opacity='0'; });
+  // live loop: live cursor when active, else idle attract path
+  const s=performance.now();
+  (function l(n){
+    if(live.active){ render(0.5*(1+Math.sin(n/900))); } // u only feeds the active-cell pulse animation
+    else { window.RENDER_LIVE=false; render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); window.RENDER_LIVE=true; }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

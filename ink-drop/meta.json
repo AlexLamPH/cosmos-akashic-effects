@@ -1,0 +1,14 @@
+{
+  "slug": "ink-drop",
+  "title": "Cosmos Ink Drop — glowing ink blooming into water",
+  "title_vi": "Cosmos Ink Drop — giọt mực phát sáng lan trong nước",
+  "W": 600,
+  "H": 600,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": ["canvas2d", "generative", "ink", "fluid", "glow", "loop"],
+  "summary": "A drop of glowing ink blooms into water and settles: an irregular blob outline radius(theta)=R*d*(1+Sum amp*sin(k*theta+phase)) expands and contracts as the bloom amount d ping-pongs over the loop. Soft accent ink with layered diffusion glow. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: an irregular blob outline is built from seeded sine harmonics (computed once via mulberry32, never random in frame); the bloom amount d follows a ping-pong of u (1-|2u-1|) so it grows then settles and frame(0)==frame(LOOP); a gentle swirl on an integer harmonic keeps the loop seamless; five concentric radial-gradient blob layers in additive 'lighter' mode create the diffusion glow with a bright settling core; ink colour blends across Cosmos accents. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOBES harmonics, d range, layer scales/alphas, LOOP.",
+  "summary_vi": "Một giọt mực phát sáng lan vào nước rồi lắng lại: đường viền blob bất quy tắc nở ra và co lại khi lượng lan d dao động qua-lại theo vòng lặp. Mực màu accent mềm với hào quang khuếch tán nhiều lớp. Thuần Canvas 2D, không phụ thuộc, chạy offline, tất định và liền mạch.",
+  "notes": "d dùng ping-pong 1-|2u-1| và xoáy theo hài bậc nguyên nên frame(0)==frame(LOOP); blob từ hài sin gieo hạt một lần."
+}

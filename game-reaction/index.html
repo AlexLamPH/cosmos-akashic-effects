@@ -1,0 +1,209 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Reflex</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;touch-action:none;}
+  #wrap{position:relative;width:560px;height:600px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;cursor:crosshair;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(70,180,255,.06) inset;}
+  #hud{position:absolute;top:14px;left:0;right:0;display:flex;justify-content:space-between;
+    padding:0 22px;pointer-events:none;font-weight:700;letter-spacing:.5px;}
+  #score{font-size:30px;color:#fff;text-shadow:0 0 14px rgba(70,180,255,.8);}
+  #stat{font-size:13px;color:#8b5cff;align-self:center;text-align:right;line-height:1.5;opacity:.92;}
+  #time{position:absolute;top:54px;left:22px;right:22px;height:6px;border-radius:4px;background:rgba(139,92,255,.16);pointer-events:none;overflow:hidden;}
+  #bar{height:100%;width:100%;background:linear-gradient(90deg,#46b4ff,#8b5cff);box-shadow:0 0 12px rgba(70,180,255,.6);}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:26px;color:#36d39a;text-shadow:0 0 18px rgba(54,211,154,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(70,180,255,.5);}
+  #tap{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="560" height="600"></canvas>
+  <div id="hud"><div id="score">0</div><div id="stat">AVG —<br>ACC 100%</div></div>
+  <div id="time"><div id="bar"></div></div>
+  <div id="over"><h1>TIME!</h1><p id="fin"></p><button id="btn">Play again ▸</button></div>
+  <div id="tap">CLICK / TAP the glowing targets · R restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const W=560,H=600;
+const VIO='139,92,255',COS='70,180,255',NEB='255,92,194',AUR='54,211,154',SOL='255,106,61',SAC='224,178,74';
+// playfield (below HUD)
+const PT=84, PB=560, PL=24, PR=536; // target spawn bounds
+const RAD=30;             // target radius
+const ROUND=20000;        // 20s round
+const LIFE=1400;          // ms a target stays before auto-miss (auto always hits earlier)
+const COLS=[NEB,COS,AUR,SAC,SOL,VIO];
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// target i: deterministic position, color, spawn time
+function tgt(i){const r=mul(4242+i*89);
+  const gx=PL+RAD + r()*(PR-PL-2*RAD);
+  const gy=PT+RAD + r()*(PB-PT-2*RAD);
+  const col=COLS[(Math.floor(r()*97))%COLS.length];
+  return {x:gx,y:gy,col};}
+const GAP=820;            // ms between target spawns (auto reaction window)
+function spawnTime(i){return i*GAP;}
+// ---- deterministic sim state ----
+let S;
+function reset(){
+  S={t:0, idx:0, score:0, hits:0, miss:0, sumRT:0, dead:false, best:S?S.best:0,
+     cx:W*0.5, cy:H*0.55, splash:null, lastHitT:-9999};
+}
+reset();
+// auto cursor flies to current target and "taps" on a deterministic reaction delay
+const REACT=300; // ms after spawn the auto cursor taps
+function step(st,auto){
+  const dt=DT/1000;
+  // advance round
+  if(st.t>=ROUND){ st.dead=true; return; }
+  const cur=tgt(st.idx); const st0=spawnTime(st.idx);
+  if(auto){
+    // cursor eases toward current target
+    const into=Math.max(0,Math.min(1,(st.t-st0)/REACT));
+    const e=into*into*(3-2*into);
+    // start point = last tap location (cx,cy at spawn captured implicitly via lerp from prev rest)
+    st.cx += (cur.x-st.cx)*Math.min(1,8*dt);
+    st.cy += (cur.y-st.cy)*Math.min(1,8*dt);
+    if(st.t-st0>=REACT){ // tap
+      const rt=Math.round(REACT + 40); // deterministic reaction time recorded
+      st.score+=10; st.hits++; st.sumRT+=rt;
+      st.splash={x:cur.x,y:cur.y,col:cur.col,t0:st.t,rt}; st.lastHitT=st.t;
+      st.idx++;
+    }
+  }
+  st.t+=DT;
+}
+const DT=16;
+// AUTO sim: seeded targets, scripted cursor taps each; START puts frame 0 mid-round, score>0, cursor near a target.
+function simTo(ms){ reset(); const START=3100; const target=START+ms;
+  let guard=0;
+  while(S.t<target && !S.dead && guard<200000){ step(S,true); guard++; }
+  return S;
+}
+// drawing
+function draw(st){
+  x.clearRect(0,0,W,H);
+  const bg=x.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#140d30');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  // faint grid
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<40;i++){const r=mul(11+i*7); x.fillStyle=`rgba(${COS},${0.06+0.1*r()})`;
+    x.beginPath();x.arc(r()*W,PT+r()*(PB-PT),0.6+1.4*r(),0,7);x.fill();}
+  x.globalCompositeOperation='source-over';
+  // playfield border
+  x.strokeStyle='rgba(139,92,255,.18)'; x.lineWidth=1; x.strokeRect(PL,PT,PR-PL,PB-PT);
+  // current target (if round running)
+  const running = st.t<ROUND;
+  if(running){
+    const cur=tgt(st.idx); const st0=spawnTime(st.idx);
+    const age=Math.max(0,st.t-st0);
+    if(age>=0){ drawTarget(cur.x,cur.y,cur.col,age,st.t); }
+  }
+  // splash from last hit
+  if(st.splash){ const dt=st.t-st.splash.t0; if(dt>=0&&dt<420) drawSplash(st.splash,dt); }
+  // cursor
+  drawCursor(st.cx,st.cy, st.t-st.lastHitT<120);
+  // HUD
+  document.getElementById('score').textContent=st.score;
+  const avg=st.hits? Math.round(st.sumRT/st.hits):null;
+  const acc=st.hits+st.miss? Math.round(100*st.hits/(st.hits+st.miss)):100;
+  document.getElementById('stat').innerHTML='AVG '+(avg?avg+'ms':'—')+'<br>ACC '+acc+'%';
+  document.getElementById('bar').style.width=(100*Math.max(0,1-st.t/ROUND))+'%';
+}
+function drawTarget(tx,ty,col,age,t){
+  // pulse + shrinking lifetime ring
+  const life=Math.max(0,1-age/LIFE);
+  const pulse=1+0.06*Math.sin(t*0.012);
+  x.save(); x.translate(tx,ty);
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(0,0,0,0,0,RAD*2.4);
+  gg.addColorStop(0,`rgba(${col},.55)`);gg.addColorStop(1,`rgba(${col},0)`);
+  x.fillStyle=gg; x.beginPath();x.arc(0,0,RAD*2.4,0,7);x.fill();
+  x.globalCompositeOperation='source-over';
+  // body
+  const cg=x.createRadialGradient(-6,-6,2,0,0,RAD*pulse);
+  cg.addColorStop(0,'#ffffff');cg.addColorStop(.4,`rgba(${col},1)`);cg.addColorStop(1,`rgba(${col},.25)`);
+  x.fillStyle=cg; x.beginPath();x.arc(0,0,RAD*pulse,0,7);x.fill();
+  // inner ring
+  x.strokeStyle='rgba(255,255,255,.85)';x.lineWidth=2.5;x.beginPath();x.arc(0,0,RAD*0.5,0,7);x.stroke();
+  // lifetime arc
+  x.strokeStyle=`rgba(${col},.9)`;x.lineWidth=4;x.beginPath();
+  x.arc(0,0,RAD+8,-Math.PI/2,-Math.PI/2+life*Math.PI*2);x.stroke();
+  x.restore();
+}
+function drawSplash(sp,dt){
+  const p=dt/420; const r=RAD+ p*52; const a=(1-p);
+  x.save(); x.translate(sp.x,sp.y);
+  x.globalCompositeOperation='lighter';
+  x.strokeStyle=`rgba(${sp.col},${a*0.9})`;x.lineWidth=4*(1-p)+1;
+  x.beginPath();x.arc(0,0,r,0,7);x.stroke();
+  // rays
+  for(let k=0;k<8;k++){const ang=k/8*Math.PI*2; x.strokeStyle=`rgba(255,255,255,${a*0.6})`;x.lineWidth=2;
+    x.beginPath();x.moveTo(Math.cos(ang)*r*0.5,Math.sin(ang)*r*0.5);x.lineTo(Math.cos(ang)*r,Math.sin(ang)*r);x.stroke();}
+  x.globalCompositeOperation='source-over';
+  // +10 / ms text float
+  x.fillStyle=`rgba(255,255,255,${a})`; x.font='bold 18px system-ui'; x.textAlign='center';
+  x.fillText('+10  '+sp.rt+'ms',0,-r-6);
+  x.restore();
+}
+function drawCursor(cx,cy,active){
+  x.save(); x.translate(cx,cy);
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(0,0,0,0,0,18);
+  gg.addColorStop(0,`rgba(${AUR},${active?.8:.5})`);gg.addColorStop(1,`rgba(${AUR},0)`);
+  x.fillStyle=gg;x.beginPath();x.arc(0,0,18,0,7);x.fill();
+  x.globalCompositeOperation='source-over';
+  x.strokeStyle='rgba(255,255,255,.95)';x.lineWidth=2;
+  x.beginPath();x.moveTo(-12,0);x.lineTo(-4,0);x.moveTo(12,0);x.lineTo(4,0);
+  x.moveTo(0,-12);x.lineTo(0,-4);x.moveTo(0,12);x.lineTo(0,4);x.stroke();
+  x.beginPath();x.arc(0,0,3,0,7);x.fillStyle=`rgba(${AUR},1)`;x.fill();
+  x.restore();
+}
+const LOOP=11000;
+function drawAt(ms){ const st=simTo(ms); draw(st); }
+// ---- live game ----
+let live, raf, last, acc=0;
+function initGame(){
+  reset(); S.t=0; live=true;
+  const over=document.getElementById('over'), btn=document.getElementById('btn');
+  function restart(){ const b=S.best; reset(); S.best=b; S.t=0; acc=0; live=true; over.style.display='none'; }
+  function tap(mx,my){
+    if(S.dead) return;
+    if(S.t>=ROUND) return;
+    const cur=tgt(S.idx); const st0=spawnTime(S.idx);
+    if(S.t<st0) return;
+    const d=Math.hypot(mx-cur.x,my-cur.y);
+    if(d<=RAD+8){ const rt=Math.round(S.t-st0);
+      S.score+=10; S.hits++; S.sumRT+=rt;
+      S.splash={x:cur.x,y:cur.y,col:cur.col,t0:S.t,rt}; S.lastHitT=S.t; S.idx++;
+    } else { S.miss++; }
+  }
+  function loop(now){ if(!last)last=now; let d=now-last; last=now; if(d>60)d=60;
+    if(live && !S.dead){ acc+=d; while(acc>=DT){
+        // live step: advance time, auto-miss if target life exceeded
+        if(S.t>=ROUND){S.dead=true;}
+        else { const st0=spawnTime(S.idx); if(S.t-st0>LIFE){ S.miss++; S.idx++; } }
+        S.t+=DT; acc-=DT; } }
+    // cursor follows mouse (set by listener)
+    draw(S);
+    if(S.dead && live){ live=false; const avg=S.hits?Math.round(S.sumRT/S.hits):0;
+      const acc2=S.hits+S.miss?Math.round(100*S.hits/(S.hits+S.miss)):100;
+      if(S.score>S.best)S.best=S.score;
+      document.getElementById('fin').textContent='Score '+S.score+'  ·  Avg '+(avg||'—')+'ms  ·  Acc '+acc2+'%  ·  Best '+S.best;
+      over.style.display='flex'; }
+    raf=requestAnimationFrame(loop); }
+  function relpos(e){ const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]; }
+  cv.addEventListener('pointermove',e=>{ const [mx,my]=relpos(e); S.cx=mx; S.cy=my; });
+  cv.addEventListener('pointerdown',e=>{ const [mx,my]=relpos(e); S.cx=mx;S.cy=my; S.dead?restart():tap(mx,my); });
+  addEventListener('keydown',e=>{ if(e.key==='r'||e.key==='R')restart(); });
+  btn.addEventListener('click',e=>{e.stopPropagation();restart();});
+  raf=requestAnimationFrame(loop);
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

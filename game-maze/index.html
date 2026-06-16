@@ -1,0 +1,223 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Maze Runner</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f2;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;}
+  #frame{width:560px;height:640px;position:relative;box-sizing:border-box;
+    padding:18px 20px;border-radius:20px;
+    background:radial-gradient(120% 90% at 50% 0%,#181233,#0d0a1e 70%);
+    border:1px solid #2a2150;box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);}
+  #hud{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  #title{font-weight:700;font-size:19px;letter-spacing:.4px;
+    background:linear-gradient(90deg,#46b4ff,#8b5cff,#36d39a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .stat{display:flex;gap:14px;font-size:13px;color:#b9b3d6;}
+  .stat b{color:#e0b24a;font-variant-numeric:tabular-nums;}
+  canvas{display:block;border-radius:14px;background:#0c0920;width:520px;height:480px;}
+  #bar{display:flex;gap:10px;margin-top:12px;align-items:center;justify-content:center;flex-wrap:wrap;}
+  button{font:inherit;font-size:14px;color:#dcd6f5;background:#1c1640;border:1px solid #36306a;
+    width:46px;height:40px;border-radius:10px;cursor:pointer;transition:.12s;}
+  button:hover{background:#262056;border-color:#5a4fb0;}
+  button.wide{width:auto;padding:0 16px;font-size:13px;}
+  .pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:40px 40px;gap:6px;}
+  .pad .e{visibility:hidden;}
+  #msg{position:absolute;left:0;right:0;top:42%;text-align:center;font-size:25px;font-weight:700;
+    color:#36d39a;text-shadow:0 0 24px rgba(54,211,154,.6);pointer-events:none;opacity:0;transition:.35s;}
+</style></head><body>
+<div id="frame">
+  <div id="hud">
+    <div id="title">COSMOS MAZE</div>
+    <div class="stat"><span>Steps <b id="st">0</b></span><span>Time <b id="tm">0.0</b>s</span><span>Lvl <b id="lv">1</b></span></div>
+  </div>
+  <canvas id="cv" width="520" height="480"></canvas>
+  <div id="bar">
+    <div class="pad">
+      <span class="e"></span><button data-d="U">▲</button><span class="e"></span>
+      <button data-d="L">◀</button><button data-d="D">▼</button><button data-d="R">▶</button>
+    </div>
+    <button id="rst" class="wide">↻ New Maze (R)</button>
+  </div>
+  <div id="msg">GOAL!</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+const G=13, LOOP=12000;                       // 13x13 maze
+const VW=520,VH=480, M=10;                     // margins
+const CS=Math.floor(Math.min((VW-M*2)/G,(VH-M*2)/G));
+const OX=(VW-CS*G)/2, OY=(VH-CS*G)/2;
+const VIOLET='139,92,255',COS='70,180,255',AUR='54,211,154',SOL='255,106,61',NEB='255,92,194';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// cell walls bitmask: 1=N 2=E 4=S 8=W (wall present)
+let cell, path, dist, pos, goal, start, steps, level, won, t0, trail;
+function idx(c,r){return r*G+c;}
+function carve(seed){
+  const rnd=mulberry32(seed);
+  cell=new Array(G*G).fill(15);
+  const vis=new Array(G*G).fill(false);
+  const st=[0]; vis[0]=true;
+  const DX=[0,1,0,-1],DY=[-1,0,1,0],OPP=[4,8,1,2],BIT=[1,2,4,8];
+  while(st.length){
+    const cur=st[st.length-1],cc=cur%G,cr=(cur/G)|0;
+    const dirs=[0,1,2,3];for(let i=3;i>0;i--){const j=(rnd()*(i+1))|0;[dirs[i],dirs[j]]=[dirs[j],dirs[i]];}
+    let moved=false;
+    for(const d of dirs){const nc=cc+DX[d],nr=cr+DY[d];
+      if(nc<0||nc>=G||nr<0||nr>=G)continue;const ni=idx(nc,nr);if(vis[ni])continue;
+      cell[cur]&=~BIT[d];cell[ni]&=~OPP[d];vis[ni]=true;st.push(ni);moved=true;break;}
+    if(!moved)st.pop();
+  }
+}
+// BFS shortest path start->goal
+function solve(){
+  const prev=new Array(G*G).fill(-1);dist=new Array(G*G).fill(-1);
+  const q=[start];dist[start]=0;
+  const DX=[0,1,0,-1],DY=[-1,0,1,0],BIT=[1,2,4,8];
+  while(q.length){const cur=q.shift();const cc=cur%G,cr=(cur/G)|0;
+    for(let d=0;d<4;d++){if(cell[cur]&BIT[d])continue;const nc=cc+DX[d],nr=cr+DY[d];
+      if(nc<0||nc>=G||nr<0||nr>=G)continue;const ni=idx(nc,nr);if(dist[ni]>=0)continue;
+      dist[ni]=dist[cur]+1;prev[ni]=cur;q.push(ni);}}
+  path=[];let c=goal;while(c>=0){path.unshift(c);c=prev[c];}
+}
+function newMaze(seed){
+  carve(seed);start=0;goal=G*G-1;solve();
+  pos=start;steps=0;won=false;trail=[start];t0=performance.now();
+  syncHUD();
+}
+function syncHUD(){document.getElementById('st').textContent=steps;
+  document.getElementById('lv').textContent=level;
+  document.getElementById('msg').style.opacity=won?1:0;}
+function cxy(i){return [OX+(i%G)*CS+CS/2,OY+((i/G)|0)*CS+CS/2];}
+
+function draw(){
+  x.clearRect(0,0,VW,VH);
+  // board backdrop
+  x.save();x.shadowColor='#000';x.shadowBlur=12;
+  x.fillStyle='#0b0820';x.beginPath();x.rect(OX-4,OY-4,CS*G+8,CS*G+8);x.fill();x.restore();
+  // faint full solution hint
+  x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.lineJoin='round';
+  x.lineWidth=CS*0.30;x.strokeStyle=`rgba(${COS},0.10)`;
+  x.beginPath();let p0=cxy(path[0]);x.moveTo(p0[0],p0[1]);for(let i=1;i<path.length;i++){const q=cxy(path[i]);x.lineTo(q[0],q[1]);}x.stroke();
+  x.restore();
+  // walls (two-pass glow)
+  x.save();x.globalCompositeOperation='lighter';x.lineCap='round';
+  for(let pass=0;pass<2;pass++){x.lineWidth=pass?1.4:3.4;x.strokeStyle=`rgba(${VIOLET},${pass?0.95:0.20})`;
+    x.beginPath();
+    for(let i=0;i<G*G;i++){const gx=OX+(i%G)*CS,gy=OY+((i/G)|0)*CS,c=cell[i];
+      if(c&1){x.moveTo(gx,gy);x.lineTo(gx+CS,gy);}
+      if(c&2){x.moveTo(gx+CS,gy);x.lineTo(gx+CS,gy+CS);}
+      if(c&4){x.moveTo(gx,gy+CS);x.lineTo(gx+CS,gy+CS);}
+      if(c&8){x.moveTo(gx,gy);x.lineTo(gx,gy+CS);}}
+    x.stroke();}
+  x.restore();
+  // goal marker
+  const [gxx,gyy]=cxy(goal);
+  x.save();x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(gxx,gyy,0,gxx,gyy,CS*0.9);
+  gg.addColorStop(0,`rgba(${AUR},0.95)`);gg.addColorStop(0.5,`rgba(${AUR},0.35)`);gg.addColorStop(1,`rgba(${AUR},0)`);
+  x.fillStyle=gg;x.beginPath();x.arc(gxx,gyy,CS*0.9,0,7);x.fill();
+  x.fillStyle=`rgba(${AUR},0.9)`;x.beginPath();x.arc(gxx,gyy,CS*0.26,0,7);x.fill();
+  x.restore();
+  // start marker
+  const [sxx,syy]=cxy(start);
+  x.save();x.strokeStyle=`rgba(${SOL},0.6)`;x.lineWidth=2;x.beginPath();x.arc(sxx,syy,CS*0.26,0,7);x.stroke();x.restore();
+  // trail (lit path the runner has taken)
+  x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.lineJoin='round';
+  if(trail.length>1){
+    x.lineWidth=CS*0.34;x.strokeStyle=`rgba(${COS},0.16)`;
+    x.beginPath();let a=cxy(trail[0]);x.moveTo(a[0],a[1]);for(let i=1;i<trail.length;i++){const q=cxy(trail[i]);x.lineTo(q[0],q[1]);}x.stroke();
+    // bright recent segment
+    const TL=Math.min(trail.length,10);
+    x.lineWidth=CS*0.22;x.strokeStyle=`rgba(${NEB},0.5)`;
+    x.beginPath();let b=cxy(trail[trail.length-TL]);x.moveTo(b[0],b[1]);
+    for(let i=trail.length-TL+1;i<trail.length;i++){const q=cxy(trail[i]);x.lineTo(q[0],q[1]);}x.stroke();
+  }
+  x.restore();
+  // runner dot (glowing)
+  const [px,py]=cxy(pos);
+  x.save();x.globalCompositeOperation='lighter';
+  const rg=x.createRadialGradient(px,py,0,px,py,CS*0.7);
+  rg.addColorStop(0,'rgba(255,255,255,0.95)');rg.addColorStop(0.35,`rgba(${COS},0.8)`);
+  rg.addColorStop(0.7,`rgba(${VIOLET},0.35)`);rg.addColorStop(1,`rgba(${VIOLET},0)`);
+  x.fillStyle=rg;x.beginPath();x.arc(px,py,CS*0.7,0,7);x.fill();
+  x.fillStyle='#fff';x.beginPath();x.arc(px,py,CS*0.18,0,7);x.fill();
+  x.restore();
+}
+
+// ===== LIVE movement =====
+const BIT={U:1,R:2,D:4,L:8},DC={U:[0,-1],R:[1,0],D:[0,1],L:[-1,0]};
+function move(dir){
+  if(won)return;const b=BIT[dir];if(cell[pos]&b)return;            // wall blocks
+  const c=pos%G,r=(pos/G)|0,[dx,dy]=DC[dir];
+  pos=idx(c+dx,r+dy);steps++;trail.push(pos);
+  if(pos===goal){won=true;level++;
+    setTimeout(()=>{newMaze((Math.random()*1e9)|0);draw();},900);}
+  syncHUD();draw();
+}
+
+// ===== AUTO deterministic BFS-solver attract =====
+// The runner traces the precomputed shortest path start->goal at a fixed
+// step rate; the trail lights up behind it. Frame-0 offset → mid-traverse.
+const A_SEED=8675, STEP=260, OFFSET=2600;
+function drawAt(ms){
+  // (re)build the auto maze once
+  if(!cell || cv.__seed!==A_SEED){level=1;newMaze(A_SEED);cv.__seed=A_SEED;}
+  const PL=path.length;
+  const total=(PL-1)*STEP + 1400;            // time for a full traverse + pause
+  const tt=(ms+OFFSET)%(total);
+  let k=Math.floor(tt/STEP);
+  if(k>PL-1)k=PL-1;                            // reached goal, hold
+  pos=path[k];
+  trail=path.slice(0,k+1);
+  steps=k;
+  won=(k>=PL-1);
+  document.getElementById('tm').textContent=(tt/1000).toFixed(1);
+  // smooth interpolation between cells for the runner head
+  const frac=Math.min(1,(tt-k*STEP)/STEP);
+  if(k<PL-1 && frac>0){
+    const a=cxy(path[k]),b=cxy(path[k+1]);
+    pos=-1; // signal interpolated; draw uses _ipos
+    drawInterp(a,b,frac,k);
+    return;
+  }
+  syncHUD();draw();
+}
+function drawInterp(a,b,frac,k){
+  // render board with runner between a and b
+  const savedPos=pos;
+  // temporarily set pos to k so trail/markers draw, then overpaint head
+  pos=path[k];syncHUD();draw();
+  const px=a[0]+(b[0]-a[0])*frac,py=a[1]+(b[1]-a[1])*frac;
+  x.save();x.globalCompositeOperation='lighter';
+  const rg=x.createRadialGradient(px,py,0,px,py,CS*0.7);
+  rg.addColorStop(0,'rgba(255,255,255,0.95)');rg.addColorStop(0.35,`rgba(${COS},0.8)`);
+  rg.addColorStop(0.7,`rgba(${VIOLET},0.35)`);rg.addColorStop(1,`rgba(${VIOLET},0)`);
+  x.fillStyle=rg;x.beginPath();x.arc(px,py,CS*0.7,0,7);x.fill();
+  x.fillStyle='#fff';x.beginPath();x.arc(px,py,CS*0.18,0,7);x.fill();
+  x.restore();
+}
+
+// ===== boot =====
+function tick(){if(!won){document.getElementById('tm').textContent=((performance.now()-t0)/1000).toFixed(1);}requestAnimationFrame(tick);}
+function initGame(){
+  level=1;newMaze((Math.random()*1e9)|0);draw();tick();
+  window.addEventListener('keydown',e=>{
+    const k=e.key.toLowerCase();
+    if(k==='arrowup'||k==='w'){e.preventDefault();move('U');}
+    else if(k==='arrowdown'||k==='s'){e.preventDefault();move('D');}
+    else if(k==='arrowleft'||k==='a'){e.preventDefault();move('L');}
+    else if(k==='arrowright'||k==='d'){e.preventDefault();move('R');}
+    else if(k==='r'){level=1;newMaze((Math.random()*1e9)|0);draw();}
+  });
+  document.querySelectorAll('.pad button').forEach(b=>{
+    const d=b.getAttribute('data-d');
+    const go=e=>{e.preventDefault();move(d);};
+    b.addEventListener('click',go);
+  });
+  document.getElementById('rst').addEventListener('click',()=>{level=1;newMaze((Math.random()*1e9)|0);draw();});
+}
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

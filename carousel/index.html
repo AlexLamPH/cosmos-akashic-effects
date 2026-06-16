@@ -1,0 +1,128 @@
+<!-- Cosmos Carousel: a horizontal content carousel — cards slide left with a peek of the neighbouring cards, the centre card scales up and brightens while side cards dim/shrink, and dot indicators below track position. Real drag/click-arrow/dot live; deterministic looping auto-demo via render(u)/__seek that auto-advances through slides. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Carousel</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center}
+.wrap{width:640px}
+.stage{position:relative;height:300px;overflow:hidden;border-radius:22px;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);
+          mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.track{position:absolute;top:0;left:0;height:100%;will-change:transform}
+.card{position:absolute;top:50%;width:300px;height:260px;border-radius:20px;
+  transform-origin:center;will-change:transform,opacity;overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.03) inset}
+.card .body{position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;justify-content:flex-end}
+.card .tag{position:absolute;top:18px;left:20px;font-size:11px;font-weight:700;letter-spacing:1.2px;
+  text-transform:uppercase;color:rgba(255,255,255,.85);padding:5px 11px;border-radius:20px;
+  background:rgba(10,8,22,.4);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(4px)}
+.card h3{font-size:21px;font-weight:700;margin-bottom:6px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.card p{font-size:13px;line-height:1.55;color:rgba(255,255,255,.82);max-width:240px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.dots{display:flex;gap:9px;justify-content:center;margin-top:26px}
+.dot{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.18);
+  transition:background .3s;will-change:width,background;cursor:pointer}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="stage"><div class="track" id="track"></div></div>
+  <div class="dots" id="dots"></div>
+</div>
+<script>
+const LOOP=7200;
+const SLIDES=[
+  {tag:"Nebula",  h:"Stellar Nursery",  p:"Where new stars ignite from drifting clouds of cosmic dust and light.",g:["#8b5cff","#46b4ff"]},
+  {tag:"Aurora",  h:"Polar Veil",       p:"Charged particles paint the night sky in slow ribbons of green fire.",g:["#36d39a","#46b4ff"]},
+  {tag:"Solaris", h:"Solar Flare",      p:"A burst of plasma arcs across the corona, brilliant and fleeting.",g:["#ff6a3d","#e0b24a"]},
+  {tag:"Phantom", h:"Deep Field",       p:"Thousands of distant galaxies, each a whole universe of its own.",g:["#ff5cc2","#8b5cff"]},
+];
+const N=SLIDES.length;
+const track=document.getElementById('track'),dotsEl=document.getElementById('dots');
+const CW=300, GAP=34, STEP=CW+GAP;     // card width + spacing between centres
+const cards=SLIDES.map((s,i)=>{
+  const d=document.createElement('div');d.className='card';
+  d.style.background=`linear-gradient(150deg,${s.g[0]},${s.g[1]})`;
+  d.innerHTML=`<div class="tag">${s.tag}</div><div class="body"><h3>${s.h}</h3><p>${s.p}</p></div>`;
+  track.appendChild(d);return d;
+});
+const dots=SLIDES.map((_,i)=>{const e=document.createElement('div');e.className='dot';dotsEl.appendChild(e);return e;});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+const lerp=(a,b,t)=>a+(b-a)*t;
+// continuous index "pos" in [0,N): camera centres on slide `pos`. Cards laid out wrapped so it loops.
+function layout(pos){
+  const stage=track.parentElement;const cx=stage.clientWidth/2;
+  for(let i=0;i<N;i++){
+    // signed wrapped distance of card i from current pos, in [-N/2, N/2]
+    let dst=i-pos;
+    dst=((dst+N/2+ (N*1000))%N)-N/2;
+    const x=cx+dst*STEP-CW/2;
+    const ad=Math.abs(dst);
+    const scale=lerp(1.0,0.82,clamp(ad,0,1));     // centre full size, neighbours shrink
+    const op=lerp(1,0.5,clamp(ad,0,1.4));          // neighbours dim
+    const bri=lerp(1,0.72,clamp(ad,0,1));
+    cards[i].style.transform=`translate(${x}px,-50%) scale(${scale})`;
+    cards[i].style.opacity=op;
+    cards[i].style.filter=`brightness(${bri}) saturate(${lerp(1,.85,clamp(ad,0,1))})`;
+    cards[i].style.zIndex=String(100-Math.round(ad*10));
+  }
+  // dots: active dot near pos widens + brightens; blend between the two nearest
+  const base=Math.floor(pos),frac=pos-base;
+  for(let i=0;i<N;i++){
+    let on=0;
+    if(i===((base%N)+N)%N)on=1-frac;
+    else if(i===(((base+1)%N)+N)%N)on=frac;
+    dots[i].style.width=lerp(8,22,on)+'px';
+    dots[i].style.background=on>0.04
+      ?`rgba(${lerp(255,167,1-on)|0},${lerp(255,139,1-on)|0},255,${lerp(.18,1,on)})`
+      :'rgba(255,255,255,.18)';
+    dots[i].style.boxShadow=on>0.5?'0 0 12px rgba(139,92,255,.7)':'none';
+  }
+}
+let activePos=0;
+function render(u){
+  // advance one slide per (1/N) of the loop, with dwell+glide per step. Offset so t=0 is mid-glide.
+  const off=0.35;                      // start ~35% into the first transition
+  const f=((u*N)+off)%N;               // continuous 0..N
+  const seg=Math.floor(f),local=f-seg; // which step + progress within
+  // glide over first 62% of each step, dwell the rest
+  const e=smooth(clamp(local/0.62,0,1));
+  const pos=(seg+e)%N;
+  layout(pos);activePos=pos;
+}
+// ---------- live interactivity: drag, arrows-by-click on sides, dot click ----------
+function snap(target){activePos=((target%N)+N)%N;layout(activePos);}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  let target=0,from=0,aStart=0,animating=false;const DUR=560;let manualUntil=0;
+  function go(to){from=activePos;target=to;aStart=performance.now();animating=true;manualUntil=performance.now()+DUR+2200;}
+  // click left half = prev, right half = next
+  track.parentElement.addEventListener('click',e=>{
+    const r=track.parentElement.getBoundingClientRect();
+    go(Math.round(activePos)+(e.clientX-r.left<r.width/2?-1:1));
+  });
+  dots.forEach((d,i)=>d.addEventListener('click',ev=>{ev.stopPropagation();go(i);}));
+  // drag
+  let dragX=null,dragPos=0;
+  track.parentElement.addEventListener('pointerdown',e=>{dragX=e.clientX;dragPos=activePos;manualUntil=Infinity;});
+  addEventListener('pointermove',e=>{if(dragX===null)return;activePos=dragPos-(e.clientX-dragX)/STEP;layout(((activePos%N)+N)%N);});
+  addEventListener('pointerup',e=>{if(dragX===null)return;dragX=null;go(Math.round(activePos));});
+  const s=performance.now();
+  (function l(n){
+    if(animating){
+      const k=clamp((n-aStart)/DUR,0,1),e=smooth(k);
+      const pos=((from+(target-from)*e)%N+N)%N;activePos=pos;layout(pos);
+      if(k>=1){snap(target);animating=false;}
+    }else if(n>manualUntil){
+      render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

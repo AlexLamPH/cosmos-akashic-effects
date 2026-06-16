@@ -1,0 +1,20 @@
+{
+  "slug": "mandala",
+  "title": "Cosmos Mandala — radial sacred-geometry bloom",
+  "title_vi": "Cosmos Mandala — hoa văn đối xứng xoay",
+  "W": 620,
+  "H": 620,
+  "LOOP": 9000,
+  "N": 113,
+  "tags": [
+    "mandala",
+    "symmetry",
+    "sacred-geometry",
+    "kaleidoscope",
+    "canvas2d"
+  ],
+  "summary": "A single animated wedge of petals, arcs and glowing nodes mirrored and rotated into 14-fold dihedral symmetry, slowly spinning and breathing over a soft core bloom. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: draw one wedge along +X (petal quadratic curves + radial glow nodes whose spread/size oscillate via integer-harmonic sines), then for S segments rotate by s*2π/S and draw the wedge twice (once mirrored with scale(1,-1)) for dihedral symmetry; the whole group rotates 2π*u (one turn) and breathes via sin(2π*u) → seamless. Additive 'lighter' glow + a central bloom. CAPTURE: ?auto=1 + window.__seek(t). TUNE: S (symmetry), rings, colours.",
+  "summary_vi": "Một múi hoa văn (cánh, cung, nốt sáng) được soi gương + xoay thành đối xứng 14 cánh, quay chậm và 'thở' trên quầng sáng tâm. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Batch 6/7 — Ra viết lại (bản subagent bị treo). Wedge + rotate*S + mirror scale(1,-1) = đối xứng dihedral; xoay 2π*u + breathe sin → seamless; không vòng lặp treo."
+}

@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Chladni</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Chladni — cymatic standing-wave plate: bright nodal lines of sin(aπx)sin(bπy)+sin(bπx)sin(aπy), morphing modes. Pure Canvas 2D, deterministic & seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318530718,PI=Math.PI;
+// Cosmos accents (violet, cosmic, nebula, aurora) — nodal lines tinted by mode phase
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154]];
+// integer modes to cruise through; interpolate between neighbours over u and return at u=1
+const MODES=[[3,2],[5,3],[4,6],[7,4],[2,5]];
+const RW=200; let RH=200, off, octx, img, W,H,DPR;
+off=document.createElement('canvas');octx=off.getContext('2d');
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  RH=RW;off.width=RW;off.height=RH;img=octx.createImageData(RW,RH);x.imageSmoothingEnabled=true;}
+rs();addEventListener('resize',rs);
+// smooth ease so morph eases in/out between integer modes
+function ease(t){return t*t*(3-2*t);}
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  const n=MODES.length, fp=u*n, seg=fp|0, lt=ease(fp-seg);   // seg cycles 0..n, wraps -> seamless
+  const m0=MODES[seg%n], m1=MODES[(seg+1)%n];
+  const a=m0[0]+(m1[0]-m0[0])*lt, b=m0[1]+(m1[1]-m0[1])*lt;  // morphing (non-integer) mode numbers
+  // colour blends across two accents driven by integer harmonics of u
+  const cp=((u*2)%4), ci=cp|0, ct=cp-ci, A=AC[ci%4], B=AC[(ci+1)%4];
+  const cr=A[0]+(B[0]-A[0])*ct, cg=A[1]+(B[1]-A[1])*ct, cb=A[2]+(B[2]-A[2])*ct;
+  const d=img.data;
+  for(let py=0;py<RH;py++){const fy=py/(RH-1);
+    for(let px=0;px<RW;px++){const fx=px/(RW-1);
+      const f=Math.sin(a*PI*fx)*Math.sin(b*PI*fy)+Math.sin(b*PI*fx)*Math.sin(a*PI*fy);
+      // bright where |f|~0 (the sand-collecting nodal lines)
+      let g=1-Math.min(1,Math.abs(f)/0.10); g=g*g;
+      const di=(py*RW+px)*4;
+      d[di]=cr*g;d[di+1]=cg*g;d[di+2]=cb*g;d[di+3]=255;
+    }}
+  octx.putImageData(img,0,0);
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';                       // additive glow over Phantom dark
+  const S=Math.min(W,H)*0.94, ox=(W-S)/2, oy=(H-S)/2;
+  x.globalAlpha=0.5;x.drawImage(off,ox-4,oy-4,S+8,S+8);       // soft halo pass
+  x.globalAlpha=1;x.drawImage(off,ox,oy,S,S);
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

@@ -1,0 +1,14 @@
+{
+  "slug": "micviz-starburst",
+  "title": "Cosmos Starburst — mic-reactive radial light burst with rotating spectrum rays and beat sparkles",
+  "title_vi": "",
+  "W": 640,
+  "H": 420,
+  "LOOP": 8800,
+  "N": 98,
+  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "summary": "A starburst that reacts to the MICROPHONE live: rays of light shoot from a glowing central sun, each ray's length driven by one spectrum bin, the whole burst rotating slowly and flaring brighter with overall loudness, with sparkle particles bursting outward on the beat. It gracefully falls back to a deterministic synthetic signal if the mic is unavailable or denied, and ships a built-in synthetic demo for capture. Self-contained, zero dependencies, runs fully offline.",
+  "usage_notes": "RUN: open index.html and click \"enable mic\" to react to your voice or music; if no mic is granted it falls back to a built-in beat so it never goes blank. KEY TECHNIQUES: an AnalyserNode (fftSize 128) feeds a 64-bin spectrum + RMS level into render(spectrum, level, t); each ray angle = i/N*2*pi + slow rotation, ray length = base + spectrum bin, line and tip brightness scale with level (flare); a seeded mulberry32 gives each ray a static phase/harmonic/hue once; sparkle particles are emitted on beat onsets and integrated with gravity and decay; synthSpectrum(u) is a seeded sum-of-sines with moving formant bumps plus a bass-weighted beat kick, deterministic and loop-closing, used for AUTO and live-fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: BINS (ray count), maxLen (ray reach), rotation speed (0.35), flare, sparkle count, beat count (4).",
+  "summary_vi": "",
+  "notes": ""
+}

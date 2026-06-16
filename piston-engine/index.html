@@ -1,0 +1,87 @@
+<!doctype html><meta charset=utf8><title>Cosmos Piston Engine</title>
+<!-- Cosmos Piston Engine — crankshaft drives 4 pistons via conrods; crank angle=2π*u (integer turns), schematic & seamless. -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7200;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const TURNS=2;            // integer crank turns per LOOP -> seamless
+let S,cx,cy,Crank,Rod,Bore,Stroke,Pist,cyls;
+function build(){
+  S=Math.min(W,H)/620;
+  cx=W/2; cy=H*0.60;
+  Crank=46*S;            // crank throw radius
+  Rod=150*S;             // connecting rod length
+  Bore=58*S;             // cylinder bore (width)
+  Stroke=120*S;          // piston travel guide length
+  Pist=40*S;             // piston height
+  // 4 cylinders side by side; each fires 90deg apart for a flat schematic engine
+  cyls=[];
+  const n=4, span=140*S;
+  for(let i=0;i<n;i++){
+    const x=cx+(i-(n-1)/2)*span;
+    cyls.push({x:x, col:PAL[i%PAL.length], phase:i*0.25}); // 90deg crank offset per cyl
+  }
+}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;build();}
+addEventListener('resize',resize);resize();
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const baseAng=u*Math.PI*2*TURNS;     // crank angle
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.globalCompositeOperation='lighter';
+  // crank main axis line
+  ctx.strokeStyle='#46b4ff';ctx.globalAlpha=0.18;ctx.lineWidth=2*DPR;
+  ctx.beginPath();ctx.moveTo(cx-360*S,cy);ctx.lineTo(cx+360*S,cy);ctx.stroke();
+  for(const cy_ of cyls){
+    const ang=baseAng+cy_.phase*Math.PI*2;
+    // crank pin position (rotates about crank center at this cylinder's x)
+    const px=cy_.x+Math.cos(ang)*Crank, py=cy+Math.sin(ang)*Crank;
+    // piston pin: constrained to vertical line above cylinder center -> slider-crank math
+    const dx=cy_.x-px;
+    const yoff=Math.sqrt(Math.max(0,Rod*Rod-dx*dx));
+    const ppy=py-yoff;                  // piston pin y (above crank)
+    const topY=cy-Crank-Rod;            // top guide
+    // cylinder walls (schematic)
+    ctx.strokeStyle=cy_.col;ctx.globalAlpha=0.35;ctx.lineWidth=2.2*DPR;
+    ctx.beginPath();
+    ctx.moveTo(cy_.x-Bore/2,cy-Crank+10*S);ctx.lineTo(cy_.x-Bore/2,topY-10*S);
+    ctx.moveTo(cy_.x+Bore/2,cy-Crank+10*S);ctx.lineTo(cy_.x+Bore/2,topY-10*S);
+    ctx.stroke();
+    // cylinder head cap
+    ctx.globalAlpha=0.25;ctx.beginPath();ctx.moveTo(cy_.x-Bore/2,topY-10*S);ctx.lineTo(cy_.x+Bore/2,topY-10*S);ctx.stroke();
+    // connecting rod (glowing accent)
+    ctx.strokeStyle=cy_.col;ctx.globalAlpha=0.95;ctx.lineWidth=7*DPR;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(cy_.x,ppy);ctx.stroke();
+    ctx.strokeStyle='#ffffff';ctx.globalAlpha=0.5;ctx.lineWidth=2.4*DPR;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(cy_.x,ppy);ctx.stroke();
+    // piston block (glowing rounded rect)
+    const pg=ctx.createLinearGradient(0,ppy-Pist/2,0,ppy+Pist/2);
+    pg.addColorStop(0,cy_.col);pg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=pg;ctx.globalAlpha=0.55;
+    ctx.fillRect(cy_.x-Bore/2+3*S,ppy-Pist/2,Bore-6*S,Pist);
+    ctx.strokeStyle=cy_.col;ctx.globalAlpha=0.9;ctx.lineWidth=3*DPR;
+    ctx.strokeRect(cy_.x-Bore/2+3*S,ppy-Pist/2,Bore-6*S,Pist);
+    // piston rings
+    ctx.globalAlpha=0.7;ctx.lineWidth=1.6*DPR;
+    for(let r=0;r<2;r++){const ry=ppy-Pist/2+(r+1)*Pist/3;ctx.beginPath();ctx.moveTo(cy_.x-Bore/2+5*S,ry);ctx.lineTo(cy_.x+Bore/2-5*S,ry);ctx.stroke();}
+    // crank pin glow
+    const gr=ctx.createRadialGradient(px,py,0,px,py,16*S);gr.addColorStop(0,cy_.col);gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr;ctx.globalAlpha=0.9;ctx.beginPath();ctx.arc(px,py,16*S,0,7);ctx.fill();
+    // crank web (line from center to pin)
+    ctx.strokeStyle=cy_.col;ctx.globalAlpha=0.6;ctx.lineWidth=5*DPR;
+    ctx.beginPath();ctx.moveTo(cy_.x,cy);ctx.lineTo(px,py);ctx.stroke();
+  }
+  // central crank hub glow
+  const hg=ctx.createRadialGradient(cx,cy,0,cx,cy,40*S);hg.addColorStop(0,'#e0b24a');hg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=hg;ctx.globalAlpha=0.5;ctx.beginPath();ctx.arc(cx,cy,40*S,0,7);ctx.fill();
+  // crank journals (bright dots at each cyl center)
+  for(const cy_ of cyls){ctx.fillStyle='#ffffff';ctx.globalAlpha=0.8;ctx.beginPath();ctx.arc(cy_.x,cy,4*S,0,7);ctx.fill();}
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Command Palette</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:center;justify-content:center}
+#scrim{position:fixed;inset:0;background:radial-gradient(120% 90% at 50% 0%,rgba(139,92,255,.10),transparent 60%)}
+.palette{position:relative;width:540px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(28,23,46,.82),rgba(18,14,32,.86));
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.7),0 0 0 1px rgba(139,92,255,.08),inset 0 1px 0 rgba(255,255,255,.06)}
+.search{display:flex;align-items:center;gap:13px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.search svg{flex:none;width:19px;height:19px;color:#8d86a8}
+.qwrap{position:relative;flex:1;height:22px;font-size:17px;line-height:22px;color:#ece9f5}
+.qtext{white-space:pre;font-weight:450;letter-spacing:.1px}
+.ph{position:absolute;left:0;top:0;color:#6f6890;font-weight:450}
+.caret{display:inline-block;width:1.5px;height:18px;vertical-align:-3px;margin-left:1px;
+  background:#8b5cff;border-radius:1px;box-shadow:0 0 6px rgba(139,92,255,.8)}
+.kbd{flex:none;font-size:11px;color:#9c95b8;padding:3px 7px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-weight:600}
+.list{padding:8px;max-height:300px}
+.section{font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:#6f6890;
+  padding:8px 12px 6px;font-weight:700}
+.row{position:relative;display:flex;align-items:center;gap:13px;padding:11px 12px;border-radius:11px;cursor:pointer}
+.row .ico{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+.row .ico svg{width:16px;height:16px;color:#b9b2d6}
+.row .lbl{flex:1;font-size:14.5px;color:#d9d4ea;font-weight:500}
+.row .sc{flex:none;display:flex;gap:4px}
+.row .sc span{font-size:11px;color:#857ea2;padding:2px 6px;border-radius:5px;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);font-weight:600}
+.row .hi{position:absolute;inset:0;border-radius:11px;opacity:0;
+  background:linear-gradient(90deg,rgba(139,92,255,.22),rgba(139,92,255,.10));
+  border:1px solid rgba(139,92,255,.42);
+  box-shadow:0 0 22px -4px rgba(139,92,255,.5),inset 0 1px 0 rgba(255,255,255,.07)}
+.row.on .lbl{color:#fff}
+.row.on .ico{background:rgba(139,92,255,.18);border-color:rgba(139,92,255,.4)}
+.row.on .ico svg{color:#c5b5ff}
+.foot{display:flex;align-items:center;gap:18px;padding:11px 18px;border-top:1px solid rgba(255,255,255,.06);
+  font-size:11.5px;color:#7d7799}
+.foot b{color:#a59ec4;font-weight:700}
+.foot .hint{display:flex;align-items:center;gap:6px}
+.foot .k{font-size:10px;padding:1px 5px;border-radius:4px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);color:#9c95b8;font-weight:700}
+</style></head>
+<body><div id="scrim"></div>
+<div class="palette">
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <div class="qwrap"><span class="qtext" id="qtext"></span><span class="caret" id="caret"></span><span class="ph" id="ph">Search commands…</span></div>
+    <div class="kbd">ESC</div>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="foot">
+    <span class="hint"><span class="k">↑↓</span> navigate</span>
+    <span class="hint"><span class="k">↵</span> select</span>
+    <span style="margin-left:auto">Cosmos <b>⌘K</b></span>
+  </div>
+</div>
+<script>
+const I={
+ file:'<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2.2-1.3L14 2h-4l-.3 2.5a7 7 0 0 0-2.2 1.3l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2.2 1.3L10 22h4l.3-2.5a7 7 0 0 0 2.2-1.3l2.4 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/>',
+ git:'<circle cx="12" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M12 7.5v6M12 13.5a6 6 0 0 1-6 3M12 13.5a6 6 0 0 0 6 3"/>',
+ theme:'<path d="M12 2a9 9 0 1 0 9 9c0-.5 0-.9-.1-1.3A6 6 0 0 1 12 2z"/>',
+ term:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/>',
+ new:'<path d="M12 5v14M5 12h14"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>',
+ close:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 9l6 6M15 9l-6 6"/>',
+ reload:'<path d="M3 12a9 9 0 1 1 2.6 6.3M3 19v-4h4"/>',
+ keyb:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h0M10 10h0M14 10h0M18 10h0M7 14h10"/>'
+};
+const ALL=[
+ {ic:'new',l:'New File',sc:['⌘','N']},
+ {ic:'file',l:'Open File…',sc:['⌘','O']},
+ {ic:'search',l:'Find in Files',sc:['⌘','⇧','F']},
+ {ic:'git',l:'Git: Commit Changes',sc:['⌘','K']},
+ {ic:'git',l:'Git: Push to Origin',sc:['⌘','⇧','P']},
+ {ic:'term',l:'Toggle Terminal',sc:['⌃','`']},
+ {ic:'theme',l:'Preferences: Color Theme',sc:['⌘','T']},
+ {ic:'settings',l:'Open Settings',sc:['⌘',',']},
+ {ic:'keyb',l:'Keyboard Shortcuts',sc:['⌘','K','⌘','S']},
+ {ic:'reload',l:'Reload Window',sc:['⌘','R']},
+ {ic:'user',l:'Switch Account',sc:[]},
+ {ic:'close',l:'Close Editor',sc:['⌘','W']}
+];
+const TARGET='git commit';
+const qtext=document.getElementById('qtext'),caret=document.getElementById('caret'),
+      ph=document.getElementById('ph'),listEl=document.getElementById('list');
+function svg(name){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+I[name]+'</svg>';}
+function filtered(q){q=q.trim().toLowerCase();if(!q)return ALL.slice(0,7);
+  return ALL.filter(c=>c.l.toLowerCase().includes(q));}
+function shorts(sc){return sc.map(s=>'<span>'+s+'</span>').join('');}
+// build rows once (max), reuse DOM by rerendering list innerHTML per state — fine for a small list
+function lerp(a,b,t){return a+(b-a)*t;}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+
+function render(u){
+  // sub-phases of one loop: type -> hold(filtered) -> move selection -> hold -> clear -> pause
+  // u in [0,1)
+  let q='', sel=0, blink=true, results=filtered('');
+  const N=TARGET.length;
+  if(u<0.34){                        // TYPING
+    const p=ease(u/0.34); const n=Math.round(p*N);
+    q=TARGET.slice(0,n);
+    blink=(Math.floor(u*1000/70)%2)===0;   // fast blink while typing pause-points
+    results=filtered(q); sel=0;
+  } else if(u<0.46){                  // settle, caret blink, sel at 0
+    q=TARGET; results=filtered(q); sel=0;
+    blink=(Math.floor((u-0.34)*1000/240)%2)===0;
+  } else if(u<0.72){                  // MOVE SELECTION down the results
+    q=TARGET; results=filtered(q);
+    const span=Math.max(1,results.length-1);
+    const p=(u-0.46)/0.26;            // 0..1
+    sel=Math.min(results.length-1,Math.floor(p* (results.length))); // step through
+    blink=(Math.floor((u-0.46)*1000/240)%2)===0;
+  } else if(u<0.82){                  // hold on last selection
+    q=TARGET; results=filtered(q); sel=results.length-1;
+    blink=(Math.floor((u-0.72)*1000/240)%2)===0;
+  } else if(u<0.92){                  // CLEAR (backspace)
+    const p=ease((u-0.82)/0.10); const n=Math.round((1-p)*N);
+    q=TARGET.slice(0,n); results=filtered(q); sel=0;
+    blink=true;
+  } else {                           // PAUSE on empty, blinking caret
+    q=''; results=filtered(''); sel=0;
+    blink=(Math.floor((u-0.92)*1000/280)%2)===0;
+  }
+  // write search text
+  qtext.textContent=q;
+  ph.style.opacity = q.length?0:1;
+  caret.style.opacity = blink?1:0.05;
+  // build list
+  let html='';
+  const heading = q.trim()? (results.length? 'Results' : 'No commands found') : 'Suggestions';
+  html+='<div class="section">'+heading+'</div>';
+  results.forEach((c,i)=>{
+    const on=i===sel;
+    html+='<div class="row'+(on?' on':'')+'">'+
+      '<span class="hi" style="opacity:'+(on?1:0)+'"></span>'+
+      '<span class="ico">'+svg(c.ic)+'</span>'+
+      '<span class="lbl">'+c.l+'</span>'+
+      '<span class="sc">'+shorts(c.sc)+'</span></div>';
+  });
+  listEl.innerHTML=html;
+}
+
+const LOOP=7200, OFF=0.40;   // frame-0 offset: land mid-interaction (typed + selection moving)
+function frame(u){render(((u+OFF)%1+1)%1);}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ frame((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

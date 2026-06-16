@@ -1,0 +1,14 @@
+{
+  "slug": "tilt-sand",
+  "title": "Cosmos Tilt Sand — device-tilt reactive pile of glowing sand grains that pour and settle toward gravity, building dunes",
+  "title_vi": "",
+  "W": 640,
+  "H": 420,
+  "LOOP": 8200,
+  "N": 91,
+  "tags": ["tilt","sensor","reactive","interactive","canvas2d"],
+  "summary": "A pile of thousands of glowing amber sand grains pours and settles toward the gravity vector: tilt your phone (or move the mouse on desktop) and the sand flows that way, packing into dunes against the container walls. It reacts to the DEVICE TILT live and gracefully falls back to a synthetic rocking signal (and to the mouse position on desktop) when the sensor is unavailable, plus a deterministic synthetic demo for capture. Self-contained, zero dependencies, runs fully offline; privacy: all processing happens in-browser, nothing is uploaded.",
+  "usage_notes": "RUN: open index.html and tap \"enable motion\" — on iOS this calls DeviceOrientationEvent.requestPermission(); tilt the device and the grains pour toward gravity, building dunes that rebound off the walls. On DESKTOP (no tilt sensor) it falls back to the MOUSE position as the tilt vector so it stays interactive, and if no input ever arrives it rocks under a synthetic signal so it never goes blank. KEY TECHNIQUES: a deviceorientation listener maps gamma->gx and beta->gy into a gravity vector SIG={gx,gy} in [-1,1] which drives render(SIG,t); the simulation integrates ~2600 grain particles under that gravity, resolves grain-grain overlaps via a spatial hash with relaxation passes, and bounces grains off the container walls with restitution and friction so they settle into stable dunes; grains are drawn as additive radial-gradient glows tinted amber-to-gold, brighter while moving; synthSig(u) returns gx=0.7*sin(2*pi*u), gy=0.7*cos(2*pi*2*u) — a gently rocking phone — used for AUTO and for live fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: N (grain count), R (grain radius/packing), GRAV (gravity strength), RESTITUTION/FRICTION (bounce vs settle), grain hue range, LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

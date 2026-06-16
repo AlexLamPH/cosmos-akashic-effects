@@ -1,0 +1,52 @@
+<!-- Cosmos Orbit Spinner: concentric rings of orbiting dots/arcs at integer speeds around a glowing core; seamless loader. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Orbit Spinner</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+const COLS=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x51F0C9);
+const RINGS=6,rings=[];
+for(let i=0;i<RINGS;i++){
+  const dots=4+i*2, speed=(i%2===0?1:-1)*(i+1); // integer speeds -> seamless
+  rings.push({dots,speed,phase:rnd()*TAU,col:COLS[i%COLS.length],arc:0.28+rnd()*0.18});
+}
+function frame(t){
+  const LOOP=3000,u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.setTransform(DPR,0,0,DPR,0,0);
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,base=Math.min(W,H)*0.07;
+  const pulse=0.5+0.5*Math.sin(TAU*u*1); // returns at u=1
+  x.globalCompositeOperation='lighter';
+  // central glow
+  let g=x.createRadialGradient(cx,cy,0,cx,cy,base*(2.2+pulse*0.6));
+  g.addColorStop(0,'rgba(255,255,255,0.95)');g.addColorStop(0.25,'rgba(139,92,255,0.55)');
+  g.addColorStop(0.6,'rgba(70,180,255,0.18)');g.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=g;x.beginPath();x.arc(cx,cy,base*(2.2+pulse*0.6),0,TAU);x.fill();
+  for(let i=0;i<RINGS;i++){
+    const r=rings[i],radius=base*(1.6+i*0.95);
+    const ang=TAU*u*r.speed+r.phase;
+    // faint orbit track
+    x.strokeStyle=r.col;x.globalAlpha=0.10;x.lineWidth=1.2;
+    x.beginPath();x.arc(cx,cy,radius,0,TAU);x.stroke();
+    // leading arc sweep
+    x.globalAlpha=0.5;x.lineWidth=2.6+i*0.5;x.lineCap='round';
+    x.beginPath();x.arc(cx,cy,radius,ang,ang+TAU*r.arc);x.stroke();
+    // orbiting dots
+    for(let d=0;d<r.dots;d++){
+      const a=ang+d/r.dots*TAU,px=cx+Math.cos(a)*radius,py=cy+Math.sin(a)*radius;
+      const sz=2.2+i*0.7+pulse*1.1;
+      let dg=x.createRadialGradient(px,py,0,px,py,sz*3.2);
+      dg.addColorStop(0,'rgba(255,255,255,0.95)');dg.addColorStop(0.3,r.col);dg.addColorStop(1,'rgba(5,3,13,0)');
+      x.globalAlpha=0.9;x.fillStyle=dg;x.beginPath();x.arc(px,py,sz*3.2,0,TAU);x.fill();
+      x.fillStyle='#fff';x.globalAlpha=0.85;x.beginPath();x.arc(px,py,sz*0.55,0,TAU);x.fill();
+    }
+  }
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

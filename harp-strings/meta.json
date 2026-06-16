@@ -1,0 +1,14 @@
+{
+  "slug": "harp-strings",
+  "title": "Cosmos Harp Strings — pluckable Karplus-Strong string harp you can strum",
+  "title_vi": "Đàn Hạc Dây Cosmos",
+  "W": 640,
+  "H": 480,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": ["harp", "strings", "pluck", "karplus-strong", "koto", "glissando", "pentatonic", "audio", "webaudio", "interactive", "sound", "canvas2d"],
+  "summary": "A pluckable string harp of eight vertical strings tuned to a major-pentatonic scale. Click or drag across the strings to strum and it PLAYS REAL SOUND via the Web Audio API: each pluck is a Karplus-Strong-style filtered-noise burst fed into a pitch-tuned delay feedback loop, so it rings like a harp or koto. The AudioContext starts on your first gesture; every voice runs through a master gain of ~0.2 and a compressor. Plucked strings vibrate with a visible standing-wave wobble and glow. Fully self-contained, zero dependencies, runs offline. Ships with a silent, deterministic, seamlessly looping visual demo for capture: a seeded glissando sweeps the strings repeatedly, lighting each one as it crosses.",
+  "usage_notes": "RUN: open index.html and click or drag across the strings to HEAR them — audio needs a user gesture, so the AudioContext is created on your first pointer-down. PLAY: click a single string to pluck one note, or press and drag horizontally across the harp to strum a glissando; the string you cross wobbles, glows aurora-green / cosmic-blue and rings out. KEY TECHNIQUES: synthesis = Karplus-Strong pluck — a ~30ms filtered white-noise excitation drives a DelayNode tuned to delayTime = 1/frequency with ~0.965 feedback through a lowpass damp filter, giving a decaying plucked-string timbre; tuning = an 8-note major-pentatonic spread (C4 up) so any strum sounds harmonious; ramped 5ms-attack / ~1.6s-decay envelope and master gain ~0.2 protect the ears. CAPTURE: ?auto=1 is SILENT (no AudioContext) and window.__seek(t) sets the exact deterministic visual; in AUTO a ping-pong sweep across the string indices drives the wobble and glow as a pure function of u. TUNE: LOOP for sweep tempo, N count of strings, SCALE/BASE for tuning, VIB_MS for wobble/glow length, feedback gain for string sustain.",
+  "summary_vi": "Một cây đàn hạc tám dây dọc lên dây theo thang ngũ cung trưởng. Bấm hoặc kéo ngang qua các dây để gảy và nó phát ÂM THANH THẬT qua Web Audio API: mỗi tiếng gảy là một xung nhiễu lọc kiểu Karplus-Strong đưa vào vòng hồi tiếp trễ điều theo cao độ, ngân như đàn hạc/koto. AudioContext khởi tạo từ thao tác đầu tiên. Dây được gảy rung lượn sóng và phát sáng. Hoàn toàn độc lập, không phụ thuộc, chạy offline. Kèm demo hình ảnh tất định, im lặng, lặp liền mạch để chụp: một glissando quét qua các dây lặp lại.",
+  "notes": "Mở ra rồi bấm/kéo chuột ngang qua các dây để nghe — mỗi dây rung và phát sáng khi được gảy."
+}

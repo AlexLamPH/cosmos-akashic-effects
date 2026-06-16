@@ -1,0 +1,66 @@
+<!-- Cosmos Iridescent: a holographic oil-slick / soap-bubble sheen — angle-based hue bands flow across the frame on integer harmonics so it loops; soft, premium, in the Cosmos accents. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Iridescent</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x012DE5);
+// Cosmos accent ramp (violet->cosmic->aurora->nebula->solaris->sacred) sampled by hue position.
+const RAMP=[[139,92,255],[70,180,255],[54,211,154],[255,92,194],[255,106,61],[224,178,74]];
+function ramp(p){p=(p%1+1)%1;const f=p*RAMP.length,i=f|0,fr=f-i,a=RAMP[i%RAMP.length],b=RAMP[(i+1)%RAMP.length];
+  return [a[0]+(b[0]-a[0])*fr,a[1]+(b[1]-a[1])*fr,a[2]+(b[2]-a[2])*fr];}
+// small offscreen for per-pixel iridescence, upscaled to full frame (GIF-friendly).
+const S=176, off=document.createElement('canvas');off.width=S;off.height=S;
+const oc=off.getContext('2d'),IMG=oc.createImageData(S,S),DAT=IMG.data;
+// a few warped "thin-film" wave centres, seeded once.
+const NW=4,WV=[];for(let i=0;i<NW;i++)WV.push({cx:rnd(),cy:rnd(),fx:1+(i%2),fy:1+((i+1)%2),amp:0.5+rnd()*0.5,ph:rnd()});
+function frame(t){
+  const LOOP=8000,u=((t%LOOP)+LOOP)%LOOP/LOOP, w=TAU*u;
+  // render iridescence into the small buffer (pure function of u)
+  let k=0;
+  for(let j=0;j<S;j++){const ny=j/S-0.5;
+    for(let i=0;i<S;i++){const nx=i/S-0.5;
+      // angle-based "view angle" term + flowing thin-film thickness from warped waves
+      let th=0;
+      for(let m=0;m<NW;m++){const ww=WV[m],dx=nx-(ww.cx-0.5),dy=ny-(ww.cy-0.5);
+        // integer spatial frequencies + integer temporal harmonics => seamless flow
+        th+=ww.amp*Math.sin(TAU*(ww.fx*dx+ww.fy*dy)+w*((m%2)?1:2)+TAU*ww.ph);}
+      const ang=Math.atan2(ny,nx);                         // angle-based hue bands
+      const rad=Math.hypot(nx,ny);
+      // hue = thin-film interference: thickness + view angle, drifting one full cycle per loop
+      const hue=0.5*th+0.9*Math.cos(ang*1+w)+2.2*rad*Math.cos(w*1)+u;
+      const c=ramp(hue);
+      // soft brightness band so bands read as flowing light, not flat colour
+      const sh=0.55+0.45*Math.sin(TAU*(2*u)+hue*TAU+rad*6.0);
+      const vig=1-rad*0.7;                                 // gentle premium falloff
+      const b=Math.max(0,sh*vig);
+      DAT[k++]=Math.min(255,c[0]*b+18);
+      DAT[k++]=Math.min(255,c[1]*b+12);
+      DAT[k++]=Math.min(255,c[2]*b+26);
+      DAT[k++]=255;}}
+  oc.putImageData(IMG,0,0);
+  x.setTransform(DPR,0,0,DPR,0,0);x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // upscale the small sheen to cover the frame, smoothed
+  x.imageSmoothingEnabled=true;
+  const sz=Math.max(W,H);x.drawImage(off,(W-sz)/2,(H-sz)/2,sz,sz);
+  // additive bloom pass: a softened, brightened copy on top for a premium glow
+  x.globalCompositeOperation='lighter';x.globalAlpha=0.5;
+  x.drawImage(off,(W-sz*1.04)/2,(H-sz*1.04)/2,sz*1.04,sz*1.04);
+  x.globalAlpha=1;
+  // soft moving specular sweep (a holographic glare crossing the frame)
+  const gx=W*(0.5+0.42*Math.cos(w)), gy=H*(0.5+0.42*Math.sin(w));
+  let g=x.createRadialGradient(gx,gy,0,gx,gy,Math.min(W,H)*0.6);
+  g.addColorStop(0,'rgba(255,255,255,0.20)');g.addColorStop(0.4,'rgba(200,180,255,0.06)');g.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  // gentle vignette to keep it premium (multiply via source-over dark edge)
+  x.globalCompositeOperation='source-over';
+  let vg=x.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.72);
+  vg.addColorStop(0,'rgba(5,3,13,0)');vg.addColorStop(1,'rgba(5,3,13,0.7)');
+  x.fillStyle=vg;x.fillRect(0,0,W,H);
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

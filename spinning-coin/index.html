@@ -1,0 +1,89 @@
+<!-- Cosmos Spinning Coin: a metallic coin with a star emblem flips one full turn per LOOP about a vertical axis; ellipse-foreshortened faces + shaded rim. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Spinning Coin</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x0C012E);
+// background sparkle field (computed once)
+const STARS=[];for(let i=0;i<90;i++)STARS.push({a:rnd()*TAU,d:0.35+rnd()*0.65,s:0.5+rnd()*1.6,c:['#8b5cff','#46b4ff','#e0b24a'][i%3],ph:rnd()});
+// star emblem points (5-point star, computed once)
+function starPath(){const p=[];for(let i=0;i<10;i++){const rr=i%2?0.42:1;const a=-Math.PI/2+i/10*TAU;p.push([Math.cos(a)*rr,Math.sin(a)*rr]);}return p;}
+const STAR=starPath();
+function emblem(cx,cy,R,sx,col){ // foreshortened star on a face, sx = horizontal squash
+  x.beginPath();for(let i=0;i<STAR.length;i++){const px=cx+STAR[i][0]*R*sx,py=cy+STAR[i][1]*R;i?x.lineTo(px,py):x.moveTo(px,py);}x.closePath();
+  x.fillStyle=col;x.fill();}
+function frame(t){
+  const LOOP=7000,u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.setTransform(DPR,0,0,DPR,0,0);x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.30,thick=R*0.12;
+  // ambient backdrop glow
+  x.globalCompositeOperation='lighter';
+  let bg=x.createRadialGradient(cx,cy,0,cx,cy,R*2.6);
+  bg.addColorStop(0,'rgba(139,92,255,0.28)');bg.addColorStop(0.5,'rgba(70,180,255,0.10)');bg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=bg;x.beginPath();x.arc(cx,cy,R*2.6,0,TAU);x.fill();
+  // sparkle field
+  for(const s of STARS){const rad=R*(1.35+s.d*1.0),px=cx+Math.cos(s.a)*rad,py=cy+Math.sin(s.a)*rad*0.9;
+    const tw=0.4+0.6*Math.sin(TAU*(u+s.ph));x.globalAlpha=0.25+0.45*tw;x.fillStyle=s.c;
+    x.beginPath();x.arc(px,py,s.s*(0.7+tw),0,TAU);x.fill();}
+  x.globalAlpha=1;
+  // rotation: one full turn per loop. phi = 2*pi*u. cos(phi) = how face-on we are.
+  const phi=TAU*u, c=Math.cos(phi), sgn=c>=0?1:-1, sx=Math.abs(c);
+  const front=sgn>0;                 // which face shows (star side vs back side)
+  const halfW=R*sx, edgeShade=0.35+0.65*sx;
+  x.globalCompositeOperation='source-over';
+  // ---- coin body as an ellipse (width = R*|cos|, height = R) ----
+  // rim/edge: when nearly edge-on, draw the visible thickness as a band offset by rotation
+  const off=thick* (1-sx) * 1.6;     // edge depth grows as coin turns side-on
+  x.save();x.translate(cx,cy);
+  // back slab of rim (depth) — drawn first, slightly offset toward rotation direction
+  const dir=Math.sin(phi)>=0?1:-1;
+  if(sx<0.999){
+    x.beginPath();x.ellipse(dir*off*0.5,0,halfW+thick*0.5,R,0,0,TAU);
+    let rg=x.createLinearGradient(-halfW,0,halfW,0);
+    rg.addColorStop(0,'#3a2a14');rg.addColorStop(0.5,'#7a5a22');rg.addColorStop(1,'#3a2a14');
+    x.fillStyle=rg;x.fill();
+  }
+  // face gradient — gold metallic with directional sheen
+  const sheen=0.5+0.5*Math.sin(phi*2);  // integer multiple -> seamless
+  const fg=x.createLinearGradient(-halfW,-R,halfW,R);
+  if(front){
+    fg.addColorStop(0,'#fff3cf');fg.addColorStop(0.35,'#e0b24a');
+    fg.addColorStop(0.55,'#c9942f');fg.addColorStop(0.8,'#f6d98a');fg.addColorStop(1,'#a8761f');
+  }else{
+    fg.addColorStop(0,'#cfe3ff');fg.addColorStop(0.35,'#8b5cff');
+    fg.addColorStop(0.55,'#5a3fb0');fg.addColorStop(0.8,'#bda6ff');fg.addColorStop(1,'#46b4ff');
+  }
+  x.beginPath();x.ellipse(0,0,Math.max(halfW,0.6),R,0,0,TAU);
+  x.fillStyle=fg;x.globalAlpha=edgeShade;x.fill();x.globalAlpha=1;
+  // inner ring bevel
+  x.lineWidth=Math.max(R*0.04*sx,0.8);x.strokeStyle=front?'rgba(255,245,210,0.7)':'rgba(220,230,255,0.7)';
+  x.beginPath();x.ellipse(0,0,Math.max(halfW*0.86,0.4),R*0.86,0,0,TAU);x.stroke();
+  // emblem (star front / smaller ring back), squashed with the face
+  if(sx>0.06){
+    if(front){emblem(0,0,R*0.52,sx,'rgba(120,80,20,0.85)');emblem(0,-R*0.02,R*0.46,sx,'rgba(255,248,220,0.95)');}
+    else{x.lineWidth=Math.max(R*0.05*sx,0.6);x.strokeStyle='rgba(255,255,255,0.85)';
+      x.beginPath();x.ellipse(0,0,R*0.42*sx,R*0.42,0,0,TAU);x.stroke();
+      emblem(0,0,R*0.30,sx,'rgba(255,255,255,0.9)');}
+  }
+  // specular sheen sweep (additive) — a moving highlight band across the face
+  x.globalCompositeOperation='lighter';
+  const sg=x.createLinearGradient(-halfW,-R,halfW,R);
+  const sp=sheen;
+  sg.addColorStop(Math.max(0,sp-0.18),'rgba(255,255,255,0)');
+  sg.addColorStop(sp,'rgba(255,255,255,'+(0.4*sx+0.1)+')');
+  sg.addColorStop(Math.min(1,sp+0.18),'rgba(255,255,255,0)');
+  x.beginPath();x.ellipse(0,0,Math.max(halfW,0.6),R,0,0,TAU);x.fillStyle=sg;x.fill();
+  // bright edge rim-light when near edge-on (reads as a glinting metal disc edge)
+  const glint=1-sx;
+  if(glint>0.15){x.globalAlpha=glint;x.strokeStyle='#fff';x.lineWidth=2+glint*3;
+    x.beginPath();x.moveTo(0,-R);x.lineTo(0,R);x.stroke();x.globalAlpha=1;}
+  x.restore();
+  x.globalCompositeOperation='source-over';x.globalAlpha=1;
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

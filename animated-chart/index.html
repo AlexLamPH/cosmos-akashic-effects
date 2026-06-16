@@ -1,0 +1,174 @@
+<!-- Cosmos Animated Chart Card: a polished dashboard chart card — bars grow up, an area/line draws across with a travelling value tooltip + moving dot, gridlines & axis labels; demo loops the draw-in then a sweeping highlight. Self-contained, zero deps. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Animated Chart</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.card{width:640px;background:linear-gradient(160deg,#15112a,#0e0b1f);
+  border:1px solid rgba(139,92,255,.18);border-radius:20px;
+  box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.02) inset;
+  padding:24px 26px 18px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+.title{font-size:15px;font-weight:600;color:#eceaff;letter-spacing:.2px}
+.sub{font-size:12px;color:#8a86a8;margin-top:3px}
+.val{text-align:right}
+.big{font-size:24px;font-weight:700;color:#fff;line-height:1}
+.badge{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;
+  color:#36d39a;background:rgba(54,211,154,.12);padding:2px 8px;border-radius:20px}
+.chart{position:relative;height:240px;margin-top:14px}
+svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gl{stroke:rgba(255,255,255,.06);stroke-width:1}
+.yl{fill:#6f6b8c;font-size:10.5px;text-anchor:end}
+.xl{fill:#8a86a8;font-size:11px;text-anchor:middle}
+.bar{fill:url(#barg)}
+.area{fill:url(#areag)}
+.line{fill:none;stroke:#8b5cff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 2px 6px rgba(139,92,255,.55))}
+.dot{fill:#fff;stroke:#8b5cff;stroke-width:3}
+.tip{position:absolute;transform:translate(-50%,-115%);pointer-events:none;
+  background:rgba(20,16,40,.96);border:1px solid rgba(139,92,255,.4);
+  border-radius:10px;padding:6px 10px;white-space:nowrap;
+  box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.tip .tv{font-size:14px;font-weight:700;color:#fff}
+.tip .tl{font-size:10px;color:#a39fc4;margin-top:1px}
+.legend{display:flex;gap:18px;margin-top:6px;padding-left:34px}
+.lg{display:flex;align-items:center;gap:7px;font-size:11px;color:#9a96ba}
+.sw{width:11px;height:11px;border-radius:3px}
+</style></head>
+<body><div id="wrap">
+  <div class="card">
+    <div class="head">
+      <div><div class="title">Revenue Overview</div><div class="sub">Last 7 days · live</div></div>
+      <div class="val"><div class="big" id="big">$48.2k</div><div class="badge" id="badge">▲ 12.4%</div></div>
+    </div>
+    <div class="chart" id="chart">
+      <svg id="svg" viewBox="0 0 580 240" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="barg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8b5cff" stop-opacity=".95"/>
+            <stop offset="1" stop-color="#46b4ff" stop-opacity=".35"/>
+          </linearGradient>
+          <linearGradient id="areag" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8b5cff" stop-opacity=".34"/>
+            <stop offset="1" stop-color="#8b5cff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g id="grid"></g>
+        <g id="bars"></g>
+        <path id="area" class="area"></path>
+        <path id="line" class="line"></path>
+        <circle id="dot" class="dot" r="5"></circle>
+      </svg>
+      <div class="tip" id="tip"><div class="tv" id="tipv">$0</div><div class="tl" id="tipl">Mon</div></div>
+    </div>
+    <div class="legend">
+      <div class="lg"><span class="sw" style="background:linear-gradient(180deg,#8b5cff,#46b4ff)"></span>Volume</div>
+      <div class="lg"><span class="sw" style="background:#8b5cff"></span>Trend</div>
+    </div>
+  </div>
+</div>
+<script>
+// ---- geometry ----
+const VW=580,VH=240, PADL=34, PADR=12, PADT=14, PADB=26;
+const X0=PADL, X1=VW-PADR, Y0=PADT, Y1=VH-PADB;       // plot box
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const N=DAYS.length;
+// seeded data (mulberry32)
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0xC05305);
+const DATA=[];for(let i=0;i<N;i++){DATA.push(0.30+rnd()*0.62);} // 0..1 normalised heights
+const VMAX=58; // $k at value 1.0
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const easeOut=t=>1-Math.pow(1-t,3), easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const xAt=i=>lerp(X0+ (X1-X0)/N*0.5, X1-(X1-X0)/N*0.5, i/(N-1)); // centred slots
+const yAt=v=>lerp(Y1,Y0,v);
+
+const grid=document.getElementById('grid'),bars=document.getElementById('bars');
+const lineP=document.getElementById('line'),areaP=document.getElementById('area'),dot=document.getElementById('dot');
+const tip=document.getElementById('tip'),tipv=document.getElementById('tipv'),tipl=document.getElementById('tipl');
+const big=document.getElementById('big'),badge=document.getElementById('badge');
+const chart=document.getElementById('chart');
+
+// ---- static scaffold (built once) ----
+const SVGNS='http://www.w3.org/2000/svg';
+function el(n,a){const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+// horizontal gridlines + Y labels
+const YT=[0,0.25,0.5,0.75,1.0];
+YT.forEach(v=>{const y=yAt(v);
+  grid.appendChild(el('line',{class:'gl',x1:X0,y1:y,x2:X1,y2:y}));
+  const t=el('text',{class:'yl',x:X0-8,y:y+3.5});t.textContent='$'+Math.round(v*VMAX)+'k';grid.appendChild(t);});
+// X labels
+DAYS.forEach((d,i)=>{const t=el('text',{class:'xl',x:xAt(i),y:Y1+18});t.textContent=d;grid.appendChild(t);});
+// bars (rects, animated via height)
+const barEls=[];const BW=(X1-X0)/N*0.46;
+for(let i=0;i<N;i++){const r=el('rect',{class:'bar',x:xAt(i)-BW/2,width:BW,rx:4,y:Y1,height:0});bars.appendChild(r);barEls.push(r);}
+
+function fmt(v){return '$'+(v*VMAX).toFixed(1)+'k';}
+
+// ---- the deterministic render ----
+function render(u){
+  // phases: 0..0.55 draw-in (bars + line grow), 0.55..1 sweeping highlight scrub
+  const draw = clamp(u/0.55,0,1);
+  const dE = easeOut(draw);
+  // bars: each grows with a small stagger
+  for(let i=0;i<N;i++){
+    const st=i/(N+2); const bp=clamp((dE-st)/(1-st),0,1);
+    const h=(Y1-yAt(DATA[i]))*bp; barEls[i].setAttribute('height',h.toFixed(1));
+    barEls[i].setAttribute('y',(Y1-h).toFixed(1));
+  }
+  // line/area progressive reveal: build path up to fractional index P
+  const P=dE*(N-1);
+  let d='M '+xAt(0)+' '+yAt(DATA[0]);
+  const lastWhole=Math.floor(P);
+  for(let i=1;i<=lastWhole;i++) d+=' L '+xAt(i).toFixed(1)+' '+yAt(DATA[i]).toFixed(1);
+  // partial segment to fractional point
+  let hx,hy;
+  if(lastWhole<N-1){const f=P-lastWhole;
+    hx=lerp(xAt(lastWhole),xAt(lastWhole+1),f); hy=lerp(yAt(DATA[lastWhole]),yAt(DATA[lastWhole+1]),f);
+    d+=' L '+hx.toFixed(1)+' '+hy.toFixed(1);
+  } else {hx=xAt(N-1);hy=yAt(DATA[N-1]);}
+  lineP.setAttribute('d',d);
+  areaP.setAttribute('d',d+' L '+hx.toFixed(1)+' '+Y1+' L '+xAt(0)+' '+Y1+' Z');
+
+  // ---- highlight phase: a dot sweeps across showing values via tooltip ----
+  let tx,ty,tval,tlab,tipOp;
+  if(u<0.55){ // during draw, dot rides the drawing head
+    tx=hx;ty=hy;
+    const fi=clamp(P,0,N-1); const iv=lerp(DATA[Math.floor(fi)],DATA[Math.min(N-1,Math.floor(fi)+1)],fi-Math.floor(fi));
+    tval=iv; tlab=DAYS[Math.round(clamp(fi,0,N-1))]; tipOp=clamp(draw*3,0,1)*clamp((0.55-u)*8,0,1);
+  } else { // sweep highlight back and forth across the full series
+    const sw=(u-0.55)/0.45;                 // 0..1
+    const tri=0.5-0.5*Math.cos(Math.PI*2*sw); // 0->1->0 ping-pong, returns at end => seamless
+    const fi=tri*(N-1); const i0=Math.floor(fi),fr=fi-i0,i1=Math.min(N-1,i0+1);
+    tx=lerp(xAt(i0),xAt(i1),fr); ty=lerp(yAt(DATA[i0]),yAt(DATA[i1]),fr);
+    tval=lerp(DATA[i0],DATA[i1],fr); tlab=DAYS[Math.round(fi)]; tipOp=1;
+    // pulse the highlighted bar
+    for(let i=0;i<N;i++){const near=1-clamp(Math.abs(i-fi),0,1);
+      barEls[i].style.opacity=(0.55+0.45*near).toFixed(2);}
+  }
+  if(u<0.55){for(let i=0;i<N;i++)barEls[i].style.opacity='1';}
+
+  // position dot (convert viewBox coords -> px for tooltip)
+  dot.setAttribute('cx',tx.toFixed(1));dot.setAttribute('cy',ty.toFixed(1));
+  dot.style.opacity=tipOp>0?1:0;
+  const rect=chart.getBoundingClientRect();
+  const px=tx/VW*rect.width, py=ty/VH*rect.height;
+  tip.style.left=px+'px'; tip.style.top=py+'px'; tip.style.opacity=tipOp.toFixed(2);
+  tipv.textContent=fmt(tval); tipl.textContent=tlab;
+
+  // header big number counts up with draw, then tracks the sweep value
+  const headV = u<0.55 ? DATA.reduce((s,v)=>s+v,0)/N*dE : tval;
+  big.textContent='$'+(headV*VMAX*(u<0.55?N*0.86:1)).toFixed(1)+'k'; // total-ish during draw
+  if(u<0.55){big.textContent='$'+(48.2*dE).toFixed(1)+'k';}
+  else{big.textContent=fmt(tval);}
+  badge.style.opacity=clamp(dE*2,0,1);
+}
+
+const LOOP=6000, OFF=0.46; // OFF: phase offset so frame 0 shows the chart mid-draw (rich), not empty
+const seek=u=>render(((u+OFF)%1+1)%1);
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>seek(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{ const s=performance.now(); (function l(n){ seek((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

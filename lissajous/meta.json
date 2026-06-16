@@ -1,0 +1,14 @@
+{
+  "slug": "lissajous",
+  "title": "Cosmos Lissajous — glowing harmonic curve morphing through integer ratios",
+  "title_vi": "Lissajous Vũ Trụ — đường cong điều hòa phát sáng",
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "generative", "lissajous", "harmonic", "glow", "loop"],
+  "summary": "Animated Lissajous figures: a glowing closed curve x=sin(a*phi+delta), y=sin(b*phi) drawn with layered accent traces. The phase delta advances a full 2*pi over the loop while a:b steps through small integer ratios, so the figure continuously morphs and returns exactly at u=1. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: closed curve sampled over phi in [0,2pi]; phase delta = 2*pi*u advances one full turn for a seamless loop; a:b smoothstep-blended through a cycle of small integer ratios (3:2, 3:4, 5:4, 4:5, 5:6, 2:3) that wraps back; glow built from layered phase-shifted/scaled copies under additive 'lighter' blending plus a white core; angle-driven Cosmos palette and a travelling node. CAPTURE: ?auto=1 + window.__seek(t). TUNE: RATIOS list, STEPS (curve smoothness), layer alphas/line widths, and LOOP.",
+  "summary_vi": "Hình Lissajous động: đường cong khép kín phát sáng x=sin(a*phi+delta), y=sin(b*phi) với các lớp vệt màu nhấn. Pha delta tăng trọn 2*pi qua một vòng lặp trong khi tỉ lệ a:b chuyển qua các tỉ số nguyên nhỏ, nên hình liên tục biến đổi và trở về đúng tại u=1. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và liền mạch.",
+  "notes": "delta = 2*pi*u và chuỗi tỉ số nguyên khép vòng đảm bảo frame(0) và frame(LOOP) trùng khớp, vòng lặp liền mạch."
+}

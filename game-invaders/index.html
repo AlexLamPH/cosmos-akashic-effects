@@ -1,0 +1,303 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Invaders</title>
+<style>
+  :root{--violet:#8b5cff;--cosmic:#46b4ff;--nebula:#ff5cc2;--aurora:#36d39a;--solaris:#ff6a3d;--sacred:#e0b24a}
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f4;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}
+  #frame{width:560px;height:620px;background:#120e25;border-radius:18px;
+    box-shadow:0 0 0 1px #261d44,0 18px 60px #0006;padding:18px;box-sizing:border-box;
+    display:flex;flex-direction:column;gap:12px}
+  #hud{display:flex;align-items:center;justify-content:space-between;font-size:15px}
+  #hud .t{font-weight:700;letter-spacing:.5px;color:var(--cosmic)}
+  #hud .r{display:flex;gap:18px;font-variant-numeric:tabular-nums}
+  #hud b{color:var(--aurora);font-size:19px}
+  #hud .lv b{color:var(--nebula)}
+  #hud .wv b{color:var(--sacred)}
+  #wrap{position:relative;flex:1;border-radius:14px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px #2a2050,inset 0 0 40px #46b4ff15}
+  canvas{display:block;width:100%;height:100%;background:radial-gradient(120% 120% at 50% 0%,#13102e,#0b0820)}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0a0816cc;backdrop-filter:blur(2px);gap:10px;text-align:center}
+  #over h2{margin:0;color:var(--nebula);font-size:26px}
+  #over p{margin:0;opacity:.8;font-size:14px}
+  .btn{margin-top:4px;background:var(--cosmic);color:#06121f;border:0;border-radius:10px;
+    padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #46b4ff55}
+  #ctl{display:flex;gap:10px;align-self:center}
+  #ctl button{background:#1d1640;color:#cfc7ef;border:1px solid #322763;border-radius:10px;
+    width:74px;height:46px;font-size:20px;cursor:pointer;touch-action:manipulation}
+  #ctl button.fire{width:120px;color:var(--solaris)}
+  @media (hover:hover){#ctl{opacity:.85}}
+</style></head><body>
+<div id="frame">
+  <div id="hud"><span class="t">COSMOS INVADERS</span>
+    <span class="r"><span>SCORE <b id="sc">0</b></span><span class="wv">WAVE <b id="wv">1</b></span><span class="lv">LIVES <b id="lf">3</b></span></span></div>
+  <div id="wrap"><canvas id="cv"></canvas>
+    <div id="over"><h2 id="ot">GAME OVER</h2><p id="op">Press R to restart</p><button class="btn" id="rb">Restart</button></div>
+  </div>
+  <div id="ctl"><button data-d="-1">◀</button><button class="fire" data-f="1">FIRE</button><button data-d="1">▶</button></div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const C={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const COLS=8, ROWS=5, LOOP=12000;
+const ALIEN_COLORS=[C.nebula,C.violet,C.cosmic,C.aurora,C.sacred];
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let W=524,H=512;
+function fit(){ const r=cv.getBoundingClientRect(); W=r.width||524; H=r.height||512;
+  cv.width=Math.round(W*devicePixelRatio); cv.height=Math.round(H*devicePixelRatio);
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// geometry
+function geom(){
+  const mTop=44, mSide=34, gapX=14, gapY=10;
+  const aw=30, ah=20;
+  const stepX=(W-2*mSide-aw)/(COLS-1);
+  const shipW=42, shipH=16, shipY=H-30, shipR=9;
+  return {mTop,mSide,gapX,gapY,aw,ah,stepX,shipW,shipH,shipY,shipR};
+}
+function alienPos(c,r,g,gx,gy){ return {x:g.mSide+c*g.stepX+gx, y:g.mTop+r*(g.ah+16)+gy}; }
+
+function roundRect(x,y,w,h,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.arcTo(x+w,y,x+w,y+h,rad);ctx.arcTo(x+w,y+h,x,y+h,rad);ctx.arcTo(x,y+h,x,y,rad);ctx.arcTo(x,y,x+w,y,rad);ctx.closePath();}
+
+// draw a little invader sprite
+function alien(x,y,col,ph,g){
+  ctx.save();ctx.translate(x,y);
+  ctx.shadowColor=col;ctx.shadowBlur=10;ctx.fillStyle=col;
+  const w=g.aw,h=g.ah;
+  // body
+  roundRect(-w/2,-h/2,w,h*0.7,6);ctx.fill();
+  // legs (animate by phase)
+  ctx.shadowBlur=0;
+  const lw=5,off=ph?3:-3;
+  ctx.fillRect(-w/2+2,h*0.2,lw,h*0.35);
+  ctx.fillRect(w/2-2-lw,h*0.2,lw,h*0.35);
+  ctx.fillRect(-3+off,h*0.2,6,h*0.35);
+  // eyes
+  ctx.fillStyle='#0a0816';
+  ctx.fillRect(-w*0.22,-h*0.18,5,5);ctx.fillRect(w*0.22-5,-h*0.18,5,5);
+  ctx.restore();
+}
+
+// ---- state ----
+// {alive:Uint8(COLS*ROWS), gx,gy,dir, shipX, bullet:{x,y,on}, bombs:[{x,y}], score, lives, wave, dead, won, t, rng, fireCd, expl:[{x,y,col,age}]}
+function freshState(seed){
+  const g=geom();
+  const alive=new Uint8Array(COLS*ROWS).fill(1);
+  const rng=mulberry32(seed);
+  return {alive,gx:0,gy:0,dir:1,shipX:W/2,bullet:{x:0,y:0,on:false},bombs:[],
+    score:0,lives:3,wave:1,dead:false,won:false,t:0,rng,fireCd:0,marchCd:0,expl:[],aimDir:1};
+}
+function aliveCount(st){let n=0;for(let i=0;i<st.alive.length;i++)n+=st.alive[i];return n;}
+function leftmost(st,g){let m=COLS;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(st.alive[r*COLS+c])m=Math.min(m,c);return m;}
+function rightmost(st,g){let m=-1;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(st.alive[r*COLS+c])m=Math.max(m,c);return m;}
+function bottomAlien(st,g,col){ // lowest alive alien in a column → for firing bombs
+  for(let r=ROWS-1;r>=0;r--)if(st.alive[r*COLS+col])return r; return -1; }
+
+function draw(st){
+  const g=geom();
+  ctx.clearRect(0,0,W,H);
+  // starfield (deterministic by index, static)
+  ctx.fillStyle='#ffffff10';
+  for(let i=0;i<40;i++){const sx=((i*131)%W),sy=((i*197)%(H-40));ctx.fillRect(sx,sy,2,2);}
+  const ph=(Math.floor(st.t/360)&1);
+  // aliens
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(!st.alive[r*COLS+c])continue;
+    const p=alienPos(c,r,g,st.gx,st.gy);
+    alien(p.x,p.y,ALIEN_COLORS[r%ALIEN_COLORS.length],ph,g);
+  }
+  // explosions
+  for(const e of st.expl){
+    const a=1-e.age/14; if(a<=0)continue;
+    ctx.globalAlpha=a;ctx.fillStyle=e.col;ctx.shadowColor=e.col;ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(e.x,e.y,4+e.age*1.4,0,7);ctx.fill();ctx.globalAlpha=1;ctx.shadowBlur=0;
+  }
+  // bombs
+  for(const b of st.bombs){
+    ctx.fillStyle=C.solaris;ctx.shadowColor=C.solaris;ctx.shadowBlur=8;
+    roundRect(b.x-2,b.y-7,4,12,2);ctx.fill();ctx.shadowBlur=0;
+  }
+  // bullet
+  if(st.bullet.on){
+    ctx.fillStyle='#fff';ctx.shadowColor=C.sacred;ctx.shadowBlur=12;
+    roundRect(st.bullet.x-2,st.bullet.y-9,4,14,2);ctx.fill();ctx.shadowBlur=0;
+  }
+  // ship
+  const sx=st.shipX, sy=g.shipY;
+  ctx.save();ctx.translate(sx,sy);
+  ctx.shadowColor=C.cosmic;ctx.shadowBlur=16;ctx.fillStyle=C.cosmic;
+  ctx.beginPath();ctx.moveTo(0,-g.shipH);ctx.lineTo(g.shipW/2,g.shipH/2);
+  ctx.lineTo(g.shipW/4,g.shipH/2);ctx.lineTo(0,g.shipH/6);ctx.lineTo(-g.shipW/4,g.shipH/2);
+  ctx.lineTo(-g.shipW/2,g.shipH/2);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
+  ctx.fillStyle='#ffffff66';ctx.beginPath();ctx.moveTo(0,-g.shipH);ctx.lineTo(5,-2);ctx.lineTo(-5,-2);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+// ---- deterministic sim ----
+function spawnWave(st){
+  st.alive.fill(1); st.gx=0; st.gy=0; st.dir=1; st.bombs.length=0; st.bullet.on=false;
+}
+function tick(st,ai){
+  const g=geom();
+  st.t+=16;
+  // explosions age
+  for(const e of st.expl)e.age++;
+  st.expl=st.expl.filter(e=>e.age<14);
+  // march
+  st.marchCd-=16;
+  const cnt=aliveCount(st);
+  const period=Math.max(70,360-cnt*4-(st.wave-1)*30);
+  if(st.marchCd<=0){
+    st.marchCd=period;
+    const lm=leftmost(st,g), rm=rightmost(st,g);
+    const leftX=g.mSide+lm*g.stepX+st.gx;
+    const rightX=g.mSide+rm*g.stepX+st.gx;
+    const stepDx=10;
+    if(st.dir>0 && rightX+stepDx>W-g.mSide+8){ st.dir=-1; st.gy+=18; }
+    else if(st.dir<0 && leftX-stepDx<g.mSide-8){ st.dir=1; st.gy+=18; }
+    else st.gx+=st.dir*stepDx;
+  }
+  // alien bombs (seeded)
+  if(st.rng()<0.05+st.wave*0.01 && st.bombs.length<4){
+    // pick a random alive column, fire from its bottom alien
+    const cols=[]; for(let c=0;c<COLS;c++)if(bottomAlien(st,g,c)>=0)cols.push(c);
+    if(cols.length){ const c=cols[Math.floor(st.rng()*cols.length)];
+      const r=bottomAlien(st,g,c); const p=alienPos(c,r,g,st.gx,st.gy);
+      st.bombs.push({x:p.x,y:p.y+g.ah/2,vy:4.4}); }
+  }
+  for(const b of st.bombs)b.y+=b.vy;
+  // ---- ship control ----
+  if(ai){
+    // deterministic strafing AI: target lowest-row leftmost alive alien's x, weave a bit
+    let tx=W/2, found=false;
+    // aim at the column with an alive alien nearest current shipX, prefer lower rows
+    let best=1e9, bx=W/2;
+    for(let r=ROWS-1;r>=0;r--){ for(let c=0;c<COLS;c++){ if(!st.alive[r*COLS+c])continue;
+      const p=alienPos(c,r,g,st.gx,st.gy); const d=Math.abs(p.x-st.shipX);
+      if(d<best){best=d;bx=p.x;found=true;} } if(found)break; }
+    // dodge incoming bombs
+    let dodge=0;
+    for(const b of st.bombs){ if(Math.abs(b.x-st.shipX)<26 && b.y>g.shipY-160 && b.y<g.shipY){
+      dodge += (b.x<st.shipX?1:-1)*3; } }
+    tx = bx + dodge*6;
+    tx += Math.sin(st.t/520)*22; // gentle weave so it strafes
+    const d=tx-st.shipX;
+    st.shipX += Math.max(-6,Math.min(6,d));
+    st.shipX = Math.max(g.shipW/2, Math.min(W-g.shipW/2, st.shipX));
+    // fire when roughly aligned and cooldown ready
+    st.fireCd-=16;
+    if(!st.bullet.on && st.fireCd<=0 && found && Math.abs(bx-st.shipX)<16){
+      st.bullet.on=true; st.bullet.x=st.shipX; st.bullet.y=g.shipY-g.shipH; st.fireCd=300;
+    }
+  } else { st.fireCd-=16; }
+  // bullet move + hit
+  if(st.bullet.on){
+    st.bullet.y-=8.5;
+    if(st.bullet.y<0)st.bullet.on=false;
+    else {
+      for(let r=0;r<ROWS&&st.bullet.on;r++)for(let c=0;c<COLS;c++){
+        if(!st.alive[r*COLS+c])continue;
+        const p=alienPos(c,r,g,st.gx,st.gy);
+        if(Math.abs(st.bullet.x-p.x)<g.aw/2+2 && Math.abs(st.bullet.y-p.y)<g.ah/2+2){
+          st.alive[r*COLS+c]=0; st.score+=(ROWS-r)*10; st.bullet.on=false;
+          st.expl.push({x:p.x,y:p.y,col:ALIEN_COLORS[r%ALIEN_COLORS.length],age:0});
+          break;
+        }
+      }
+    }
+  }
+  // bombs vs ship / floor
+  const kept=[];
+  for(const b of st.bombs){
+    if(b.y>g.shipY-g.shipH && b.y<g.shipY+g.shipH && Math.abs(b.x-st.shipX)<g.shipW/2){
+      st.lives--; st.expl.push({x:st.shipX,y:g.shipY,col:C.cosmic,age:0});
+      if(st.lives<=0)st.dead=true;
+      continue;
+    }
+    if(b.y<H+10)kept.push(b);
+  }
+  st.bombs=kept;
+  // wave cleared
+  if(aliveCount(st)===0){ st.wave++; spawnWave(st); }
+  // aliens reached ship row → lose
+  const lowest=g.mTop+(ROWS-1)*(g.ah+16)+st.gy;
+  if(lowest>g.shipY-22){ st.dead=true; }
+}
+
+// AUTO
+const SEED=0x51EE7;
+function drawAt(ms){
+  const offset=5200; // frame-0 rich: mid-battle, some aliens cleared, bullets/score
+  const T=ms+offset;
+  const ticks=Math.floor(T/16);
+  const st=freshState(SEED);
+  for(let i=0;i<ticks;i++){ if(st.dead)break; tick(st,true); }
+  document.getElementById('sc').textContent=st.score;
+  document.getElementById('wv').textContent=st.wave;
+  document.getElementById('lf').textContent=Math.max(0,st.lives);
+  draw(st);
+}
+
+// ---- LIVE ----
+let live=null, raf=0, lastTs=0, acc=0, keyDir=0, wantFire=false;
+function setHud(){document.getElementById('sc').textContent=live.score;
+  document.getElementById('wv').textContent=live.wave;
+  document.getElementById('lf').textContent=Math.max(0,live.lives);}
+function initGame(){ fit();
+  live=freshState((Math.random()*1e9)|0); live.shipX=W/2;
+  document.getElementById('over').style.display='none';
+  setHud(); acc=0; lastTs=performance.now();
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+}
+const FT=16;
+function loop(ts){ raf=requestAnimationFrame(loop);
+  const dt=ts-lastTs; lastTs=ts; live.t2=ts;
+  const g=geom();
+  if(!live.dead){
+    if(keyDir){ live.shipX+=keyDir*6.5; live.shipX=Math.max(g.shipW/2,Math.min(W-g.shipW/2,live.shipX)); }
+    if(wantFire && !live.bullet.on){ live.bullet.on=true; live.bullet.x=live.shipX; live.bullet.y=g.shipY-g.shipH; blip(680,.05); }
+    wantFire=false;
+    acc+=dt; let guard=0;
+    while(acc>=FT && guard++<8){ acc-=FT; const pre=live.score; tick(live,false);
+      if(live.score!==pre)blip(440,.04);
+      if(live.dead)break; }
+    setHud();
+    if(live.dead) showOver('GAME OVER','Score '+live.score+' · Wave '+live.wave+' · Press R');
+  }
+  draw(live);
+}
+function showOver(t,p){blip(120,.18);
+  document.getElementById('ot').textContent=t;document.getElementById('op').textContent=p;
+  document.getElementById('over').style.display='flex';}
+// input
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a')keyDir=-1; else if(k==='arrowright'||k==='d')keyDir=1;
+  else if(k===' ')wantFire=true; else if(k==='r')initGame();
+  if(['arrowleft','arrowright',' '].includes(k))e.preventDefault();});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();
+  if((k==='arrowleft'||k==='a')&&keyDir<0)keyDir=0; if((k==='arrowright'||k==='d')&&keyDir>0)keyDir=0;});
+// on-screen buttons
+document.querySelectorAll('#ctl button[data-d]').forEach(b=>{
+  const d=+b.dataset.d;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();keyDir=d;});
+  b.addEventListener('pointerup',()=>{if(keyDir===d)keyDir=0;});
+  b.addEventListener('pointerleave',()=>{if(keyDir===d)keyDir=0;});
+});
+document.querySelector('#ctl button[data-f]').addEventListener('pointerdown',e=>{e.preventDefault();wantFire=true;});
+document.getElementById('rb').addEventListener('click',initGame);
+addEventListener('resize',()=>{fit();if(live)draw(live);});
+// optional audio
+let actx=null,armed=false;
+function arm(){if(!armed&&!AUTO){armed=true;try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+addEventListener('pointerdown',arm,{once:true});addEventListener('keydown',arm,{once:true});
+function blip(f,d){if(!actx||AUTO)return;const o=actx.createOscillator(),gg=actx.createGain();
+  o.type='square';o.frequency.value=f;o.connect(gg);gg.connect(actx.destination);
+  gg.gain.setValueAtTime(.04,actx.currentTime);gg.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+  o.start();o.stop(actx.currentTime+d);}
+
+if(AUTO){ fit(); window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

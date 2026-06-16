@@ -1,0 +1,95 @@
+<!-- Cosmos Progress Bars: a determinate linear bar fills 0->100% with a violet->cosmic gradient, a moving sheen sweep, and a live % label; below it an indeterminate striped bar sweeps an animated accent stripe back and forth. Deterministic looping auto-demo via render(u)/__seek; live mode autoplays the same loop. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Progress Bars</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center}
+.card{width:520px;background:linear-gradient(160deg,rgba(28,24,48,.92),rgba(18,15,34,.94));
+  border:1px solid rgba(139,92,255,.16);border-radius:22px;
+  box-shadow:0 28px 80px -24px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.02) inset;
+  padding:30px 32px;backdrop-filter:blur(8px)}
+.row{margin-bottom:30px}
+.row:last-child{margin-bottom:0}
+.lbl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.lbl .t{font-size:14px;font-weight:600;letter-spacing:.2px;color:#cfc8ee}
+.lbl .pct{font-size:14px;font-weight:700;color:#a78bff;font-variant-numeric:tabular-nums}
+.lbl .sub{font-size:12px;font-weight:500;color:#7d7699;letter-spacing:.3px}
+.track{position:relative;height:12px;border-radius:8px;overflow:hidden;
+  background:rgba(10,8,22,.7);border:1px solid rgba(255,255,255,.05);
+  box-shadow:0 2px 8px rgba(0,0,0,.35) inset}
+/* determinate fill */
+.fill{position:absolute;top:0;left:0;height:100%;border-radius:8px;width:0;
+  background:linear-gradient(90deg,#8b5cff,#6f5cff 45%,#46b4ff);
+  box-shadow:0 0 14px -2px rgba(139,92,255,.7);will-change:width}
+.sheen{position:absolute;top:0;height:100%;width:90px;border-radius:8px;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  mix-blend-mode:screen;will-change:transform,opacity}
+/* indeterminate stripe */
+.stripebg{background:repeating-linear-gradient(45deg,rgba(139,92,255,.05) 0 10px,rgba(70,180,255,.05) 10px 20px),rgba(10,8,22,.7)}
+.stripe{position:absolute;top:0;height:100%;width:35%;border-radius:8px;
+  background:linear-gradient(90deg,transparent,#8b5cff 35%,#46b4ff 65%,transparent);
+  box-shadow:0 0 12px -1px rgba(139,92,255,.6);will-change:transform}
+</style></head>
+<body>
+<div class="card">
+  <div class="row">
+    <div class="lbl"><span class="t">Uploading project assets</span><span class="pct" id="pct">0%</span></div>
+    <div class="track"><div class="fill" id="fill"></div><div class="sheen" id="sheen"></div></div>
+  </div>
+  <div class="row">
+    <div class="lbl"><span class="t">Syncing with cloud</span><span class="sub">working…</span></div>
+    <div class="track stripebg"><div class="stripe" id="stripe"></div></div>
+  </div>
+</div>
+<script>
+const LOOP=5200;
+const fill=document.getElementById('fill'),sheen=document.getElementById('sheen'),
+      pct=document.getElementById('pct'),stripe=document.getElementById('stripe');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+function render(u){
+  // ---- determinate bar: fill 0->100 over first ~78% of loop, hold full, then reset window ----
+  const fillP=0.78;            // fraction of loop spent filling
+  let prog,vis;
+  if(u<fillP){prog=smooth(u/fillP);vis=1;}
+  else{ // hold at 100% then quick fade so frame(0)==frame(LOOP)
+    const k=(u-fillP)/(1-fillP);
+    prog=1;vis=1-smooth(clamp((k-0.55)/0.45,0,1)); // stay full, fade bar out at very end
+  }
+  const w=track().w;
+  const fw=prog*w;
+  fill.style.width=fw+'px';
+  fill.style.opacity=vis;
+  const p=Math.round(prog*100);
+  pct.textContent=p+'%';
+  pct.style.color=p>=100?'#36d39a':'#a78bff';
+  // moving sheen: sweeps across the filled portion, repeating ~2.4 cycles over the fill phase
+  const sw=90;
+  const sCycle=((u/fillP)*2.4)%1;
+  const sx=-sw+(fw+sw)*sCycle;
+  sheen.style.transform=`translateX(${sx}px)`;
+  // sheen only visible while traversing the filled bar and while bar visible
+  sheen.style.opacity=(prog>0.04 && sx>-sw*0.4 && sx<fw)?0.85*vis:0;
+  // ---- indeterminate stripe: ping-pong sweep, returns to start at u=1 ----
+  const tw=track().w;
+  const stw=tw*0.35;
+  const tri=Math.abs(((u*1.6)%1)*2-1);          // 0..1..0 triangle, 1.6 cycles
+  const se=smooth(tri);                           // eased so it eases at the ends
+  const stx=(tw-stw)*se - 0; // travel from left edge to right edge
+  stripe.style.transform=`translateX(${stx}px)`;
+}
+function track(){ // measured inner track width (same for both)
+  return {w:fill.parentElement.clientWidth};
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  const s=performance.now();
+  (function l(n){render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

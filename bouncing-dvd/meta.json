@@ -1,0 +1,14 @@
+{
+  "slug": "bouncing-dvd",
+  "title": "Cosmos Bouncing Logo — the classic DVD bounce reborn with the Cosmos mark",
+  "title_vi": "Logo Cosmos Nảy — màn nảy DVD kinh điển tái hiện với logo Cosmos",
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "logo", "bounce", "cosmos", "loop"],
+  "summary": "The Cosmos logo drifts across the screen like the legendary DVD idle bounce, reflecting cleanly off all four edges and changing its accent tint on every wall hit, with a bright additive flash when it nails a corner. The path is a pair of triangle waves with integer reflection counts so it returns exactly to its start each cycle. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: logo inlined as base64 + sampled once into a 128px offscreen, position driven by triangle waves tri(u*KX)/tri(u*KY) with INTEGER reflection counts KX=3/KY=2 (path is exactly periodic), per-bounce accent tint via floor of phase*k, source-atop gradient tint masked by the logo alpha, radial glow halo and additive corner-flash. CAPTURE: ?auto=1 + window.__seek(t); __ready is set true ONLY after the logo image loads and is sampled. TUNE: KX/KY (bounce counts), logo size 0.26, corner sharpness 9, LOOP.",
+  "summary_vi": "Logo Cosmos trôi ngang màn hình như màn nảy DVD huyền thoại, phản chiếu gọn gàng ở cả bốn cạnh và đổi màu nhấn mỗi lần chạm tường, kèm tia sáng cộng hưởng khi trúng góc. Quỹ đạo là cặp sóng tam giác với số lần phản chiếu nguyên nên quay về đúng điểm xuất phát mỗi vòng. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Vòng lặp 8s liền mạch nhờ KX=3, KY=2 nguyên. __ready chỉ bật sau khi logo tải và lấy mẫu xong, nếu không render sẽ hết giờ."
+}

@@ -1,0 +1,14 @@
+{
+  "slug": "code-block",
+  "title": "Cosmos Code Block — glassy syntax-highlighted panel with copy button",
+  "title_vi": "Khối mã Cosmos — bảng kính tô màu cú pháp với nút sao chép",
+  "W": 720,
+  "H": 480,
+  "LOOP": 5200,
+  "N": 65,
+  "tags": ["code","copy","syntax","interactive","css","component"],
+  "summary": "A self-contained, zero-dependency code-block component on the Cosmos Phantom-dark theme. A glassy panel with a traffic-light title bar and filename holds syntax-highlighted code (keywords, strings, numbers and comments in accent colors) with line numbers and a copy button top-right. Clicking copies to the clipboard live; the auto demo loops a subtle violet scan down the lines, then presses the copy button so the icon morphs from clipboard to checkmark while a green 'Copied!' tooltip floats up and fades, then resets.",
+  "usage_notes": "RUN: open index.html — it renders a real, copyable code panel; clicking the copy button writes the code to the clipboard and the icon morphs to a checkmark. KEY TECHNIQUES: code is static seeded HTML with class-based syntax spans (.kw/.str/.num2/.com/.fn); the copy icon is a cross-fade between two stacked SVGs driven by a single 0→1 'pressed' value that also tints the button and label; the 'Copied!' tooltip's float-up and fade are a pure function of u (no transition timing); a gradient scan element is translated down the block deterministically. CAPTURE: ?auto=1 + window.__seek(t). TUNE: edit LINES for different code, LOOP for cycle speed, OFFSET for the frame-0 confirmation state, and the phase thresholds in render() for scan/press/reset timing.",
+  "summary_vi": "Khối mã độc lập, không phụ thuộc, trên nền Cosmos Phantom tối. Bảng kính có thanh tiêu đề đèn giao thông, mã tô màu cú pháp, số dòng và nút sao chép; bấm để sao chép, demo auto quét dòng rồi hiện 'Copied!' nổi lên.",
+  "notes": "Khối mã kính tô màu cú pháp với nút sao chép hiện 'Copied!'."
+}

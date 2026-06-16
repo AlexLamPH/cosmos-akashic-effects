@@ -1,0 +1,12 @@
+{
+  "slug": "game-fifteen",
+  "title": "Cosmos Fifteen — slide numbered tiles into order on a 4x4 board",
+  "title_vi": "",
+  "W": 540, "H": 640, "LOOP": 12000, "N": 109,
+  "live_fit": true,
+  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, self-contained 15-puzzle (sliding tiles) in a single HTML file with zero dependencies. A 4x4 board holds glowing Cosmos tiles numbered 1-15 with one empty gap; slide a tile adjacent to the gap into it and work the tiles back into ascending order 1-15. A live move counter tracks your efficiency and a best score is kept; solving the board pops a victory overlay with a shuffle for a fresh scramble. Playable with arrow keys or by clicking the tile next to the gap. It also ships a deterministic self-playing attract demo for capture: a seeded scramble is generated and a recorded solution slides tiles back toward order, rendered as a pure function of time via window.__seek(t).",
+  "usage_notes": "RUN: double-click index.html. CONTROLS: Arrow keys / WASD slide the tile adjacent to the gap in that direction, or click any tile next to the gap; R key or the Shuffle button restarts with a new scramble. GOAL: arrange tiles into ascending order 1-15 with the gap last, using as few moves as possible; the MOVES counter rises each slide and BEST keeps your fewest-move solve. KEY TECHNIQUES: a flat 16-array board with 0 as the gap, shared slide/adjacency logic for live and AUTO; the AUTO run is built once from a mulberry32-seeded random-walk scramble whose move path is recorded, then the recorded solution is simply that path replayed in reverse (guaranteeing a valid deterministic solve); each step animates one tile easing from its source cell to the gap, and simTo(ms) indexes the precomputed step list and interpolates so every frame is a pure function of time, with START_STEP offsetting frame 0 to a mid-solve board with a non-zero move count. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: MOVE_MS, START_STEP, scramble length, accent ramp ACC, LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

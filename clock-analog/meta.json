@@ -1,0 +1,14 @@
+{
+  "slug": "clock-analog",
+  "title": "Cosmos Analog Clock — sleek geometric clock with glowing ticks and sweeping hands",
+  "title_vi": "Đồng Hồ Cosmos — đồng hồ kim hình học phát sáng với kim quét mượt",
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "clock", "geometric", "generative", "glow"],
+  "summary": "A sleek geometric analog clock on a glowing ring of 60 hour/minute ticks with three hands (resting hour and minute, a smooth accent second hand) and a highlight that sweeps the ring tracking the second hand. The second hand makes exactly one revolution per loop. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the second hand angle derives from u (0..1) so it completes exactly one revolution per LOOP and frame(0)==frame(LOOP) (perfectly seamless); the hour and minute hands rest at a fixed display time (~10:08) so nothing drifts; ticks glow brighter where their angle matches the current second-hand angle via a wrapped angular-distance sweep term; additive 'lighter' compositing gives the ring, ticks, hands, and radial hub their glow; major ticks take rotating accent colours and bloom dots. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for sweep speed, R for size, the 0.50/0.78/0.92 multipliers for hand lengths, the sweep falloff (1-da*8) for tick-highlight tightness, HOUR_A/MIN_A for the displayed time.",
+  "summary_vi": "Một chiếc đồng hồ kim hình học thanh thoát trên vòng tròn 60 vạch phát sáng với ba kim (giờ và phút đứng yên, kim giây mượt làm điểm nhấn) cùng vệt sáng quét theo kim giây. Kim giây quay đúng một vòng mỗi chu kỳ. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
+  "notes": "Kim giây lấy từ u nên quay đúng một vòng mỗi LOOP, frame(0) trùng frame(LOOP); kim giờ/phút đứng yên để liền mạch."
+}

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Keyboard Shortcut</title>
+<style>
+  :root{
+    --bg:#0a0816; --violet:#8b5cff; --cosmic:#46b4ff;
+    --panel:#15101f; --ink:#e9e6f2; --muted:#9a93ac;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",system-ui,sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .card{
+    width:560px; padding:30px 34px;
+    background:linear-gradient(180deg,#17122280,#100c1a90);
+    border:1px solid #ffffff14; border-radius:20px;
+    box-shadow:0 30px 80px -30px #000, inset 0 1px 0 #ffffff10;
+    backdrop-filter:blur(10px);
+  }
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--violet);
+    box-shadow:0 0 16px var(--violet)}
+  .head h1{font-size:15px;font-weight:600;letter-spacing:.2px}
+  .head .sub{font-size:12px;color:var(--muted);margin-left:auto}
+  .row{
+    display:flex;align-items:center;gap:14px;
+    padding:13px 14px;border-radius:13px;margin-bottom:8px;
+    transition:background .25s,box-shadow .25s;
+  }
+  .keys{display:flex;align-items:center;gap:7px}
+  .plus{color:var(--muted);font-size:13px;font-weight:600}
+  .kc{
+    --d:0; --g:0;
+    min-width:30px;height:34px;padding:0 9px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;color:#f3f0fb;
+    border-radius:8px;
+    background:linear-gradient(180deg,#2b2440,#1c1730);
+    border:1px solid #ffffff18;
+    box-shadow:
+      0 calc(4px*(1 - var(--d))) 0 #0c0a14,
+      0 calc(5px*(1 - var(--d))) calc(8px*(1 - var(--d))) #00000080,
+      inset 0 1px 0 #ffffff20;
+    transform:translateY(calc(4px*var(--d)));
+  }
+  .kc.glow{
+    color:#fff;
+    border-color:#8b5cffaa;
+    background:linear-gradient(180deg,#4a3a82,#2e2350);
+    box-shadow:
+      0 calc(4px*(1 - var(--d))) 0 #0c0a14,
+      0 calc(5px*(1 - var(--d))) calc(8px*(1 - var(--d))) #00000080,
+      inset 0 1px 0 #ffffff30,
+      0 0 calc(18px*var(--g)) #8b5cffcc;
+  }
+  .label{margin-left:auto;font-size:13px;color:var(--muted);
+    transition:color .25s}
+  .row.active .label{color:#d9d3ec}
+  .wide{min-width:46px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <span class="dot"></span>
+      <h1>Command Palette · Shortcuts</h1>
+      <span class="sub">⌥ press to preview</span>
+    </div>
+    <div id="list"></div>
+  </div>
+
+<script>
+// ---- data: each shortcut = ordered keys + action label ----
+const SHORTCUTS = [
+  { keys:[{t:"⌘",w:0},{t:"K",w:0}],            action:"Open command palette" },
+  { keys:[{t:"Ctrl",w:1},{t:"⇧",w:0},{t:"P",w:0}], action:"Run command" },
+  { keys:[{t:"⌘",w:0},{t:"⇧",w:0},{t:"F",w:0}], action:"Find in files" },
+  { keys:[{t:"⌘",w:0},{t:"⏎",w:0}],            action:"Confirm & commit" },
+];
+
+// build DOM
+const list = document.getElementById("list");
+const rows = SHORTCUTS.map(sc=>{
+  const row=document.createElement("div"); row.className="row";
+  const keys=document.createElement("div"); keys.className="keys";
+  const caps=[];
+  sc.keys.forEach((k,i)=>{
+    if(i>0){const p=document.createElement("span");p.className="plus";p.textContent="+";keys.appendChild(p);}
+    const cap=document.createElement("span");
+    cap.className="kc"+(k.w?" wide":"");
+    cap.textContent=k.t; keys.appendChild(cap); caps.push(cap);
+  });
+  const lab=document.createElement("span"); lab.className="label"; lab.textContent=sc.action;
+  row.appendChild(keys); row.appendChild(lab);
+  list.appendChild(row);
+  return {row,caps};
+});
+
+const LOOP = 6400;
+const N = SHORTCUTS.length;
+const SLOT = 1/N;          // each shortcut owns a time slot
+const easeIO = x=> x<.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2;
+
+const OFFSET = 0.45/N;   // shift so t=0 lands mid-press (down + glowing) of shortcut 0
+function render(u0){
+  const u = ((u0 + OFFSET) % 1 + 1) % 1;
+  const idx = Math.min(N-1, Math.floor(u*N));
+  const local = (u*N) - idx;   // 0..1 within this shortcut's slot
+  // press envelope: rise (down) -> hold -> release (up)
+  // p in [0,1]: 0 = fully up, 1 = fully pressed
+  let p;
+  if(local < .28)      p = easeIO(local/.28);             // press down
+  else if(local < .62) p = 1;                              // hold
+  else if(local < .82) p = 1 - easeIO((local-.62)/.20);    // release
+  else                 p = 0;                               // gap / pause
+
+  rows.forEach((r,i)=>{
+    const on = (i===idx);
+    r.row.classList.toggle("active", on && p>.05);
+    r.row.style.background = on ? `rgba(139,92,255,${0.10*p})` : "transparent";
+    r.row.style.boxShadow  = on && p>.05 ? `inset 0 0 0 1px rgba(139,92,255,${0.30*p})` : "none";
+    r.caps.forEach(c=>{
+      const d = on ? p : 0;
+      c.style.setProperty("--d", d.toFixed(3));
+      c.style.setProperty("--g", d.toFixed(3));
+      c.classList.toggle("glow", on && d>.05);
+    });
+  });
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "slug": "game-connect4",
+  "title": "Cosmos Connect Four — drop discs, beat a minimax CPU",
+  "title_vi": "",
+  "W": 560, "H": 620, "LOOP": 13000, "N": 118,
+  "live_fit": true,
+  "tags": ["game","strategy","connect-four","playable","interactive","canvas2d"],
+  "summary": "A real, self-contained Connect Four game against the computer in one HTML file with zero dependencies. Click a column (or use keys 1-7, arrow keys to aim and Space to drop) to drop your glowing cosmic disc down a 7x6 grid; a minimax CPU with alpha-beta pruning answers with its nebula disc. Line up four of your discs horizontally, vertically or diagonally to win and the winning line lights up with an aurora glow. A scoreboard tallies your wins, draws and CPU wins, and R or the button restarts the round. It ships with a deterministic self-playing attract demo for capture: both sides play a full seeded game disc-by-disc until a highlighted win, then it resets.",
+  "usage_notes": "RUN: double-click index.html. CONTROLS: click/tap a column to drop a disc, or press keys 1-7 for columns, or arrow Left/Right to aim and Space/Down to drop; the minimax CPU answers automatically. GOAL: connect four of your discs in a row (horizontal, vertical or diagonal) before the CPU does; the winning four-in-a-row glows aurora-green and the HUD scoreboard tracks YOU / DRAW / CPU; press R or Restart to play again. KEY TECHNIQUES: the CPU is a depth-limited negamax with alpha-beta pruning and a four-window heuristic plus immediate win/block detection; the AUTO attract demo is fully deterministic — mulberry32 seeds a scripted YOU player, a decisive seed is chosen at load, and autoState(ms) replays the move list with a disc-drop animation as a pure function of time so window.__seek(t) reproduces the exact board, falling disc, win line and scoreboard from t alone. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: MOVE_MS per-move pace, DROP_MS fall speed, HOLD_MS finished-board hold, T0OFF (frame-0 offset), negamax depth, seed search in pickGame.",
+  "summary_vi": "",
+  "notes": ""
+}

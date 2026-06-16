@@ -1,0 +1,123 @@
+<!-- Cosmos Badge Notification: a bell icon with a pulsing accent count badge; the bell rings (rotate wobble), then the count ticks up with a pop and a ripple ring expands from the badge, then settles. Deterministic render(u). -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Badge Notification</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+/* glassy toolbar-style button holding the bell */
+#btn{position:relative;width:96px;height:96px;border-radius:24px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:linear-gradient(160deg,rgba(32,26,54,.92),rgba(20,16,36,.96));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 24px 56px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05)}
+#btn::after{content:"";position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(139,92,255,.14),transparent 60%)}
+/* the bell — transform-origin at the top so it swings like a real bell */
+#bell{width:46px;height:46px;color:#d9d4f2;transform-origin:50% 14%;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));will-change:transform}
+#bell svg{width:100%;height:100%}
+/* count badge sits at the bell's top-right */
+#badge{position:absolute;top:18px;right:18px;min-width:26px;height:26px;padding:0 7px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px;
+  background:linear-gradient(150deg,#a06bff,#8b5cff);
+  border:2px solid #16122a;
+  box-shadow:0 4px 12px rgba(139,92,255,.55);
+  will-change:transform;z-index:3}
+/* pulsing halo behind the badge (steady ambient pulse) */
+#pulse{position:absolute;top:18px;right:18px;width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,255,.6),rgba(139,92,255,0) 70%);
+  transform-origin:center;will-change:transform,opacity;z-index:2;pointer-events:none}
+/* ripple ring that fires on increment */
+#ripple{position:absolute;top:18px;right:18px;width:26px;height:26px;border-radius:50%;
+  border:2px solid rgba(139,92,255,.9);transform-origin:center;
+  will-change:transform,opacity;z-index:1;pointer-events:none}
+#cap{position:absolute;bottom:42px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;
+  letter-spacing:.4px;color:#7c7798}
+</style></head>
+<body><div id="stage">
+  <div id="btn">
+    <div id="pulse"></div>
+    <div id="ripple"></div>
+    <div id="bell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+      </svg>
+    </div>
+    <div id="badge">3</div>
+  </div>
+  <div id="cap">New notifications</div>
+</div></div>
+<script>
+const bell=document.getElementById('bell');
+const badge=document.getElementById('badge');
+const pulse=document.getElementById('pulse');
+const ripple=document.getElementById('ripple');
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+const easeOut=t=>1-Math.pow(1-t,3);
+const START_COUNT=3;           // count at frame 0; increments to +1 each loop, displayed mod a small range
+const LOOP=4800;
+// a damped ring wobble: swings a few times with decreasing amplitude over duration d (0..1)
+function wobble(p){
+  // p in [0,1]; e.g. 4 swings damped
+  const damp=Math.exp(-3.2*p);
+  return Math.sin(p*Math.PI*7)*damp;
+}
+function render(u){
+  // phases: [0,.42) bell RINGS ; [.42,.62) count INCREMENTS (pop) + ripple fires ; [.62,1) SETTLE/hold
+  // steady ambient badge pulse across the whole loop
+  const amb=0.5+0.5*Math.sin(u*Math.PI*2*1); // one slow breath per loop
+  let pulseScale=1+amb*0.5, pulseOp=0.25+amb*0.35;
+
+  let bellRot=0, badgePop=1, rippleScale=0, rippleOp=0;
+  let count=START_COUNT;
+
+  if(u<0.42){
+    // RING: the bell wobbles, badge holds, ambient pulse slightly stronger as if anticipating
+    const p=u/0.42;
+    bellRot=wobble(p)*16;        // degrees
+    badgePop=1+Math.abs(wobble(p))*0.04;
+  } else if(u<0.62){
+    // INCREMENT: count ticks up — badge pops, a ripple ring expands outward
+    const p=(u-0.42)/0.20;
+    count=START_COUNT+1;
+    // pop: quick scale up then back to rest (overshoot)
+    const pop=Math.sin(clamp(p/0.55,0,1)*Math.PI);
+    badgePop=1+pop*0.45;
+    // ripple expands and fades
+    const re=easeOut(clamp(p,0,1));
+    rippleScale=lerp(1,3.6,re);
+    rippleOp=lerp(0.85,0,re);
+    // a small settle-wobble tail of the bell continues
+    bellRot=wobble(0.42+p*0.3)*16;
+    // brighter pulse on the new count
+    pulseScale=1+0.7; pulseOp=0.55*(1-p*0.4);
+  } else {
+    // SETTLE: new count holds at rest, ambient pulse breathing
+    count=START_COUNT+1;
+    badgePop=1; bellRot=0;
+  }
+  bell.style.transform=`rotate(${bellRot.toFixed(2)}deg)`;
+  badge.style.transform=`scale(${badgePop.toFixed(3)})`;
+  badge.textContent=String(count);
+  pulse.style.transform=`scale(${pulseScale.toFixed(3)})`;
+  pulse.style.opacity=clamp(pulseOp,0,1).toFixed(3);
+  ripple.style.transform=`scale(${rippleScale<=0?1:rippleScale.toFixed(3)})`;
+  ripple.style.opacity=clamp(rippleOp,0,1).toFixed(3);
+}
+// frame-0 offset: land in the middle of the bell ring with badge pulsing (rich thumbnail)
+const OFF=0.18;
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render((((t/LOOP+OFF)%1)+1)%1);window.__seek(0);window.__ready=true;}
+else{
+  // live: clicking the bell triggers a ring + increment cycle from the start
+  let start=performance.now()-OFF*LOOP;
+  document.getElementById('btn').addEventListener('click',()=>{start=performance.now();});
+  (function l(n){render((((n-start)/LOOP)%1+1)%1);requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

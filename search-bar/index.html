@@ -1,0 +1,151 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Search Bar</title><style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;align-items:flex-start;justify-content:center}
+#scrim{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% 0%,rgba(70,180,255,.10),transparent 60%)}
+.stage{position:relative;margin-top:150px;width:520px;display:flex;flex-direction:column;align-items:center}
+/* search bar */
+.bar{position:relative;height:52px;border-radius:26px;display:flex;align-items:center;overflow:hidden;
+  background:linear-gradient(180deg,rgba(28,23,46,.82),rgba(18,14,32,.86));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.65),0 0 0 1px rgba(70,180,255,.07),inset 0 1px 0 rgba(255,255,255,.06)}
+.bar .ic{flex:none;width:52px;height:52px;display:grid;place-items:center}
+.bar .ic svg{width:20px;height:20px;color:#7fd0ff}
+.qwrap{position:relative;flex:1;height:22px;overflow:hidden;font-size:16px;line-height:22px;color:#ece9f5}
+.qtext{white-space:pre;font-weight:450;letter-spacing:.1px}
+.ph{position:absolute;left:0;top:0;color:#6f6890;font-weight:450;white-space:nowrap}
+.caret{display:inline-block;width:1.5px;height:17px;vertical-align:-2px;margin-left:1px;
+  background:#46b4ff;border-radius:1px;box-shadow:0 0 6px rgba(70,180,255,.85)}
+.clr{flex:none;width:44px;height:52px;display:grid;place-items:center}
+.clr svg{width:15px;height:15px;color:#857ea2}
+/* dropdown */
+.drop{position:relative;width:520px;margin-top:10px;border-radius:16px;overflow:hidden;padding:7px;
+  background:linear-gradient(180deg,rgba(28,23,46,.86),rgba(16,12,30,.9));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);transform-origin:top center;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
+.sect{font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:#6f6890;padding:7px 11px 5px;font-weight:700}
+.res{display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:11px}
+.res .ti{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:rgba(70,180,255,.12);border:1px solid rgba(70,180,255,.22)}
+.res .ti svg{width:15px;height:15px;color:#9bd6ff}
+.res .tx{flex:1;min-width:0}
+.res .t1{font-size:14px;color:#e2ddf0;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res .t1 b{color:#7fd0ff;font-weight:700}
+.res .t2{font-size:11.5px;color:#857ea2;margin-top:1px}
+.res .ar{flex:none;color:#6f6890}.res .ar svg{width:14px;height:14px}
+.res.first{background:linear-gradient(90deg,rgba(70,180,255,.16),rgba(70,180,255,.05));
+  border:1px solid rgba(70,180,255,.32)}
+.res.first .t1{color:#fff}
+</style></head>
+<body><div id="scrim"></div>
+<div class="stage">
+  <div class="bar" id="bar">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+    <div class="qwrap"><span class="qtext" id="qtext"></span><span class="caret" id="caret"></span><span class="ph" id="ph">Search the cosmos…</span></div>
+    <div class="clr" id="clr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+  </div>
+  <div class="drop" id="drop"></div>
+</div>
+<script>
+const I={
+ planet:'<circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="11" ry="4" transform="rotate(-22 12 12)"/>',
+ star:'<path d="M12 3l2.5 6 6.5.5-5 4 1.6 6.3L12 16.8 6.4 19.8 8 13.5l-5-4 6.5-.5z"/>',
+ galaxy:'<path d="M12 12c4-4 9-3 9 1M12 12c-4 4-9 3-9-1M12 12a3 3 0 1 0 .01 0"/>',
+ comet:'<circle cx="16" cy="8" r="3"/><path d="M13.5 10.5L4 20M9 13l-3 1M11 16l-2 2"/>',
+ moon:'<path d="M20 14a8 8 0 1 1-9-10 6 6 0 0 0 9 10z"/>',
+ nebula:'<path d="M5 14a4 4 0 0 1 1-7 5 5 0 0 1 9-1 4 4 0 0 1 2 8z"/><circle cx="9" cy="13" r="1"/><circle cx="14" cy="11" r="1"/>',
+ arrow:'<path d="M9 6l6 6-6 6"/>'
+};
+function svg(n,w){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(w||2)+'" stroke-linecap="round" stroke-linejoin="round">'+I[n]+'</svg>';}
+const TARGET='saturn';
+const RESULTS=[
+ {ic:'planet',t:'Saturn',d:'Planet · 6th from the Sun · ringed gas giant'},
+ {ic:'moon',t:'Saturn V',d:'Rocket · NASA Apollo program launch vehicle'},
+ {ic:'star',t:'Saturnalia',d:'Festival · ancient Roman winter celebration'},
+ {ic:'galaxy',t:'Saturn Nebula',d:'Object · NGC 7009 · planetary nebula in Aquarius'},
+ {ic:'comet',t:'Cassini–Saturn',d:'Mission · orbiter that studied the ringed world'}
+];
+const qtext=document.getElementById('qtext'),caret=document.getElementById('caret'),
+      ph=document.getElementById('ph'),bar=document.getElementById('bar'),
+      drop=document.getElementById('drop'),clr=document.getElementById('clr');
+
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+const COLLAPSED=52, EXPANDED=520;
+
+function hl(t){ // bold the matched query prefix
+  const q=TARGET.slice(0,curN);
+  if(!q) return t;
+  const i=t.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0) return t;
+  return t.slice(0,i)+'<b>'+t.slice(i,i+q.length)+'</b>'+t.slice(i+q.length);
+}
+let curN=0;
+
+function render(u){
+  // loop sub-phases:
+  // expand -> type -> results stagger-in -> hold -> collapse -> pause
+  let w=EXPANDED, typed=0, dropOpen=1, blink=true, clrOn=0;
+  const N=TARGET.length;
+  if(u<0.12){                       // EXPAND from icon
+    const p=ease(u/0.12);
+    w=COLLAPSED+(EXPANDED-COLLAPSED)*p; typed=0; dropOpen=0; clrOn=0;
+    blink=p>0.6;
+  } else if(u<0.40){                // TYPE query
+    w=EXPANDED; const p=ease((u-0.12)/0.28);
+    typed=Math.round(p*N); dropOpen=0; clrOn=1;
+    blink=(Math.floor((u-0.12)*1000/70)%2)===0;
+  } else if(u<0.56){               // RESULTS stagger in
+    w=EXPANDED; typed=N; clrOn=1;
+    dropOpen=(u-0.40)/0.16;        // 0..1 drives per-row reveal
+    blink=(Math.floor((u-0.40)*1000/240)%2)===0;
+  } else if(u<0.80){               // HOLD full state
+    w=EXPANDED; typed=N; dropOpen=1; clrOn=1;
+    blink=(Math.floor((u-0.56)*1000/260)%2)===0;
+  } else if(u<0.92){               // COLLAPSE back to icon
+    const p=ease((u-0.80)/0.12);
+    w=EXPANDED-(EXPANDED-COLLAPSED)*p; typed=Math.round((1-p)*N);
+    dropOpen=clamp(1-p*3,0,1); clrOn=1-p; blink=false;
+  } else {                         // PAUSE collapsed icon
+    w=COLLAPSED; typed=0; dropOpen=0; clrOn=0;
+    blink=(Math.floor((u-0.92)*1000/300)%2)===0;
+  }
+  curN=typed;
+  const q=TARGET.slice(0,typed);
+  bar.style.width=w+'px';
+  const wide=w>COLLAPSED+30;
+  qtext.textContent=q;
+  ph.style.opacity=(wide && !q.length)?1:0;
+  caret.style.opacity=(wide&&blink)?1:0.05;
+  caret.style.display=wide?'inline-block':'none';
+  clr.style.opacity=clrOn*(q.length?1:0);
+  clr.style.pointerEvents=clrOn>0.5?'auto':'none';
+  // dropdown
+  if(dropOpen<=0.001){ drop.style.opacity=0; drop.style.pointerEvents='none'; drop.innerHTML=''; return; }
+  drop.style.pointerEvents='auto';
+  const dop=ease(clamp(dropOpen,0,1));
+  drop.style.opacity=dop;
+  drop.style.transform='translateY('+(-8*(1-dop))+'px) scaleY('+(0.96+0.04*dop)+')';
+  let html='<div class="sect">'+RESULTS.length+' results for "'+q+'"</div>';
+  RESULTS.forEach((r,i)=>{
+    // staggered fade: each row reveals across a slice of dropOpen
+    const start=i*0.13; const local=clamp((dropOpen-start)/0.34,0,1); const e=ease(local);
+    const op=e, ty=(1-e)*10;
+    html+='<div class="res'+(i===0?' first':'')+'" style="opacity:'+op.toFixed(3)+';transform:translateY('+ty.toFixed(2)+'px)">'+
+      '<span class="ti">'+svg(r.ic,2)+'</span>'+
+      '<span class="tx"><div class="t1">'+hl(r.t)+'</div><div class="t2">'+r.d+'</div></span>'+
+      '<span class="ar">'+svg('arrow',2.4)+'</span></div>';
+  });
+  drop.innerHTML=html;
+}
+
+const LOOP=7000, OFF=0.46;  // frame-0: land mid-interaction (typed + results staggering in)
+function frame(u){render(((u+OFF)%1+1)%1);}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ frame((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script></body></html>

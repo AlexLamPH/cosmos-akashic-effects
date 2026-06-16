@@ -1,0 +1,14 @@
+{
+  "slug": "tilt-liquid",
+  "title": "Cosmos Tilt Liquid — device-tilt reactive glossy liquid that sloshes in its container with waves rebounding off the walls",
+  "title_vi": "",
+  "W": 640,
+  "H": 420,
+  "LOOP": 9000,
+  "N": 100,
+  "tags": ["tilt","sensor","reactive","interactive","canvas2d"],
+  "summary": "A glossy Cosmos liquid surface sits in a container and tilts and sloshes with gravity: tilt your phone (or move the mouse on desktop) and the body heaves toward the low side while waves rebound off the container walls, finished with a glassy sheen, caustic shimmer and specular crest sparkles. It reacts to the DEVICE TILT live and gracefully falls back to a synthetic rocking signal (and to the mouse position on desktop) when the sensor is unavailable, plus a deterministic synthetic demo for capture. Self-contained, zero dependencies, runs fully offline; privacy: all processing happens in-browser, nothing is uploaded.",
+  "usage_notes": "RUN: open index.html and tap \"enable motion\" — on iOS this calls DeviceOrientationEvent.requestPermission(); tilt the device and the liquid sloshes toward gravity with waves bouncing off the walls. On DESKTOP (no tilt sensor) it falls back to the MOUSE position as the tilt vector so it stays interactive, and if no input ever arrives it rocks under a synthetic signal so it never goes blank. KEY TECHNIQUES: a deviceorientation listener maps gamma->gx and beta->gy into a gravity vector SIG={gx,gy} in [-1,1] which drives render(SIG,t); a 1D shallow-water column model (heights h[] + horizontal flow u[]) integrates wave propagation with closed walls so waves rebound, while the horizontal tilt gx forces the whole body toward the low side and visually rotates the surface plane; the liquid body is a clipped gradient fill with a glossy sheen stroke, under-surface highlight, depth caustic shimmer, specular sparkles on local crests and splash glows where waves strike the walls; synthSig(u) returns gx=0.7*sin(2*pi*u), gy=0.7*cos(2*pi*2*u) — a gently rocking phone — used for AUTO and for live fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: NX (column resolution), C (wave speed), TILT (tilt forcing), DAMP (viscosity), amp (slosh height), body gradient colours, LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

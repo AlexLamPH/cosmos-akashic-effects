@@ -1,0 +1,198 @@
+<!-- Cosmos Checkbox + Radio: animated checkboxes that draw their tick with a stroke-draw + box fill pop, and radio buttons that fill with an expanding dot; each toggle emits a soft ring ripple. Real click/keyboard live; deterministic looping auto-demo toggles every control on then off in sequence via render(u)/__seek. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Checkbox & Radio</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center}
+.wrap{display:flex;gap:46px;padding:38px 46px;border-radius:22px;
+  background:rgba(14,11,30,.72);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px)}
+.col{display:flex;flex-direction:column;gap:20px;min-width:180px}
+.head{font-size:12px;letter-spacing:.6px;color:#7c759c;text-transform:uppercase;font-weight:700;margin-bottom:2px}
+.row{display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none;
+  font-size:15px;color:#bdb6dd;position:relative;outline:none}
+.row .txt{transition:color .25s}
+/* shared control box */
+.ctl{position:relative;width:26px;height:26px;flex:none}
+.ripple{position:absolute;inset:-8px;border-radius:50%;
+  border:2px solid #8b5cff;opacity:0;pointer-events:none;will-change:transform,opacity}
+/* checkbox */
+.cbox{position:absolute;inset:0;border-radius:8px;
+  background:rgba(255,255,255,.05);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5);
+  will-change:background,border-color,box-shadow,transform}
+.cbox svg{position:absolute;inset:0;width:100%;height:100%}
+.cbox path{fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:24;stroke-dashoffset:24;will-change:stroke-dashoffset}
+/* radio */
+.rad{position:absolute;inset:0;border-radius:50%;
+  background:rgba(255,255,255,.05);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5);
+  will-change:border-color,box-shadow}
+.dot{position:absolute;inset:0;margin:auto;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#cabbff 70%);
+  transform:scale(0);will-change:transform;box-shadow:0 0 8px rgba(139,92,255,.7)}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="col" id="checks">
+    <div class="head">Checkbox</div>
+  </div>
+  <div class="col" id="radios">
+    <div class="head">Radio</div>
+  </div>
+</div>
+<script>
+const LOOP=7000,N=88;
+const ACCENT="#8b5cff", ACCENT2="#6a3ff0";
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function smooth(t){t=clamp(t,0,1);return t*t*(3-2*t);}
+function back(t){t=clamp(t,0,1);const s=1.70158;return 1+(s+1)*Math.pow(t-1,3)+s*Math.pow(t-1,2);}
+
+const CHECK_LABELS=["Auto-save","Notifications","Dark mode"];
+const RADIO_LABELS=["Low","Medium","High"];
+
+function mkCheck(label){
+  const row=document.createElement('div');row.className='row';row.tabIndex=0;
+  row.innerHTML=`<div class="ctl"><div class="ripple"></div>
+    <div class="cbox"><svg viewBox="0 0 26 26"><path d="M6 13.5 L11 18.5 L20 8"/></svg></div></div>
+    <div class="txt">${label}</div>`;
+  return row;
+}
+function mkRadio(label){
+  const row=document.createElement('div');row.className='row';row.tabIndex=0;
+  row.innerHTML=`<div class="ctl"><div class="ripple"></div>
+    <div class="rad"></div><div class="dot"></div></div>
+    <div class="txt">${label}</div>`;
+  return row;
+}
+const checksWrap=document.getElementById('checks'),radiosWrap=document.getElementById('radios');
+const checks=CHECK_LABELS.map(l=>{const r=mkCheck(l);checksWrap.appendChild(r);return r;});
+const radios=RADIO_LABELS.map(l=>{const r=mkRadio(l);radiosWrap.appendChild(r);return r;});
+
+// paint one checkbox at activation a(0..1) and ripple r(0..1)
+function paintCheck(row,a,r){
+  const box=row.querySelector('.cbox'),path=row.querySelector('path'),
+        rip=row.querySelector('.ripple'),txt=row.querySelector('.txt');
+  const fillT=smooth(clamp(a/0.45,0,1));            // box fills first
+  const pop=a<0.55?back(clamp(a/0.55,0,1)):1;        // pop scale on fill
+  const draw=smooth(clamp((a-0.35)/0.55,0,1));       // tick draws after
+  box.style.background=fillT>0.02
+    ? `linear-gradient(135deg,${ACCENT},${ACCENT2})`:'rgba(255,255,255,.05)';
+  box.style.borderColor=fillT>0.02?ACCENT:'rgba(255,255,255,.18)';
+  box.style.boxShadow=fillT>0.02
+    ? `0 0 ${6+10*fillT}px -1px rgba(139,92,255,${.55*fillT}),inset 0 1px 2px rgba(0,0,0,.3)`
+    : 'inset 0 1px 2px rgba(0,0,0,.5)';
+  box.style.transform=`scale(${0.92+0.18*pop*fillT+(1-fillT)*0.08})`;
+  path.style.strokeDashoffset=String(24*(1-draw));
+  txt.style.color=a>0.4?'#e8e6f5':'#bdb6dd';
+  paintRipple(rip,r);
+}
+function paintRadio(row,a,r){
+  const rad=row.querySelector('.rad'),dot=row.querySelector('.dot'),
+        rip=row.querySelector('.ripple'),txt=row.querySelector('.txt');
+  const on=smooth(clamp(a/0.5,0,1));
+  const dotS=a<0.7?back(clamp(a/0.7,0,1)):1;
+  rad.style.borderColor=on>0.02?ACCENT:'rgba(255,255,255,.18)';
+  rad.style.boxShadow=on>0.02
+    ? `0 0 ${5+8*on}px -1px rgba(139,92,255,${.5*on}),inset 0 1px 2px rgba(0,0,0,.3)`
+    : 'inset 0 1px 2px rgba(0,0,0,.5)';
+  dot.style.transform=`scale(${clamp(dotS*on,0,1)})`;
+  txt.style.color=a>0.4?'#e8e6f5':'#bdb6dd';
+  paintRipple(rip,r);
+}
+function paintRipple(rip,r){
+  if(r<=0.001){rip.style.opacity='0';return;}
+  const e=smooth(r);
+  rip.style.transform=`scale(${1+1.1*e})`;
+  rip.style.opacity=String(0.55*(1-e));
+}
+
+// ---- auto demo: toggle each control ON in sequence, then OFF in sequence ----
+const ALL=[...checks,...radios];        // 6 controls
+const stateA=ALL.map(()=>0), stateR=ALL.map(()=>0);
+const STEP=0.5;        // each control's on/off animation length within its slot (fraction)
+function paintAll(){
+  checks.forEach((row,i)=>paintCheck(row,stateA[i],stateR[i]));
+  radios.forEach((row,i)=>paintRadio(row,stateA[ i+checks.length ],stateR[ i+checks.length ]));
+}
+// activation curve for control i given global phase p(0..1) over a full on-then-off cycle.
+// ON wave spans p in [0,0.5), OFF wave spans [0.5,1). Each control staggered.
+function cycle(u){
+  const n=ALL.length;
+  for(let i=0;i<n;i++){
+    const slot=i/n;                       // staggered start
+    // ON ramp during first half
+    const onP=(u-slot*0.42)/0.13;         // each control rises over a short window
+    const on=clamp(onP,0,1);
+    // OFF ramp during second half
+    const offP=(u-0.5-slot*0.42)/0.13;
+    const off=clamp(offP,0,1);
+    let a=on;
+    if(u>=0.5) a=clamp(on - off,0,1);     // subtract off-progress after midpoint
+    stateA[i]=smooth(a);
+    // ripple fires right when the control crosses ~activation onset (on the way up and down)
+    let r=0;
+    const rp=(u-slot*0.42)/0.13;          // ripple tracks the on-window
+    if(rp>0&&rp<1&&u<0.5) r=rp;
+    const rpOff=(u-0.5-slot*0.42)/0.13;
+    if(rpOff>0&&rpOff<1&&u>=0.5) r=rpOff;
+    stateR[i]=r;
+  }
+}
+function render(u){
+  // offset so frame 0 shows controls mid-activation (several already on, ripples live)
+  const uu=(u+0.30)%1;
+  cycle(uu);
+  paintAll();
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  // genuine live interactivity: click/keyboard toggles with a real ripple+animation
+  const liveA=ALL.map(()=>0), anims=ALL.map(()=>null);
+  let manualUntil=0;
+  function toggle(i){
+    const target=liveA[i]>0.5?0:1;
+    anims[i]={from:liveA[i],to:target,start:performance.now(),dur:420,ripStart:performance.now()};
+    manualUntil=performance.now()+2600;
+  }
+  ALL.forEach((row,i)=>{
+    row.addEventListener('click',()=>toggle(i));
+    row.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle(i);}});
+  });
+  // init: first checkbox + first radio on
+  liveA[0]=1; liveA[checks.length]=1;
+  const s=performance.now();
+  (function l(n){
+    if(n<manualUntil){
+      ALL.forEach((row,i)=>{
+        const an=anims[i];let r=0;
+        if(an){
+          const t=clamp((n-an.start)/an.dur,0,1);
+          liveA[i]=lerp(an.from,an.to,smooth(t));
+          const rt=clamp((n-an.ripStart)/520,0,1);
+          if(rt<1) r=rt;
+          if(t>=1) anims[i]=null;
+        }
+        if(i<checks.length) paintCheck(checks[i],liveA[i],r);
+        else paintRadio(radios[i-checks.length],liveA[i],r);
+      });
+    } else {
+      render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

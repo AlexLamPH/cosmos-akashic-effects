@@ -1,0 +1,176 @@
+<!-- Cosmos Calendar Agenda: a polished day/agenda schedule on the Phantom-dark theme. A vertical time axis (9am-5pm) with colored event blocks placed at their times (varying heights), overlapping events offset side by side, and a violet "now" indicator line. Deterministic render(u): the now-line sweeps down the day, events highlight/scale as it passes, and one event expands to show details then collapses. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Agenda</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.panel{width:560px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(170deg,rgba(28,24,46,.96),rgba(15,12,26,.98));
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 26px 60px rgba(0,0,0,.5)}
+.bar{display:flex;align-items:baseline;justify-content:space-between;padding:16px 22px 14px}
+.bar h1{font-size:16px;font-weight:700;color:#f4f2fb;letter-spacing:.2px}
+.bar .day{font-size:12.5px;color:#8e89ad;font-weight:560}
+.bar .nowt{font-size:11.5px;font-weight:640;color:#b79bff;
+  background:rgba(139,92,255,.14);border:1px solid rgba(139,92,255,.3);padding:3px 9px;border-radius:20px}
+.grid{position:relative;height:360px;margin:0 14px 18px;
+  border-top:1px solid rgba(255,255,255,.06)}
+.hr{position:absolute;left:0;right:0;height:0;border-top:1px solid rgba(255,255,255,.05)}
+.hr span{position:absolute;left:0;top:-7px;width:44px;font-size:10.5px;font-weight:580;
+  color:#6f6a8e;text-align:right;padding-right:10px}
+.lane{position:absolute;left:56px;right:6px;top:0;bottom:0}
+.ev{position:absolute;border-radius:10px;padding:7px 11px;overflow:hidden;cursor:pointer;
+  border:1px solid;backdrop-filter:blur(2px);transform-origin:left center;
+  box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.ev .t{font-size:11.5px;font-weight:680;color:#fff;letter-spacing:.1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .m{font-size:10.5px;font-weight:520;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .d{font-size:10.5px;font-weight:500;margin-top:6px;line-height:1.4;
+  opacity:0;max-height:0;transition:none}
+.now{position:absolute;left:44px;right:6px;height:0;z-index:9;pointer-events:none}
+.now::before{content:"";position:absolute;left:12px;right:0;top:-1px;height:2px;
+  background:linear-gradient(90deg,#8b5cff,#b79bff);border-radius:2px;
+  box-shadow:0 0 10px rgba(139,92,255,.7)}
+.now .dot{position:absolute;left:6px;top:-6px;width:12px;height:12px;border-radius:50%;
+  background:#8b5cff;border:2px solid #16121f;box-shadow:0 0 0 3px rgba(139,92,255,.3),0 0 12px rgba(139,92,255,.8)}
+</style></head>
+<body><div id="stage">
+  <div class="panel">
+    <div class="bar"><div><h1>Today's Agenda</h1><div class="day">Monday, June 15</div></div>
+      <div class="nowt" id="nowt">now</div></div>
+    <div class="grid" id="grid">
+      <div class="lane" id="lane"></div>
+      <div class="now" id="now"><div class="dot"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const H0=9, H1=17;                 // 9am .. 5pm
+const SPAN=H1-H0;                   // hours shown
+const GH=360;                       // grid px height
+const PX=GH/SPAN;                   // px per hour
+function yOf(h){return (h-H0)*PX;}
+// events: start/end in decimal hours, color, lane col (0/1 for overlap offset), title, meta, detail
+const EVENTS=[
+  {s:9.0, e:10.0, col:0, n:1, acc:"#46b4ff", t:"Standup",        m:"Team sync · Aurora room", d:"Quick blockers round-robin. Demo of the new ingest pipeline at the end."},
+  {s:9.5, e:11.0, col:1, n:2, acc:"#36d39a", t:"Design review",  m:"with Marie & Alan",        d:"Walk the agenda redesign. Decide on the now-line treatment and lane offsets."},
+  {s:11.25,e:12.0, col:0, n:1, acc:"#e0b24a", t:"1:1 — Grace",    m:"Career check-in",          d:"Goals for the quarter, mentoring load, and the architecture track."},
+  {s:12.5, e:13.25,col:0, n:1, acc:"#ff6a3d", t:"Lunch",         m:"Rooftop · break",          d:"Step away from the screen."},
+  {s:13.5, e:15.0, col:0, n:1, acc:"#8b5cff", t:"Deep work",     m:"Table component",          d:"Sortable headers + selection. No meetings — focus block, notifications muted."},
+  {s:14.0, e:14.75,col:1, n:2, acc:"#ff5cc2", t:"Interview",     m:"Frontend candidate",       d:"Pairing exercise on a small UI bug. 45 min + 15 debrief."},
+  {s:15.25,e:16.0, col:0, n:1, acc:"#46b4ff", t:"Roadmap",       m:"Q3 planning",              d:"Lock the top three bets and sequence the milestones."},
+  {s:16.25,e:17.0, col:0, n:1, acc:"#36d39a", t:"Wrap-up",       m:"Notes & handoff",          d:"Write the daily summary and queue tomorrow's first task."},
+];
+function hex(a,c){return c+a;} // append alpha hex
+// build hour lines
+const grid=document.getElementById('grid'), lane=document.getElementById('lane');
+for(let h=H0;h<=H1;h++){
+  const ln=document.createElement('div');ln.className='hr';ln.style.top=yOf(h)+'px';
+  const ap=h<12?'am':(h===12?'pm':'pm'); const hh=h<=12?h:h-12;
+  ln.innerHTML='<span>'+hh+' '+ap+'</span>';
+  grid.insertBefore(ln,grid.firstChild);
+}
+// build event blocks
+const evEls=EVENTS.map(ev=>{
+  const el=document.createElement('div');el.className='ev';
+  const top=yOf(ev.s), h=(ev.e-ev.s)*PX-4;
+  const w = ev.n>1 ? 'calc('+(100/ev.n)+'% - 5px)' : 'calc(100% - 4px)';
+  const left = ev.n>1 ? 'calc('+(ev.col*100/ev.n)+'% + '+(ev.col?3:0)+'px)' : '0';
+  el.style.top=top+'px'; el.style.height=h+'px';
+  el.style.left=left; el.style.width=w;
+  el.style.background='linear-gradient(160deg,'+hex('2e',ev.acc)+','+hex('14',ev.acc)+')';
+  el.style.borderColor=hex('55',ev.acc);
+  function fmt(x){const hh=Math.floor(x),mm=Math.round((x-hh)*60);const ap=hh<12?'am':'pm';const h12=hh<=12?hh:hh-12;return h12+(mm?':'+String(mm).padStart(2,'0'):'')+ap;}
+  el.innerHTML='<div class="t">'+ev.t+'</div><div class="m" style="color:'+hex('cc',ev.acc)+'">'+fmt(ev.s)+'–'+fmt(ev.e)+' · '+ev.m+'</div><div class="d">'+ev.d+'</div>';
+  lane.appendChild(el);
+  return {el, ev, baseTop:top, baseH:h, d:el.querySelector('.d')};
+});
+const nowEl=document.getElementById('now'), nowt=document.getElementById('nowt');
+
+function fmtClock(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);const ap=hh<12?'AM':'PM';const h12=hh<=12?hh:hh-12;return h12+':'+String(mm).padStart(2,'0')+' '+ap;}
+
+const LOOP=8000;
+function easeIO(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function render(u){
+  // frame-0 offset: open with the now-line mid-morning (~10:15) and an event highlighted
+  const p=(u+0.16)%1;
+  // now-line sweeps from H0 to H1 over the loop (eased slightly for a calmer pass), then resets
+  const sweep=easeIO(p);                       // 0..1
+  const nowH=H0 + sweep*SPAN;                   // current decimal hour
+  const nowY=yOf(nowH);
+  nowEl.style.top=nowY+'px';
+  nowt.textContent=fmtClock(nowH);
+  // which event to expand: the "Deep work" violet block, expand only while now-line is near it
+  // pick a target event by phase so exactly one expands at a time
+  // expansion window keyed to the Design review block (overlap demo) early, Deep work later
+  EVENTS.forEach((ev,i)=>{
+    const R=evEls[i];
+    const active = nowH>=ev.s-0.04 && nowH<=ev.e+0.04;   // now-line passing through
+    // proximity glow: strongest when line is inside the block
+    const center=(ev.s+ev.e)/2;
+    const prox=Math.max(0,1-Math.abs(nowH-center)/((ev.e-ev.s)/2+0.55));
+    const sc=1+(active?0.012:0)+prox*0.018;
+    R.el.style.opacity=(0.62+prox*0.38).toFixed(3);
+    R.el.style.boxShadow=active
+      ? '0 8px 22px rgba(0,0,0,.4),0 0 0 1px '+hex('aa',ev.acc)+',0 0 22px '+hex('55',ev.acc)
+      : '0 6px 16px rgba(0,0,0,.3)';
+    R.el.style.borderColor=hex(active?'cc':'55',ev.acc);
+    R.el.style.zIndex=active?5:1;
+    // default collapsed
+    R.el.style.transform='scaleX(1) scaleY(1)';
+    R.el.style.transform='translateZ(0) scale('+sc.toFixed(4)+')';
+    R.d.style.opacity='0'; R.d.style.maxHeight='0';
+  });
+  // ONE event expands to show details then collapses — the Deep work block (index 4)
+  const EXP=4, exEv=EVENTS[EXP], R=evEls[EXP];
+  // expansion sub-phase: ramp up while now passes through deep-work, hold, collapse
+  // map expansion to a window of p around when the now-line is over the block
+  const eStart=(exEv.s-H0)/SPAN, eEnd=(exEv.e-H0)/SPAN;
+  // use eased sweep position to gate; build a 0..1 expansion factor
+  let expand=0;
+  const pos=sweep;                              // 0..1 along day
+  const a=eStart-0.02, b=eStart+0.10, c=eEnd-0.10, dd=eEnd+0.02;
+  if(pos>a && pos<dd){
+    if(pos<b) expand=easeIO((pos-a)/(b-a));
+    else if(pos<c) expand=1;
+    else expand=1-easeIO((pos-c)/(dd-c));
+  }
+  if(expand>0.001){
+    const grow=1+expand*0.55;                   // grow height up to 55%
+    R.el.style.height=(R.baseH*grow)+'px';
+    R.el.style.zIndex=8;
+    R.el.style.boxShadow='0 14px 34px rgba(0,0,0,.5),0 0 0 1px '+hex('cc',exEv.acc)+',0 0 28px '+hex('66',exEv.acc);
+    R.el.style.borderColor=hex('dd',exEv.acc);
+    R.el.style.transform='scale('+(1+expand*0.02).toFixed(4)+')';
+    R.el.style.opacity='1';
+    R.d.style.opacity=expand.toFixed(3);
+    R.d.style.maxHeight=(expand*60)+'px';
+  } else {
+    R.el.style.height=R.baseH+'px';
+  }
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  // LIVE: hover an event to highlight + expand its details; the now-line keeps sweeping as a demo.
+  let live=false, openIdx=-1;
+  evEls.forEach((R,i)=>{
+    R.el.style.transition='height .22s ease,box-shadow .2s,border-color .2s,transform .18s,opacity .2s';
+    R.d.style.transition='opacity .2s,max-height .22s ease';
+    R.el.addEventListener('mouseenter',()=>{live=true;openIdx=i;
+      R.el.style.height=(R.baseH*1.55)+'px';R.el.style.zIndex=8;
+      R.el.style.boxShadow='0 14px 34px rgba(0,0,0,.5),0 0 0 1px '+hex('cc',R.ev.acc)+',0 0 28px '+hex('66',R.ev.acc);
+      R.el.style.borderColor=hex('dd',R.ev.acc);R.el.style.opacity='1';R.el.style.transform='scale(1.01)';
+      R.d.style.opacity='1';R.d.style.maxHeight='60px';});
+    R.el.addEventListener('mouseleave',()=>{openIdx=-1;
+      R.el.style.height=R.baseH+'px';R.el.style.zIndex=1;
+      R.el.style.boxShadow='0 6px 16px rgba(0,0,0,.3)';R.el.style.borderColor=hex('55',R.ev.acc);
+      R.el.style.opacity='';R.el.style.transform='scale(1)';R.d.style.opacity='0';R.d.style.maxHeight='0';});
+  });
+  // idle autoplay demo (fallback until the user interacts)
+  const s=performance.now();
+  (function l(n){ if(!live){render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);} requestAnimationFrame(l); })(performance.now());
+}
+</script></body></html>

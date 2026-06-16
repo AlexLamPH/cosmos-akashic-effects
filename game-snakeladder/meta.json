@@ -1,0 +1,12 @@
+{
+  "slug": "game-snakeladder",
+  "title": "Cosmos Snakes & Ladders — race a CPU to 100",
+  "title_vi": "",
+  "W": 560, "H": 660, "LOOP": 14000, "N": 84,
+  "live_fit": true,
+  "tags": ["game","board","snakes-and-ladders","playable","interactive","canvas2d"],
+  "summary": "A real, self-contained Snakes & Ladders race against the computer in one HTML file with zero dependencies. A numbered 10x10 board winds from 1 to 100 with cosmic ladders that fly your token up and orange comet slides that drag it down. Tap the on-screen ROLL button (or Space) to throw the die; your cosmic token advances by the rolled amount, ladders and slides apply automatically, and the CPU answers with its own roll. A scoreboard shows both tokens' squares, the rolled die face is drawn on the board, and the first to land exactly on 100 wins. R or the button restarts the race. It ships with a deterministic self-playing attract demo for capture: a seeded dice sequence hops both tokens up ladders and down slides toward the finish.",
+  "usage_notes": "RUN: double-click index.html. CONTROLS: tap/click the ROLL button or press Space to roll the die on your turn; the CPU rolls automatically after you. Restart with the button or R. GOAL: be first to land exactly on square 100 — overshooting forfeits the move; ladders (aurora) warp you up, comet slides (orange) drag you down, the HUD scoreboard shows YOU and CPU squares and the on-board die shows the last roll. KEY TECHNIQUES: positions are advanced by a pure step(pos,die) that applies the LADDERS/SLIDES maps with exact-landing-on-100 rules; the AUTO attract demo is fully deterministic — mulberry32 seeds a full dice race, pickGame chooses a decisive exciting seed at load, and autoState(ms) replays the turn list with per-cell hopping and ladder/slide warps as a pure function of time so window.__seek(t) reproduces both token squares, the die face and the message from t alone. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: HOP_MS per-cell hop pace, JUMP_MS warp duration, POST_MS turn pause, HOLD_MS finished hold, T0OFF (frame-0 offset), LADDERS/SLIDES maps, seed start in pickGame.",
+  "summary_vi": "",
+  "notes": ""
+}

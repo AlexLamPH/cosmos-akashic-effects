@@ -1,0 +1,11 @@
+{
+  "slug": "penrose-triangle",
+  "title": "Cosmos Penrose Triangle — the impossible tribar slowly rotating",
+  "title_vi": "Cosmos Penrose Triangle — tam giác bất khả thi quay chậm",
+  "W": 600, "H": 600, "LOOP": 8000, "N": 100,
+  "tags": ["penrose", "impossible", "isometric", "geometry", "glow", "canvas2d"],
+  "summary": "The impossible Penrose triangle (tribar) built from three interlocking isometric beams with shaded faces and glowing additive edges, rotating in-plane so the optical illusion persists at every angle. Pure Canvas 2D with hand-built isometric geometry, zero dependencies, runs fully offline; rendering is deterministic and the loop is seamless (frame(0)===frame(LOOP)).",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: three congruent beams are authored once in isometric space then rotated into their slots by cycling 3D axes (x->y->z->x), which is exactly the 3-fold symmetry of the impossible tribar; each beam's quad faces are projected with a fixed isometric basis (iso right/left/up unit vectors) and drawn in a FIXED painter's order so each beam's far end always tucks behind the next beam's near end (this fixed order is what makes the impossible overlap read correctly at every angle); faces get flat shaded fills, additive glowing edges, white inner-edge highlights on top faces, and glowing corner nodes where beams meet; the whole figure rotates exactly 2*pi*u in-plane (one integer turn => seamless). CAPTURE: ?auto=1 + window.__seek(t). TUNE: S (scale), w/L (beam width/length), COLS (per-beam colours), LOOP.",
+  "summary_vi": "Tam giác Penrose bất khả thi dựng từ ba thanh dầm isometric lồng vào nhau, mặt đổ bóng và cạnh phát sáng cộng dồn, quay trong mặt phẳng để ảo giác luôn được giữ. Thuần Canvas 2D với hình học isometric tự dựng, không phụ thuộc thư viện, chạy offline; tất định và loop liền mạch.",
+  "notes": "Tribar bất khả thi: ba dầm congruent xoay 120 độ bằng cách hoán vị trục 3D, chiếu isometric, vẽ theo thứ tự painter cố định để đầu xa của mỗi dầm luôn nằm sau dầm kế, xoay 2*pi*u trong mặt phẳng."
+}

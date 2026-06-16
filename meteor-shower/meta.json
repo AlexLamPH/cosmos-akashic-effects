@@ -1,0 +1,14 @@
+{
+  "slug": "meteor-shower",
+  "title": "Cosmos Meteor Shower — shooting stars streaking over a faint starfield",
+  "title_vi": "Mưa Sao Băng Vũ Trụ",
+  "W": 760,
+  "H": 540,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": ["canvas2d", "meteors", "generative", "glow", "starfield", "ambient"],
+  "summary": "Meteors streak diagonally with glowing tapered tails over a faint twinkling starfield on the Phantom dark, each on its own seeded phase wrapping seamlessly, with occasional brighter ones and cool accent-coloured trails. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: seeded mulberry32 sets each meteor's start point, colour and phase at setup; motion is a phase p=(u+ph) mod 1 so every streak wraps exactly at LOOP; each meteor is visible only while p<dur then dark, with a sin(π·f) envelope fading it in/out; the tapered tail is a linear gradient from transparent to a lightened head, plus a radial head glow, all under additive 'lighter'; a 150-star field twinkles on integer-harmonic sine phases. CAPTURE: ?auto=1 + window.__seek(t). TUNE: meteor count N, len, dur window, COOL palette, bright probability, starfield density.",
+  "summary_vi": "Những vì sao băng vạch chéo với đuôi sáng thuôn nhọn trên nền sao mờ nhấp nháy giữa nền tối Phantom, mỗi vệt theo một pha gieo hạt riêng lặp lại liền mạch, thỉnh thoảng có vệt sáng hơn cùng đuôi màu nhấn lạnh.",
+  "notes": "Mỗi sao băng chạy theo pha (u+ph) mod 1 nên vòng lặp liền mạch tại LOOP; không lưu trạng thái giữa các khung, mọi thứ tính lại mỗi khung."
+}

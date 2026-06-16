@@ -1,0 +1,11 @@
+{
+  "slug": "remix-wormhole",
+  "title": "Cosmos Remix — Wormhole you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "wormhole", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "A remixable particle wormhole: concentric rings of particles spiral down a perspective tunnel that twists with depth and recedes (wrapping seamlessly), pulling the eye into a glowing vortex throat. Live glass panel retunes palette (brand theme tokens), shape, density, spread, speed, dot size and a Twist knob in real time, and reskins to any brand colour in one click. Uses the PARAMS convention (window.__params + setParam) the generic remix harness reads. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, push Twist to wind or unwind the funnel, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: particles are seated on rings (PER per ring); each ring's depth d marches with u and WRAPS for a seamless loop; a perspective divide 1/(1.04-d) sizes the screen radius so near rings are large and far rings shrink into the throat; each ring is rotated by d*twist for the spiral twist; near particles are bigger and brighter, far ones fade — the depth cue and additive blend build the glowing vortex. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them so a generic harness can auto-build the panel; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; SHAPES + drawShape render the chosen particle cheaply. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: raise Twist for a tighter helix, add palettes to PALETTES, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

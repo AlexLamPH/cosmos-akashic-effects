@@ -1,0 +1,92 @@
+<!doctype html><meta charset=utf8><title>Cosmos Piano Roll</title>
+<!-- Cosmos Piano Roll — synthesia-style glowing notes fall onto a keyboard, keys light on hit; seeded, deterministic & seamless (mod 1). -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=8000;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const TAU=Math.PI*2;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const KEYS=14;                 // playable lanes (white keys)
+const BLACK=[1,1,0,1,1,1,0];   // black-key pattern per octave (after a white key)
+let notes=[],kbY,laneW,KB_H;
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  laneW=W/KEYS; KB_H=Math.min(H*0.18,140*DPR); kbY=H-KB_H;
+  const r=mulberry32(20260614);
+  notes=[];
+  // deterministic note pattern. Each note has a y0 in [0,1) (vertical phase), lane, length, color.
+  // y0 = 0 means note's leading edge is exactly at the keyboard at u=0.
+  const COUNT=46;
+  for(let i=0;i<COUNT;i++){
+    const lane=(r()*KEYS)|0;
+    const len=0.04+r()*0.07;          // fraction of the column height
+    const y0=(i/COUNT + r()*0.012)%1;  // spread along the loop
+    const col=PAL[(lane+ (r()*2|0))%PAL.length];
+    notes.push({lane,len,y0,col});
+  }
+}
+addEventListener('resize',resize);resize();
+function roundRect(x,y,w,h,rad){rad=Math.min(rad,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rad,y);ctx.arcTo(x+w,y,x+w,y+h,rad);ctx.arcTo(x+w,y+h,x,y+h,rad);ctx.arcTo(x,y+h,x,y,rad);ctx.arcTo(x,y,x+w,y,rad);ctx.closePath();}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const fieldH=kbY;             // falling area height (top to keyboard)
+  // faint lane guides
+  ctx.globalCompositeOperation='lighter';
+  for(let k=1;k<KEYS;k++){ctx.globalAlpha=0.08;ctx.strokeStyle=PAL[1];ctx.lineWidth=1*DPR;ctx.beginPath();ctx.moveTo(k*laneW,0);ctx.lineTo(k*laneW,kbY);ctx.stroke();}
+  // determine which keys are lit (a note's body overlaps the hit line y=kbY)
+  const lit=new Array(KEYS).fill(0);
+  // draw falling notes
+  for(const n of notes){
+    // progress: leading edge position. p in [0,1): 0 at top phase... we want notes to move DOWN.
+    // bottom edge y (px from top): travels from -note height up to fieldH+ as u advances, wrapping mod 1.
+    const phase=((u - n.y0)%1+1)%1;        // 0 -> just spawned cycle for this note
+    const bottom = phase*(fieldH + n.len*fieldH); // bottom edge descends
+    const top = bottom - n.len*fieldH;
+    const x=n.lane*laneW + laneW*0.12, w=laneW*0.76;
+    // glow body
+    ctx.save();
+    let g=ctx.createLinearGradient(0,top,0,bottom);g.addColorStop(0,n.col+'55');g.addColorStop(1,n.col);
+    ctx.globalAlpha=0.9;ctx.fillStyle=g;roundRect(x,top,w,bottom-top,6*DPR);ctx.fill();
+    ctx.globalAlpha=0.7;ctx.strokeStyle=n.col;ctx.lineWidth=1.6*DPR;roundRect(x,top,w,bottom-top,6*DPR);ctx.stroke();
+    // bright leading edge
+    ctx.globalAlpha=0.9;ctx.fillStyle='#fff';roundRect(x+w*0.1,bottom-4*DPR,w*0.8,4*DPR,2*DPR);ctx.fill();
+    ctx.restore();
+    // hit detection: note overlaps keyboard line
+    if(top<=kbY && bottom>=kbY){ const inten=1; if(inten>lit[n.lane]){lit[n.lane]=1;lit[n.lane+0.5]=n.col;} }
+  }
+  // hit line flash
+  ctx.globalAlpha=0.5;ctx.strokeStyle='#fff';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(0,kbY);ctx.lineTo(W,kbY);ctx.stroke();
+  // keyboard
+  ctx.globalCompositeOperation='source-over';
+  for(let k=0;k<KEYS;k++){
+    const x=k*laneW, on=lit[k];
+    const col=lit[k+0.5]||PAL[0];
+    // white key
+    ctx.globalAlpha=1;ctx.fillStyle=on?'#1a1430':'#0c0a18';roundRect(x+1*DPR,kbY,laneW-2*DPR,KB_H,4*DPR);ctx.fill();
+    ctx.globalAlpha=0.6;ctx.strokeStyle='#2a2350';ctx.lineWidth=1*DPR;roundRect(x+1*DPR,kbY,laneW-2*DPR,KB_H,4*DPR);ctx.stroke();
+    if(on){
+      ctx.globalCompositeOperation='lighter';
+      let g=ctx.createLinearGradient(0,kbY,0,kbY+KB_H);g.addColorStop(0,col);g.addColorStop(1,col+'22');
+      ctx.globalAlpha=0.95;ctx.fillStyle=g;roundRect(x+1*DPR,kbY,laneW-2*DPR,KB_H,4*DPR);ctx.fill();
+      // upward beam
+      let b=ctx.createLinearGradient(0,kbY-fieldH*0.5,0,kbY);b.addColorStop(0,'rgba(0,0,0,0)');b.addColorStop(1,col);
+      ctx.globalAlpha=0.4;ctx.fillStyle=b;ctx.fillRect(x+laneW*0.18,kbY-fieldH*0.5,laneW*0.64,fieldH*0.5);
+      ctx.globalCompositeOperation='source-over';
+    }
+  }
+  // black keys (decorative, on top, lit if their neighbour white key is on)
+  ctx.globalCompositeOperation='lighter';
+  for(let k=0;k<KEYS-1;k++){ if(!BLACK[k%7]) continue;
+    const x=(k+1)*laneW; const bw=laneW*0.56, bh=KB_H*0.62;
+    const on=lit[k]||lit[k+1]; const col=lit[k+0.5]||lit[k+1.5]||PAL[2];
+    ctx.globalAlpha=on?0.9:0.5;ctx.fillStyle=on?col:'#000';
+    roundRect(x-bw/2,kbY,bw,bh,3*DPR);ctx.fill();
+    ctx.globalAlpha=0.5;ctx.strokeStyle=PAL[0];ctx.lineWidth=1*DPR;roundRect(x-bw/2,kbY,bw,bh,3*DPR);ctx.stroke();
+  }
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

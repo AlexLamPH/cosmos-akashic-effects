@@ -1,0 +1,262 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Minesweeper — clear the field, flag the mines</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #frame{width:520px;height:600px;position:relative;background:#120e26;
+    border-radius:22px;box-shadow:0 0 60px #8b5cff33,inset 0 0 0 1px #ffffff10;
+    padding:16px;box-sizing:border-box;display:flex;flex-direction:column}
+  #hud{display:flex;justify-content:space-between;align-items:center;padding:4px 12px 12px}
+  .side{text-align:center}
+  .side .lbl{font-size:12px;opacity:.6;font-weight:600;letter-spacing:1px}
+  .side .v{font-size:28px;font-weight:800}
+  #mineV{color:#ff5cc2}#timeV{color:#46b4ff}
+  #face{font-size:30px;cursor:pointer;user-select:none;line-height:1}
+  #status{font-weight:700;font-size:14px;opacity:.9;text-align:center;padding-bottom:6px;color:#36d39a;min-height:18px}
+  canvas{display:block;border-radius:16px;background:#0d0a1f;flex:1;cursor:pointer;touch-action:none}
+  #bar{display:flex;gap:8px;justify-content:center;padding-top:10px}
+  button{background:#1c1640;color:#c9c4ec;border:1px solid #ffffff18;
+    border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  button:hover{background:#271c5c;color:#fff}
+  #hint{text-align:center;font-size:11px;opacity:.45;padding-top:8px}
+</style></head>
+<body>
+<div id="frame">
+  <div id="hud">
+    <div class="side"><div class="lbl">MINES</div><div class="v" id="mineV">10</div></div>
+    <div id="face" title="Restart">🙂</div>
+    <div class="side"><div class="lbl">TIME</div><div class="v" id="timeV">0</div></div>
+  </div>
+  <div id="status">Left-click reveal · right-click flag</div>
+  <canvas id="cv" width="488" height="436"></canvas>
+  <div id="bar"><button id="rs">Restart (R)</button></div>
+  <div id="hint">Left-click/tap reveals · right-click or long-press flags · clear all safe cells to win.</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const CW=cv.width,CH=cv.height;
+const COL={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const N=9,MINES=10; // 9x9 grid, 10 mines
+const NUMC=['','#46b4ff','#36d39a','#ff6a3d','#8b5cff','#ff5cc2','#e0b24a','#cfd2e6','#ff8aa0'];
+const LOOP=13000;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const at=(c,r)=>r*N+c;
+function neighbors(c,r){const o=[];for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dc&&!dr)continue;
+  const nc=c+dc,nr=r+dr;if(nc>=0&&nc<N&&nr>=0&&nr<N)o.push([nc,nr]);}return o;}
+
+// build a board: mines[] bool, counts[] number. Guarantee first cell (and its neighbors) safe.
+function buildBoard(seed,safeC,safeR){
+  const rnd=mulberry32(seed);const mine=new Array(N*N).fill(false);
+  const banned=new Set([at(safeC,safeR)]);for(const[c,r]of neighbors(safeC,safeR))banned.add(at(c,r));
+  let placed=0;let guard=0;
+  while(placed<MINES&&guard++<9999){const i=(rnd()*N*N)|0;if(mine[i]||banned.has(i))continue;mine[i]=true;placed++;}
+  const cnt=new Array(N*N).fill(0);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(mine[at(c,r)]){cnt[at(c,r)]=-1;continue;}
+    let k=0;for(const[nc,nr]of neighbors(c,r))if(mine[at(nc,nr)])k++;cnt[at(c,r)]=k;}
+  return{mine,cnt};
+}
+
+// flood reveal from a zero cell; mutates rev[]
+function flood(board,rev,c,r){
+  const stack=[[c,r]];
+  while(stack.length){const[cc,rr]=stack.pop();const i=at(cc,rr);
+    if(rev[i])continue;rev[i]=true;
+    if(board.cnt[i]===0)for(const[nc,nr]of neighbors(cc,rr)){if(!rev[at(nc,nr)]&&board.cnt[at(nc,nr)]>=0)stack.push([nc,nr]);}}
+}
+
+// ===== deterministic AUTO solver =====
+// Replays a logical minesweeper solve: open a known-safe start, then iteratively
+// apply the two classic rules (all-neighbors-flagged -> open rest; count==hidden -> flag rest).
+// Produces an ordered list of actions {kind:'open'|'flag', c, r}.
+function solveScript(seed){
+  // choose a start cell that is a zero (gives a big flood, nice frame)
+  const rnd=mulberry32(seed^0x9e3779b9);
+  let board,startC,startR,tries=0;
+  do{startC=(rnd()*N)|0;startR=(rnd()*N)|0;board=buildBoard(seed,startC,startR);tries++;}
+  while(board.cnt[at(startC,startR)]!==0&&tries<60);
+  const rev=new Array(N*N).fill(false),flag=new Array(N*N).fill(false);
+  const actions=[];
+  // initial flood open
+  flood(board,rev,startC,startR);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(rev[at(c,r)])actions.push({kind:'open',c,r});
+  // iterative logic
+  let progress=true,rounds=0;
+  while(progress&&rounds++<200){progress=false;
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){const i=at(c,r);
+      if(!rev[i]||board.cnt[i]<=0)continue;
+      const nb=neighbors(c,r);
+      const hidden=nb.filter(([nc,nr])=>!rev[at(nc,nr)]&&!flag[at(nc,nr)]);
+      const flagged=nb.filter(([nc,nr])=>flag[at(nc,nr)]).length;
+      // rule 1: number of flags == count -> all remaining hidden are safe
+      if(flagged===board.cnt[i]&&hidden.length){
+        for(const[nc,nr]of hidden){const j=at(nc,nr);
+          if(board.cnt[j]<0)continue; // safety (shouldn't happen with correct logic)
+          if(!rev[j]){flood(board,rev,nc,nr);
+            // record any newly revealed cells in scan order
+            actions.push({kind:'open',c:nc,r:nr});progress=true;}}
+      }
+      // rule 2: hidden + flagged == count -> all hidden are mines, flag them
+      else if(hidden.length&&hidden.length+flagged===board.cnt[i]){
+        for(const[nc,nr]of hidden){const j=at(nc,nr);if(!flag[j]){flag[j]=true;
+          actions.push({kind:'flag',c:nc,r:nr});progress=true;}}
+      }
+    }
+  }
+  return{board,actions,startC,startR};
+}
+// find a seed whose script produces a satisfyingly long solve
+function pickSolve(){
+  let best=null;
+  for(let s=1;s<3000;s++){const sc=solveScript(s);
+    const opens=sc.actions.filter(a=>a.kind==='open').length;
+    const flags=sc.actions.filter(a=>a.kind==='flag').length;
+    if(opens>=30&&flags>=4){return sc;}
+    if(!best||sc.actions.length>best.actions.length)best=sc;}
+  return best;
+}
+const SOLVE=pickSolve();
+const STEP_MS=300;                 // reveal one action every 0.3s
+const HOLD_MS=2600;
+const PLAY_MS=SOLVE.actions.length*STEP_MS;
+const CYCLE=PLAY_MS+HOLD_MS;
+
+function autoState(ms){
+  const rev=new Array(N*N).fill(false),flag=new Array(N*N).fill(false);
+  let done=0;let lastOpen=null;
+  for(let i=0;i<SOLVE.actions.length;i++){const t=i*STEP_MS;if(ms<t)break;done++;
+    const a=SOLVE.actions[i];
+    if(a.kind==='open'){
+      // re-flood so dependent zeros open correctly
+      flood(SOLVE.board,rev,a.c,a.r);
+      if(ms-t<STEP_MS)lastOpen={c:a.c,r:a.r};
+    } else flag[at(a.c,a.r)]=true;
+  }
+  // mine counter = MINES - flags placed
+  const placedFlags=flag.reduce((s,v)=>s+(v?1:0),0);
+  return{board:SOLVE.board,rev,flag,mines:MINES-placedFlags,t:Math.min(999,(ms/1000)|0),lastOpen,finished:done>=SOLVE.actions.length};
+}
+
+// ===== geometry =====
+const M=8;
+const cell=(CW-2*M)/N;
+function gx(c){return M+c*cell;}
+function gy(r){return M+r*cell;}
+function cellFromXY(mx,my){const c=((mx-M)/cell)|0,r=((my-M)/cell)|0;if(c<0||c>=N||r<0||r>=N)return null;return[c,r];}
+
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+function drawCell(c,r,st){
+  const x=gx(c),y=gy(r),i=at(c,r),pad=1.5,s=cell-pad*2;
+  const revealed=st.rev[i],flagged=st.flag[i];
+  const exploded=st.exploded&&st.exploded.c===c&&st.exploded.r===r;
+  const popping=st.lastOpen&&st.lastOpen.c===c&&st.lastOpen.r===r;
+  if(revealed){
+    ctx.fillStyle=exploded?'#5a1326':'#0e0b24';
+    roundRect(x+pad,y+pad,s,s,5);ctx.fill();
+    const v=st.board.cnt[i];
+    if(v<0){ // mine
+      ctx.fillStyle=exploded?COL.solaris:'#ff7aa6';ctx.beginPath();ctx.arc(x+cell/2,y+cell/2,s*0.26,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=exploded?'#fff':'#ffd0e0';ctx.lineWidth=2;
+      for(let a=0;a<8;a++){const an=a*Math.PI/4;ctx.beginPath();ctx.moveTo(x+cell/2,y+cell/2);ctx.lineTo(x+cell/2+Math.cos(an)*s*0.38,y+cell/2+Math.sin(an)*s*0.38);ctx.stroke();}
+    } else if(v>0){
+      ctx.fillStyle=NUMC[v];ctx.font='bold '+(cell*0.5|0)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(String(v),x+cell/2,y+cell/2+1);
+    }
+  } else {
+    // hidden tile (raised)
+    const g=ctx.createLinearGradient(x,y,x,y+cell);
+    g.addColorStop(0,'#2a2056');g.addColorStop(1,'#1d1640');
+    ctx.fillStyle=g;roundRect(x+pad,y+pad,s,s,5);ctx.fill();
+    ctx.strokeStyle='#ffffff14';ctx.lineWidth=1;roundRect(x+pad,y+pad,s,s,5);ctx.stroke();
+    if(flagged){
+      ctx.strokeStyle='#cfd2e6';ctx.lineWidth=2;ctx.beginPath();
+      ctx.moveTo(x+cell*0.5,y+cell*0.72);ctx.lineTo(x+cell*0.5,y+cell*0.28);ctx.stroke();
+      ctx.fillStyle=COL.nebula;ctx.beginPath();
+      ctx.moveTo(x+cell*0.5,y+cell*0.28);ctx.lineTo(x+cell*0.74,y+cell*0.4);ctx.lineTo(x+cell*0.5,y+cell*0.52);ctx.closePath();ctx.fill();
+    }
+  }
+  if(popping){ctx.save();ctx.strokeStyle=COL.aurora;ctx.lineWidth=2;ctx.shadowColor=COL.aurora;ctx.shadowBlur=12;
+    roundRect(x+pad,y+pad,s,s,5);ctx.stroke();ctx.restore();}
+}
+function paint(st){
+  ctx.clearRect(0,0,CW,CH);
+  const bg=ctx.createRadialGradient(CW/2,CH/2,30,CW/2,CH/2,CW*0.8);
+  bg.addColorStop(0,'#151033');bg.addColorStop(1,'#0d0a1f');ctx.fillStyle=bg;ctx.fillRect(0,0,CW,CH);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)drawCell(c,r,st);
+  if(st.won){ctx.fillStyle=COL.aurora;ctx.font='bold 20px system-ui';ctx.textAlign='center';ctx.fillText('CLEARED!',CW/2,CH-2);}
+  else if(st.lost){ctx.fillStyle=COL.solaris;ctx.font='bold 20px system-ui';ctx.textAlign='center';ctx.fillText('BOOM',CW/2,CH-2);}
+}
+
+// ===== LIVE =====
+let live=null,timer=0,timerId=null;
+function initGame(){live={board:null,rev:new Array(N*N).fill(false),flag:new Array(N*N).fill(false),
+  started:false,lost:false,won:false,exploded:null,lastOpen:null};
+  timer=0;stopTimer();updateHud();setStatus('Left-click reveal · right-click flag');paint(live);face('🙂');}
+function face(f){document.getElementById('face').textContent=f;}
+function setStatus(s){document.getElementById('status').textContent=s;}
+function startTimer(){if(timerId)return;timerId=setInterval(()=>{if(timer<999)timer++;updateHud();},1000);}
+function stopTimer(){if(timerId)clearInterval(timerId),timerId=null;}
+function flagCount(){return live.flag.reduce((s,v)=>s+(v?1:0),0);}
+function updateHud(){document.getElementById('mineV').textContent=MINES-flagCount();
+  document.getElementById('timeV').textContent=timer;}
+function checkWin(){if(!live.board)return;
+  for(let i=0;i<N*N;i++)if(live.board.cnt[i]>=0&&!live.rev[i])return;
+  live.won=true;stopTimer();setStatus('Cleared! You found them all.');face('😎');
+  for(let i=0;i<N*N;i++)if(live.board.cnt[i]<0)live.flag[i]=true;updateHud();}
+function reveal(c,r){
+  if(!live.started){live.board=buildBoard((Math.random()*1e9)|0,c,r);live.started=true;startTimer();}
+  const i=at(c,r);if(live.rev[i]||live.flag[i])return;
+  if(live.board.cnt[i]<0){live.rev[i]=true;live.lost=true;live.exploded={c,r};stopTimer();
+    for(let k=0;k<N*N;k++)if(live.board.cnt[k]<0)live.rev[k]=true;
+    setStatus('Boom! Hit a mine. Press R.');face('😵');blip(120);paint(live);return;}
+  flood(live.board,live.rev,c,r);live.lastOpen={c,r};blip(520);checkWin();paint(live);updateHud();
+  setTimeout(()=>{if(live)live.lastOpen=null;paint(live);},180);
+}
+function toggleFlag(c,r){if(!live||live.lost||live.won)return;const i=at(c,r);if(live.rev[i])return;
+  if(!live.started){live.board=buildBoard((Math.random()*1e9)|0,c,r);live.started=true;startTimer();}
+  live.flag[i]=!live.flag[i];blip(live.flag[i]?440:300);updateHud();paint(live);}
+
+let pressTimer=null,longPressed=false;
+function wireLive(){
+  cv.addEventListener('contextmenu',e=>e.preventDefault());
+  cv.addEventListener('pointerdown',ev=>{const r=cv.getBoundingClientRect();
+    const mx=(ev.clientX-r.left)*(CW/r.width),my=(ev.clientY-r.top)*(CH/r.height);
+    const cr=cellFromXY(mx,my);if(!cr)return;longPressed=false;
+    if(ev.button===2){toggleFlag(cr[0],cr[1]);ev.preventDefault();return;}
+    pressTimer=setTimeout(()=>{longPressed=true;toggleFlag(cr[0],cr[1]);},420);});
+  cv.addEventListener('pointerup',ev=>{if(pressTimer)clearTimeout(pressTimer),pressTimer=null;
+    if(ev.button===2)return;if(longPressed){longPressed=false;return;}
+    const r=cv.getBoundingClientRect();const mx=(ev.clientX-r.left)*(CW/r.width),my=(ev.clientY-r.top)*(CH/r.height);
+    const cr=cellFromXY(mx,my);if(cr&&!live.lost&&!live.won)reveal(cr[0],cr[1]);});
+  cv.addEventListener('pointerleave',()=>{if(pressTimer)clearTimeout(pressTimer),pressTimer=null;});
+  window.addEventListener('keydown',ev=>{if(ev.key.toLowerCase()==='r')initGame();});
+  document.getElementById('rs').addEventListener('click',initGame);
+  document.getElementById('face').addEventListener('click',initGame);
+}
+
+// audio
+let actx;function blip(f){if(AUTO)return;try{actx=actx||new(window.AudioContext||webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.08,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+.12);
+  o.start();o.stop(actx.currentTime+.13);}catch(e){}}
+
+// ===== AUTO draw =====
+function drawAt(ms){
+  const s=autoState(ms%CYCLE);
+  paint({board:s.board,rev:s.rev,flag:s.flag,lastOpen:s.lastOpen,exploded:null,won:s.finished&&isCleared(s),lost:false});
+  document.getElementById('mineV').textContent=s.mines;
+  document.getElementById('timeV').textContent=s.t;
+  face(s.finished?'😎':'🙂');
+  setStatus(s.finished?'Solved — field cleared.':'Solving: revealing safe cells, flagging mines…');
+}
+function isCleared(s){for(let i=0;i<N*N;i++)if(s.board.cnt[i]>=0&&!s.rev[i])return false;return true;}
+
+const T0OFF=Math.round(STEP_MS*(SOLVE.actions.filter(a=>a.kind==='open').length>20?22:10)); // frame 0 mid-solve
+if(AUTO){ window.__seek=t=>drawAt((((t+T0OFF)%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); wireLive(); }
+</script>
+</body></html>

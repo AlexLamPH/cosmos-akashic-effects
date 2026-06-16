@@ -1,0 +1,15 @@
+{
+  "slug": "game-invaders",
+  "title": "Cosmos Invaders — strafe your ship and blast a descending formation of cosmic aliens",
+  "title_vi": "",
+  "W": 560,
+  "H": 620,
+  "LOOP": 12000,
+  "N": 109,
+  "live_fit": true,
+  "tags": ["game", "shmup", "playable", "interactive", "arcade", "canvas2d"],
+  "summary": "A real, fully playable Space Invaders in one self-contained HTML file with zero dependencies. You pilot a glowing ship along the bottom and fire upward at a marching formation of Cosmos-colored aliens that shimmer side to side, drop closer with every step, and rain bombs; killing aliens scores points (more for higher rows), clearing a formation advances the wave, and bomb hits cost lives. There is a game-over screen with score and wave, plus restart. Controls work with both keyboard (left/right or A/D to move, space to fire, R to restart) and touch (on-screen left / FIRE / right buttons). It also ships a deterministic self-playing attract demo for capture: a seeded ship AI strafes, aligns under aliens and fires while the grid marches down and explodes on hit, all as a pure function of time.",
+  "usage_notes": "RUN: double-click index.html (or serve it). CONTROLS: Left/Right arrows or A/D move the ship; Space fires; on touch use the on-screen ◀ / FIRE / ▶ buttons; R key or the Restart button starts a new run. GOAL: shoot every alien in the formation (higher rows score more, +10 to +50 per kill) to advance the wave; you have 3 lives and lose one each time an alien bomb hits your ship — lose all lives or let the aliens reach your row and it is game over. KEY TECHNIQUES: a fixed-timestep deterministic simulation seeded with mulberry32 (never Math.random in the sim) drives the alien march (speed scales with how many remain), seeded bomb drops, bullet/alien AABB collision, and per-wave respawn; for AUTO a deterministic ship AI tracks the nearest lower-row alien's x, weaves to strafe, dodges incoming bombs, and fires on cooldown when aligned, running the same sim from a fixed seed. drawAt(ms) re-simulates from a fixed seeded start to ms with a frame-0 offset so capture opens mid-battle with several aliens already cleared, bullets in flight and score above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: COLS/ROWS, march step/period, bomb rate, bullet/ship speed, AI weave/fire cooldown, LOOP, frame-0 offset, alien colors.",
+  "summary_vi": "",
+  "notes": ""
+}

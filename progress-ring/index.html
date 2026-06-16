@@ -1,0 +1,83 @@
+<!-- Cosmos Progress Ring: an accent arc sweeps 0->100% around a track ring with a glowing leading dot and a live % count in the middle, then resets; seamless. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Progress Ring</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+const A=[139,92,255],B=[70,180,255]; // violet -> cosmic gradient along the arc
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0x9A0C71);
+// faint background dust (seeded once)
+const DUST=70,dust=[];for(let i=0;i<DUST;i++){dust.push({a:rnd()*TAU,r:0.55+rnd()*0.9,sz:0.5+rnd()*1.3,k:1+Math.floor(rnd()*3),ph:rnd()});}
+const lerp=(a,b,t)=>a+(b-a)*t;
+function colAt(t){return`rgb(${Math.round(lerp(A[0],B[0],t))},${Math.round(lerp(A[1],B[1],t))},${Math.round(lerp(A[2],B[2],t))})`;}
+function frame(t){
+  const LOOP=3200,u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.setTransform(DPR,0,0,DPR,0,0);
+  x.globalCompositeOperation='source-over';x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.30,lw=Math.max(8,R*0.13);
+  const start=-Math.PI/2; // 12 o'clock
+  // progress: sweep most of the loop, then a short fade/reset window so frame(0)==frame(LOOP)
+  const sweep=0.82; // fraction of loop spent sweeping 0->1
+  let prog,fade;
+  if(u<sweep){prog=u/sweep;fade=1;} else {prog=1;fade=1-(u-sweep)/(1-sweep);} // hold full, fade out -> back to 0
+  // ease the sweep a touch
+  const eprog=prog<1?prog*prog*(3-2*prog):1;
+  const pct=Math.round(eprog*100);
+  // breathing core pulse (integer k, returns at u=1)
+  const pulse=0.5+0.5*Math.sin(TAU*u*1);
+  // --- background dust (additive) ---
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<DUST;i++){const d=dust[i];const ang=d.a+TAU*u*d.k;const rr=R*d.r;const px=cx+Math.cos(ang)*rr,py=cy+Math.sin(ang)*rr;
+    const tw=0.4+0.6*(0.5+0.5*Math.sin(TAU*(u*d.k+d.ph)));
+    x.fillStyle=`rgba(120,150,255,${0.18*tw})`;x.beginPath();x.arc(px,py,d.sz,0,TAU);x.fill();}
+  // --- track ring (subtle) ---
+  x.globalCompositeOperation='source-over';
+  x.lineCap='round';x.lineWidth=lw;
+  x.strokeStyle='rgba(120,130,180,0.16)';
+  x.beginPath();x.arc(cx,cy,R,0,TAU);x.stroke();
+  // --- progress arc, drawn in segments for a gradient sweep ---
+  x.globalCompositeOperation='lighter';
+  const a0=start,a1=start+TAU*eprog;
+  const SEG=64;
+  x.lineWidth=lw;x.lineCap='round';
+  for(let i=0;i<SEG;i++){const f0=i/SEG,f1=(i+1)/SEG;if(f0>=eprog)break;const e1=Math.min(f1,eprog);
+    const s=a0+(a1-a0)*(f0/eprog),e=a0+(a1-a0)*(e1/eprog);
+    x.strokeStyle=colAt(f0);x.globalAlpha=0.9*fade;
+    x.beginPath();x.arc(cx,cy,R,s,e);x.stroke();
+  }
+  // soft wide glow under the arc
+  x.lineWidth=lw*2.4;x.globalAlpha=0.16*fade;x.strokeStyle=colAt(0.5);
+  if(eprog>0.001){x.beginPath();x.arc(cx,cy,R,a0,a1);x.stroke();}
+  x.globalAlpha=1;
+  // --- glowing leading dot ---
+  if(eprog>0.001&&eprog<0.999||fade<1){
+    const ang=a1,px=cx+Math.cos(ang)*R,py=cy+Math.sin(ang)*R;
+    const dotC=colAt(eprog);
+    let dg=x.createRadialGradient(px,py,0,px,py,lw*1.9);
+    dg.addColorStop(0,`rgba(255,255,255,${0.95*fade})`);dg.addColorStop(0.35,dotC.replace('rgb','rgba').replace(')',`,${fade})`));dg.addColorStop(1,'rgba(5,3,13,0)');
+    x.fillStyle=dg;x.beginPath();x.arc(px,py,lw*1.9,0,TAU);x.fill();
+    x.fillStyle='#fff';x.globalAlpha=fade;x.beginPath();x.arc(px,py,lw*0.42,0,TAU);x.fill();x.globalAlpha=1;
+  }
+  // --- central glow + % count ---
+  let cg=x.createRadialGradient(cx,cy,0,cx,cy,R*0.85);
+  cg.addColorStop(0,`rgba(139,92,255,${0.16+0.12*pulse})`);cg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=cg;x.beginPath();x.arc(cx,cy,R*0.85,0,TAU);x.fill();
+  x.globalCompositeOperation='source-over';
+  x.textAlign='center';x.textBaseline='middle';x.globalAlpha=fade;
+  x.font=`700 ${Math.round(R*0.5)}px system-ui,-apple-system,sans-serif`;
+  // draw number + small % as one centred unit
+  const numStr=pct+'',pctSz=Math.round(R*0.18);
+  const numW=x.measureText(numStr).width;
+  x.fillStyle='#ffffff';x.fillText(numStr,cx-pctSz*0.55,cy-R*0.04);
+  x.font=`600 ${pctSz}px system-ui,sans-serif`;x.fillStyle=`rgba(180,190,230,${fade})`;x.textAlign='left';
+  x.fillText('%',cx-pctSz*0.55+numW/2+R*0.03,cy-R*0.04+R*0.04);
+  x.textAlign='center';
+  x.font=`500 ${Math.round(R*0.13)}px system-ui,sans-serif`;x.fillStyle=`rgba(150,160,210,${0.8*fade})`;
+  x.fillText(pct>=100?'COMPLETE':'LOADING',cx,cy+R*0.34);
+  x.globalAlpha=1;
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

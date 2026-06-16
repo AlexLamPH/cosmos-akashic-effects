@@ -1,0 +1,62 @@
+<!doctype html><!-- Cosmos Heartbeat ECG — glowing trace scrolling over a faint grid, PQRST spikes, leading glow dot, seamless wrap -->
+<meta charset="utf-8"><title>Cosmos Heartbeat ECG</title>
+<style>html,body{margin:0;height:100%;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const BG='#05030d',LOOP=7000;
+const AURORA='#36d39a',COSMIC='#46b4ff',NEBULA='#ff5cc2',VIOLET='#8b5cff',SACRED='#e0b24a';
+let DPR=1,W=0,H=0;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+const BEATS=5; // integer beats per loop -> seamless
+// PQRST waveform as function of beat-phase p in [0,1)
+function pqrst(p){
+  const g=(c,w,a)=>a*Math.exp(-((p-c)*(p-c))/(2*w*w));
+  let v=0;
+  v+=g(0.18,0.022,0.13);   // P
+  v-=g(0.30,0.010,0.10);   // Q
+  v+=g(0.33,0.010,1.00);   // R (big spike)
+  v-=g(0.37,0.013,0.24);   // S
+  v+=g(0.60,0.045,0.30);   // T
+  return v;
+}
+function frame(t){
+  const u=(((t%LOOP)+LOOP)%LOOP)/LOOP;
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+  const midY=H*0.5,amp=Math.min(H*0.32,170);
+  // faint grid
+  ctx.globalCompositeOperation='lighter';
+  const gs=Math.max(20,Math.round(Math.min(W,H)/22));
+  ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=gs){ctx.strokeStyle=x%(gs*5)===0?'rgba(70,180,255,0.10)':'rgba(70,180,255,0.045)';ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=gs){ctx.strokeStyle=y%(gs*5)===0?'rgba(70,180,255,0.10)':'rgba(70,180,255,0.045)';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // trace: x maps to a scrolling beat coordinate. phase advances by BEATS over the loop.
+  const SAMP=Math.max(360,Math.floor(W/2));
+  const wave=x=>{ const beatPos = x/W*BEATS + u*BEATS; return pqrst(((beatPos%1)+1)%1); };
+  // draw glow underlay then crisp line
+  const drawTrace=(col,lw,al)=>{
+    ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.globalAlpha=al;ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.beginPath();
+    for(let i=0;i<=SAMP;i++){const x=i/SAMP*W;const y=midY-wave(x)*amp;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+    ctx.stroke();ctx.globalAlpha=1;
+  };
+  drawTrace(AURORA,9,0.10);
+  drawTrace(AURORA,5,0.22);
+  drawTrace(COSMIC,2.2,0.9);
+  drawTrace('#bfffe6',1.2,0.8);
+  // leading glow dot: rides the trace at a fixed leading x, pulsing color through accents
+  const lead=0.82; const lx=lead*W, ly=midY-wave(lx)*amp;
+  const pulse=0.5+0.5*Math.sin(2*Math.PI*BEATS*u);
+  for(let r=26;r>0;r-=4){
+    ctx.beginPath();ctx.arc(lx,ly,r,0,7);
+    ctx.fillStyle='rgba('+(54+ (r<10?170:0))+','+(211)+','+(154)+','+(0.06+0.10*pulse*(1-r/30)).toFixed(3)+')';ctx.fill();
+  }
+  ctx.beginPath();ctx.arc(lx,ly,3.2+1.6*pulse,0,7);ctx.fillStyle='#d8fff0';ctx.fill();
+  // soft sweep highlight trailing the dot
+  const grad=ctx.createLinearGradient(lx-W*0.5,0,lx,0);
+  grad.addColorStop(0,'rgba(54,211,154,0)');grad.addColorStop(1,'rgba(54,211,154,0.08)');
+  ctx.fillStyle=grad;ctx.fillRect(lx-W*0.5,0,W*0.5,H);
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

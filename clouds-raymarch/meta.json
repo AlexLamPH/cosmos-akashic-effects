@@ -1,0 +1,14 @@
+{
+  "slug": "clouds-raymarch",
+  "title": "Cosmos Clouds Raymarch — volumetric fbm nebula lit by a single light (WebGL shader)",
+  "title_vi": "Cosmos Clouds Raymarch — tinh vân fbm thể tích chiếu sáng một nguồn (WebGL shader)",
+  "W": 480,
+  "H": 360,
+  "LOOP": 9000,
+  "N": 90,
+  "tags": ["shader", "webgl", "glsl", "raymarch", "clouds", "nebula", "volumetric", "fbm", "space", "cosmos"],
+  "summary": "A real WebGL GLSL fragment shader that raymarches a 3D fbm density field to render volumetric clouds / nebula. A small number of march steps accumulate accent-tinted glow, lit by a single directional light using a cheap one-tap shadow sample toward the light. The noise field drifts on a circular path of t so the nebula slowly evolves and loops seamlessly against a dark deep-space backdrop. Zero dependencies, fully offline, deterministic and seamless (uT loops 0..1).",
+  "usage_notes": "RUN: needs WebGL (renders on a fullscreen triangle). KEY TECHNIQUES: front-to-back volumetric raymarch (46 steps, software-GPU friendly) through a 5-octave 3D fbm slab, single-light shading via a one-tap density gradient toward the light, transmittance accumulation with early-out, cosmos accent tint that shifts violet to nebula-pink up the frame. CAPTURE: ?auto=1 + window.__seek(t). TUNE: STEPS and step size 0.11 for quality vs speed, the density threshold/slab carve (-0.52, height fade), light offset 0.3 for shadow softness, drift radii for evolution speed.",
+  "summary_vi": "Fragment shader WebGL GLSL thật raymarch trường mật độ fbm 3D để dựng mây/tinh vân thể tích. Số bước ít tích lũy ánh sáng nhuốm màu điểm nhấn, chiếu bởi một nguồn sáng với bóng đổ một mẫu rẻ. Trường nhiễu trôi theo quỹ đạo tròn của t nên tinh vân tiến hóa và lặp liền mạch trên nền không gian sâu tối. Không phụ thuộc, offline, tất định.",
+  "notes": "Tinh vân fbm thể tích raymarch chiếu sáng một nguồn, trôi nhẹ và lặp liền mạch."
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Apollonian Gasket</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Apollonian Gasket — iterated circle-inversion fractal glowing in accent colours, real WebGL GLSL fragment shader. Deterministic, seamless (uT loops 0..1).
+const cv=document.getElementById('c');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=9000;
+const gl=cv.getContext('webgl',{antialias:false,depth:false,preserveDrawingBuffer:true});
+const VERT='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FRAG=`precision highp float; uniform vec2 uRes; uniform float uT;
+#define TAU 6.28318530718
+mat2 rot(float a){float s=sin(a),c=cos(a);return mat2(c,-s,s,c);}
+// Apollonian gasket via iterated reflection + circle inversion.
+// Returns vec2(distance-estimate-ish, orbit-trap colour index).
+vec2 apollo(vec2 z, float t){
+ float ph=t*TAU;
+ float scale=1.0;
+ float trap=1e9;
+ // breathing inversion radius, looping by t
+ float k=1.18+0.16*sin(ph);
+ for(int i=0;i<7;i++){
+  // fold into [-1,1] cell
+  z=-1.0+2.0*fract(0.5*z+0.5);
+  // circle inversion about origin
+  float r2=dot(z,z);
+  float f=k/r2;
+  z*=f; scale*=f;
+  trap=min(trap,r2);
+ }
+ float d=abs(z.y)/scale; // crude distance to the structure
+ return vec2(d,trap);
+}
+vec3 shade(vec2 uv,float t){
+ float ph=t*TAU;
+ vec2 p=uv*1.25;
+ p*=rot(0.18*sin(ph));            // slow rocking rotation, seamless
+ p+=vec2(cos(ph),sin(ph))*0.05;   // gentle orbit drift
+ vec2 a=apollo(p,t);
+ float d=a.x, trap=a.y;
+ // glow from proximity to the fractal lines
+ float glow=exp(-90.0*d);
+ float fine=exp(-260.0*d);
+ vec3 c2=vec3(0.545,0.36,1.0), c3=vec3(0.27,0.71,1.0), c4=vec3(1.0,0.36,0.76), c5=vec3(0.21,0.83,0.60);
+ // colour by orbit trap, breathing hue by t
+ float h=fract(trap*2.6+0.12*sin(ph));
+ vec3 acc=mix(c2,c3,smoothstep(0.0,0.5,h));
+ acc=mix(acc,c4,smoothstep(0.45,0.8,h));
+ acc=mix(acc,c5,smoothstep(0.78,1.0,h));
+ vec3 col=vec3(0.02,0.012,0.05);            // dark base
+ col+=acc*glow*1.35;                        // main glow
+ col+=vec3(0.95,0.9,1.0)*fine*0.7;          // bright fractal cores
+ // subtle vignette so edges stay dark
+ col*=1.0-0.35*dot(uv,uv);
+ return col;}
+void main(){ vec2 uv=(gl_FragCoord.xy*2.0-uRes)/min(uRes.x,uRes.y); vec3 col=shade(uv,uT);
+ col=pow(clamp(col,0.,1.),vec3(0.4545)); gl_FragColor=vec4(col,1.0);}`;
+function sh(ty,src){const s=gl.createShader(ty);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const lp=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,2,gl.FLOAT,false,0,0);
+const uRes=gl.getUniformLocation(prog,'uRes'),uT=gl.getUniformLocation(prog,'uT');
+let DPR;function rs(){DPR=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*DPR;cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';gl.viewport(0,0,cv.width,cv.height);}
+rs();addEventListener('resize',rs);
+function render(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;gl.uniform2f(uRes,cv.width,cv.height);gl.uniform1f(uT,u);gl.drawArrays(gl.TRIANGLES,0,3);}
+if(AUTO){window.__seek=t=>render(t);render(0);window.__ready=true;}else{const s=performance.now();(function l(n){render(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

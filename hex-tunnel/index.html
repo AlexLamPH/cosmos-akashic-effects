@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Hex Tunnel</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Hex Tunnel — a hexagonal-grid tunnel flythrough with pulsing neon edges, real WebGL GLSL fragment shader. Deterministic, seamless (uT loops 0..1).
+const cv=document.getElementById('c');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=9000;
+const gl=cv.getContext('webgl',{antialias:false,depth:false,preserveDrawingBuffer:true});
+const VERT='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FRAG=`precision highp float; uniform vec2 uRes; uniform float uT;
+#define TAU 6.28318530718
+float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+// Distance to the nearest hexagonal cell edge for a tiled point (flat-top hex grid).
+// Returns .x = edge distance, .yz = cell id.
+vec3 hexDist(vec2 p){
+ vec2 q=vec2(p.x*1.1547005, p.y + p.x*0.5773503); // skew to hex axes
+ vec2 fl=floor(q), ff=fract(q);
+ float id=mod(fl.x+fl.y,3.0);
+ // pick the right sub-triangle to get nearest hex centre
+ vec2 a, b;
+ if(ff.x>ff.y){ a=vec2(1.0,0.0); b=vec2(1.0,1.0);} else { a=vec2(0.0,1.0); b=vec2(1.0,1.0);}
+ vec2 e=fl+0.5, e1=fl+a, e2=fl+b;
+ // edge distance approximated by distance to skewed cell border
+ float d=min(min(length(ff-0.5),length(ff-a)),length(ff-b));
+ // crisp edge field: distance to cell boundary lines
+ float ex=min(min(ff.x,ff.y),min(1.0-ff.x,1.0-ff.y));
+ float diag=abs(ff.x-ff.y);
+ float edge=min(ex,diag*0.7071);
+ return vec3(edge, fl+0.5);}
+// Cosmos accents
+vec3 ACC1=vec3(0.27,0.71,1.0);   // cosmic blue
+vec3 ACC2=vec3(0.545,0.36,1.0);  // violet
+vec3 ACC3=vec3(0.21,0.83,0.60);  // aurora
+vec3 shade(vec2 uv,float t){
+ float ang=atan(uv.y,uv.x);
+ float rad=max(length(uv),1e-3);
+ float depth=1.0/rad;
+ float z=depth + t*5.0;                       // fly inward, 5 ring periods per loop (seamless)
+ // Wall coordinates: angle wrapped + depth. Scale so hexes tile evenly.
+ vec2 wall=vec2(ang*(6.0/3.14159265), z*2.0);
+ vec3 h=hexDist(wall);
+ float edge=h.x;                              // 0 at hex edges
+ // Neon edge glow: bright thin lines along hex borders.
+ float line=smoothstep(0.10,0.0,edge);
+ float glow=exp(-edge*9.0);
+ // Per-cell pulse, periodic in z so the loop is seamless.
+ float cellRnd=hash(h.yz);
+ float pulse=0.5+0.5*sin(TAU*(z*1.0) + cellRnd*TAU);
+ // Travelling colour band selecting accent per depth.
+ float band=0.5+0.5*sin(TAU*z + ang*2.0);
+ vec3 accent=mix(ACC1,ACC2,band);
+ accent=mix(accent,ACC3,smoothstep(0.6,0.95,pulse));
+ // Compose: dark hex faces, glowing pulsing edges.
+ vec3 col=vec3(0.02,0.02,0.045);
+ col+=accent*line*(0.7+1.1*pulse);            // hard neon edges
+ col+=accent*glow*0.55*(0.4+0.8*pulse);       // soft bloom
+ col+=accent*0.06*cellRnd;                     // faint face tint
+ // Depth fog toward the vanishing centre.
+ float fog=smoothstep(0.0,0.7,rad);
+ col*=0.12+0.95*fog;
+ col+=ACC1*0.16*(1.0-fog)*(1.0-fog);          // vanishing-point glow
+ return col;}
+void main(){ vec2 uv=(gl_FragCoord.xy*2.0-uRes)/min(uRes.x,uRes.y); vec3 col=shade(uv,uT); col=col/(col+0.55);
+ col=pow(clamp(col,0.,1.),vec3(0.4545)); gl_FragColor=vec4(col,1.0);}`;
+function sh(ty,src){const s=gl.createShader(ty);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const lp=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,2,gl.FLOAT,false,0,0);
+const uRes=gl.getUniformLocation(prog,'uRes'),uT=gl.getUniformLocation(prog,'uT');
+let DPR;function rs(){DPR=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*DPR;cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';gl.viewport(0,0,cv.width,cv.height);}
+rs();addEventListener('resize',rs);
+function render(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;gl.uniform2f(uRes,cv.width,cv.height);gl.uniform1f(uT,u);gl.drawArrays(gl.TRIANGLES,0,3);}
+if(AUTO){window.__seek=t=>render(t);render(0);window.__ready=true;}else{const s=performance.now();(function l(n){render(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

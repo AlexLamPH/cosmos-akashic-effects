@@ -1,0 +1,136 @@
+<!-- Cosmos Social Share: a polished share button that fans out a radial cluster of social icon chips on a staggered arc, holds, then retracts. Accent-tinted chips with hover scale (live). Self-contained, zero deps; deterministic looping auto-demo. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Social Share</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.stage{position:relative;width:320px;height:320px}
+/* the cluster is anchored at stage centre */
+.hub{position:absolute;left:50%;top:50%;width:74px;height:74px;margin:-37px 0 0 -37px;
+  border-radius:50%;cursor:pointer;z-index:5;
+  background:radial-gradient(120% 120% at 30% 25%,#a87dff,#7b46f0 60%,#5f31cf);
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 14px 34px rgba(123,70,240,.50),0 0 0 1px rgba(255,255,255,.05) inset;
+  display:flex;align-items:center;justify-content:center;color:#fff}
+.hub svg{width:30px;height:30px;display:block}
+.glow{position:absolute;left:50%;top:50%;width:74px;height:74px;margin:-37px 0 0 -37px;
+  border-radius:50%;pointer-events:none;z-index:4;
+  box-shadow:0 0 0 0 rgba(139,92,255,.45)}
+.chip{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;
+  border-radius:50%;z-index:6;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03) inset;
+  cursor:pointer;will-change:transform,opacity}
+.chip svg{width:23px;height:23px;display:block}
+.chip .lab{position:absolute;bottom:-20px;font-size:10px;font-weight:600;color:#9590b6;
+  white-space:nowrap;opacity:0;pointer-events:none}
+/* live-only hover scale (auto motion is driven by render(u)) */
+body:not(.auto) .chip{transition:transform .18s cubic-bezier(.2,.8,.3,1.3),box-shadow .18s}
+body:not(.auto) .chip:hover{transform:translate(var(--x),var(--y)) scale(1.18)!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.55),0 0 18px 2px var(--gl)}
+body:not(.auto) .chip:hover .lab{opacity:1}
+body:not(.auto) .hub{transition:transform .2s cubic-bezier(.2,.8,.3,1.3),box-shadow .2s}
+body:not(.auto) .hub:hover{box-shadow:0 16px 40px rgba(123,70,240,.65)}
+</style></head>
+<body><div id="wrap"><div class="stage">
+  <div class="glow"></div>
+  <div class="hub" id="hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg></div>
+</div></div>
+<script>
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const easeOut=t=>1-Math.pow(1-t,3);
+const back=t=>{const c=1.7;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);}; // overshoot pop
+const smooth=t=>t*t*(3-2*t);
+
+// social chips: accent-tinted, fan across a top arc. label + minimal glyph.
+const ACC={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',solaris:'#ff6a3d',sacred:'#e0b24a'};
+const G={ // simple line glyphs
+  tw:'<path d="M22 5.9c-.7.3-1.5.5-2.3.6.8-.5 1.5-1.3 1.8-2.3-.8.5-1.7.8-2.6 1A4 4 0 0 0 12 8.9c0 .3 0 .6.1.9A11.4 11.4 0 0 1 3.8 4.6a4 4 0 0 0 1.2 5.3c-.6 0-1.2-.2-1.7-.5a4 4 0 0 0 3.2 3.9c-.6.2-1.1.2-1.7.1a4 4 0 0 0 3.7 2.8A8 8 0 0 1 2 17.9 11.3 11.3 0 0 0 8.2 19.7c7.4 0 11.5-6.2 11.5-11.5v-.5c.8-.6 1.5-1.3 2-2.1z"/>',
+  ig:'<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/>',
+  fb:'<path d="M14 8.5h2.3V5.4h-2.5C11.6 5.4 10 7 10 9.6v1.4H8v3h2v7h3v-7h2.3l.4-3H13V9.6c0-.7.4-1.1 1-1.1z"/>',
+  li:'<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><line x1="7.2" y1="10" x2="7.2" y2="17"/><circle cx="7.2" cy="7.1" r="1.1" fill="currentColor" stroke="none"/><path d="M11 17v-3.6c0-1.5 2-1.6 2 0V17"/><line x1="11" y1="10.4" x2="11" y2="17"/>',
+  lk:'<path d="M9.5 14.5l5-5M9 9.5H7.4A3 3 0 0 0 7.4 15.5H9M15 9.5h1.6A3 3 0 0 1 16.6 15.5H15"/>',
+  ml:'<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 5.5L20 7"/>',
+};
+const chips=[
+  {k:'tw',c:ACC.cosmic, lab:'Twitter'},
+  {k:'ig',c:ACC.nebula, lab:'Instagram'},
+  {k:'fb',c:ACC.violet, lab:'Facebook'},
+  {k:'li',c:ACC.cosmic, lab:'LinkedIn'},
+  {k:'lk',c:ACC.aurora, lab:'Copy link'},
+  {k:'ml',c:ACC.sacred, lab:'Email'},
+];
+const N=chips.length, R=104; // fan radius
+// arc: spread across the upper half, fanning out symmetrically (top-left to top-right)
+const A0=-152*Math.PI/180, A1=-28*Math.PI/180;
+const ang=i=>lerp(A0,A1,i/(N-1));
+
+const stage=document.querySelector('.stage');
+const hub=document.getElementById('hub'), glow=document.querySelector('.glow');
+function hex(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+
+const nodes=chips.map((ch,i)=>{
+  const el=document.createElement('div'); el.className='chip';
+  el.style.background=`radial-gradient(120% 120% at 30% 25%, ${hex(ch.c,.30)}, ${hex(ch.c,.13)})`;
+  el.style.color=ch.c; el.style.setProperty('--gl',hex(ch.c,.55));
+  el.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${G[ch.k]}</svg><span class="lab">${ch.lab}</span>`;
+  const a=ang(i); el.dataset.tx=(Math.cos(a)*R).toFixed(1); el.dataset.ty=(Math.sin(a)*R).toFixed(1);
+  stage.appendChild(el); return el;
+});
+
+function render(u){
+  // phases: fan-out (0..0.30) -> hold (0.30..0.70) -> retract (0.70..1.0)
+  let open; // 0=closed at hub, 1=fully fanned
+  if(u<0.30) open=u/0.30;
+  else if(u<0.70) open=1;
+  else open=1-(u-0.70)/0.30;
+
+  nodes.forEach((el,i)=>{
+    // per-chip stagger on the way out (and reverse stagger on retract)
+    const st=i*0.07;
+    let p;
+    if(u<0.30){ p=clamp((open - st)/(1-st),0,1); p=back(easeOut(p)); }
+    else if(u<0.70){ p=1; }
+    else { const rs=(N-1-i)*0.06; const rp=clamp(((u-0.70)/0.30 - rs)/(1-rs),0,1); p=1-easeOut(rp); }
+    const tx=(+el.dataset.tx)*p, ty=(+el.dataset.ty)*p;
+    const sc=lerp(0.4,1,clamp(p,0,1));
+    el.style.transform=`translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+    el.style.opacity=clamp(p*1.6,0,1).toFixed(2);
+    el.style.setProperty('--x',tx.toFixed(1)+'px'); el.style.setProperty('--y',ty.toFixed(1)+'px');
+  });
+
+  // hub rotates toward an X while open, pulse glow on open
+  const rot=lerp(0,135,smooth(open));
+  const hs=lerp(1,0.94,smooth(open));
+  hub.style.transform=`rotate(${rot.toFixed(1)}deg) scale(${hs.toFixed(3)})`;
+  // ring pulse: ripple expands right as the fan launches (u≈0..0.18), seamless (faded out by hold)
+  const pl=clamp(u/0.18,0,1);
+  const pe=easeOut(pl);
+  glow.style.transform=`scale(${lerp(1,1.9,pe).toFixed(3)})`;
+  glow.style.boxShadow=`0 0 0 ${lerp(0,16,pe).toFixed(1)}px ${hex('#8b5cff',(1-pl)*0.40)}`;
+  glow.style.opacity=(u<0.30?1:0).toFixed(2);
+}
+
+const LOOP=5200, OFF=0.45; // frame-0 lands in the open/hold state so the thumbnail shows the fan
+const seek=u=>render(((u+OFF)%1+1)%1);
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){document.body.classList.add('auto'); window.__seek=t=>seek(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  // live: clicking the hub toggles fan-out; when idle (untouched) an autoplay demo loops.
+  let interacted=false, open=false, t0=0, target=0;
+  hub.addEventListener('click',()=>{interacted=true;open=!open;target=open?1:0;t0=performance.now();});
+  const s=performance.now();
+  (function l(n){
+    if(interacted){
+      const k=clamp((n-t0)/700,0,1);
+      const u = target ? lerp(0,0.30,k) : lerp(0.70,1.0,k);
+      seek(u); // hold at endpoint once k=1
+    } else {
+      seek((((n-s)%LOOP)+LOOP)%LOOP/LOOP);
+    }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

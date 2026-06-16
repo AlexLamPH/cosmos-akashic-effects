@@ -1,0 +1,11 @@
+{
+  "slug": "radial-audio",
+  "title": "Cosmos Radial Audio — circular visualizer with radiating spikes and a glowing core",
+  "title_vi": "Cosmos Radial Audio — bộ trực quan hóa âm thanh dạng vòng với gai tỏa và lõi phát sáng",
+  "W": 620, "H": 620, "LOOP": 6400, "N": 80,
+  "tags": ["audio","radial","spectrum","visualizer","waveform","canvas2d"],
+  "summary": "A circular audio visualizer: 64 spikes radiate outward from a ring around a glowing pulsing core, each colored through the cosmos accents by index, with faint inward mirror stubs. A wobbling waveform ring (radius modulated by sines) orbits between core and spikes. Pure Canvas 2D, zero dependencies, runs fully offline; rendering is deterministic and the loop closes seamlessly.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each spike's length is a sum of integer-harmonic sines of 2*pi*u (harmonics 2,3,4,6) so it pulses rhythmically and returns exactly at u=1 for a seamless loop; spikes are placed at angle=i/N*2*pi and drawn outward from radius R with round caps and additive 'lighter' glow, plus a faint inward mirror stub; the waveform ring radius is modulated by integer-harmonic sines of the angle and time so it wobbles and closes; the core is a radial-gradient white->violet disc whose radius pulses with sin(2*pi*2u); mulberry32 seeds per-spike phase/amplitude once so frame 0 is already rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N (spike count), R (ring radius), maxL (spike length), waveform harmonic factors, core pulse depth, rotation speed.",
+  "summary_vi": "Bộ trực quan hóa âm thanh dạng vòng: 64 gai tỏa ra ngoài từ một vành quanh lõi phát sáng đang đập, mỗi gai tô màu theo bảng màu cosmos, kèm gai phản chiếu mờ hướng vào trong. Một vành sóng gợn (bán kính điều biến bằng các sin) quay giữa lõi và gai. Thuần Canvas 2D, không thư viện, chạy offline; tất định và loop liền mạch.",
+  "notes": "Độ dài gai = tổng các sin hài bậc nguyên của 2*pi*u → đập nhịp và quay về tại u=1 (loop). Gai đặt tại góc i/N*2*pi; vành sóng điều biến bán kính theo sin của góc và thời gian; lõi là đĩa gradient phát sáng đập theo nhịp."
+}

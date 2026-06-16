@@ -1,0 +1,205 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Dodge</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #frame{width:560px;height:640px;box-sizing:border-box;padding:16px;
+    background:linear-gradient(160deg,#140f28,#0c0a1c);border:1px solid #241a44;border-radius:18px;
+    box-shadow:0 12px 40px rgba(0,0,0,.55),inset 0 0 0 1px rgba(70,180,255,.06);
+    display:flex;flex-direction:column;gap:10px}
+  #hud{display:flex;align-items:center;justify-content:space-between;gap:20px;height:46px;padding:0 6px}
+  .name{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9a8fd0}
+  .sc{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  #time{color:#36d39a;text-shadow:0 0 16px rgba(54,211,154,.5)}
+  #best{color:#e0b24a;text-shadow:0 0 16px rgba(224,178,74,.4)}
+  .col{display:flex;flex-direction:column;gap:3px}
+  .col.r{align-items:flex-end}
+  canvas{border-radius:12px;background:#0b0a1a;display:block;
+    box-shadow:inset 0 0 26px rgba(139,92,255,.07);touch-action:none}
+  #foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#8f86bd}
+  #foot b{color:#36d39a}
+  #msg{position:absolute;font-size:30px;font-weight:800;color:#ff6a3d;
+    text-shadow:0 0 18px rgba(255,106,61,.6);display:none}
+</style></head><body>
+<div id="wrap"><div id="frame">
+  <div id="hud">
+    <div class="col"><div class="name">Survived</div><div class="sc" id="time">0.0s</div></div>
+    <div class="col r"><div class="name">Best</div><div class="sc" id="best">0.0s</div></div>
+  </div>
+  <canvas id="c"></canvas>
+  <div id="foot">
+    <span>move to dodge — mouse / WASD / arrows / touch</span>
+    <span><b>R</b> restart</span>
+  </div>
+</div></div>
+<div id="msg"></div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c');
+const W=528,H=500; cv.width=W;cv.height=H;
+const g=cv.getContext('2d');
+const VIOLET='139,92,255',COSMIC='70,180,255',NEBULA='255,92,194',AURORA='54,211,154',SOLARIS='255,106,61',SACRED='224,178,74';
+const OR=11;                 // orb radius
+const COLS=[NEBULA,SOLARIS,VIOLET,COSMIC,SACRED];
+// ---------- mulberry32 ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+
+function newState(seed,auto){
+  const rng=mulberry32(seed>>>0);
+  return {rng,auto:!!auto,ox:W/2,oy:H-70,obs:[],t:0,spawnT:0,over:false,flash:0,col:Math.floor(rng()*COLS.length)};
+}
+function difficulty(t){ return 1+Math.min(t/9000,2.4); } // ramps over time
+function spawn(s){
+  const d=difficulty(s.t);
+  const r=8+s.rng()*16;
+  const x=r+s.rng()*(W-2*r);
+  const vy=(1.6+s.rng()*1.7)*d;
+  const vx=(s.rng()-0.5)*1.6*d;
+  s.obs.push({x,y:-r,r,vx,vy,c:COLS[Math.floor(s.rng()*COLS.length)]});
+}
+
+// deterministic dodge AI: steer away from the most threatening incoming obstacles
+function aiSteer(s){
+  let fx=0,fy=0;
+  for(const o of s.obs){
+    const dx=s.ox-o.x, dy=s.oy-o.y, d=Math.hypot(dx,dy)+0.001;
+    if(d<150 && o.y<s.oy+40){
+      const w=(150-d)/150; const wf=w*w*22;
+      fx+=(dx/d)*wf; fy+=(dy/d)*wf*0.4;
+    }
+  }
+  // gentle pull toward horizontal center to avoid corners
+  fx+=(W/2-s.ox)*0.012;
+  // bias to stay in lower band
+  fy+=((H-90)-s.oy)*0.05;
+  return {x:clamp(s.ox+fx,OR,W-OR), y:clamp(s.oy+fy,H*0.45,H-OR)};
+}
+
+function step(s,input){
+  if(s.over) return;
+  s.t+=16;
+  // ----- orb -----
+  if(s.auto){
+    const t=aiSteer(s);
+    const mx=clamp(t.x-s.ox,-7,7), my=clamp(t.y-s.oy,-7,7);
+    s.ox=clamp(s.ox+mx,OR,W-OR); s.oy=clamp(s.oy+my,OR,H-OR);
+  } else if(input){
+    s.ox=clamp(input.x,OR,W-OR); s.oy=clamp(input.y,OR,H-OR);
+  }
+  // ----- spawn -----
+  s.spawnT-=16;
+  const interval=Math.max(170, 520-difficulty(s.t)*120);
+  if(s.spawnT<=0){ spawn(s); s.spawnT=interval; }
+  // ----- obstacles -----
+  for(const o of s.obs){ o.x+=o.vx; o.y+=o.vy;
+    if(o.x<o.r||o.x>W-o.r) o.vx*=-1; }
+  s.obs=s.obs.filter(o=>o.y<H+o.r+10);
+  // ----- collision -----
+  for(const o of s.obs){
+    const d=Math.hypot(s.ox-o.x,s.oy-o.y);
+    if(d<o.r+OR){ s.over=true; s.flash=1; break; }
+  }
+  if(s.flash>0) s.flash-=0.06; if(s.flash<0)s.flash=0;
+}
+
+// ---------- AUTO simulation ----------
+const SEED=70260616;
+const T_OFFSET=4600;
+const FRAME_MS=16;
+function freshAuto(){ return newState(SEED,true); }
+function simTo(ms){
+  let s=freshAuto();
+  const steps=Math.floor((ms+T_OFFSET)/FRAME_MS);
+  for(let i=0;i<steps;i++){
+    if(s.over){ s.holdT=(s.holdT||0)+1; if(s.holdT>40){ s=freshAuto(); } }
+    else step(s,null);
+  }
+  return s;
+}
+
+// ---------- draw ----------
+function draw(s){
+  g.clearRect(0,0,W,H);
+  // subtle starfield grid
+  g.strokeStyle='rgba(70,180,255,.05)';g.lineWidth=1;
+  for(let y=40;y<H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  // border
+  g.strokeStyle='rgba(139,92,255,.12)';g.lineWidth=2;g.strokeRect(1,1,W-2,H-2);
+  // obstacles
+  for(const o of s.obs){
+    g.save();g.shadowColor=`rgba(${o.c},.7)`;g.shadowBlur=14;
+    g.fillStyle=`rgb(${o.c})`;
+    g.beginPath();g.arc(o.x,o.y,o.r,0,7);g.fill();
+    g.fillStyle='rgba(255,255,255,.16)';
+    g.beginPath();g.arc(o.x-o.r*0.3,o.y-o.r*0.3,o.r*0.4,0,7);g.fill();g.restore();
+  }
+  // orb (the player) with trail glow
+  const oc=COLS[s.col];
+  g.save();g.shadowColor=`rgba(${AURORA},.95)`;g.shadowBlur=26;
+  g.fillStyle=s.over?`rgba(${SOLARIS},1)`:`rgba(${AURORA},1)`;
+  g.beginPath();g.arc(s.ox,s.oy,OR,0,7);g.fill();
+  g.fillStyle='rgba(255,255,255,.35)';
+  g.beginPath();g.arc(s.ox-OR*0.3,s.oy-OR*0.3,OR*0.45,0,7);g.fill();g.restore();
+  // HUD
+  document.getElementById('time').textContent=(s.t/1000).toFixed(1)+'s';
+  const msg=document.getElementById('msg');
+  if(s.over && !AUTO){ const r=cv.getBoundingClientRect();
+    msg.style.display='block';
+    msg.textContent='GAME OVER';
+    msg.style.left=(r.left+W/2-95)+'px';msg.style.top=(r.top+H/2-22)+'px';
+  } else msg.style.display='none';
+}
+function drawAt(ms){ draw(simTo(ms)); }
+
+const LOOP=12000;
+// ---------- LIVE ----------
+let S,target,best=0;
+function initGame(){
+  if(S && S.t/1000>best) best=S.t/1000;
+  document.getElementById('best').textContent=best.toFixed(1)+'s';
+  S=newState((Date.now())>>>0,false); target={x:W/2,y:H-70};
+  let raf;
+  function loop(){
+    if(!S.over) step(S,target); draw(S);
+    if(S.over && S.t/1000>best){ best=S.t/1000; document.getElementById('best').textContent=best.toFixed(1)+'s'; }
+    raf=requestAnimationFrame(loop);
+  }
+  raf=requestAnimationFrame(loop);
+  const held={l:false,r:false,u:false,d:false};
+  window.addEventListener('keydown',e=>{
+    if(S.over && (e.key==='r'||e.key==='R')){initGame();return;}
+    if(e.key==='r'||e.key==='R'){initGame();return;}
+    if(e.key==='ArrowLeft'||e.key==='a')held.l=true;
+    if(e.key==='ArrowRight'||e.key==='d')held.r=true;
+    if(e.key==='ArrowUp'||e.key==='w')held.u=true;
+    if(e.key==='ArrowDown'||e.key==='s')held.d=true;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();
+  });
+  window.addEventListener('keyup',e=>{
+    if(e.key==='ArrowLeft'||e.key==='a')held.l=false;
+    if(e.key==='ArrowRight'||e.key==='d')held.r=false;
+    if(e.key==='ArrowUp'||e.key==='w')held.u=false;
+    if(e.key==='ArrowDown'||e.key==='s')held.d=false;});
+  (function pk(){
+    let tx=target.x,ty=target.y;
+    if(held.l)tx-=7; if(held.r)tx+=7; if(held.u)ty-=7; if(held.d)ty+=7;
+    target={x:clamp(tx,OR,W-OR),y:clamp(ty,OR,H-OR)};
+    requestAnimationFrame(pk);})();
+  function ptr(e){ const r=cv.getBoundingClientRect();
+    const cx=((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(W/r.width);
+    const cy=((e.touches?e.touches[0].clientY:e.clientY)-r.top)*(H/r.height);
+    target={x:clamp(cx,OR,W-OR),y:clamp(cy,OR,H-OR)};
+    if(S.over)initGame(); }
+  cv.addEventListener('mousemove',ptr);
+  cv.addEventListener('mousedown',e=>{ if(S.over)initGame(); else ptr(e); });
+  cv.addEventListener('touchstart',e=>{ptr(e);e.preventDefault();},{passive:false});
+  cv.addEventListener('touchmove',e=>{ptr(e);e.preventDefault();},{passive:false});
+}
+
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

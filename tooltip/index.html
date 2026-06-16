@@ -1,0 +1,128 @@
+<!-- Cosmos Tooltip: a row of icon-button triggers; hovering shows a glassy dark tooltip with an arrow that fades+rises above the target, with different content per trigger. Auto-demo: a glowing pointer travels across the triggers, each revealing its tooltip in turn. Deterministic render(u). -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Tooltip</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#scrim{position:absolute;inset:0;background:radial-gradient(110% 80% at 50% 60%,rgba(139,92,255,.10),transparent 60%)}
+.bar{position:relative;display:flex;gap:16px;padding:14px 16px;border-radius:18px;
+  background:linear-gradient(180deg,rgba(32,27,52,.85),rgba(20,16,36,.9));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
+.trig{position:relative;width:50px;height:50px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(180deg,rgba(46,38,72,.9),rgba(28,23,46,.92));
+  border:1px solid rgba(255,255,255,.09);color:#b3acce;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:color .2s,border-color .2s,transform .2s}
+.trig svg{width:22px;height:22px}
+.trig.hot{color:#fff;border-color:rgba(139,92,255,.55);transform:translateY(-2px);
+  box-shadow:0 10px 26px -8px rgba(139,92,255,.55),inset 0 1px 0 rgba(255,255,255,.1)}
+/* travelling pointer ring */
+#ptr{position:absolute;width:62px;height:62px;border-radius:17px;pointer-events:none;left:0;top:0;
+  border:1.5px solid rgba(139,92,255,.55);
+  box-shadow:0 0 26px -3px rgba(139,92,255,.6),inset 0 0 18px -6px rgba(139,92,255,.4);
+  transition:none;will-change:transform,opacity}
+/* the tooltip */
+.tip{position:absolute;left:0;top:0;pointer-events:none;transform-origin:50% 130%;will-change:transform,opacity;
+  padding:10px 13px;border-radius:11px;min-width:130px;max-width:240px;
+  background:linear-gradient(180deg,rgba(26,21,44,.97),rgba(16,12,28,.97));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(139,92,255,.30);
+  box-shadow:0 22px 50px -16px rgba(0,0,0,.8),0 0 0 1px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)}
+.tip .tt{font-size:13px;font-weight:650;color:#f2f0fb;letter-spacing:.1px}
+.tip .td{margin-top:3px;font-size:11.5px;line-height:1.5;color:#a39dc2}
+.tip .kbd{display:inline-block;margin-top:7px;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:600;
+  color:#c6b8ff;background:rgba(139,92,255,.16);border:1px solid rgba(139,92,255,.3)}
+.tip::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;
+  margin-left:-6px;transform:rotate(45deg);
+  background:linear-gradient(135deg,rgba(20,15,34,.97),rgba(16,12,28,.97));
+  border-right:1px solid rgba(139,92,255,.30);border-bottom:1px solid rgba(139,92,255,.30)}
+</style></head>
+<body><div id="stage"><div id="scrim"></div>
+  <div class="bar" id="bar"></div>
+  <div id="ptr"></div>
+  <div class="tip" id="tip"><div class="tt" id="tt"></div><div class="td" id="td"></div></div>
+</div>
+<script>
+const ICON={
+  bold:'<path d="M6 4h7a4 4 0 0 1 0 8H6zM6 12h8a4 4 0 0 1 0 8H6z"/>',
+  link:'<path d="M9 15l6-6M10 6l1-1a4 4 0 0 1 6 6l-1 1M14 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
+  star:'<path d="M12 3l2.6 5.6L20.5 9.4l-4.3 4.1 1 6L12 16.9 6.8 19.5l1-6L3.5 9.4l5.9-.8z"/>',
+  share:'<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2M19 5l-2 2M7 17l-2 2M19 19l-2-2M7 7L5 5"/>'
+};
+const TRIGS=[
+  ['bold','Bold text','Toggle heavy weight on the selection.','Ctrl B'],
+  ['link','Insert link','Wrap the selection in a hyperlink.','Ctrl K'],
+  ['star','Add to favourites','Pin this item to your starred list.',''],
+  ['share','Share','Send a link to your collaborators.',''],
+  ['gear','Settings','Open the editor preferences panel.','Ctrl ,']
+];
+const barE=document.getElementById('bar'),tipE=document.getElementById('tip'),
+  ttE=document.getElementById('tt'),tdE=document.getElementById('td'),ptrE=document.getElementById('ptr');
+const trigEls=TRIGS.map(t=>{const d=document.createElement('div');d.className='trig';
+  d.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICON[t[0]]+'</svg>';
+  barE.appendChild(d);return d;});
+const N=TRIGS.length;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const LOOP=7000; // N slots
+function showTip(i,reveal){ // reveal 0..1 fade+rise; place above trigger i
+  const t=TRIGS[i]; ttE.textContent=t[1];
+  tdE.innerHTML=t[2]+(t[3]?'<span class="kbd">'+t[3]+'</span>':'');
+  const tr=trigEls[i].getBoundingClientRect(), tp=tipE.getBoundingClientRect();
+  const cx=tr.left+tr.width/2, top=tr.top; // anchor
+  const x=cx-tp.width/2;
+  const y=top-tp.height-12 + lerp(10,0,reveal); // rise 10px into place
+  tipE.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${lerp(.93,1,reveal).toFixed(3)})`;
+  tipE.style.opacity=Math.min(1,reveal*1.3).toFixed(3);
+}
+function render(u){
+  // offset so frame 0 lands mid-hold of trigger 0
+  const HOLD=0.40;
+  const g=(u + (1-(HOLD/N))) % 1;
+  const idx=Math.floor(g*N)%N;
+  const local=(g*N)%1;            // 0..1 within slot
+  const next=(idx+1)%N;
+  // pointer travels: dwell on idx, then glide to next near end of slot
+  const MOVE=0.78;                 // after this, pointer glides to next trigger
+  let pe;                           // pointer position 0..1 between idx and next
+  if(local<MOVE){pe=0;}else{pe=easeInOut((local-MOVE)/(1-MOVE));}
+  trigEls.forEach((el,k)=>el.classList.toggle('hot', pe<0.5? k===idx : k===next));
+  const a=trigEls[idx].getBoundingClientRect(), b=trigEls[next].getBoundingClientRect();
+  const px=lerp(a.left+a.width/2,b.left+b.width/2,pe)-31;
+  const py=a.top+a.height/2-31;
+  ptrE.style.transform=`translate(${px.toFixed(1)}px,${py.toFixed(1)}px)`;
+  ptrE.style.opacity='1';
+  // tooltip: rise+fade in (0-.22), hold, fade out as pointer leaves (MOVE-1)
+  const activeI = pe<0.5? idx : next;
+  let reveal;
+  if(local<0.22){reveal=easeOut(local/0.22);}
+  else if(local<MOVE){reveal=1;}
+  else{reveal=1-easeOut((local-MOVE)/(1-MOVE));}
+  if(pe>=0.5){ // entering next trigger; its tip starts rising again at the seam
+    const ln=easeOut(Math.min(1,((local-MOVE)/(1-MOVE))*1.4));
+    showTip(next, ln);
+  } else {
+    showTip(idx, reveal);
+  }
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  // live: real hover shows the matching tooltip with CSS-free positioning
+  let hover=-1;
+  trigEls.forEach((el,i)=>{
+    el.addEventListener('mouseenter',()=>{hover=i;});
+    el.addEventListener('mouseleave',()=>{if(hover===i)hover=-1;});
+  });
+  let start=performance.now();
+  (function l(n){
+    if(hover>=0){ptrE.style.opacity='0';trigEls.forEach((e,k)=>e.classList.toggle('hot',k===hover));showTip(hover,1);}
+    else{render((((n-start)%LOOP)+LOOP)%LOOP/LOOP);}
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

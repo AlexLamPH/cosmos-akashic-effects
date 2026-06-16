@@ -1,0 +1,14 @@
+{
+  "slug": "jellyfish",
+  "title": "Cosmos Jellyfish — bioluminescent jellies drifting upward with pulsing bells",
+  "title_vi": "Sứa Biển Cosmos",
+  "W": 620,
+  "H": 760,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": ["canvas2d", "generative", "particles", "ocean", "glow", "animation"],
+  "summary": "Glowing bioluminescent jellyfish drift upward through a deep-sea dark, their bells pulsing with squash-and-stretch on a sine while trailing wavy tentacles ripple below. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each jelly drifts upward via a phase fraction wrapped mod 1 and sways side-to-side on an integer-harmonic sine; the bell squashes/stretches (sx up, sy down) on a sine pulse; tentacles are wavy polylines wobbling on a sine; additive 'lighter' glow over Phantom dark. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N jelly count, R bell radius, pulse amplitude (0.20/0.16), sway amp, tentacle count/wave harmonics.",
+  "summary_vi": "Những con sứa phát quang sinh học trôi lên trên trong vùng biển sâu tối, chuông sứa co giãn theo hàm sin và các xúc tu gợn sóng kéo theo. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
+  "notes": "Chuyển động trôi lên dùng phân số pha mod 1; chuông co giãn (squash/stretch) và xúc tu gợn sóng đều theo hàm sin với hệ số nguyên để lặp liền mạch."
+}

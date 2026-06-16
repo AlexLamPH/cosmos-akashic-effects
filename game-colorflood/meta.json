@@ -1,0 +1,12 @@
+{
+  "slug": "game-colorflood",
+  "title": "Cosmos Flood-It — pick colors to flood the whole board in few moves",
+  "title_vi": "",
+  "W": 520, "H": 620, "LOOP": 12000, "N": 109,
+  "live_fit": true,
+  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, self-contained Flood-It puzzle in a single HTML file with zero dependencies. A 12x12 board is filled with six Cosmos colors; starting from the top-left anchor cell, each move you pick a color and the connected same-color region flooding out from the top-left grows to absorb every adjacent cell of that color. The goal is to make the whole board a single color within a move limit. A move counter and limit are shown, with a solved/out-of-moves end state. Playable by clicking the color buttons (or number keys 1-6) and R to restart. It also ships a deterministic self-playing attract demo for capture: a greedy solver picks the color that grows the region most each step, with the flood region expanding in animated waves, rendered as a pure function of time via window.__seek(t).",
+  "usage_notes": "RUN: double-click index.html. CONTROLS: click one of the six color swatches below the board to flood that color from the top-left, or press number keys 1-6; R key or the Play Again button restarts. GOAL: from the top-left anchor, repeatedly recolor its connected region to swallow neighbouring cells until the entire 12x12 board is one color; you must finish within the move limit. KEY TECHNIQUES: a pure flat 12x12 board with a flood-fill region() (BFS from cell 0 over the anchor color), applyColor() recolor of that region, and solved() check, all shared by live and AUTO. The AUTO run is built once from a mulberry32-seeded board: a deterministic greedy solver picks, each move, the color maximizing region size (color-order tie-break), and the newly absorbed cells are tagged with BFS distance so they recolor as an expanding wave; simTo(ms) indexes the precomputed step list and tweens the wave front, making each frame a pure function of time, with START_OFFSET placing frame 0 a few moves into the solve so the flooded region is already sizable. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: STEP_MS, START_OFFSET, the greedy heuristic, the PC color palette, board size N, LIMIT, LOOP.",
+  "summary_vi": "",
+  "notes": ""
+}

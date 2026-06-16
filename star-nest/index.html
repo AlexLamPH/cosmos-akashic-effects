@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Star Nest</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Star Nest — a volumetric kaleidoscopic IFS star field sampled along a ray, real WebGL GLSL fragment shader. Deterministic, seamless (uT loops 0..1).
+const cv=document.getElementById('c');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=9000;
+const gl=cv.getContext('webgl',{antialias:false,depth:false,preserveDrawingBuffer:true});
+const VERT='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+const FRAG=`precision highp float; uniform vec2 uRes; uniform float uT;
+#define TAU 6.28318530718
+// Kaleidoscopic IFS "star nest" — iterative folding of 3D coords along a ray.
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+// accent palette mix from a scalar
+vec3 accent(float h){
+ vec3 violet=vec3(0.545,0.36,1.0), cosmic=vec3(0.27,0.71,1.0), nebula=vec3(1.0,0.36,0.76), aurora=vec3(0.21,0.83,0.60);
+ h=fract(h)*3.0;
+ if(h<1.0) return mix(violet,cosmic,h);
+ if(h<2.0) return mix(cosmic,nebula,h-1.0);
+ return mix(nebula,aurora,h-2.0);}
+vec3 shade(vec2 uv,float t){
+ float ph=t*TAU;
+ // ray direction; seamless drift via circular offset on t
+ vec3 dir=normalize(vec3(uv*1.0,1.0));
+ // slow looping rotation of the view
+ dir.xz*=rot(sin(ph)*0.35);
+ dir.xy*=rot(cos(ph)*0.30);
+ vec3 from=vec3(1.0,0.5,0.5);
+ from+=vec3(cos(ph),sin(ph),sin(ph*2.0))*0.18; // looping camera drift
+ const int VOL=10;      // ray volumetric samples
+ const int ITER=14;     // IFS folds per sample
+ float s=0.12, fade=1.0;
+ vec3 col=vec3(0.0);
+ for(int r=0;r<VOL;r++){
+  vec3 p=from+s*dir*0.55;
+  p=abs(vec3(1.6)-mod(p,vec3(3.2))); // tiled fold
+  float pa=0.0, a=0.0, prev=0.0;
+  for(int i=0;i<ITER;i++){
+   p=abs(p)/dot(p,p)-0.83; // the magic IFS fold
+   float l=length(p);
+   a+=abs(l-prev);
+   prev=l;
+  }
+  a*=a*a*0.0012; // brightness of this cluster
+  // accent tint varies with depth + position -> glittering field
+  vec3 tint=accent(0.15+s*0.6+float(r)*0.07+t);
+  col+=tint*a*fade;
+  fade*=0.80; // depth attenuation
+  s+=0.16;
+ }
+ col*=0.55;
+ // keep deep space dark: gentle contrast
+ col=col/(1.0+col*0.7);
+ col+=vec3(0.012,0.008,0.025); // faint cosmic background
+ return col;}
+void main(){ vec2 uv=(gl_FragCoord.xy*2.0-uRes)/min(uRes.x,uRes.y); vec3 col=shade(uv,uT);
+ col=pow(clamp(col,0.,1.),vec3(0.4545)); gl_FragColor=vec4(col,1.0);}`;
+function sh(ty,src){const s=gl.createShader(ty);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const lp=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,2,gl.FLOAT,false,0,0);
+const uRes=gl.getUniformLocation(prog,'uRes'),uT=gl.getUniformLocation(prog,'uT');
+let DPR;function rs(){DPR=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*DPR;cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';gl.viewport(0,0,cv.width,cv.height);}
+rs();addEventListener('resize',rs);
+function render(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;gl.uniform2f(uRes,cv.width,cv.height);gl.uniform1f(uT,u);gl.drawArrays(gl.TRIANGLES,0,3);}
+if(AUTO){window.__seek=t=>render(t);render(0);window.__ready=true;}else{const s=performance.now();(function l(n){render(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

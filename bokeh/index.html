@@ -1,0 +1,59 @@
+<!-- Cosmos Bokeh — soft out-of-focus light circles drift on sine paths and gently pulse over Phantom dark -->
+<!doctype html><meta charset=utf-8><title>Cosmos Bokeh</title>
+<style>html,body{margin:0;height:100%;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const LOOP=8000, ACCENT=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let W,H,DPR,orbs=[];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hex(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function setup(){
+  DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);
+  const r=mulberry32(20260614);const N=46;orbs=[];
+  for(let i=0;i<N;i++){
+    orbs.push({cx:r()*W,cy:r()*H,
+      ax:30+r()*70,ay:24+r()*60, kx:1+((r()*3)|0),ky:1+((r()*3)|0),
+      px:r(),py:r(),
+      rad:18+r()*64, rim:r()<0.32,            // some bright-rimmed
+      pk:1+((r()*3)|0), pp:r(),               // gentle pulse, integer harmonic
+      base:0.12+r()*0.22, rgb:hex(ACCENT[(r()*ACCENT.length)|0])});
+  }
+  orbs.sort((a,b)=>b.rad-a.rad); // big soft ones behind
+}
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP, TAU=Math.PI*2;
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  // faint drifting nebular wash so frame 0 is rich
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<4;i++){const a=TAU*u+i*1.571;
+    const gx=W*(0.5+0.42*Math.cos(a)),gy=H*(0.5+0.42*Math.sin(a));
+    const g=x.createRadialGradient(gx,gy,0,gx,gy,Math.max(W,H)*0.45);
+    const rc=hex(ACCENT[i%ACCENT.length]);
+    g.addColorStop(0,`rgba(${rc[0]},${rc[1]},${rc[2]},0.06)`);g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g;x.fillRect(0,0,W,H);}
+  for(const o of orbs){
+    const px=o.cx+o.ax*Math.cos(TAU*o.kx*u+o.px*TAU)+0.35*o.ax*Math.sin(TAU*(o.kx+1)*u);
+    const py=o.cy+o.ay*Math.sin(TAU*o.ky*u+o.py*TAU)+0.35*o.ay*Math.cos(TAU*(o.ky+1)*u);
+    const pulse=0.5+0.5*Math.sin(TAU*o.pk*u+o.pp*TAU);
+    const br=o.base*(0.7+0.6*pulse);
+    const[R,G,B]=o.rgb;
+    // soft defocused disc
+    const g=x.createRadialGradient(px,py,0,px,py,o.rad);
+    g.addColorStop(0,`rgba(${R},${G},${B},${br})`);
+    g.addColorStop(0.6,`rgba(${R},${G},${B},${br*0.45})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g;x.beginPath();x.arc(px,py,o.rad,0,TAU);x.fill();
+    // bright rim ring on some orbs (out-of-focus highlight edge)
+    if(o.rim){
+      x.lineWidth=Math.max(1.5,o.rad*0.07);
+      x.strokeStyle=`rgba(${Math.min(255,R+60)},${Math.min(255,G+60)},${Math.min(255,B+60)},${br*1.3})`;
+      x.beginPath();x.arc(px,py,o.rad*0.86,0,TAU);x.stroke();
+    }
+  }
+}
+addEventListener('resize',setup);setup();
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

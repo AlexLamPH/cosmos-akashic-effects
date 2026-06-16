@@ -1,0 +1,71 @@
+<!doctype html><meta charset=utf8><title>Cosmos Vinyl Record</title>
+<!-- Cosmos Vinyl Record — black disc with groove rings + accent label spinning under a tonearm, with a specular highlight sweeping; integer turns per LOOP, deterministic & seamless. -->
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0}</style>
+<canvas id=c></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7200;
+const TURNS=2;                    // integer disc revolutions per loop -> seamless
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+let cx,cy,R;
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cx=W/2;cy=H/2;R=Math.min(W,H)*0.40;}
+addEventListener('resize',resize);resize();
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  const rot=u*Math.PI*2*TURNS;
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  // black disc body with radial sheen
+  const body=ctx.createRadialGradient(cx-R*0.2,cy-R*0.2,R*0.1,cx,cy,R);
+  body.addColorStop(0,'#161320');body.addColorStop(0.7,'#0c0a14');body.addColorStop(1,'#070510');
+  ctx.fillStyle=body;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
+  // groove rings (concentric) — faint cosmic glow
+  ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<46;i++){
+    const rr=R*(0.30+i/46*0.66);
+    ctx.strokeStyle=i%6===0?PAL[1]:'#3a3550';
+    ctx.globalAlpha=i%6===0?0.16:0.10;
+    ctx.lineWidth=(i%6===0?1.4:0.8)*DPR;
+    ctx.beginPath();ctx.arc(cx,cy,rr,0,7);ctx.stroke();
+  }
+  // specular highlight sweeping across grooves: bright arc whose angle rotates once per loop
+  const hl=u*Math.PI*2;           // one full sweep per loop (independent of disc spin)
+  for(let s=-1;s<=1;s+=2){
+    ctx.globalAlpha=0.5;ctx.strokeStyle='#ffffff';ctx.lineWidth=R*0.10;
+    ctx.beginPath();ctx.arc(cx,cy,R*0.66,hl+s*0.18-0.5,hl+s*0.18+0.5);ctx.stroke();
+    ctx.globalAlpha=0.22;ctx.strokeStyle=PAL[0];ctx.lineWidth=R*0.20;
+    ctx.beginPath();ctx.arc(cx,cy,R*0.66,hl+s*0.18-0.6,hl+s*0.18+0.6);ctx.stroke();
+  }
+  // accent label (spins with disc): colored disc + radial marks so rotation reads
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(rot);
+  ctx.globalCompositeOperation='source-over';
+  const lab=ctx.createRadialGradient(0,0,0,0,0,R*0.30);
+  lab.addColorStop(0,PAL[2]);lab.addColorStop(0.6,PAL[0]);lab.addColorStop(1,'#1a1230');
+  ctx.fillStyle=lab;ctx.beginPath();ctx.arc(0,0,R*0.30,0,7);ctx.fill();
+  ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2;ctx.strokeStyle=PAL[5];ctx.globalAlpha=0.55;ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(Math.cos(a)*R*0.14,Math.sin(a)*R*0.14);ctx.lineTo(Math.cos(a)*R*0.27,Math.sin(a)*R*0.27);ctx.stroke();}
+  ctx.strokeStyle='#fff';ctx.globalAlpha=0.8;ctx.lineWidth=1.6*DPR;ctx.beginPath();ctx.arc(0,0,R*0.30,0,7);ctx.stroke();
+  ctx.restore();
+  // spindle hole
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle='#05030d';ctx.beginPath();ctx.arc(cx,cy,R*0.022,0,7);ctx.fill();
+  ctx.globalCompositeOperation='lighter';ctx.fillStyle='#fff';ctx.globalAlpha=0.7;ctx.beginPath();ctx.arc(cx,cy,R*0.012,0,7);ctx.fill();
+  // tonearm: pivot at top-right, arm resting on the record (static)
+  const px=cx+R*1.05, py=cy-R*0.95;
+  const tx=cx+R*0.62, ty=cy-R*0.18;      // needle contact point on grooves
+  ctx.globalCompositeOperation='lighter';
+  ctx.strokeStyle=PAL[1];ctx.globalAlpha=0.85;ctx.lineCap='round';ctx.lineWidth=5*DPR;
+  ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(tx,ty);ctx.stroke();
+  // headshell
+  ctx.strokeStyle=PAL[4];ctx.lineWidth=8*DPR;ctx.globalAlpha=0.9;
+  ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tx-R*0.10,ty+R*0.08);ctx.stroke();
+  // pivot base
+  const pg=ctx.createRadialGradient(px,py,0,px,py,R*0.16);pg.addColorStop(0,PAL[0]);pg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.globalAlpha=0.8;ctx.fillStyle=pg;ctx.beginPath();ctx.arc(px,py,R*0.16,0,7);ctx.fill();
+  ctx.fillStyle='#fff';ctx.globalAlpha=0.9;ctx.beginPath();ctx.arc(px,py,4*DPR,0,7);ctx.fill();
+  // needle contact glow
+  ctx.fillStyle=PAL[2];ctx.globalAlpha=0.8;ctx.beginPath();ctx.arc(tx-R*0.10,ty+R*0.08,5*DPR,0,7);ctx.fill();
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>

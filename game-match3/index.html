@@ -1,0 +1,264 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Match-3</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:540px;height:640px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 26px;pointer-events:none;}
+  #title{font-size:23px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:12px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 14px;text-align:center;min-width:60px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:20px;font-weight:800;color:#fff;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="540" height="640"></canvas>
+  <div id="hud"><div id="title">MATCH-3</div>
+    <div id="scores"><div class="box"><div class="lab">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="box"><div class="lab">MOVES</div><div class="val" id="moves">0</div></div></div></div>
+  <div id="over"><h1 id="otitle">OUT OF MOVES</h1><p id="fin">Score 0</p><button id="btn">Play Again ▸</button></div>
+  <div id="tip">Click/drag-swap adjacent gems · line up 3+ · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const N=8, BX=30, BY=120, BW=480, GAP=6, CS=(BW-GAP*(N+1))/N; // grid 8x8
+const COLORS=6;
+// Cosmos gem palette: violet, cosmic, nebula, aurora, solaris, sacred
+const GC=[ '#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a' ];
+const MOVES_LIMIT=30;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---------- grid helpers (flat N*N array, 0..COLORS-1, -1 empty) ----------
+function idx(r,c){return r*N+c;}
+function makeGrid(rnd){ // fill with no initial matches
+  const g=new Array(N*N).fill(-1);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    let v; let tries=0;
+    do{ v=(rnd()*COLORS)|0; tries++; }
+    while(tries<20 && ((c>=2&&g[idx(r,c-1)]===v&&g[idx(r,c-2)]===v)||(r>=2&&g[idx(r-1,c)]===v&&g[idx(r-2,c)]===v)));
+    g[idx(r,c)]=v;
+  }
+  return g;
+}
+function findMatches(g){ // returns Set of matched cell indices
+  const m=new Set();
+  for(let r=0;r<N;r++)for(let c=0;c<N-2;c++){ const v=g[idx(r,c)]; if(v<0)continue;
+    if(g[idx(r,c+1)]===v&&g[idx(r,c+2)]===v){ let k=c; while(k<N&&g[idx(r,k)]===v){m.add(idx(r,k));k++;} } }
+  for(let c=0;c<N;c++)for(let r=0;r<N-2;r++){ const v=g[idx(r,c)]; if(v<0)continue;
+    if(g[idx(r+1,c)]===v&&g[idx(r+2,c)]===v){ let k=r; while(k<N&&g[idx(k,c)]===v){m.add(idx(k,c));k++;} } }
+  return m;
+}
+function swap(g,a,b){ const t=g[a]; g[a]=g[b]; g[b]=t; }
+// drop tiles down to fill gaps; refill top from rnd. returns spawned mask (true if newly spawned)
+function collapse(g,rnd){ const spawned=new Array(N*N).fill(false);
+  for(let c=0;c<N;c++){ let write=N-1;
+    for(let r=N-1;r>=0;r--){ if(g[idx(r,c)]>=0){ g[idx(write,c)]=g[idx(r,c)]; if(write!==r){} write--; } }
+    for(let r=write;r>=0;r--){ g[idx(r,c)]=(rnd()*COLORS)|0; spawned[idx(r,c)]=true; }
+  }
+  return spawned;
+}
+// does swapping a,b create a match?
+function swapMakesMatch(g,a,b){ swap(g,a,b); const ok=findMatches(g).size>0; swap(g,a,b); return ok; }
+// list all valid swaps (adjacent pairs that create a match)
+function findValidSwaps(g){ const out=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    if(c<N-1){ const a=idx(r,c),b=idx(r,c+1); if(swapMakesMatch(g,a,b)) out.push([a,b]); }
+    if(r<N-1){ const a=idx(r,c),b=idx(r+1,c); if(swapMakesMatch(g,a,b)) out.push([a,b]); }
+  }
+  return out;
+}
+function idx2r(i){return (i/N)|0;} function idx2c(i){return i%N;}
+
+// ---------- AUTO: deterministic scripted run as timeline of phases ----------
+// Each "turn" = pick a seeded valid swap, then resolve cascades.
+// We precompute a list of FRAMES, each describing the board + an animated phase.
+// Phases: 'swap' (two gems trading places), 'pop' (matched gems shrinking),
+//         'fall' (collapse with gravity), each a snapshot we tween.
+const SWAP_MS=260, POP_MS=240, FALL_MS=300;
+function buildAuto(){
+  const rnd=mul(7731991); let g=makeGrid(rnd);
+  // clear any incidental matches first so we begin stable
+  let guard=0; while(findMatches(g).size && guard++<40){ const mm=findMatches(g); mm.forEach(i=>g[i]=-1); collapse(g,rnd); }
+  const phases=[]; let score=0; let moves=0;
+  function pushPop(before,matched,sc){ phases.push({kind:'pop',before:before.slice(),matched:new Set(matched),score:sc,moves}); }
+  for(let turn=0; turn<80 && moves<MOVES_LIMIT+8; turn++){
+    const swaps=findValidSwaps(g);
+    if(!swaps.length){ break; }
+    // deterministic pick: choose swap producing the largest immediate match, tie-break by index
+    let best=swaps[0],bestN=-1;
+    for(const s of swaps){ swap(g,s[0],s[1]); const n=findMatches(g).size; swap(g,s[0],s[1]);
+      if(n>bestN || (n===bestN && s[0]<best[0])){ bestN=n; best=s; } }
+    moves++;
+    // SWAP phase
+    const beforeSwap=g.slice();
+    phases.push({kind:'swap',before:beforeSwap.slice(),a:best[0],b:best[1],score,moves});
+    swap(g,best[0],best[1]);
+    // cascade loop
+    let cascade=0;
+    while(true){ const mm=findMatches(g); if(!mm.size)break;
+      const gained=mm.size*10*(1+cascade*0.5)|0; score+=gained;
+      pushPop(g,mm,score);
+      mm.forEach(i=>g[i]=-1);
+      const beforeFall=g.slice();
+      collapse(g,rnd);
+      phases.push({kind:'fall',before:beforeFall.slice(),after:g.slice(),score,moves});
+      cascade++;
+      if(cascade>12)break;
+    }
+  }
+  return {phases};
+}
+let AUTODATA=null;
+// total animated time and per-phase durations
+function phaseDur(p){ return p.kind==='swap'?SWAP_MS : p.kind==='pop'?POP_MS : FALL_MS; }
+function totalDur(){ let t=0; for(const p of AUTODATA.phases) t+=phaseDur(p); return t; }
+const START_OFFSET=2100; // ms — start mid-cascade so frame 0 is rich
+function simTo(ms){
+  if(!AUTODATA)AUTODATA=buildAuto();
+  const total=totalDur();
+  let m=((ms+START_OFFSET)%total+total)%total;
+  let i=0; while(i<AUTODATA.phases.length-1 && m>=phaseDur(AUTODATA.phases[i])){ m-=phaseDur(AUTODATA.phases[i]); i++; }
+  return {phase:AUTODATA.phases[i], p:Math.min(1,m/phaseDur(AUTODATA.phases[i]))};
+}
+
+// ---------- rendering ----------
+function cellXY(r,c){ return [BX+GAP+c*(CS+GAP), BY+GAP+r*(CS+GAP)]; }
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function clearBoard(){
+  x.clearRect(0,0,540,640);
+  const bg=x.createLinearGradient(0,0,0,640); bg.addColorStop(0,'#120c2c');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg; x.fillRect(0,0,540,640);
+  x.fillStyle='#15102e'; rr(BX,BY,BW,BW,16); x.fill();
+  x.strokeStyle='rgba(139,92,255,.18)'; x.lineWidth=1; rr(BX,BY,BW,BW,16); x.stroke();
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const[px,py]=cellXY(r,c);x.fillStyle='#191334';rr(px,py,CS,CS,9);x.fill();}
+}
+function drawGem(px,py,v,scale,alpha){
+  if(v<0)return; const col=GC[v]; const s=scale==null?1:scale; const a=alpha==null?1:alpha;
+  const sz=CS*s, off=(CS-sz)/2; const cx=px+CS/2, cy=py+CS/2;
+  x.save(); x.globalAlpha=a;
+  // glow
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(cx,cy,2,cx,cy,sz*0.8);
+  gg.addColorStop(0,hexA(col,0.5));gg.addColorStop(1,hexA(col,0));
+  x.fillStyle=gg; x.beginPath(); x.arc(cx,cy,sz*0.7,0,7); x.fill();
+  x.globalCompositeOperation='source-over';
+  // gem body
+  const r=sz*0.34;
+  const grad=x.createRadialGradient(cx-r*0.4,cy-r*0.4,1,cx,cy,r*1.4);
+  grad.addColorStop(0,'#ffffff'); grad.addColorStop(0.18,col); grad.addColorStop(1,hexA(col,0.65));
+  x.fillStyle=grad;
+  // rounded diamond-ish gem
+  x.beginPath();
+  const pts=6; for(let i=0;i<pts;i++){ const ang=-Math.PI/2 + i/pts*Math.PI*2; const rad=r*(i%2?0.86:1.0);
+    const gx=cx+Math.cos(ang)*rad, gy=cy+Math.sin(ang)*rad; i?x.lineTo(gx,gy):x.moveTo(gx,gy); }
+  x.closePath(); x.fill();
+  x.strokeStyle=hexA(col,0.9); x.lineWidth=1.5; x.stroke();
+  // sparkle
+  x.fillStyle='rgba(255,255,255,.85)'; x.beginPath(); x.arc(cx-r*0.32,cy-r*0.34,r*0.14,0,7); x.fill();
+  x.restore();
+}
+function ease(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+
+function drawGridStatic(g){ for(let r=0;r<N;r++)for(let c=0;c<N;c++){const[px,py]=cellXY(r,c);drawGem(px,py,g[idx(r,c)],1,1);} }
+
+function drawPhase(view){
+  clearBoard();
+  const ph=view.phase, p=view.p;
+  if(ph.kind==='swap'){
+    const g=ph.before; const e=ease(p);
+    const ar=idx2r(ph.a),ac=idx2c(ph.a),br=idx2r(ph.b),bc=idx2c(ph.b);
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const i=idx(r,c); if(i===ph.a||i===ph.b)continue; const[px,py]=cellXY(r,c); drawGem(px,py,g[i],1,1);}
+    const[ax,ay]=cellXY(ar,ac),[bx,by]=cellXY(br,bc);
+    drawGem(ax+(bx-ax)*e, ay+(by-ay)*e, g[ph.a],1,1);
+    drawGem(bx+(ax-bx)*e, by+(ay-by)*e, g[ph.b],1,1);
+  } else if(ph.kind==='pop'){
+    const g=ph.before; const pp=p;
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const i=idx(r,c); const[px,py]=cellXY(r,c);
+      if(ph.matched.has(i)){ const sc=(1-ease(pp))*1.0 + 0.18*Math.sin(pp*Math.PI)*1.4; drawGem(px,py,g[i],Math.max(0.01,1+0.25*Math.sin(pp*Math.PI)-ease(pp)),1-ease(pp)); }
+      else drawGem(px,py,g[i],1,1);
+    }
+  } else { // fall: animate from "before" (post-pop, gaps at top conceptually) to "after"
+    // We approximate gravity by sliding each column's after-state down into place.
+    const after=ph.after; const e=ease(p);
+    // For each column compute how the gems settle: gems fall from above. Simplest: fade-drop new tiles.
+    // Determine per-cell vertical offset by counting empties below in 'before'.
+    for(let c=0;c<N;c++){
+      // map: walk after column; tiles that came from collapse animate falling distance
+      for(let r=0;r<N;r++){ const i=idx(r,c); const v=after[i]; if(v<0)continue;
+        const[px,py]=cellXY(r,c);
+        // fall distance: number of rows it dropped ~ approximate as (r+1) easing for visual life; keep within board
+        const drop=(1-e)* (CS+GAP)*1.4;
+        drawGem(px,py-drop*Math.max(0,1- (r/N)), v, 1, e<0.15?e/0.15:1);
+      }
+    }
+  }
+  document.getElementById('score').textContent=ph.score;
+  document.getElementById('moves').textContent=Math.max(0,MOVES_LIMIT-ph.moves);
+}
+const LOOP=12000;
+function drawAt(ms){ if(!AUTODATA)AUTODATA=buildAuto(); drawPhase(simTo(ms)); }
+
+// ---------------- LIVE GAME ----------------
+let LG=null, anim=null, sel=null;
+function newGame(){ const rnd=Math.random; let g=makeGrid(rnd);
+  let guard=0; while(findMatches(g).size&&guard++<40){const mm=findMatches(g);mm.forEach(i=>g[i]=-1);collapse(g,rnd);}
+  LG={g,score:0,moves:0,over:false}; sel=null; anim=null;
+  document.getElementById('over').style.display='none'; renderLive(); }
+function renderLive(){ clearBoard(); drawGridStatic(LG.g);
+  if(sel!=null){ const[px,py]=cellXY(idx2r(sel),idx2c(sel)); x.strokeStyle='#fff'; x.lineWidth=3; rr(px-2,py-2,CS+4,CS+4,11); x.stroke(); }
+  document.getElementById('score').textContent=LG.score;
+  document.getElementById('moves').textContent=Math.max(0,MOVES_LIMIT-LG.moves); }
+function resolveLive(){ // run cascades immediately (animated minimally)
+  const rnd=Math.random; let cascade=0;
+  function step(){ const mm=findMatches(LG.g); if(!mm.size){ finishTurn(); return; }
+    LG.score+=mm.size*10*(1+cascade*0.5)|0; mm.forEach(i=>LG.g[i]=-1); renderLive();
+    setTimeout(()=>{ collapse(LG.g,rnd); cascade++; renderLive(); setTimeout(step,140); },140);
+  }
+  step();
+}
+function finishTurn(){ renderLive();
+  if(LG.moves>=MOVES_LIMIT || !findValidSwaps(LG.g).length){ LG.over=true;
+    document.getElementById('otitle').textContent=LG.moves>=MOVES_LIMIT?'OUT OF MOVES':'NO MATCHES LEFT';
+    document.getElementById('fin').textContent='Score '+LG.score;
+    document.getElementById('over').style.display='flex'; }
+}
+function trySwap(a,b){ if(LG.over||anim)return;
+  if(swapMakesMatch(LG.g,a,b)){ swap(LG.g,a,b); LG.moves++; sel=null; renderLive(); setTimeout(resolveLive,160); }
+  else { // invalid: brief flash then deselect
+    swap(LG.g,a,b); renderLive(); setTimeout(()=>{ swap(LG.g,a,b); sel=null; renderLive(); },180); }
+}
+function adjacent(a,b){ const ar=idx2r(a),ac=idx2c(a),br=idx2r(b),bc=idx2c(b); return Math.abs(ar-br)+Math.abs(ac-bc)===1; }
+function pickCell(clientX,clientY){ const rect=cv.getBoundingClientRect();
+  const sx=cv.width/rect.width, sy=cv.height/rect.height;
+  const mx=(clientX-rect.left)*sx, my=(clientY-rect.top)*sy;
+  const c=Math.floor((mx-BX-GAP)/(CS+GAP)), r=Math.floor((my-BY-GAP)/(CS+GAP));
+  if(r<0||r>=N||c<0||c>=N)return -1; return idx(r,c); }
+function initGame(){ newGame();
+  let down=null;
+  cv.addEventListener('pointerdown',e=>{ const i=pickCell(e.clientX,e.clientY); if(i<0)return; down=i;
+    if(sel==null){ sel=i; renderLive(); }
+    else if(sel===i){ sel=null; renderLive(); }
+    else if(adjacent(sel,i)){ trySwap(sel,i); }
+    else { sel=i; renderLive(); } });
+  cv.addEventListener('pointerup',e=>{ if(down==null)return; const i=pickCell(e.clientX,e.clientY);
+    if(i>=0 && i!==down && adjacent(down,i)){ sel=down; trySwap(down,i); } down=null; });
+  addEventListener('keydown',e=>{ if(e.key==='r'||e.key==='R')newGame(); });
+  document.getElementById('btn').addEventListener('click',ev=>{ev.stopPropagation();newGame();});
+  requestAnimationFrame(function loop(){ if(!anim) {} requestAnimationFrame(loop); });
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

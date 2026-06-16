@@ -1,0 +1,240 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Frogger</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:540px;height:640px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 24px;pointer-events:none;}
+  #title{font-size:24px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#36d39a,#46b4ff,#8b5cff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:10px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 12px;text-align:center;min-width:54px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:20px;font-weight:800;color:#fff;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.72);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;color:#ff5cc2;text-shadow:0 0 18px rgba(255,92,194,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #pad{position:absolute;bottom:46px;left:0;right:0;display:none;justify-content:center;gap:8px;}
+  @media(pointer:coarse){#pad{display:flex;}}
+  .pb{width:54px;height:46px;border:0;border-radius:12px;background:#1b1640;color:#cdbcff;font-size:20px;font-weight:800;
+    border:1px solid rgba(139,92,255,.3);}
+  #tip{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="540" height="640"></canvas>
+  <div id="hud"><div id="title">FROGGER</div>
+    <div id="scores"><div class="box"><div class="lab">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="box"><div class="lab">LIVES</div><div class="val" id="lives">3</div></div></div></div>
+  <div id="over"><h1 id="otitle">SPLAT</h1><p id="fin">Score 0</p><button id="btn">Play Again ▸</button></div>
+  <div id="pad">
+    <button class="pb" data-d="3">◀</button><button class="pb" data-d="2">▲</button>
+    <button class="pb" data-d="0">▼</button><button class="pb" data-d="1">▶</button></div>
+  <div id="tip">Arrows / WASD hop · reach the top · R to restart</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+// grid: 12 columns, rows = top goal + lanes + start
+const COLS=12, ROWS=14, BX=30, BY=110, CW=(540-60)/COLS, CH=(640-BY-30)/ROWS;
+// lane layout (row -> type). row 0 = goal bank. rows 1..5 river (logs). row 6 median. rows 7..12 road (hazards). row 13 start bank.
+// Each moving lane: {dir:+1/-1, speed(cells/sec), spacing, type:'car'|'log', colorIdx}
+const PAL=['#46b4ff','#8b5cff','#ff5cc2','#ff6a3d','#e0b24a','#36d39a'];
+const LANES={
+  1:{dir:1,speed:1.6,spacing:4,len:3,type:'log',c:5},
+  2:{dir:-1,speed:1.1,spacing:5,len:2,type:'log',c:0},
+  3:{dir:1,speed:2.0,spacing:5,len:2,type:'log',c:5},
+  4:{dir:-1,speed:1.4,spacing:4,len:3,type:'log',c:0},
+  5:{dir:1,speed:1.2,spacing:5,len:2,type:'log',c:5},
+  7:{dir:-1,speed:2.2,spacing:4,len:1,type:'car',c:3},
+  8:{dir:1,speed:1.5,spacing:5,len:1,type:'car',c:2},
+  9:{dir:-1,speed:2.6,spacing:6,len:1,type:'car',c:4},
+  10:{dir:1,speed:1.8,spacing:4,len:1,type:'car',c:1},
+  11:{dir:-1,speed:1.3,spacing:5,len:2,type:'car',c:3},
+  12:{dir:1,speed:2.4,spacing:5,len:1,type:'car',c:2},
+};
+const RIVER=new Set([1,2,3,4,5]), ROAD=new Set([7,8,9,10,11,12]);
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// continuous position of a lane's hazard pattern at time t(sec). Each lane has obstacles every `spacing` cells, length `len`.
+// offset is seeded per lane so patterns differ.
+const SEED=33344;
+const laneOff={};(function(){const r=mul(SEED);for(const k in LANES)laneOff[k]=r()*LANES[k].spacing;})();
+// returns list of obstacle x-intervals [start,end) in cell units (wrapped over COLS) at time t
+function laneObstacles(row,t){const L=LANES[row];const off=(laneOff[row]+L.dir*L.speed*t);
+  const obs=[]; // generate enough copies to cover [-len, COLS]
+  for(let base=-2;base<COLS+L.spacing;base+=L.spacing){
+    let s=((base+off)%(COLS+0))%COLS; // raw
+    // we just compute starts on an infinite line then mod
+    let start=base+off;
+    // normalize into a few wrapped instances
+    obs.push(start);
+  }
+  return obs;
+}
+// Whether cell (row,col) is covered by an obstacle at time t. Also returns drift (for logs) — frog rides logs.
+function obstacleAt(row,t,col){const L=LANES[row];const period=L.spacing;const off=laneOff[row]+L.dir*L.speed*t;
+  // obstacle starts at integer multiples of period + off. cell covered if (col - start) in [0,len)
+  // find k such that start=k*period+off <= col < start+len
+  // col - (k*period+off) in [0,len)  => k = floor((col-off)/period) and check
+  for(let d=-1;d<=1;d++){const k=Math.floor((col-off)/period)+d;const start=k*period+off;
+    if(col>=start && col<start+L.len)return start;}
+  return null;
+}
+
+// ---- frog state simulated deterministically. Hops are discrete; we record an AI path. ----
+// AI: from start row 13, hop up when the target cell is safe (road) or has a log (river); else wait.
+const HOP_MS=150, WAIT_MS=120, FROG_COL0=6;
+function safeRoad(row,t,col){return obstacleAt(row,t,col)===null;}
+function logUnder(row,t,col){return obstacleAt(row,t,col);} // truthy = log start (frog rides)
+
+function buildAuto(){
+  // simulate one full crossing producing keyframes {t, row, col(float), score}
+  const frames=[]; let t=0; let row=13, col=FROG_COL0; let score=0;
+  const STEP=0.04; // sec
+  let cross=0;
+  for(let iter=0;iter<2600 && cross<3;iter++){
+    // decide: try to hop up to row-1 at integer col rounded
+    const targetRow=row-1;
+    const ccol=Math.round(col);
+    let canHop=false, landCol=ccol;
+    if(targetRow===0){canHop=true;} // reach goal bank
+    else if(ROAD.has(targetRow)){canHop=safeRoad(targetRow,t+HOP_MS/1000,ccol);}
+    else if(targetRow===6){canHop=true;} // median safe
+    else if(RIVER.has(targetRow)){const lg=logUnder(targetRow,t+HOP_MS/1000,ccol);canHop=lg!==null;}
+    if(canHop){
+      // perform hop over HOP_MS
+      const fromRow=row,fromCol=col; const hsteps=Math.max(1,Math.round((HOP_MS/1000)/STEP));
+      for(let h=1;h<=hsteps;h++){t+=STEP; const p=h/hsteps;
+        let cc=fromCol; // if currently on a log, drift while hopping
+        frames.push({t,row:fromRow+(targetRow-fromRow)*p,col:cc,score});}
+      row=targetRow; col=ccol;
+      if(row===0){score+=100;cross++; // reached goal: respawn
+        // brief pause then reset to start
+        for(let h=0;h<8;h++){t+=STEP;frames.push({t,row:0,col,score});}
+        row=13;col=FROG_COL0;
+      }
+    } else {
+      // wait, but if on a log it drifts with the lane
+      const wsteps=Math.max(1,Math.round((WAIT_MS/1000)/STEP));
+      for(let h=0;h<wsteps;h++){t+=STEP;
+        if(RIVER.has(row)){const L=LANES[row];col+=L.dir*L.speed*STEP;
+          if(col<0)col=0; if(col>COLS-1)col=COLS-1;}
+        frames.push({t,row,col,score});}
+    }
+  }
+  return {frames,T:t};
+}
+
+let AUTODATA=null;
+const START_T=9.0; // sec offset so frame 0 is mid-crossing with score already on the board
+function frameAt(ms){
+  if(!AUTODATA)AUTODATA=buildAuto();
+  const F=AUTODATA.frames;const total=AUTODATA.T;
+  let tt=(((ms/1000)+START_T)%total+total)%total;
+  // binary-ish linear search
+  let lo=0,hi=F.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(F[mid].t<tt)lo=mid+1;else hi=mid;}
+  return {fr:F[lo],t:tt};
+}
+
+function cellXY(row,col){return [BX+col*CW, BY+row*CH];}
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function drawLanesBG(){
+  for(let row=0;row<ROWS;row++){const y=BY+row*CH;let col='#171232';
+    if(RIVER.has(row))col='#0e1f3a'; else if(ROAD.has(row))col='#15102a';
+    else if(row===0)col='#10301f'; else if(row===13)col='#10301f'; else if(row===6)col='#1d1640';
+    x.fillStyle=col;x.fillRect(BX,y,COLS*CW,CH);}
+  // goal slot highlight
+  x.strokeStyle='rgba(54,211,154,.5)';x.lineWidth=2;x.strokeRect(BX,BY,COLS*CW,CH);
+}
+function drawObstacle(row,t){const L=LANES[row];const acc=PAL[L.c];const off=laneOff[row]+L.dir*L.speed*t;
+  for(let k=-1;k<Math.ceil((COLS+L.len)/L.spacing)+1;k++){const start=k*L.spacing+off;
+    let s=start; // wrap visually: draw all copies that fall in view
+    const px=BX+((s%COLS+COLS)%COLS)*CW;const[X,Y]=cellXY(row,((s%COLS)+COLS)%COLS);const y=BY+row*CH;
+    // draw at real position with wrap copies
+    for(let w=-1;w<=1;w++){const cx=BX+(s+w*COLS)*CW;
+      if(cx>BX+COLS*CW||cx+L.len*CW<BX)continue;
+      x.save();
+      x.globalCompositeOperation='lighter';
+      const gg=x.createLinearGradient(cx,0,cx+L.len*CW,0);gg.addColorStop(0,hexA(acc,0.0));gg.addColorStop(.5,hexA(acc,0.25));gg.addColorStop(1,hexA(acc,0.0));
+      x.fillStyle=gg;x.fillRect(cx-4,y+1,L.len*CW+8,CH-2);
+      x.globalCompositeOperation='source-over';
+      const body=x.createLinearGradient(0,y,0,y+CH);body.addColorStop(0,hexA(acc,0.9));body.addColorStop(1,hexA(acc,0.55));
+      x.fillStyle=body;rr(cx+3,y+4,L.len*CW-6,CH-8,L.type==='log'?6:8);x.fill();
+      if(L.type==='car'){x.fillStyle='rgba(255,255,255,.7)';rr(cx+6,y+CH*0.34,L.len*CW-12,CH*0.18,3);x.fill();}
+      x.restore();}
+  }
+}
+function drawFrog(row,col){const[X,Y]=cellXY(row,col);const cx=X+CW/2,cy=Y+CH/2,r=Math.min(CW,CH)*0.34;
+  x.save();
+  x.globalCompositeOperation='lighter';
+  const gg=x.createRadialGradient(cx,cy,1,cx,cy,r*2.2);gg.addColorStop(0,hexA('#36d39a',0.6));gg.addColorStop(1,hexA('#36d39a',0));
+  x.fillStyle=gg;x.beginPath();x.arc(cx,cy,r*2.2,0,7);x.fill();
+  x.globalCompositeOperation='source-over';
+  x.fillStyle='#36d39a';x.beginPath();x.arc(cx,cy,r,0,7);x.fill();
+  x.fillStyle='#1aa377';x.beginPath();x.arc(cx,cy+r*0.2,r*0.7,0,7);x.fill();
+  // eyes
+  x.fillStyle='#eafff5';x.beginPath();x.arc(cx-r*0.45,cy-r*0.55,r*0.28,0,7);x.arc(cx+r*0.45,cy-r*0.55,r*0.28,0,7);x.fill();
+  x.fillStyle='#08110d';x.beginPath();x.arc(cx-r*0.45,cy-r*0.55,r*0.13,0,7);x.arc(cx+r*0.45,cy-r*0.55,r*0.13,0,7);x.fill();
+  x.restore();
+}
+function drawScene(t,frow,fcol,score,lives){
+  x.clearRect(0,0,540,640);
+  const bg=x.createLinearGradient(0,0,0,640);bg.addColorStop(0,'#120c2c');bg.addColorStop(1,'#0a0817');
+  x.fillStyle=bg;x.fillRect(0,0,540,640);
+  x.fillStyle='#0d0a1f';rr(BX-4,BY-4,COLS*CW+8,ROWS*CH+8,12);x.fill();
+  drawLanesBG();
+  for(const row in LANES)drawObstacle(+row,t);
+  drawFrog(frow,fcol);
+  document.getElementById('score').textContent=score;
+  document.getElementById('lives').textContent=lives;
+}
+function draw(view){drawScene(view.t,view.fr.row,view.fr.col,view.fr.score,3);}
+const LOOP=13000;
+function drawAt(ms){if(!AUTODATA)AUTODATA=buildAuto();draw(frameAt(ms));}
+
+// ---------------- LIVE GAME ----------------
+let LG=null;let lastTime=0;
+function newGame(){LG={row:13,col:FROG_COL0,score:0,lives:3,over:false,t0:performance.now(),baseT:0,riding:false};
+  document.getElementById('over').style.display='none';}
+function liveT(now){return LG.baseT+(now-LG.t0)/1000;}
+function resetFrog(){LG.row=13;LG.col=FROG_COL0;}
+function hop(dir){if(!LG||LG.over)return;let nr=LG.row,nc=Math.round(LG.col);
+  if(dir===2)nr--; else if(dir===0)nr++; else if(dir===3)nc--; else if(dir===1)nc++;
+  if(nr<0)nr=0; if(nr>13)nr=13; if(nc<0)nc=0; if(nc>COLS-1)nc=COLS-1;
+  LG.row=nr;LG.col=nc;
+  if(nr===0){LG.score+=100;resetFrog();}}
+function liveStep(now){
+  if(!LG)return; if(LG.over)return;
+  const t=liveT(now);
+  // river drift
+  if(RIVER.has(LG.row)){const lg=obstacleAt(LG.row,t,Math.round(LG.col));
+    if(lg===null){loseLife();return;} const L=LANES[LG.row];LG.col+=L.dir*L.speed*(1/60);
+    if(LG.col<0||LG.col>COLS-1){loseLife();return;}}
+  else if(ROAD.has(LG.row)){if(obstacleAt(LG.row,t,Math.round(LG.col))!==null){loseLife();return;}}
+}
+function loseLife(){LG.lives--; if(LG.lives<=0){LG.over=true;
+    document.getElementById('otitle').textContent='GAME OVER';
+    document.getElementById('fin').textContent='Score '+LG.score;
+    document.getElementById('over').style.display='flex';}
+  else resetFrog();}
+function liveLoop(now){
+  if(LG){liveStep(now);const t=liveT(now);
+    drawScene(t,LG.row,LG.col,LG.score,LG.lives);}
+  requestAnimationFrame(liveLoop);}
+function initGame(){newGame();
+  const DIRS={ArrowUp:2,KeyW:2,ArrowDown:0,KeyS:0,ArrowLeft:3,KeyA:3,ArrowRight:1,KeyD:1};
+  addEventListener('keydown',e=>{if(e.code in DIRS){e.preventDefault();hop(DIRS[e.code]);}
+    if(e.key==='r'||e.key==='R')newGame();});
+  document.querySelectorAll('.pb').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();hop(+b.dataset.d);}));
+  document.getElementById('btn').addEventListener('click',e=>{e.stopPropagation();newGame();});
+  requestAnimationFrame(liveLoop);}
+if(AUTO){window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP);window.__seek(0);window.__ready=true;}
+else{initGame();}
+</script></body></html>

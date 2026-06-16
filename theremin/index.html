@@ -1,0 +1,141 @@
+<!doctype html><meta charset=utf8><title>Cosmos Theremin</title>
+<!-- Cosmos Theremin — mouse X = pitch (scale-quantised), Y = volume; oscillator+gain make REAL sound on interaction. AUTO: a seeded hand glides a melody, silent & seamless. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font-family:ui-monospace,Menlo,monospace}
+canvas{position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);color:#46b4ff;
+  font-size:13px;letter-spacing:.5px;opacity:.8;pointer-events:none;text-shadow:0 0 12px #46b4ff88}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ move mouse to play · click to toggle on</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7000, TAU=Math.PI*2;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const ACC='#46b4ff';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// musical scale: minor pentatonic over ~2.5 octaves so any X sounds good
+const SEMIS=[0,3,5,7,10,12,15,17,19,22,24,27,29,31,34,36];
+const BASE=174.61; // F3
+function semiToFreq(s){return BASE*Math.pow(2,s/12);}
+// quantise a continuous note position (0..1) to nearest scale degree -> freq + degree index
+function posToNote(p){p=Math.max(0,Math.min(1,p));const f=p*(SEMIS.length-1);const i=Math.round(f);return {freq:semiToFreq(SEMIS[i]),idx:i,frac:f};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+
+// ---- seeded AUTO hand-path: a smooth melody tracing across the field ----
+const rng=mulberry32(20260615);
+const WP=[]; // waypoints in normalized field coords (x:pitch 0..1, y: 0=top loud .. 1=bottom quiet -> we use loud=high)
+for(let i=0;i<7;i++){WP.push({x:rng(),y:0.18+rng()*0.62});}
+function lerp(a,b,t){return a+(b-a)*t;}
+function smooth(t){return t*t*(3-2*t);}
+function autoHand(u){ // returns {px,py} normalized, looping; px->pitch, py-> volume axis (0 top..1 bottom)
+  const n=WP.length, s=u*n, i=Math.floor(s)%n, f=smooth(s-Math.floor(s));
+  const a=WP[i], b=WP[(i+1)%n];
+  return {px:lerp(a.x,b.x,f), py:lerp(a.y,b.y,f)};
+}
+
+// live interaction state
+let live={x:0.5,y:0.5,on:false,active:false}; // active = mouse has moved
+function render(u){
+  // determine hand position + note
+  let px,py;
+  if(typeof RENDER_LIVE!=='undefined' && RENDER_LIVE){ px=live.x; py=live.y; }
+  else { const h=autoHand(u); px=h.px; py=h.py; }
+  const note=posToNote(px);
+  const vol=1-py;                 // top = loud
+  const cx=px*W, cy=py*H;
+  // background wash
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  let bg=ctx.createRadialGradient(W*0.5,H*0.42,0,W*0.5,H*0.42,Math.max(W,H)*0.7);
+  bg.addColorStop(0,'#0c0a1e');bg.addColorStop(1,'#05030d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // field grid (subtle)
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=0.05;ctx.strokeStyle=ACC;ctx.lineWidth=1*DPR;
+  for(let gx=0;gx<=10;gx++){ctx.beginPath();ctx.moveTo(gx/10*W,0);ctx.lineTo(gx/10*W,H);ctx.stroke();}
+  // ---- vertical pitch ladder (right side) ----
+  const ladX=W-34*DPR;
+  for(let k=0;k<SEMIS.length;k++){
+    const ly=H*0.9 - (k/(SEMIS.length-1))*H*0.8;
+    const onLad=(k===note.idx);
+    ctx.globalAlpha=onLad?0.95:0.22;
+    ctx.strokeStyle=onLad?ACC:'#3a4a6a';ctx.lineWidth=(onLad?3:1.4)*DPR;
+    ctx.beginPath();ctx.moveTo(ladX,ly);ctx.lineTo(ladX+(onLad?22:12)*DPR,ly);ctx.stroke();
+    if(onLad){ctx.globalAlpha=0.6;ctx.fillStyle=ACC;ctx.beginPath();ctx.arc(ladX+22*DPR,ly,4*DPR,0,TAU);ctx.fill();}
+  }
+  // ---- flowing waveform reacting to the tone ----
+  // amplitude from volume, frequency from pitch; phase advances with u for live flow
+  const cycles=4+note.idx*0.9, amp=H*0.10*vol+H*0.012, midY=H*0.42, phase=u*TAU*6;
+  ctx.globalAlpha=0.85;ctx.lineWidth=2.4*DPR;ctx.strokeStyle=ACC;
+  ctx.shadowBlur=18*DPR;ctx.shadowColor=ACC;
+  ctx.beginPath();
+  for(let i=0;i<=160;i++){const t=i/160;const env=Math.sin(t*Math.PI);
+    const y=midY+Math.sin(t*TAU*cycles+phase)*amp*env + Math.sin(t*TAU*cycles*2+phase*1.5)*amp*0.3*env;
+    i?ctx.lineTo(t*W,y):ctx.moveTo(t*W,y);}
+  ctx.stroke();ctx.shadowBlur=0;
+  // secondary echo wave
+  ctx.globalAlpha=0.3;ctx.strokeStyle=PAL[0];ctx.lineWidth=1.4*DPR;ctx.beginPath();
+  for(let i=0;i<=160;i++){const t=i/160;const env=Math.sin(t*Math.PI);
+    const y=midY+Math.sin(t*TAU*cycles-phase*0.7)*amp*0.7*env;
+    i?ctx.lineTo(t*W,y):ctx.moveTo(t*W,y);}
+  ctx.stroke();
+  // ---- cursor halo ----
+  const haloR=(26+vol*46)*DPR;
+  let hg=ctx.createRadialGradient(cx,cy,0,cx,cy,haloR);
+  hg.addColorStop(0,'#ffffff');hg.addColorStop(0.25,ACC);hg.addColorStop(1,'rgba(70,180,255,0)');
+  ctx.globalAlpha=0.55+vol*0.35;ctx.fillStyle=hg;ctx.beginPath();ctx.arc(cx,cy,haloR,0,TAU);ctx.fill();
+  ctx.globalAlpha=0.95;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,4*DPR,0,TAU);ctx.fill();
+  // crosshair lines from cursor
+  ctx.globalAlpha=0.18;ctx.strokeStyle=ACC;ctx.lineWidth=1*DPR;
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  // ---- readout (top-left) ----
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;ctx.fillStyle=ACC;ctx.textBaseline='top';
+  ctx.font=(20*DPR)+'px ui-monospace,monospace';
+  ctx.fillText(note.freq.toFixed(1)+' Hz',18*DPR,16*DPR);
+  ctx.globalAlpha=0.7;ctx.font=(13*DPR)+'px ui-monospace,monospace';
+  const bars='█'.repeat(Math.round(vol*12)).padEnd(12,'·');
+  ctx.fillText('VOL '+bars,18*DPR,42*DPR);
+  ctx.fillText('PITCH '+(note.idx+1)+'/'+SEMIS.length,18*DPR,62*DPR);
+  ctx.globalAlpha=1;
+}
+
+// ================= LIVE AUDIO (gated) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  window.RENDER_LIVE=true;
+  let actx,osc,master,filt,vca,toggled=false;
+  function audio(){ if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();master.gain.value=0.2;
+    const comp=actx.createDynamicsCompressor();
+    filt=actx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=2400;
+    osc=actx.createOscillator();osc.type='sine';
+    vca=actx.createGain();vca.gain.value=0.0001;
+    osc.connect(filt);filt.connect(vca);vca.connect(master);master.connect(comp);comp.connect(actx.destination);
+    osc.start(); }
+    if(actx.state==='suspended')actx.resume(); return actx; }
+  function setTone(){ if(!actx)return; const note=posToNote(live.x); const vol=(1-live.y);
+    const tgt=(live.on?vol:0)*0.9+0.0001;
+    osc.frequency.setTargetAtTime(note.freq,actx.currentTime,0.03);
+    vca.gain.setTargetAtTime(tgt,actx.currentTime,0.04);
+    filt.frequency.setTargetAtTime(1200+vol*4200,actx.currentTime,0.05); }
+  function setLive(e){ const r=cv.getBoundingClientRect();
+    live.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    live.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+    live.active=true; setTone(); }
+  addEventListener('pointermove',e=>{ audio(); setLive(e); });
+  addEventListener('pointerdown',e=>{ audio(); live.on=!live.on; setLive(e);
+    hint.style.opacity=live.on?'0':'.8'; });
+  // live render loop — uses live cursor when active, else idle attract autoHand pattern
+  const s=performance.now();
+  (function l(n){
+    if(live.active){ render(0); }   // render reads live.* directly via RENDER_LIVE
+    else { window.RENDER_LIVE=false; render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); window.RENDER_LIVE=true; }
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script>

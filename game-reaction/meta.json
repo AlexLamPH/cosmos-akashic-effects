@@ -1,0 +1,12 @@
+{
+  "slug": "game-reaction",
+  "title": "Cosmos Reflex — tap glowing targets fast for reaction-time score",
+  "title_vi": "",
+  "W": 560, "H": 600, "LOOP": 11000, "N": 100,
+  "live_fit": true,
+  "tags": ["game","reaction","playable","interactive","arcade","canvas2d"],
+  "summary": "A real, self-contained reaction / target-tap game in a single HTML file with zero dependencies. Glowing Cosmos targets appear one at a time at seeded positions inside the playfield; you click or tap them as fast as you can for +10 each while a 20-second timer bar drains. The HUD tracks your live score, average reaction time in milliseconds, and accuracy, and a hit splash with the reaction time confirms every tap. Playable with mouse and touch. It also ships a deterministic self-playing attract demo for capture: a seeded cursor flies to each seeded target and taps it on a fixed reaction delay, rendered as a pure function of time via window.__seek(t).",
+  "usage_notes": "RUN: double-click index.html. CONTROLS: move the mouse / finger and click or tap the glowing target; missing the target counts against accuracy; R key or the Play-again button after the round ends. GOAL: tap as many targets as possible in the 20-second round — +10 per hit; the HUD shows SCORE, average reaction time (ms) and accuracy (%), and a shrinking arc shows each target's remaining life. KEY TECHNIQUES: the whole round is a fixed-timestep (16ms) deterministic simulation; each target's position and color come from a mulberry32-seeded stream keyed by target index and spawn times are evenly spaced, so AUTO replays identically; the scripted auto-player eases a crosshair cursor toward the current target and taps it on a fixed reaction delay, ticking score and reaction-time; AUTO re-simulates from a fixed initial state to t each seek so the frame is a pure function of time, with a START offset so frame 0 is already mid-round with score>0 and the cursor on a target. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: ROUND length, GAP (spawn interval), REACT (auto reaction delay), LIFE (target lifetime), RAD (target size), LOOP, and the START offset.",
+  "summary_vi": "",
+  "notes": ""
+}

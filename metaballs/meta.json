@@ -1,0 +1,11 @@
+{
+  "slug": "metaballs",
+  "title": "Cosmos Metaballs — gooey glowing blobs that float and fuse",
+  "title_vi": "Cosmos Metaballs — khối nhầy phát sáng trôi nổi và hợp nhất",
+  "W": 760, "H": 540, "LOOP": 7000, "N": 88,
+  "tags": ["metaballs","gooey","blobs","glow","organic","canvas2d"],
+  "summary": "Glowing organic blobs drift on looping sine paths and fuse into gooey shapes via a thresholded summed scalar field. Radial-gradient balls are accumulated additively at low offscreen resolution, the alpha field is hard-thresholded for the goo edge, then blurred and upscaled with Cosmos accent colours. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: blobs move on sin/cos(2pi*u*k) loops; their additive radial gradients sum into a field on a small offscreen canvas; getImageData thresholds the alpha (a<118 cut, >150 boosted) to create the fused goo edge; result is blurred and drawn twice with 'lighter' for bloom; mulberry32 seeds all blob params once. CAPTURE: ?auto=1 + window.__seek(t). TUNE: ball count, radius r, threshold (118/150), offscreen divisor, COLS palette, LOOP.",
+  "summary_vi": "Các khối hữu cơ phát sáng trôi theo quỹ đạo sin lặp và hợp nhất thành hình nhầy nhờ ngưỡng hóa trường vô hướng tổng. Các quả gradient tròn cộng dồn ở độ phân giải thấp ngoài màn hình, ngưỡng cứng trên alpha tạo viền nhầy, rồi làm mờ và phóng to với màu nhấn Cosmos. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
+  "notes": "Trường tổng cộng dồn additive, ngưỡng alpha tạo viền goo; chuyển động sin(2pi*u*k) nên loop liền; gieo bằng mulberry32."
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Pinwheel</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Pinwheel — a colourful pinwheel of curved blades spinning + breathing. Pure Canvas 2D, deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=5000,TAU=6.28318;
+let W,H,DPR,R;
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';R=Math.min(W,H)*0.4;}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#070514';x.fillRect(0,0,W,H);
+  x.save();x.translate(W/2,H/2);x.rotate(TAU*u);
+  const N=12, breathe=1+0.06*Math.sin(TAU*u*2), curl=0.55;
+  for(let i=0;i<N;i++){const a0=i/N*TAU, a1=(i+1)/N*TAU, c=AC[i%AC.length];const rr=R*breathe;
+    x.beginPath();x.moveTo(0,0);
+    // curved blade: from center, arc out with a swirl, back
+    const mx=Math.cos(a0+curl)*rr, my=Math.sin(a0+curl)*rr;
+    const ex=Math.cos(a0)*rr*0.5, ey=Math.sin(a0)*rr*0.5;
+    x.quadraticCurveTo(ex,ey,mx,my);
+    x.quadraticCurveTo(Math.cos(a0+curl*0.4)*rr*0.5,Math.sin(a0+curl*0.4)*rr*0.5,0,0);
+    const g=x.createRadialGradient(0,0,0,0,0,rr);
+    g.addColorStop(0,`rgba(${c[0]+40},${c[1]+40},${c[2]+40},0.95)`);g.addColorStop(1,`rgba(${c[0]*0.5|0},${c[1]*0.5|0},${c[2]*0.5|0},0.55)`);
+    x.fillStyle=g;x.fill();
+    x.strokeStyle=`rgba(255,255,255,0.12)`;x.lineWidth=1*DPR;x.stroke();}
+  x.restore();
+  // hub
+  x.save();x.globalCompositeOperation='lighter';
+  const hg=x.createRadialGradient(W/2,H/2,0,W/2,H/2,R*0.16);hg.addColorStop(0,'rgba(255,250,230,0.95)');hg.addColorStop(0.5,'rgba(255,160,210,0.5)');hg.addColorStop(1,'rgba(255,160,210,0)');
+  x.fillStyle=hg;x.beginPath();x.arc(W/2,H/2,R*0.16,0,TAU);x.fill();x.restore();}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

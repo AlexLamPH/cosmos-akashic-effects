@@ -1,0 +1,165 @@
+<!doctype html><meta charset=utf8><title>Cosmos FM Pad</title>
+<!-- Cosmos FM Pad — XY touch pad: X morphs FM timbre, Y morphs cutoff/pitch; real Web Audio FM synth on press+drag; AUTO is a silent seeded drift. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font:12px/1.4 system-ui,sans-serif;color:#b9a8ff}
+canvas{position:fixed;inset:0;touch-action:none}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);padding:7px 14px;border:1px solid #8b5cff55;border-radius:20px;background:#140e2acc;color:#cbbaff;letter-spacing:.3px;pointer-events:none;transition:opacity .4s}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ press &amp; drag the pad to play</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7200, TAU=Math.PI*2;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+
+// ---- shared XY state (0..1). px,py = cursor; trail of recent points ----
+let px=0.5, py=0.5, active=false;
+const TRAIL=46; let trail=[]; for(let i=0;i<TRAIL;i++)trail.push({x:0.5,y:0.5});
+
+// seeded AUTO drift: a smooth wandering path (sum of sines) across the pad
+function autoXY(u){
+  const a=TAU*u;
+  const x=0.5+0.34*Math.sin(a)+0.10*Math.sin(a*2.0+1.3);
+  const y=0.5+0.30*Math.cos(a*1.0+0.6)+0.12*Math.sin(a*3.0+2.1);
+  return [Math.min(0.98,Math.max(0.02,x)),Math.min(0.98,Math.max(0.02,y))];
+}
+// deterministic "spectrum" — looks like an FM tone whose brightness tracks X, pitch tracks Y
+function fakeSpectrum(u,x,y,n){
+  const idx=0.6+x*6;            // modulation index -> harmonic richness
+  const base=0.18+y*0.5;        // pitch -> peak position
+  const bars=new Float32Array(n);
+  for(let i=0;i<n;i++){ const f=i/n;
+    let v=Math.exp(-((f-base)*(f-base))/0.006);            // carrier peak
+    for(let k=1;k<=5;k++){ const amp=Math.pow(idx/(k+idx),1.4)/k;
+      v+=amp*Math.exp(-((f-base*(1+k*0.34))**2)/0.004); }  // FM sidebands
+    v*=(0.55+0.45*Math.sin(u*TAU*3+i*0.5+x*6));            // gentle animation
+    bars[i]=v;
+  }
+  return bars;
+}
+
+function render(u){
+  // choose source of XY: AUTO -> seeded drift; live idle -> same drift; live active -> real cursor (handled in pointer move which also pushes trail)
+  let x=px,y=py;
+  if(typeof window!=='undefined' && window.__driveAuto){ const p=autoXY(u); x=p[0];y=p[1]; trail.shift();trail.push({x,y}); }
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const pad=18*DPR, gx=pad,gy=pad,gw=W-pad*2,gh=H-pad*2;
+  // pad frame
+  ctx.globalAlpha=1;ctx.strokeStyle='#1b1638';ctx.lineWidth=1*DPR;
+  for(let i=0;i<=8;i++){ const t=i/8; ctx.globalAlpha=0.10;
+    ctx.beginPath();ctx.moveTo(gx+t*gw,gy);ctx.lineTo(gx+t*gw,gy+gh);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(gx,gy+t*gh);ctx.lineTo(gx+gw,gy+t*gh);ctx.stroke(); }
+  // background wash colored by XY
+  const c1=PAL[(x*3|0)%PAL.length], c2=PAL[2+ (y*2|0)%2];
+  let bg=ctx.createRadialGradient(gx+x*gw,gy+(1-y)*gh,4*DPR,gx+x*gw,gy+(1-y)*gh,gh*0.9);
+  bg.addColorStop(0,c1+'33');bg.addColorStop(1,'#05030d00');
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.9;ctx.fillStyle=bg;ctx.fillRect(gx,gy,gw,gh);
+
+  // spectrum across the bottom band, driven by XY (looks alive)
+  const N=64, sp=fakeSpectrum(u,x,y,N), bw=gw/N, bandH=gh*0.32, by=gy+gh-bandH*0.04;
+  let mx=0.0001; for(let i=0;i<N;i++) mx=Math.max(mx,sp[i]);
+  ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<N;i++){ const h=(sp[i]/mx)*bandH; const xx=gx+i*bw;
+    const col=PAL[(i*PAL.length/N|0)%PAL.length];
+    let g=ctx.createLinearGradient(0,by,0,by-h);g.addColorStop(0,col+'00');g.addColorStop(1,col);
+    ctx.globalAlpha=0.55;ctx.fillStyle=g;ctx.fillRect(xx+bw*0.12,by-h,bw*0.76,h);
+  }
+  // waveform line (carrier+modulator) mid-pad
+  ctx.globalAlpha=0.5;ctx.strokeStyle=c2;ctx.lineWidth=1.4*DPR;ctx.beginPath();
+  const idx=0.6+x*6, ratio=1+ (y*4|0);
+  for(let i=0;i<=200;i++){ const t=i/200; const carr=Math.sin(TAU*(6*t+u))*Math.cos(idx*Math.sin(TAU*(6*ratio*t+u)));
+    const yy=gy+gh*0.5 - carr*gh*0.14; const xx=gx+t*gw; if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy); }
+  ctx.stroke();
+
+  // glowing trail
+  ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<trail.length;i++){ const t=trail[i], a=i/trail.length;
+    const cxp=gx+t.x*gw, cyp=gy+(1-t.y)*gh, r=(1.5+a*9)*DPR;
+    let g=ctx.createRadialGradient(cxp,cyp,0,cxp,cyp,r*2.4);
+    g.addColorStop(0,c1+'cc');g.addColorStop(1,c1+'00');
+    ctx.globalAlpha=a*0.5;ctx.fillStyle=g;ctx.beginPath();ctx.arc(cxp,cyp,r*2.4,0,TAU);ctx.fill();
+  }
+  // cursor halo
+  const hx=gx+x*gw, hy=gy+(1-y)*gh, R=22*DPR;
+  let hg=ctx.createRadialGradient(hx,hy,0,hx,hy,R);
+  hg.addColorStop(0,'#ffffff');hg.addColorStop(0.25,c1);hg.addColorStop(1,c1+'00');
+  ctx.globalAlpha=0.95;ctx.fillStyle=hg;ctx.beginPath();ctx.arc(hx,hy,R,0,TAU);ctx.fill();
+  ctx.globalAlpha=0.8;ctx.strokeStyle='#fff';ctx.lineWidth=1.4*DPR;ctx.beginPath();ctx.arc(hx,hy,6*DPR,0,TAU);ctx.stroke();
+
+  // readout
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.8;ctx.fillStyle='#9b8aff';
+  ctx.font=(12*DPR)+'px system-ui';ctx.textBaseline='top';
+  ctx.fillText('FM idx '+idx.toFixed(1)+'   ratio '+ratio+':1   cutoff '+(200+y*6000|0)+'Hz', gx+6*DPR, gy+6*DPR);
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx, master, carrier, modGain, modOsc, filt, voiceGain;
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function startVoice(){
+  const a=audio();
+  master=a.createGain();master.gain.value=0.0;master.connect(a.destination);
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);
+  filt=a.createBiquadFilter();filt.type='lowpass';filt.frequency.value=1200;filt.Q.value=6;
+  voiceGain=a.createGain();voiceGain.gain.value=0.2;
+  carrier=a.createOscillator();carrier.type='sine';
+  modOsc=a.createOscillator();modOsc.type='sine';
+  modGain=a.createGain();modGain.gain.value=200;
+  modOsc.connect(modGain);modGain.connect(carrier.frequency);
+  carrier.connect(filt);filt.connect(voiceGain);voiceGain.connect(master);
+  carrier.start();modOsc.start();
+  master.gain.cancelScheduledValues(a.currentTime);
+  master.gain.setValueAtTime(0.0001,a.currentTime);
+  master.gain.exponentialRampToValueAtTime(0.2,a.currentTime+0.05); // attack, no click
+}
+function shapeVoice(x,y){
+  if(!actx)return; const a=actx, t=a.currentTime;
+  const note=36+Math.round(y*24);                 // pitch from Y, semitones from C2
+  const base=110*Math.pow(2,(note-45)/12);
+  const ratio=1+Math.round(y*4);
+  const idx=0.6+x*6;
+  carrier.frequency.setTargetAtTime(base,t,0.02);
+  modOsc.frequency.setTargetAtTime(base*ratio,t,0.02);
+  modGain.gain.setTargetAtTime(base*idx,t,0.03);  // modulation depth -> timbre
+  filt.frequency.setTargetAtTime(200+y*6000,t,0.03);
+}
+function release(){ if(!actx)return; const a=actx,t=a.currentTime;
+  master.gain.cancelScheduledValues(t);
+  master.gain.setValueAtTime(master.gain.value,t);
+  master.gain.exponentialRampToValueAtTime(0.0001,t+0.25); // release, no click
+}
+
+function setFromEvent(e){
+  const pad=18, gw=innerWidth-pad*2, gh=innerHeight-pad*2;
+  px=Math.min(1,Math.max(0,(e.clientX-pad)/gw));
+  py=Math.min(1,Math.max(0,1-(e.clientY-pad)/gh));
+  trail.shift();trail.push({x:px,y:py});
+}
+
+if(AUTO){
+  window.__driveAuto=true;
+  // prime the trail so frame 0 shows a populated drift (pre-roll the seeded path)
+  window.__seek=t=>{ const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+    // rebuild trail deterministically from the path leading up to u
+    const span=0.10; trail=[];
+    for(let i=0;i<TRAIL;i++){ const uu=((u-span+span*i/TRAIL)%1+1)%1; const p=autoXY(uu); trail.push({x:p[0],y:p[1]}); }
+    window.__driveAuto=false; render(u); window.__driveAuto=true; };
+  window.__seek(0); window.__ready=true;
+} else {
+  // live: real audio on first gesture; idle attract-loop runs the seeded drift until touched
+  window.__driveAuto=true;       // attract loop drives the demo path
+  cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId);
+    active=true; window.__driveAuto=false; hint.style.opacity='0';
+    setFromEvent(e); startVoice(); shapeVoice(px,py); });
+  cv.addEventListener('pointermove',e=>{ if(!active)return; setFromEvent(e); shapeVoice(px,py); });
+  const up=()=>{ if(!active)return; active=false; release(); setTimeout(()=>{window.__driveAuto=true;},300); };
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script>

@@ -1,0 +1,226 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Mini Sudoku</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#dcd6ff;-webkit-user-select:none;user-select:none;}
+  #wrap{position:relative;width:520px;height:620px;}
+  canvas{display:block;border-radius:18px;background:#0d0a1f;
+    box-shadow:0 0 0 1px rgba(139,92,255,.25),0 18px 60px rgba(0,0,0,.6),0 0 80px rgba(139,92,255,.06) inset;}
+  #hud{position:absolute;top:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 26px;pointer-events:none;}
+  #title{font-size:22px;font-weight:800;letter-spacing:1px;
+    background:linear-gradient(135deg,#46b4ff,#8b5cff,#ff5cc2);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #scores{display:flex;gap:10px;}
+  .box{background:#15102e;border:1px solid rgba(139,92,255,.3);border-radius:10px;padding:6px 12px;text-align:center;min-width:54px;}
+  .box .lab{font-size:10px;letter-spacing:1px;color:#8b5cff;}
+  .box .val{font-size:19px;font-weight:800;color:#fff;}
+  #over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(10,8,22,.74);border-radius:18px;backdrop-filter:blur(2px);text-align:center;}
+  #over h1{margin:0 0 6px;font-size:28px;color:#36d39a;text-shadow:0 0 18px rgba(54,211,154,.6);}
+  #over p{margin:4px 0;font-size:14px;color:#b6aee8;}
+  #btn{margin-top:14px;padding:11px 26px;border:0;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;
+    color:#0a0816;background:linear-gradient(135deg,#46b4ff,#8b5cff);box-shadow:0 0 24px rgba(139,92,255,.5);}
+  #tip{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:#6f68a8;pointer-events:none;}
+</style></head>
+<body><div id="wrap">
+  <canvas id="c" width="520" height="620"></canvas>
+  <div id="hud"><div id="title">MINI SUDOKU</div>
+    <div id="scores"><div class="box"><div class="lab">FILLED</div><div class="val" id="filled">0</div></div>
+    <div class="box"><div class="lab">LEFT</div><div class="val" id="left">0</div></div></div></div>
+  <div id="over"><h1 id="otitle">SOLVED!</h1><p id="fin">Nice work</p><button id="btn">New Puzzle ▸</button></div>
+  <div id="tip">Tap a cell then a number 1-6 (or press keys 1-6) · R new puzzle</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+// 6x6 sudoku, regions 2 rows x 3 cols
+const N=6, RB=3, CB=2; // region: 2 rows tall, 3 cols wide
+const BX=40, BY=120, BW=440, CS=BW/N;            // grid
+const PADY=BY+BW+22, PADH=70, PADW=BW, PADX=BX;  // number pad below grid
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---------- solver / generator ----------
+function id(r,c){return r*N+c;}
+function regOf(r,c){return ((r/RB|0)*0)+((Math.floor(r/2))*2 + Math.floor(c/3));}
+// region index: rows grouped by 2, cols grouped by 3 -> 6 regions of 2x3
+function regIdx(r,c){ return (Math.floor(r/2))* (N/3) + Math.floor(c/3); }
+function valid(g,r,c,v){
+  for(let i=0;i<N;i++){ if(g[id(r,i)]===v||g[id(i,c)]===v) return false; }
+  const r0=Math.floor(r/2)*2, c0=Math.floor(c/3)*3;
+  for(let rr=0;rr<2;rr++)for(let cc=0;cc<3;cc++){ if(g[id(r0+rr,c0+cc)]===v) return false; }
+  return true;
+}
+function solve(g,rnd){ // fills first empty deterministically
+  const i=g.indexOf(0); if(i<0)return true;
+  const r=(i/N|0), c=i%N;
+  const nums=[1,2,3,4,5,6];
+  // shuffle by rnd for variety (deterministic given seed)
+  for(let k=nums.length-1;k>0;k--){ const j=(rnd()*(k+1))|0; const t=nums[k];nums[k]=nums[j];nums[j]=t; }
+  for(const v of nums){ if(valid(g,r,c,v)){ g[i]=v; if(solve(g,rnd))return true; g[i]=0; } }
+  return false;
+}
+function genPuzzle(seed, clues){
+  const rnd=mul(seed);
+  const sol=new Array(N*N).fill(0); solve(sol,rnd);
+  // dig holes: keep ~`clues` givens, deterministic order
+  const order=[]; for(let i=0;i<N*N;i++)order.push(i);
+  for(let k=order.length-1;k>0;k--){ const j=(rnd()*(k+1))|0; const t=order[k];order[k]=order[j];order[j]=t; }
+  const puzzle=sol.slice();
+  let removed=0; const target=N*N-clues;
+  for(const i of order){ if(removed>=target)break; puzzle[i]=0; removed++; }
+  const given=puzzle.map(v=>v!==0);
+  return {sol,puzzle,given};
+}
+
+// ---------- AUTO: deterministic fill-in attract demo ----------
+const PUZSEED=70423, CLUES=14, STEP_MS=520;
+let AD=null;
+function buildAuto(){
+  const {sol,puzzle,given}=genPuzzle(PUZSEED,CLUES);
+  // order of empty cells to fill: row-major (deterministic), reveal one at a time
+  const empties=[]; for(let i=0;i<N*N;i++) if(!given[i]) empties.push(i);
+  return {sol,puzzle,given,empties};
+}
+const LOOP=12000;
+// frame0 offset: start partway so board is partly filled
+const START_OFFSET=3200;
+function drawAt(ms){
+  if(!AD)AD=buildAuto();
+  const total=AD.empties.length*STEP_MS + 1400; // small pause at end before loop
+  let m=((ms+START_OFFSET)%total+total)%total;
+  const k=Math.min(AD.empties.length, Math.floor(m/STEP_MS)); // how many empties filled
+  const inStep=(m - k*STEP_MS)/STEP_MS; // 0..1 within current placement
+  // build view grid
+  const grid=AD.puzzle.slice();
+  for(let e=0;e<k;e++){ const i=AD.empties[e]; grid[i]=AD.sol[i]; }
+  const curCell = (k<AD.empties.length) ? AD.empties[k] : -1;
+  const filledCount = CLUES + k;
+  renderBoard(grid, AD.given, curCell, inStep, filledCount, null, k>=AD.empties.length);
+}
+
+// ---------- rendering ----------
+const NUMCOL=['','#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function bg(){
+  x.clearRect(0,0,520,620);
+  const g=x.createLinearGradient(0,0,0,620); g.addColorStop(0,'#120c2c');g.addColorStop(1,'#0a0817');
+  x.fillStyle=g; x.fillRect(0,0,520,620);
+}
+// renderBoard: grid values, given mask, current highlighted cell, pulse 0..1, filledCount, conflicts Set|null, solved
+function renderBoard(grid,given,cur,pulse,filledCount,conflicts,solved){
+  bg();
+  // board backdrop
+  x.fillStyle='#15102e'; rr(BX-6,BY-6,BW+12,BW+12,16); x.fill();
+  x.strokeStyle='rgba(139,92,255,.18)'; x.lineWidth=1; rr(BX-6,BY-6,BW+12,BW+12,16); x.stroke();
+  // cells
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const px=BX+c*CS, py=BY+r*CS, i=id(r,c);
+    const isCur = (i===cur);
+    x.fillStyle = isCur ? hexA('#8b5cff', 0.18+0.16*(pulse!=null?Math.sin(pulse*Math.PI):1))
+                : given[i] ? '#191334' : '#13102a';
+    rr(px+2,py+2,CS-4,CS-4,8); x.fill();
+    const conf = conflicts && conflicts.has(i);
+    if(conf){ x.fillStyle=hexA('#ff5cc2',0.25); rr(px+2,py+2,CS-4,CS-4,8); x.fill(); }
+    if(isCur){ x.strokeStyle=hexA('#8b5cff',0.95); x.lineWidth=2.5; rr(px+2,py+2,CS-4,CS-4,8); x.stroke(); }
+    const v=grid[i];
+    if(v){
+      const col = given[i] ? '#cfe3ff' : (conf?'#ff5cc2':NUMCOL[v]);
+      x.save();
+      let sc=1;
+      if(isCur && pulse!=null){ sc=0.4+0.6*Math.min(1,pulse*1.6); x.globalAlpha=Math.min(1,pulse*2); }
+      x.font=(given[i]?'800 ':'700 ')+Math.round(CS*0.5*sc)+'px system-ui,sans-serif';
+      x.textAlign='center'; x.textBaseline='middle';
+      if(!given[i]){ x.shadowColor=hexA(col,0.7); x.shadowBlur=10; }
+      x.fillStyle=col; x.fillText(String(v), px+CS/2, py+CS/2+1);
+      x.restore();
+      if(given[i]){ // small lock dot
+        x.fillStyle=hexA('#8b5cff',0.5); x.beginPath(); x.arc(px+CS-9,py+9,2.2,0,7); x.fill();
+      }
+    }
+  }
+  // region borders (thick) — every 2 rows, every 3 cols
+  x.strokeStyle=hexA('#8b5cff',0.55); x.lineWidth=2.5;
+  for(let r=0;r<=N;r+=2){ x.beginPath(); x.moveTo(BX,BY+r*CS); x.lineTo(BX+BW,BY+r*CS); x.stroke(); }
+  for(let c=0;c<=N;c+=3){ x.beginPath(); x.moveTo(BX+c*CS,BY); x.lineTo(BX+c*CS,BY+BW); x.stroke(); }
+  // thin internal grid
+  x.strokeStyle=hexA('#8b5cff',0.16); x.lineWidth=1;
+  for(let r=1;r<N;r++) if(r%2){ x.beginPath(); x.moveTo(BX,BY+r*CS); x.lineTo(BX+BW,BY+r*CS); x.stroke(); }
+  for(let c=1;c<N;c++) if(c%3){ x.beginPath(); x.moveTo(BX+c*CS,BY); x.lineTo(BX+c*CS,BY+BW); x.stroke(); }
+
+  // number pad
+  const pw=PADW/6;
+  for(let n=1;n<=6;n++){
+    const px=PADX+(n-1)*pw, py=PADY;
+    x.fillStyle='#191334'; rr(px+4,py,pw-8,PADH,12); x.fill();
+    x.strokeStyle=hexA(NUMCOL[n],0.5); x.lineWidth=1.5; rr(px+4,py,pw-8,PADH,12); x.stroke();
+    x.fillStyle=NUMCOL[n]; x.font='800 30px system-ui,sans-serif'; x.textAlign='center'; x.textBaseline='middle';
+    x.shadowColor=hexA(NUMCOL[n],0.6); x.shadowBlur=8;
+    x.fillText(String(n), px+pw/2, py+PADH/2+1); x.shadowBlur=0;
+  }
+  document.getElementById('filled').textContent=filledCount;
+  const totalEmpties=N*N-CLUES;
+  document.getElementById('left').textContent=Math.max(0, totalEmpties-(filledCount-CLUES));
+}
+
+// ---------------- LIVE GAME ----------------
+let LG=null, selN=0;
+function newGame(){
+  const seed=(Math.random()*1e9)|0;
+  const {sol,puzzle,given}=genPuzzle(seed, 12+((Math.random()*4)|0));
+  LG={sol,grid:puzzle.slice(),given,sel:-1,conflicts:new Set(),flash:0,over:false};
+  document.getElementById('over').style.display='none'; renderLive();
+}
+function countFilled(){ let n=0; for(let i=0;i<N*N;i++) if(LG.grid[i]) n++; return n; }
+function recomputeConflicts(){ const conf=new Set();
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){ const i=id(r,c), v=LG.grid[i]; if(!v)continue;
+    // temporarily remove and test
+    LG.grid[i]=0; if(!valid(LG.grid,r,c,v)) conf.add(i); LG.grid[i]=v; }
+  return conf;
+}
+function isSolved(){ for(let i=0;i<N*N;i++) if(LG.grid[i]!==LG.sol[i]) return false; return true; }
+function renderLive(){
+  const cur = LG.sel;
+  renderBoard(LG.grid, LG.given, cur, null, countFilled(), LG.conflicts, false);
+  if(LG.flash>0){ /* conflict flash handled by conflicts set */ }
+}
+function placeNum(v){ if(LG.over||LG.sel<0) return; const i=LG.sel; if(LG.given[i]) return;
+  if(LG.grid[i]===v){ LG.grid[i]=0; } else { LG.grid[i]=v; }
+  LG.conflicts=recomputeConflicts(); renderLive();
+  if(LG.conflicts.size){ LG.flash=1; setTimeout(()=>{LG.flash=0;},420); }
+  if(LG.conflicts.size===0 && countFilled()===N*N && isSolved()){ win(); }
+}
+function win(){ LG.over=true;
+  document.getElementById('otitle').textContent='SOLVED!';
+  document.getElementById('fin').textContent='Every row, column and region has 1–6';
+  document.getElementById('over').style.display='flex';
+}
+function pick(clientX,clientY){ const rect=cv.getBoundingClientRect();
+  const sx=cv.width/rect.width, sy=cv.height/rect.height;
+  const mx=(clientX-rect.left)*sx, my=(clientY-rect.top)*sy;
+  // grid?
+  if(mx>=BX && mx<BX+BW && my>=BY && my<BY+BW){
+    const c=Math.floor((mx-BX)/CS), r=Math.floor((my-BY)/CS);
+    return {type:'cell', i:id(r,c)};
+  }
+  // pad?
+  if(my>=PADY && my<PADY+PADH && mx>=PADX && mx<PADX+PADW){
+    const n=Math.floor((mx-PADX)/(PADW/6))+1; if(n>=1&&n<=6) return {type:'pad', n};
+  }
+  return null;
+}
+function initGame(){ newGame();
+  cv.addEventListener('pointerdown',e=>{ const h=pick(e.clientX,e.clientY); if(!h)return;
+    if(h.type==='cell'){ if(!LG.given[h.i]) LG.sel=h.i; renderLive(); }
+    else if(h.type==='pad'){ placeNum(h.n); }
+  });
+  addEventListener('keydown',e=>{
+    if(e.key==='r'||e.key==='R'){ newGame(); return; }
+    if(e.key>='1'&&e.key<='6'){ placeNum(+e.key); }
+    if(e.key==='Backspace'||e.key==='Delete'||e.key==='0'){ if(LG.sel>=0&&!LG.given[LG.sel]){ LG.grid[LG.sel]=0; LG.conflicts=recomputeConflicts(); renderLive(); } }
+  });
+  document.getElementById('btn').addEventListener('click',ev=>{ev.stopPropagation();newGame();});
+}
+if(AUTO){ window.__seek=t=>drawAt(((t%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { initGame(); }
+</script></body></html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Harp Strings</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}
+canvas{display:block;position:fixed;inset:0}
+#hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);color:#9fe6c8;font:13px/1.4 system-ui,sans-serif;
+opacity:.7;letter-spacing:.04em;pointer-events:none;text-shadow:0 0 8px rgba(54,211,154,.6)}</style></head>
+<body><canvas id="c"></canvas><div id="hint">▶ click / drag across the strings to HEAR them</div><script>
+// Cosmos Harp Strings — ~8 vertical strings tuned to a pentatonic scale. Drag/click across them to pluck notes via a
+// Karplus-Strong-style noise burst through a tuned comb/lowpass (koto/harp). LIVE: real Web Audio. AUTO: silent seeded glissando.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto');
+const LOOP=6000,TAU=6.28318530718,N=8;
+// major pentatonic over an octave+ : pleasant glissando
+const SCALE=[0,2,4,7,9,12,14,16],BASE=261.63; // C4
+function freq(i){return BASE*Math.pow(2,SCALE[i]/12);}
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let W,H,DPR,m,topY,botY,sx=[];
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  m=W*0.12;topY=H*0.10;botY=H*0.90;sx=[];
+  for(let i=0;i<N;i++)sx.push(m+(W-2*m)*i/(N-1));}
+rs();addEventListener('resize',rs);
+// per-string excitation: {t0} when last plucked (ms in loop time). For live we store performance.now()%LOOP.
+const live=new Array(N).fill(-1e9);
+// ---- audio (live only) Karplus-Strong-ish pluck ----
+let actx,master;
+function audio(){if(!actx){actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();
+  master.gain.value=0.2;const comp=actx.createDynamicsCompressor();master.connect(comp);comp.connect(actx.destination);}
+  if(actx.state==='suspended')actx.resume();return actx;}
+function pluck(f){const a=audio(),t=a.currentTime;
+  // short filtered-noise burst (excitation) + comb-like delay feedback for the string resonance
+  const dur=1.6,sr=a.sampleRate,len=Math.floor(0.03*sr);
+  const buf=a.createBuffer(1,len,sr),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+  const src=a.createBufferSource();src.buffer=buf;
+  const delay=a.createDelay(0.02);delay.delayTime.value=1/f;          // tuned to the pitch
+  const fb=a.createGain();fb.gain.value=0.965;                         // string decay
+  const damp=a.createBiquadFilter();damp.type='lowpass';damp.frequency.value=Math.min(f*8,7000);
+  const g=a.createGain();
+  src.connect(delay);delay.connect(damp);damp.connect(fb);fb.connect(delay); // feedback loop
+  delay.connect(g);src.connect(g);g.connect(master);
+  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.9,t+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0008,t+dur);
+  src.start(t);src.stop(t+0.04);}
+function hex(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+const AUR=hex('#36d39a'),COS=hex('#46b4ff'),WARM=hex('#e0b24a');
+const VIB_MS=1400; // visual vibration/glow duration
+// excitation amount 0..1 for a string at loop time tNow (live plucks)
+function liveExc(i,tNow){let age=tNow-live[i];if(age<0)age+=LOOP;if(age>VIB_MS)return 0;return 1-age/VIB_MS;}
+// AUTO: deterministic glissando — the "strum point" sweeps across strings; each string excites as the sweep crosses it.
+// sweep position in string-index space, ping-ponging for a back-and-forth glissando.
+function sweepPos(u){const p=u*2;const tri=p<1?p:2-p;return tri*(N-1);} // 0..N-1..0
+function autoExc(i,u){
+  // distance (in u) since the sweep last crossed string i, on a triangle path. Approximate with time-since-cross.
+  // Compute the sweep value now and a small step back to know direction & proximity.
+  const pos=sweepPos(u);
+  // proximity bloom: how close the sweep head is to string i, plus a decaying trail behind it.
+  const dist=Math.abs(pos-i);
+  let v=Math.max(0,1-dist*0.9);              // sharp peak as head crosses
+  // trailing decay: strings the sweep already passed keep glowing briefly
+  const pos2=sweepPos((u-VIB_MS/LOOP+1)%1);
+  const passed=Math.abs(pos2-i);
+  v=Math.max(v,Math.max(0,1-passed*0.9)*0.55);
+  return Math.min(1,v);
+}
+function render(u){
+  const tNow=u*LOOP;
+  // AUTO pluck triggers handled deterministically below; LIVE plucks come from pointer.
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const vg=x.createRadialGradient(W/2,H*0.4,0,W/2,H*0.4,Math.max(W,H)*0.7);
+  vg.addColorStop(0,'rgba(30,90,70,0.16)');vg.addColorStop(1,'rgba(54,211,154,0)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  // frame / soundboard
+  x.strokeStyle='rgba(224,178,74,0.30)';x.lineWidth=4*DPR;
+  x.beginPath();x.moveTo(m*0.55,topY-8*DPR);x.lineTo(W-m*0.55,topY-8*DPR);x.stroke();
+  x.beginPath();x.moveTo(m*0.55,botY+8*DPR);x.lineTo(W-m*0.55,botY+8*DPR);x.stroke();
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<N;i++){
+    const X=sx[i];
+    const e=AUTO?autoExc(i,u):liveExc(i,tNow);
+    // vibrating string: a sine standing wave whose amplitude = excitation
+    const amp=e*Math.min(W,H)*0.022;const phase=tNow*0.04+i;
+    const col=e>0.02?(i%2?COS:AUR):[150,140,200];
+    const a=0.28+0.6*e;
+    x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;x.lineWidth=(1.2+2.6*e)*DPR;
+    x.beginPath();
+    const steps=24;
+    for(let s=0;s<=steps;s++){const ty=s/steps,Y=topY+(botY-topY)*ty;
+      const env=Math.sin(Math.PI*ty);             // pinned at both ends
+      const off=amp*env*Math.sin(phase+ty*TAU*1.5);
+      if(s===0)x.moveTo(X+off,Y);else x.lineTo(X+off,Y);}
+    x.stroke();
+    // bright core
+    x.strokeStyle=`rgba(255,255,255,${a*0.35})`;x.lineWidth=0.8*DPR;
+    x.beginPath();
+    for(let s=0;s<=steps;s++){const ty=s/steps,Y=topY+(botY-topY)*ty;
+      const env=Math.sin(Math.PI*ty);const off=amp*env*Math.sin(phase+ty*TAU*1.5);
+      if(s===0)x.moveTo(X+off,Y);else x.lineTo(X+off,Y);}
+    x.stroke();
+    // glow halo when plucked
+    if(e>0.02){const cy=(topY+botY)/2;const R=Math.min(W,H)*0.08*(0.4+e);
+      const gr=x.createRadialGradient(X,cy,0,X,cy,R);
+      gr.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},${0.5*e})`);
+      gr.addColorStop(1,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+      x.fillStyle=gr;x.beginPath();x.arc(X,cy,R,0,TAU);x.fill();
+    }
+  }
+  // AUTO sweep head indicator (a soft glow tracing the glissando)
+  if(AUTO){const pos=sweepPos(u);const X=m+(W-2*m)*pos/(N-1);const cy=(topY+botY)/2;
+    const gr=x.createRadialGradient(X,cy,0,X,cy,Math.min(W,H)*0.14);
+    gr.addColorStop(0,'rgba(255,255,255,0.20)');gr.addColorStop(0.4,'rgba(54,211,154,0.16)');gr.addColorStop(1,'rgba(54,211,154,0)');
+    x.fillStyle=gr;x.beginPath();x.arc(X,cy,Math.min(W,H)*0.14,0,TAU);x.fill();}
+  x.globalCompositeOperation='source-over';
+}
+// ---- live interaction: click/drag across strings strums them ----
+if(!AUTO){
+  let down=false,lastStr=-1;
+  function strAt(ev){const rect=cv.getBoundingClientRect();const mx=(ev.clientX-rect.left)*DPR;
+    let best=-1,bd=1e9;for(let i=0;i<N;i++){const d=Math.abs(sx[i]-mx);if(d<bd){bd=d;best=i;}}
+    return bd< (W/N)*0.6?best:-1;}
+  function strum(i){if(i<0||i===lastStr)return;lastStr=i;live[i]=performance.now()%LOOP;pluck(freq(i));}
+  cv.addEventListener('pointerdown',ev=>{audio();down=true;lastStr=-1;strum(strAt(ev));
+    document.getElementById('hint').style.opacity=0;});
+  cv.addEventListener('pointermove',ev=>{if(down)strum(strAt(ev));});
+  addEventListener('pointerup',()=>{down=false;lastStr=-1;});
+}
+// ---- boilerplate ----
+if(AUTO){
+  // offset so t=0 is mid-strum (sweep partway across, several strings vibrating)
+  const OFF=LOOP*0.18;
+  window.__seek=t=>render(((((t+OFF)%LOOP)+LOOP)%LOOP)/LOOP);
+  window.__seek(0);window.__ready=true;
+}else{
+  const s=performance.now();
+  (function l(n){render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);requestAnimationFrame(l);})(performance.now());
+}
+</script></body></html>

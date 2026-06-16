@@ -1,0 +1,217 @@
+<!doctype html><meta charset=utf8><title>Cosmos Bass Sequencer</title>
+<!-- Cosmos Bass Sequencer — 16-step acid bassline: saw through a resonant lowpass with per-step pitch/accent/slide; real Web Audio on play; AUTO is a silent seeded riff. -->
+<style>
+html,body{margin:0;background:#05030d;overflow:hidden;font:12px/1.4 system-ui,sans-serif;color:#b9a8ff}
+canvas{position:fixed;inset:0;touch-action:none}
+#hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);padding:7px 14px;border:1px solid #36d39a55;border-radius:20px;background:#0c1a16cc;color:#9beecb;letter-spacing:.3px;pointer-events:none;transition:opacity .4s}
+</style>
+<canvas id=c></canvas>
+<div id=hint>▶ press SPACE to play · click steps · drag note pitch</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),hint=document.getElementById('hint');
+let DPR=Math.max(1,Math.min(2,devicePixelRatio||1)),W,H;
+const LOOP=7680, TAU=Math.PI*2, STEPS=16;
+const PAL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#ff6a3d','#e0b24a'];
+const ACC='#36d39a';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function resize(){W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;}
+addEventListener('resize',resize);resize();
+
+// --- seeded acid pattern: minor pentatonic scale over 2 octaves ---
+const SCALE=[0,3,5,7,10];           // minor pentatonic semitone offsets
+const ROOT=28;                      // MIDI-ish root (E1-ish region)
+let pat=[];
+(function(){ const r=mulberry32(20260615);
+  for(let i=0;i<STEPS;i++){
+    const on=r()<0.72;
+    const deg=(r()*SCALE.length)|0, oct=(r()<0.35?1:0);
+    const semi=SCALE[deg]+12*oct;
+    pat.push({on, semi, accent:r()<0.3, slide:r()<0.22});
+  }
+})();
+// global knob values (0..1)
+let knobCut=0.55, knobRes=0.7;
+
+// per-step cutoff envelope target for the visible "wah" (deterministic)
+function stepCut(i,u){
+  const p=pat[i]; if(!p.on)return 0.12;
+  // accent opens the filter more; a little LFO motion across the loop
+  const base=knobCut*(0.5+(p.accent?0.45:0.18));
+  return Math.min(1,base+0.10*Math.sin(u*TAU*2+i*0.6));
+}
+
+function knob(cx,cy,r,val,col,label){
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;ctx.fillStyle='#0c0a18';ctx.beginPath();ctx.arc(cx,cy,r,0,TAU);ctx.fill();
+  ctx.globalAlpha=0.5;ctx.strokeStyle='#2a2350';ctx.lineWidth=2*DPR;ctx.stroke();
+  const a0=TAU*0.35, a1=TAU*0.65; const ang=a0+(a1-a0)*val + Math.PI*1.5; // sweep
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=0.9;ctx.strokeStyle=col;ctx.lineWidth=3*DPR;ctx.beginPath();
+  ctx.arc(cx,cy,r,Math.PI*0.75,Math.PI*0.75+(Math.PI*1.5)*val);ctx.stroke();
+  ctx.globalAlpha=0.95;ctx.strokeStyle='#fff';ctx.lineWidth=2*DPR;ctx.beginPath();
+  const ind=Math.PI*0.75+(Math.PI*1.5)*val;ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ind)*r*0.8,cy+Math.sin(ind)*r*0.8);ctx.stroke();
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.75;ctx.fillStyle='#9b8aff';
+  ctx.font=(11*DPR)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText(label,cx,cy+r+4*DPR);ctx.textAlign='left';
+}
+
+function render(u){
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.fillStyle='#05030d';ctx.fillRect(0,0,W,H);
+  const pad=22*DPR;
+  const gridY=pad+30*DPR, gridH=H-gridY-110*DPR, gridX=pad, gridW=W-pad*2;
+  const sw=gridW/STEPS;
+  const cur=u*STEPS;                 // playhead position in steps (float)
+  const curI=(cur|0)%STEPS;
+
+  // title
+  ctx.globalAlpha=0.85;ctx.fillStyle='#9beecb';ctx.font=(13*DPR)+'px system-ui';ctx.textBaseline='top';
+  ctx.fillText('ACID BASSLINE · 16 steps', gridX, pad);
+
+  // pitch-lane rows (faint) — 10 lanes
+  const ROWS=10;
+  ctx.globalCompositeOperation='lighter';
+  for(let r=0;r<=ROWS;r++){ ctx.globalAlpha=0.06;ctx.strokeStyle=PAL[1];ctx.lineWidth=1*DPR;
+    const yy=gridY+gridH*r/ROWS;ctx.beginPath();ctx.moveTo(gridX,yy);ctx.lineTo(gridX+gridW,yy);ctx.stroke(); }
+
+  // glowing cutoff "wah" curve sweeping along the row of steps
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=0.5;ctx.strokeStyle=ACC;ctx.lineWidth=2*DPR;ctx.beginPath();
+  for(let i=0;i<=STEPS;i++){ const ii=i%STEPS; const cutv=stepCut(ii,u);
+    const xx=gridX+i*sw; const yy=gridY+gridH*(1-cutv);
+    if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy); }
+  ctx.stroke();
+  // fill under the wah curve as a soft glow band
+  let wg=ctx.createLinearGradient(0,gridY,0,gridY+gridH);wg.addColorStop(0,ACC+'00');wg.addColorStop(1,ACC+'22');
+  ctx.globalAlpha=0.4;ctx.fillStyle=wg;ctx.beginPath();ctx.moveTo(gridX,gridY+gridH);
+  for(let i=0;i<=STEPS;i++){ const ii=i%STEPS; const cutv=stepCut(ii,u);ctx.lineTo(gridX+i*sw,gridY+gridH*(1-cutv)); }
+  ctx.lineTo(gridX+gridW,gridY+gridH);ctx.closePath();ctx.fill();
+
+  // steps
+  for(let i=0;i<STEPS;i++){ const p=pat[i]; const x=gridX+i*sw;
+    const isCur=(i===curI);
+    // step column background
+    ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=(i%4===0)?0.20:0.10;ctx.fillStyle='#1a1430';
+    ctx.fillRect(x+1*DPR,gridY,sw-2*DPR,gridH);
+    if(p.on){
+      // note block height from pitch
+      const rng=SCALE[SCALE.length-1]+12;
+      const ny=gridY+gridH*(1-(p.semi/rng));
+      const nh=Math.max(8*DPR,gridH*0.07);
+      const col=p.accent?ACC:PAL[0];
+      ctx.globalCompositeOperation='lighter';
+      let g=ctx.createLinearGradient(0,ny-nh,0,ny+nh);g.addColorStop(0,col+'33');g.addColorStop(0.5,col);g.addColorStop(1,col+'33');
+      ctx.globalAlpha=isCur?1:0.8;ctx.fillStyle=g;
+      ctx.fillRect(x+sw*0.18,ny-nh/2,sw*0.64,nh);
+      // slide marker — a connecting tail to next step
+      if(p.slide){ ctx.globalAlpha=0.6;ctx.strokeStyle=col;ctx.lineWidth=2*DPR;
+        ctx.beginPath();ctx.moveTo(x+sw*0.82,ny);ctx.lineTo(x+sw*1.1,ny);ctx.stroke(); }
+      // accent dot
+      if(p.accent){ ctx.globalAlpha=0.95;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+sw*0.5,gridY+gridH-7*DPR,3*DPR,0,TAU);ctx.fill(); }
+    }
+    // step border
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.3;ctx.strokeStyle='#2a2350';ctx.lineWidth=1*DPR;
+    ctx.strokeRect(x+1*DPR,gridY,sw-2*DPR,gridH);
+  }
+
+  // playhead sweep
+  const phx=gridX+(cur%STEPS)*sw;
+  ctx.globalCompositeOperation='lighter';
+  let pg=ctx.createLinearGradient(phx-sw*0.5,0,phx+sw*0.5,0);pg.addColorStop(0,ACC+'00');pg.addColorStop(0.5,ACC+'66');pg.addColorStop(1,ACC+'00');
+  ctx.globalAlpha=0.8;ctx.fillStyle=pg;ctx.fillRect(phx-sw*0.5,gridY,sw,gridH);
+  ctx.globalAlpha=0.95;ctx.strokeStyle='#fff';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(phx,gridY-6*DPR);ctx.lineTo(phx,gridY+gridH+6*DPR);ctx.stroke();
+  // current-step cutoff glow blob (the audible "wah" made visible)
+  const cutv=stepCut(curI,u);
+  const by=gridY+gridH*(1-cutv);
+  let bg=ctx.createRadialGradient(phx,by,0,phx,by,40*DPR);
+  bg.addColorStop(0,'#ffffff');bg.addColorStop(0.2,ACC);bg.addColorStop(1,ACC+'00');
+  ctx.globalAlpha=0.6+0.3*Math.sin(u*TAU*8);ctx.fillStyle=bg;ctx.beginPath();ctx.arc(phx,by,40*DPR,0,TAU);ctx.fill();
+
+  // knobs
+  const ky=H-58*DPR;
+  knob(gridX+40*DPR,ky,26*DPR,knobCut,PAL[2],'CUTOFF');
+  knob(gridX+130*DPR,ky,26*DPR,knobRes,PAL[0],'RESO');
+  // mini waveform (saw) reacting to current cutoff
+  ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.5;ctx.strokeStyle=PAL[1];ctx.lineWidth=1.4*DPR;ctx.beginPath();
+  const wx=gridX+200*DPR, ww=W-gridX-200*DPR-pad, wy=ky;
+  for(let i=0;i<=160;i++){ const t=i/160; let s=2*((t*6+u)%1)-1; // saw
+    s*= (0.4+cutv*0.6); const yy=wy - s*22*DPR; const xx=wx+t*ww; if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy); }
+  ctx.stroke();
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+}
+
+// ================= LIVE AUDIO (gated, gesture-created) =================
+const AUTO=new URLSearchParams(location.search).has('auto');
+let actx, master, playing=false, schedTimer=null, step16=0, nextTime=0;
+const STEP_DUR=(LOOP/STEPS)/1000;   // seconds per step (matches visual tempo)
+function audio(){ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();} if(actx.state==='suspended')actx.resume(); return actx; }
+function ensureMaster(){ if(master)return; const a=audio();
+  master=a.createGain();master.gain.value=0.2;
+  const comp=a.createDynamicsCompressor();master.connect(comp);comp.connect(a.destination);
+}
+function playStep(i,when){
+  const a=actx,p=pat[i]; if(!p.on)return;
+  const note=ROOT+p.semi;
+  const f=27.5*Math.pow(2,(note-21)/12);
+  const osc=a.createOscillator();osc.type='sawtooth';osc.frequency.setValueAtTime(f,when);
+  const filt=a.createBiquadFilter();filt.type='lowpass';
+  const peak=200+ knobCut*5000*(p.accent?1.5:1);
+  const reso=2+knobRes*22;
+  filt.Q.setValueAtTime(reso,when);
+  // filter envelope = the acid "wah"
+  filt.frequency.setValueAtTime(200,when);
+  filt.frequency.linearRampToValueAtTime(peak,when+0.02);
+  filt.frequency.exponentialRampToValueAtTime(Math.max(200,peak*0.3),when+STEP_DUR*0.9);
+  const g=a.createGain();const amp=p.accent?0.9:0.6;
+  g.gain.setValueAtTime(0.0001,when);
+  g.gain.exponentialRampToValueAtTime(amp,when+0.005);            // attack, no click
+  g.gain.exponentialRampToValueAtTime(0.0001,when+STEP_DUR*(p.slide?1.1:0.95)); // release
+  osc.connect(filt);filt.connect(g);g.connect(master);
+  osc.start(when);osc.stop(when+STEP_DUR*1.2);
+}
+function scheduler(){
+  const a=actx;
+  while(nextTime < a.currentTime+0.1){
+    playStep(step16,nextTime);
+    nextTime+=STEP_DUR; step16=(step16+1)%STEPS;
+  }
+  schedTimer=setTimeout(scheduler,25);
+}
+function togglePlay(){
+  ensureMaster();
+  if(playing){ playing=false; clearTimeout(schedTimer); }
+  else { playing=true; step16=0; nextTime=actx.currentTime+0.05; scheduler(); hint.style.opacity='0'; }
+}
+
+function hitGrid(e){
+  const pad=22, gridX=pad, gridW=innerWidth-pad*2, sw=gridW/STEPS;
+  const gridY=pad+30, gridH=innerHeight-gridY-110;
+  const x=e.clientX-gridX, y=e.clientY-gridY;
+  if(x<0||x>gridW||y<0||y>gridH)return false;
+  const i=Math.min(STEPS-1,Math.max(0,(x/sw)|0));
+  if(e.shiftKey || e.type==='pointermove'){
+    // set pitch by vertical position
+    const rng=SCALE[SCALE.length-1]+12;
+    const semi=Math.round((1-y/gridH)*rng);
+    // snap to nearest scale tone
+    let best=SCALE[0],bd=99; for(let o=0;o<2;o++)for(const s of SCALE){const v=s+12*o;if(Math.abs(v-semi)<bd){bd=Math.abs(v-semi);best=v;}}
+    pat[i].semi=best; pat[i].on=true;
+  } else {
+    pat[i].on=!pat[i].on;
+  }
+  return true;
+}
+
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0); window.__ready=true;
+} else {
+  let dragging=false;
+  cv.addEventListener('pointerdown',e=>{ audio(); dragging=hitGrid(e); if(dragging)cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove',e=>{ if(dragging){ e.shiftKey=true; hitGrid(e); } });
+  cv.addEventListener('pointerup',()=>{dragging=false;});
+  addEventListener('keydown',e=>{ if(e.code==='Space'){ e.preventDefault(); audio(); togglePlay(); } });
+  const s=performance.now();
+  (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l); })(performance.now());
+}
+</script>

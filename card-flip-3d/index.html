@@ -1,0 +1,104 @@
+<!-- Cosmos Card Flip 3D: a single card flips about its vertical axis (hand-rolled perspective foreshortening); front shows a glowing emblem + accent gradient, back a subtle pattern; two flips per LOOP returning to start, with soft shadow/glow. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Card Flip 3D</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),TAU=Math.PI*2;
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0xCA2DF11);
+const COL=['#8b5cff','#46b4ff','#ff5cc2','#36d39a','#e0b24a'];
+// seeded sparkle field + back-face pattern dots (computed once)
+const STARS=[];for(let i=0;i<64;i++)STARS.push({a:rnd()*TAU,d:0.5+rnd()*0.9,s:0.5+rnd()*1.6,c:COL[i%5],ph:rnd()});
+const DOTS=[];for(let i=0;i<40;i++)DOTS.push({u:rnd(),v:rnd(),r:0.6+rnd()*1.2,ph:rnd()});
+const F=3.2; // perspective focal distance for foreshortening scale=F/(F+z)
+function frame(t){
+  const LOOP=8000,u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.setTransform(DPR,0,0,DPR,0,0);x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,CW=Math.min(W,H)*0.30,CH=CW*1.42; // card half-width, half-height
+  // ambient backdrop glow + sparkle field (additive)
+  x.globalCompositeOperation='lighter';
+  let bg=x.createRadialGradient(cx,cy,0,cx,cy,CW*3.2);
+  bg.addColorStop(0,'rgba(139,92,255,0.20)');bg.addColorStop(0.5,'rgba(70,180,255,0.07)');bg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  for(const s of STARS){const rad=CW*(1.5+s.d*1.2),px=cx+Math.cos(s.a)*rad,py=cy+Math.sin(s.a)*rad*0.95;
+    const tw=0.4+0.6*Math.sin(TAU*(u+s.ph));x.globalAlpha=0.18+0.4*tw;x.fillStyle=s.c;
+    x.beginPath();x.arc(px,py,s.s*(0.7+tw),0,TAU);x.fill();}
+  x.globalAlpha=1;
+  // two full flips per loop, returning to start: angle = 2*pi*2*u about the vertical (Y) axis
+  const ang=TAU*2*u, ca=Math.cos(ang), sa=Math.sin(ang);
+  // card lies in plane z = ±x_local*sin(ang); project two horizontal edges x=±CW with depth.
+  const zEdge=CW*sa;                 // depth of the +x edge (the -x edge has -zEdge)
+  const scR=F/(F+zEdge), scL=F/(F+ -zEdge); // perspective foreshorten per edge
+  const xR=cx+CW*ca*scR, xL=cx-CW*ca*scL;    // projected screen x of right/left edges
+  const yTR=cy-CH*scR,yBR=cy+CH*scR,yTL=cy-CH*scL,yBL=cy+CH*scL; // top/bottom y per edge
+  const facing=ca>=0?1:-1;           // +1 front visible, -1 back visible
+  const vis=Math.abs(ca);            // how face-on the card is (0=edge-on,1=flat)
+  // soft drop shadow on the floor plane, squashed by foreshorten
+  x.globalCompositeOperation='source-over';
+  let sh=x.createRadialGradient(cx,cy+CH*1.18,0,cx,cy+CH*1.18,CW*1.5);
+  sh.addColorStop(0,'rgba(0,0,0,'+(0.42*vis+0.06)+')');sh.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=sh;x.save();x.translate(cx,cy+CH*1.18);x.scale(1,0.26);x.beginPath();x.arc(0,0,CW*(0.7+0.7*vis),0,TAU);x.fill();x.restore();
+  // helper: map local (lx in -1..1, ly in -1..1) to screen via lerp of the two edges
+  const mapX=lx=>{const s=(lx+1)/2;return xL+(xR-xL)*s;};
+  const mapTop=lx=>{const s=(lx+1)/2;return yTL+(yTR-yTL)*s;};
+  const mapBot=lx=>{const s=(lx+1)/2;return yBL+(yBR-yBL)*s;};
+  const P=(lx,ly)=>{const sy=(ly+1)/2;return [mapX(lx),mapTop(lx)+(mapBot(lx)-mapTop(lx))*sy];};
+  // clip to the card quad
+  function quad(){x.beginPath();let p=P(-1,-1);x.moveTo(p[0],p[1]);p=P(1,-1);x.lineTo(p[0],p[1]);p=P(1,1);x.lineTo(p[0],p[1]);p=P(-1,1);x.lineTo(p[0],p[1]);x.closePath();}
+  if(vis>0.02){
+    x.save();quad();x.clip();
+    if(facing>0){ // FRONT: accent gradient + glowing emblem
+      const c0=P(-1,-1),c1=P(1,1);
+      let g=x.createLinearGradient(c0[0],c0[1],c1[0],c1[1]);
+      g.addColorStop(0,'#1a0f3a');g.addColorStop(0.5,'#2a1b5e');g.addColorStop(1,'#120a2e');
+      x.fillStyle=g;quad();x.fill();
+      // additive accent sheen sweeping with the flip
+      x.globalCompositeOperation='lighter';
+      const ec=P(0,0);
+      let ag=x.createRadialGradient(ec[0],ec[1],0,ec[0],ec[1],CW*1.4);
+      ag.addColorStop(0,'rgba(139,92,255,'+(0.5*vis)+')');ag.addColorStop(0.5,'rgba(70,180,255,'+(0.18*vis)+')');ag.addColorStop(1,'rgba(5,3,13,0)');
+      x.fillStyle=ag;quad();x.fill();
+      // glowing emblem: a six-point starburst at card center, foreshortened with the face
+      const ctr=P(0,0),sp=Math.hypot(P(0.5,0)[0]-ctr[0],P(0.5,0)[1]-ctr[1])*1.4;
+      let eg=x.createRadialGradient(ctr[0],ctr[1],0,ctr[0],ctr[1],sp);
+      eg.addColorStop(0,'rgba(255,255,255,'+(0.85*vis)+')');eg.addColorStop(0.35,'rgba(224,178,74,'+(0.5*vis)+')');eg.addColorStop(1,'rgba(5,3,13,0)');
+      x.fillStyle=eg;x.beginPath();x.arc(ctr[0],ctr[1],sp,0,TAU);x.fill();
+      x.strokeStyle='rgba(255,230,170,'+(0.85*vis)+')';x.lineWidth=2.2;x.lineCap='round';
+      for(let k=0;k<6;k++){const r1=0.0,r2=0.62,A=TAU*k/6;
+        const a=P(Math.cos(A)*r1,Math.sin(A)*r1),b=P(Math.cos(A)*r2,Math.sin(A)*r2*0.7);
+        x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+      x.fillStyle='rgba(255,255,255,'+(0.9*vis)+')';x.beginPath();x.arc(ctr[0],ctr[1],3.5*vis+1,0,TAU);x.fill();
+    } else { // BACK: subtle dotted/woven pattern
+      const c0=P(-1,-1),c1=P(1,1);
+      let g=x.createLinearGradient(c0[0],c0[1],c1[0],c1[1]);
+      g.addColorStop(0,'#0d1430');g.addColorStop(0.5,'#13234a');g.addColorStop(1,'#0a1026');
+      x.fillStyle=g;quad();x.fill();
+      x.globalCompositeOperation='lighter';
+      for(const d of DOTS){const lx=d.u*2-1,ly=d.v*2-1,p=P(lx,ly);
+        const tw=0.5+0.5*Math.sin(TAU*(u*2+d.ph));x.globalAlpha=(0.12+0.22*tw)*vis;
+        x.fillStyle=COL[1];x.beginPath();x.arc(p[0],p[1],d.r*vis+0.4,0,TAU);x.fill();}
+      x.globalAlpha=1;
+      // faint border frame
+      x.strokeStyle='rgba(70,180,255,'+(0.3*vis)+')';x.lineWidth=1.6;
+      const b0=P(-0.8,-0.85),b1=P(0.8,-0.85),b2=P(0.8,0.85),b3=P(-0.8,0.85);
+      x.beginPath();x.moveTo(b0[0],b0[1]);x.lineTo(b1[0],b1[1]);x.lineTo(b2[0],b2[1]);x.lineTo(b3[0],b3[1]);x.closePath();x.stroke();
+    }
+    x.restore();
+    // glowing rim around the card edges (additive)
+    x.globalCompositeOperation='lighter';
+    x.strokeStyle=facing>0?'rgba(139,92,255,'+(0.55*vis+0.1)+')':'rgba(70,180,255,'+(0.5*vis+0.1)+')';
+    x.lineWidth=2.4+2*vis;x.lineJoin='round';quad();x.stroke();
+    x.strokeStyle='rgba(255,255,255,'+(0.25*vis)+')';x.lineWidth=1;quad();x.stroke();
+  } else {
+    // near edge-on: bright thin sliver of light
+    x.globalCompositeOperation='lighter';
+    x.strokeStyle='rgba(255,255,255,0.7)';x.lineWidth=3;x.lineCap='round';
+    x.beginPath();x.moveTo(cx,cy-CH);x.lineTo(cx,cy+CH);x.stroke();
+  }
+  x.globalCompositeOperation='source-over';x.globalAlpha=1;
+}
+const AUTO=new URLSearchParams(location.search).has('auto'); if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

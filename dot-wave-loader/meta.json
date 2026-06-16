@@ -1,0 +1,11 @@
+{
+  "slug": "dot-wave-loader",
+  "title": "Cosmos Dot Wave Loader — a grid of glowing dots rippling in a travelling wave",
+  "title_vi": "Cosmos Dot Wave Loader — lưới chấm sáng gợn sóng lan truyền",
+  "W": 560, "H": 560, "LOOP": 2600, "N": 36,
+  "tags": ["loader","wave","dots","idle","glow","canvas2d"],
+  "summary": "A clean idle/loader animation: an 11x5 grid of glowing dots where a travelling sine wave drives each dot's scale, vertical bob, brightness and colour. The per-dot phase offset (index*PHASE) makes the crest sweep across the grid, while integer-multiple frequency guarantees frame(0)==frame(LOOP). Each dot renders additively as halo+core+highlight, colour rolling through the Cosmos accents. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
+  "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each dot's wave phase = 2PI*u*K + index*PHASE; K is an integer so the whole field returns to its start at u=1 (seamless loop). scale, vertical lift and alpha are all sin/cos of that single phase, giving a coherent travelling wave; index = i + j*COLS so the crest sweeps left-to-right and row-by-row. Colour interpolates cyclically through the Cosmos accents (lerpC wraps). Drawn with globalCompositeOperation='lighter' as halo+core+white highlight. Seeded mulberry32 supplies tiny per-dot size jitter at setup only. CAPTURE: ?auto=1 + window.__seek(t). TUNE: COLS/ROWS grid size, K wave frequency, PHASE wave tightness, LOOP speed, AC palette.",
+  "summary_vi": "Animation loader/idle gọn gàng: lưới 11x5 chấm sáng, một sóng sin lan truyền điều khiển kích thước, độ nhún, độ sáng và màu của từng chấm. Độ lệch pha theo chỉ số (index*PHASE) khiến đỉnh sóng quét qua lưới, tần số bội nguyên đảm bảo frame(0)==frame(LOOP). Mỗi chấm vẽ cộng dồn dạng quầng+lõi+điểm sáng, màu cuộn qua các accent Cosmos. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
+  "notes": "Pha = 2PI*u*K + index*PHASE với K nguyên nên toàn lưới về pha gốc tại u=1 → loop liền mạch. Scale/lift/alpha đều là sin/cos của cùng một pha."
+}

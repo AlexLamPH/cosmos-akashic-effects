@@ -1,0 +1,11 @@
+{
+  "slug": "webcam-edges",
+  "title": "Cosmos Neon Edges — glowing webcam edge silhouette that brightens where you move",
+  "title_vi": "",
+  "W": 540, "H": 356, "LOOP": 8400, "N": 60,
+  "tags": ["webcam", "sensor", "reactive", "interactive", "canvas2d"],
+  "summary": "Reacts to the WEBCAM live: each frame is mirrored, downsampled to a 32x24 {brightness,motion} grid, frame-diffed for motion, then a Sobel-style edge detector turns the brightness field into a glowing neon Cosmos outline over dark — a luminous silhouette of you — with edges brightening and shifting hue wherever motion is high. It gracefully falls back to a synthetic signal (a fake waving silhouette of moving Gaussian blobs) when the camera is unavailable or denied, and ships a deterministic synthetic demo for capture. Self-contained, zero dependencies. Privacy: all processing happens in-browser, nothing is uploaded.",
+  "usage_notes": "RUN: open and click \"enable camera\" — your outline appears as a glowing neon edge map that flares brighter and tints toward warmer Cosmos hues wherever you move. Without a camera it animates from a built-in synthetic waving silhouette so it is never blank. KEY TECHNIQUES: getUserMedia({facingMode:'user'}) -> hidden <video> -> drawImage mirrored to a 32x24 offscreen canvas -> getImageData -> per-cell brightness + abs frame-diff motion = SIG; one render(SIG,t) runs a 3x3 Sobel gradient magnitude over the brightness grid, drawing each edge cell as an additive radial neon glow whose size and brightness scale with edge strength + motion, with a white core on the strongest edges and a motion-driven palette hue shift; synthSig(u) sums 3 looping Gaussian blobs into the same grid and diffs vs the previous frame for synthetic motion, deterministic and seamless. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: GW/GH (grid res), Sobel gain and edge threshold, motion gain, glow radius, hue-shift speed, core-dot threshold.",
+  "summary_vi": "",
+  "notes": ""
+}

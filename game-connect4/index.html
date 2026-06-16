@@ -1,0 +1,279 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Connect Four — drop discs, beat a minimax CPU</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0816;color:#e8e6f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #frame{width:560px;height:620px;position:relative;background:#120e26;
+    border-radius:22px;box-shadow:0 0 60px #8b5cff33,inset 0 0 0 1px #ffffff10;
+    padding:16px;box-sizing:border-box;display:flex;flex-direction:column}
+  #hud{display:flex;justify-content:space-between;align-items:center;padding:4px 12px 10px}
+  .side{text-align:center}
+  .side .lbl{font-size:12px;opacity:.6;font-weight:600;letter-spacing:1px}
+  .side .v{font-size:28px;font-weight:800}
+  #youV{color:#46b4ff}#cpuV{color:#ff5cc2}#drawV{color:#e0b24a}
+  #turn{font-weight:700;font-size:14px;opacity:.9;text-align:center;padding-bottom:6px;color:#36d39a;min-height:18px}
+  canvas{display:block;border-radius:16px;background:#0d0a1f;flex:1;cursor:pointer}
+  #bar{display:flex;gap:8px;justify-content:center;padding-top:10px}
+  button{background:#1c1640;color:#c9c4ec;border:1px solid #ffffff18;
+    border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  button:hover{background:#271c5c;color:#fff}
+  #hint{text-align:center;font-size:11px;opacity:.45;padding-top:8px}
+</style></head>
+<body>
+<div id="frame">
+  <div id="hud">
+    <div class="side"><div class="lbl">YOU</div><div class="v" id="youV">0</div></div>
+    <div class="side"><div class="lbl">DRAW</div><div class="v" id="drawV">0</div></div>
+    <div class="side"><div class="lbl">CPU</div><div class="v" id="cpuV">0</div></div>
+  </div>
+  <div id="turn">Your move</div>
+  <canvas id="cv" width="528" height="452"></canvas>
+  <div id="bar"><button id="rs">Restart (R)</button></div>
+  <div id="hint">Click a column (or keys 1-7 / ◀ ▶ + Space) to drop a disc. CPU plays minimax. Four in a row wins.</div>
+</div>
+<script>
+const AUTO=new URLSearchParams(location.search).has('auto');
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const CW=cv.width,CH=cv.height;
+const COL={violet:'#8b5cff',cosmic:'#46b4ff',nebula:'#ff5cc2',aurora:'#36d39a',sacred:'#e0b24a'};
+const COLS=7,ROWS=6,YOU=1,CPU=2; // YOU cosmic, CPU nebula
+const LOOP=13000;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// board: array[COLS*ROWS], row 0 = top. idx(c,r)=r*COLS+c
+const idx=(c,r)=>r*COLS+c;
+function dropRow(b,c){for(let r=ROWS-1;r>=0;r--)if(!b[idx(c,r)])return r;return -1;}
+function validCols(b){const o=[];for(let c=0;c<COLS;c++)if(dropRow(b,c)>=0)o.push(c);return o;}
+
+// winner detection -> {who,line:[ [c,r] x4 ]} or null; draw -> {who:0}
+const DIRS=[[1,0],[0,1],[1,1],[1,-1]];
+function winLine(b){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const v=b[idx(c,r)];if(!v)continue;
+    for(const[dc,dr]of DIRS){const cells=[[c,r]];let ok=true;
+      for(let k=1;k<4;k++){const nc=c+dc*k,nr=r+dr*k;
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS||b[idx(nc,nr)]!==v){ok=false;break;}cells.push([nc,nr]);}
+      if(ok)return{who:v,line:cells};}}
+  return b.every(v=>v)?{who:0,line:null}:null;
+}
+
+// ---- minimax with alpha-beta, depth-limited heuristic ----
+function scoreWindow(cells){ // cells: 4 values
+  let me=0,op=0;for(const v of cells){if(v===CPU)me++;else if(v===YOU)op++;}
+  if(me&&op)return 0;
+  if(me===4)return 100000; if(op===4)return -100000;
+  if(me===3)return 80; if(me===2)return 12; if(me===1)return 2;
+  if(op===3)return -90; if(op===2)return -12; if(op===1)return -2;
+  return 0;
+}
+function heur(b){
+  let s=0;
+  // center column preference
+  for(let r=0;r<ROWS;r++)if(b[idx(3,r)]===CPU)s+=6;else if(b[idx(3,r)]===YOU)s-=6;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)for(const[dc,dr]of DIRS){
+    const cells=[];let ok=true;
+    for(let k=0;k<4;k++){const nc=c+dc*k,nr=r+dr*k;
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS){ok=false;break;}cells.push(b[idx(nc,nr)]);}
+    if(ok)s+=scoreWindow(cells);}
+  return s;
+}
+function negamax(b,depth,alpha,beta,player){
+  const w=winLine(b);
+  if(w){if(w.who===CPU)return{score:1e6+depth};if(w.who===YOU)return{score:-1e6-depth};return{score:0};}
+  if(depth===0)return{score:heur(b)};
+  const cols=validCols(b); if(!cols.length)return{score:0};
+  // order center-first
+  cols.sort((a,c)=>Math.abs(3-a)-Math.abs(3-c));
+  let best={score:player===CPU?-1e9:1e9},bm=cols[0];
+  for(const c of cols){const r=dropRow(b,c);b[idx(c,r)]=player;
+    const sc=negamax(b,depth-1,alpha,beta,player===CPU?YOU:CPU).score;b[idx(c,r)]=0;
+    if(player===CPU){if(sc>best.score){best={score:sc};bm=c;}alpha=Math.max(alpha,sc);}
+    else{if(sc<best.score){best={score:sc};bm=c;}beta=Math.min(beta,sc);}
+    if(beta<=alpha)break;}
+  return{score:best.score,move:bm};
+}
+function cpuMove(b){
+  // immediate win / block first for snappiness
+  for(const c of validCols(b)){const r=dropRow(b,c);b[idx(c,r)]=CPU;const w=winLine(b);b[idx(c,r)]=0;if(w&&w.who===CPU)return c;}
+  for(const c of validCols(b)){const r=dropRow(b,c);b[idx(c,r)]=YOU;const w=winLine(b);b[idx(c,r)]=0;if(w&&w.who===YOU)return c;}
+  return negamax(b,5,-1e9,1e9,CPU).move;
+}
+
+// deterministic "you" auto player: win, block, else heuristic-ish with seeded variety
+function autoYouMove(b,rnd){
+  for(const c of validCols(b)){const r=dropRow(b,c);b[idx(c,r)]=YOU;const w=winLine(b);b[idx(c,r)]=0;if(w&&w.who===YOU)return c;}
+  if(rnd()<0.85)for(const c of validCols(b)){const r=dropRow(b,c);b[idx(c,r)]=CPU;const w=winLine(b);b[idx(c,r)]=0;if(w&&w.who===CPU)return c;}
+  const cols=validCols(b);
+  // prefer center-ish but with seeded noise so games differ
+  cols.sort((a,c)=>(Math.abs(3-a)+rnd()*1.6)-(Math.abs(3-c)+rnd()*1.6));
+  if(rnd()<0.7)return cols[0];
+  return cols[(rnd()*cols.length)|0];
+}
+
+// play one full deterministic game -> move list [{col,who}] then {end,winner}
+function playGame(seed){
+  const rnd=mulberry32(seed);const b=new Array(COLS*ROWS).fill(0);const moves=[];let turn=YOU;
+  for(let step=0;step<COLS*ROWS;step++){
+    const w=winLine(b);if(w){moves.push({end:true,winner:w});return moves;}
+    const cols=validCols(b);if(!cols.length)break;
+    let c=turn===YOU?autoYouMove(b,rnd):cpuMove(b);
+    if(c==null||dropRow(b,c)<0)c=cols[(rnd()*cols.length)|0];
+    const r=dropRow(b,c);b[idx(c,r)]=turn;moves.push({col:c,row:r,who:turn});
+    turn=turn===YOU?CPU:YOU;
+  }
+  const w=winLine(b)||{who:0,line:null};moves.push({end:true,winner:w});return moves;
+}
+// pick a seed producing a decisive win in a good number of moves
+function pickGame(){
+  let fallback=null;
+  for(let s=3;s<4000;s++){const m=playGame(s);const last=m[m.length-1];
+    const placed=m.length-1;
+    if(last.end&&last.winner.who!==0&&placed>=10&&placed<=30){return{moves:m,seed:s};}
+    if(!fallback&&last.end&&last.winner.who!==0)fallback={moves:m,seed:s};}
+  return fallback||{moves:playGame(3),seed:3};
+}
+const GAME=pickGame();
+const PLACE=GAME.moves.filter(m=>!m.end);
+const MOVE_MS=620;
+const DROP_MS=240;            // disc fall animation
+const HOLD_MS=2800;           // hold finished board (win glow)
+const PLAY_MS=PLACE.length*MOVE_MS;
+const CYCLE=PLAY_MS+HOLD_MS;
+
+// board state at ms within a cycle, with falling-disc anim for the latest
+function autoState(ms){
+  const b=new Array(COLS*ROWS).fill(0);let drop=null;
+  for(let i=0;i<PLACE.length;i++){const at=i*MOVE_MS;if(ms>=at){
+    b[idx(PLACE[i].col,PLACE[i].row)]=PLACE[i].who;
+    if(ms-at<DROP_MS)drop={col:PLACE[i].col,row:PLACE[i].row,who:PLACE[i].who,p:(ms-at)/DROP_MS};}}
+  const finished=ms>=PLAY_MS;const w=finished?winLine(b):null;
+  const placed=PLACE.filter((_,i)=>ms>=i*MOVE_MS).length;
+  return{b,drop,win:w,finished,turn:placed%2===0?YOU:CPU};
+}
+
+// ---------- geometry ----------
+const M=14,GAP=6;
+const cellS=(CW-2*M-(COLS-1)*GAP)/COLS;
+const topPad=8;
+function cx(c){return M+c*(cellS+GAP)+cellS/2;}
+function cyOf(r){return topPad+M+r*(cellS+GAP)+cellS/2;}
+function colFromX(mx){for(let c=0;c<COLS;c++){const x0=M+c*(cellS+GAP);if(mx>=x0&&mx<=x0+cellS)return c;}return -1;}
+
+function discColor(who){return who===YOU?COL.cosmic:COL.nebula;}
+function drawDisc(x,y,r,who,glow){
+  ctx.save();const col=discColor(who);
+  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.1,x,y,r);
+  g.addColorStop(0,who===YOU?'#9fd6ff':'#ffb0e0');g.addColorStop(1,col);
+  ctx.fillStyle=g;ctx.shadowColor=col;ctx.shadowBlur=glow?22:8;
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function paint(s){
+  ctx.clearRect(0,0,CW,CH);
+  // board panel
+  const bx=M-6,by=topPad+M-6,bw=CW-2*(M-6),bh=CH-topPad-2*(M-6);
+  const bg=ctx.createLinearGradient(0,by,0,by+bh);
+  bg.addColorStop(0,'#1a1442');bg.addColorStop(1,'#130f30');
+  ctx.fillStyle=bg;roundRect(bx,by,bw,bh,18);ctx.fill();
+  ctx.strokeStyle='#8b5cff44';ctx.lineWidth=2;roundRect(bx,by,bw,bh,18);ctx.stroke();
+  const r=cellS*0.42;
+  // holes + discs
+  for(let row=0;row<ROWS;row++)for(let c=0;c<COLS;c++){
+    const x=cx(c),y=cyOf(row),v=s.b[idx(c,row)];
+    // hole
+    ctx.fillStyle='#0c0a20';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#ffffff0c';ctx.lineWidth=1.5;ctx.stroke();
+    if(v){
+      if(s.drop&&s.drop.col===c&&s.drop.row===row){
+        const startY=cyOf(0)-cellS;const yy=startY+(y-startY)*(s.drop.p<1?s.drop.p:1);
+        drawDisc(x,yy,r,v,false);
+      } else drawDisc(x,y,r,v,false);
+    }
+  }
+  // win glow
+  if(s.win&&s.win.line){
+    const L=s.win.line;ctx.save();
+    ctx.strokeStyle=COL.aurora;ctx.shadowColor=COL.aurora;ctx.shadowBlur=24;ctx.lineWidth=8;ctx.lineCap='round';
+    const a=L[0],d=L[3];
+    ctx.beginPath();ctx.moveTo(cx(a[0]),cyOf(a[1]));ctx.lineTo(cx(d[0]),cyOf(d[1]));ctx.stroke();
+    for(const[c,row]of L){ctx.beginPath();ctx.arc(cx(c),cyOf(row),r+3,0,Math.PI*2);ctx.lineWidth=3;ctx.stroke();}
+    ctx.restore();
+    // re-draw the winning discs on top of glow
+    for(const[c,row]of L)drawDisc(cx(c),cyOf(row),r,s.b[idx(c,row)],true);
+  }
+  if(s.finished&&s.win&&s.win.who===0){
+    ctx.fillStyle=COL.sacred;ctx.font='bold 22px system-ui';ctx.textAlign='center';
+    ctx.fillText('DRAW',CW/2,CH-4);
+  }
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+// ---------- LIVE ----------
+let live=null;
+function newBoard(){return new Array(COLS*ROWS).fill(0);}
+function initGame(){live={b:newBoard(),turn:YOU,win:null,busy:false,drop:null,
+  score:live&&live.score?live.score:{y:0,c:0,d:0}};refreshScore();paint(liveView());setTurn();}
+function setTurn(){const t=document.getElementById('turn');
+  if(live.win){t.textContent=live.win.who===YOU?'You win!':live.win.who===CPU?'CPU wins':'Draw';}
+  else t.textContent=live.turn===YOU?'Your move':'CPU thinking…';}
+function refreshScore(){document.getElementById('youV').textContent=live.score.y;
+  document.getElementById('cpuV').textContent=live.score.c;
+  document.getElementById('drawV').textContent=live.score.d;}
+function settle(){const w=winLine(live.b);if(w){live.win=w;
+  if(w.who===YOU)live.score.y++;else if(w.who===CPU)live.score.c++;else live.score.d++;refreshScore();}setTurn();}
+function youDrop(c){
+  if(!live||live.win||live.turn!==YOU||live.busy)return;
+  const r=dropRow(live.b,c);if(r<0)return;
+  live.b[idx(c,r)]=YOU;live.drop={col:c,row:r,t:performance.now()};blip(540);paint(liveView());settle();
+  if(live.win)return;
+  live.turn=CPU;live.busy=true;setTurn();
+  setTimeout(()=>{const mc=cpuMove(live.b);if(mc!=null){const rr=dropRow(live.b,mc);
+    if(rr>=0){live.b[idx(mc,rr)]=CPU;live.drop={col:mc,row:rr,t:performance.now()};blip(320);}}
+    live.busy=false;live.turn=YOU;paint(liveView());settle();},420);
+}
+function liveView(){let drop=null;
+  if(live.drop){const p=(performance.now()-live.drop.t)/DROP_MS;if(p<1)drop={col:live.drop.col,row:live.drop.row,who:live.b[idx(live.drop.col,live.drop.row)],p};}
+  return{b:live.b,drop,win:live.win,finished:!!live.win,turn:live.turn};}
+
+// ---------- AUTO ----------
+function drawAt(ms){
+  const s=autoState(ms%CYCLE);paint(s);
+  const base={y:1,c:1,d:0};let yy=base.y,cc=base.c,dd=base.d;
+  if(s.finished&&s.win){if(s.win.who===YOU)yy++;else if(s.win.who===CPU)cc++;else dd++;}
+  document.getElementById('youV').textContent=yy;
+  document.getElementById('cpuV').textContent=cc;
+  document.getElementById('drawV').textContent=dd;
+  const t=document.getElementById('turn');
+  if(s.finished&&s.win){t.textContent=s.win.who===YOU?'You win!':s.win.who===CPU?'CPU wins':'Draw';}
+  else t.textContent=s.turn===YOU?'Your move':'CPU move';
+}
+
+// audio
+let actx;function blip(f){if(AUTO)return;try{actx=actx||new(window.AudioContext||webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.09,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+.14);
+  o.start();o.stop(actx.currentTime+.15);}catch(e){}}
+
+// input
+let sel=3;
+function wireLive(){
+  cv.addEventListener('pointerdown',ev=>{const r=cv.getBoundingClientRect();
+    const mx=(ev.clientX-r.left)*(CW/r.width);const c=colFromX(mx);if(c>=0){sel=c;youDrop(c);}});
+  window.addEventListener('keydown',ev=>{const k=ev.key;
+    if(k.toLowerCase()==='r'){const sc=live.score;initGame();live.score=sc;refreshScore();return;}
+    if(k>='1'&&k<='7'){sel=+k-1;youDrop(sel);return;}
+    if(k==='ArrowLeft'){sel=Math.max(0,sel-1);return;}
+    if(k==='ArrowRight'){sel=Math.min(COLS-1,sel+1);return;}
+    if(k===' '||k==='ArrowDown'){ev.preventDefault();youDrop(sel);}});
+  document.getElementById('rs').addEventListener('click',()=>{const sc=live.score;initGame();live.score=sc;refreshScore();});
+  function frame(){paint(liveView());requestAnimationFrame(frame);}
+  requestAnimationFrame(frame);
+}
+
+const T0OFF=Math.round(MOVE_MS*7.3); // frame 0 mid-game: several discs already placed
+if(AUTO){ window.__seek=t=>drawAt((((t+T0OFF)%LOOP)+LOOP)%LOOP); window.__seek(0); window.__ready=true; }
+else { live={score:{y:0,c:0,d:0}}; initGame(); wireLive(); }
+</script>
+</body></html>

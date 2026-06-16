@@ -1,0 +1,11 @@
+{
+  "slug": "remix-grid3d",
+  "title": "Cosmos Remix — Grid Floor you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "grid", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle grid floor: a synthwave perspective dot-floor where particles sit on a horizontal grid plane receding to a horizon and scroll toward the viewer (rows wrap seamlessly), with perspective projection so near rows are big and bright while far rows shrink into haze. Live glass panel retunes palette, shape, density, speed, spread, dot size plus a Cells knob for grid resolution; reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, and drag Cells to change grid resolution, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: a perspective dot-floor — rows march from near (z=0) to the horizon (z=1) and scroll with u (depth = (row/rows + u·speed) mod 1) so rows recycle seamlessly; per-row perspective scale proj=eye/depth drives both screen position and dot size/brightness; columns spread across the floor in world space then project to screen; colour from a per-cell ramp of the active palette, drawn additively. PARAMS convention: window.__params describes knobs and window.setParam(key,value) applies them so a generic remix harness can auto-build the panel; theme tokens = a PALETTES map driving a CSS accent var and the dot ramp; SHAPES picks the cheap canvas glyph. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Cells for a denser floor, add palettes to PALETTES, extend __params.",
+  "summary_vi": "",
+  "notes": ""
+}

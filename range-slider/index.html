@@ -1,0 +1,118 @@
+<!-- Cosmos Range Slider: a glassy track with an accent-filled portion and a draggable knob; a value bubble above the knob follows it and updates live, knob glows brighter when grabbed. Real drag/click/keyboard live; deterministic looping auto-demo glides the knob across the range and back via render(u)/__seek. -->
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Range Slider</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#e8e6f5;
+  display:flex;align-items:center;justify-content:center}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:30px;
+  padding:40px 54px;border-radius:22px;
+  background:rgba(14,11,30,.72);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px)}
+.label{font-size:13px;letter-spacing:.4px;color:#7c759c;text-transform:uppercase;font-weight:600}
+.slider{position:relative;width:380px;height:34px;display:flex;align-items:center;cursor:pointer;user-select:none;touch-action:none}
+.track{position:absolute;left:0;right:0;height:7px;border-radius:6px;
+  background:rgba(255,255,255,.07);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.55)}
+.fill{position:absolute;left:0;height:7px;border-radius:6px;width:0;
+  background:linear-gradient(90deg,#6a3ff0,#8b5cff,#46b4ff);
+  box-shadow:0 0 14px -2px rgba(139,92,255,.65)}
+.knob{position:absolute;left:0;top:50%;width:24px;height:24px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 35% 30%,#ffffff,#eceaff 55%,#cfc8f0);
+  box-shadow:0 4px 12px -2px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12) inset;
+  z-index:3;will-change:left,box-shadow}
+.bubble{position:absolute;top:-44px;left:0;transform:translateX(-50%);
+  padding:5px 11px;border-radius:9px;font-size:14px;font-weight:700;letter-spacing:.3px;
+  color:#fff;white-space:nowrap;z-index:4;
+  background:linear-gradient(135deg,#8b5cff,#6a3ff0);
+  box-shadow:0 8px 20px -6px rgba(139,92,255,.6),0 0 0 1px rgba(255,255,255,.1) inset;
+  will-change:left,transform,opacity}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;
+  transform:translateX(-50%) rotate(45deg);
+  background:#6a3ff0;border-radius:2px}
+.foot{font-size:12px;color:#5e5880;letter-spacing:.3px;display:flex;gap:6px}
+.foot b{color:#b9b2dc;font-weight:600}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="label">Brightness</div>
+  <div class="slider" id="slider">
+    <div class="track"></div>
+    <div class="fill" id="fill"></div>
+    <div class="bubble" id="bubble">50</div>
+    <div class="knob" id="knob"></div>
+  </div>
+  <div class="foot">0&nbsp;<b id="cap">50</b>&nbsp;100</div>
+</div>
+<script>
+const LOOP=6000,N=75;
+const MIN=0,MAX=100;
+const slider=document.getElementById('slider'),fill=document.getElementById('fill'),
+      knob=document.getElementById('knob'),bubble=document.getElementById('bubble'),cap=document.getElementById('cap');
+const PAD=12; // knob radius inset so it stays on the track
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function smooth(t){t=clamp(t,0,1);return t*t*(3-2*t);}
+// paint exact visual state from value v(0..1) and grab amount g(0..1)
+function paint(v,g){
+  v=clamp(v,0,1);
+  const w=slider.clientWidth;
+  const x=PAD+v*(w-2*PAD);
+  fill.style.width=x+'px';
+  knob.style.left=x+'px';
+  bubble.style.left=x+'px';
+  const val=Math.round(lerp(MIN,MAX,v));
+  bubble.textContent=val;cap.textContent=val;
+  // knob glows + lifts the bubble when grabbed
+  const ring=lerp(0,7,g);
+  knob.style.boxShadow=`0 4px 12px -2px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12) inset,0 0 ${10+ring*2}px ${ring*0.8}px rgba(139,92,255,${0.25+0.55*g})`;
+  knob.style.transform=`translate(-50%,-50%) scale(${1+0.16*g})`;
+  bubble.style.transform=`translateX(-50%) translateY(${-6*g}px) scale(${0.94+0.12*g})`;
+  bubble.style.opacity=String(0.78+0.22*g);
+}
+// auto-demo: knob glides right, dwells, glides back, dwells; grab-glow pulses during travel.
+function render(u){
+  // phase: 0..0.42 glide 0->1, 0.42..0.5 dwell hi, 0.5..0.92 glide 1->0, 0.92..1 dwell lo
+  // offset so frame 0 sits mid-glide (rich, never at an endpoint)
+  const uu=(u+0.18)%1;
+  let v,g;
+  if(uu<0.42){const k=smooth(uu/0.42);v=k;g=Math.sin(clamp(uu/0.42,0,1)*Math.PI);}
+  else if(uu<0.5){v=1;g=Math.max(0,1-(uu-0.42)/0.08)*0.4;}
+  else if(uu<0.92){const k=smooth((uu-0.5)/0.42);v=1-k;g=Math.sin(clamp((uu-0.5)/0.42,0,1)*Math.PI);}
+  else{v=0;g=Math.max(0,1-(uu-0.92)/0.08)*0.4;}
+  paint(v,g);
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){
+  window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP);
+  window.__seek(0);
+  window.__ready=true;
+}else{
+  let val=0.5,dragging=false,manualUntil=0;
+  function setFromX(clientX){
+    const r=slider.getBoundingClientRect();
+    val=clamp((clientX-r.left-PAD)/(r.width-2*PAD),0,1);
+    paint(val,1);
+  }
+  slider.addEventListener('pointerdown',e=>{dragging=true;slider.setPointerCapture(e.pointerId);setFromX(e.clientX);});
+  slider.addEventListener('pointermove',e=>{if(dragging)setFromX(e.clientX);});
+  window.addEventListener('pointerup',()=>{if(dragging){dragging=false;manualUntil=performance.now()+1800;}});
+  slider.tabIndex=0;
+  slider.addEventListener('keydown',e=>{
+    let d=0;if(e.key==='ArrowRight'||e.key==='ArrowUp')d=0.04;if(e.key==='ArrowLeft'||e.key==='ArrowDown')d=-0.04;
+    if(d){val=clamp(val+d,0,1);paint(val,1);manualUntil=performance.now()+1800;e.preventDefault();}
+  });
+  paint(val,0);
+  const s=performance.now();
+  (function l(n){
+    if(dragging){/* held by pointer handlers */}
+    else if(n<manualUntil){const g=clamp((manualUntil-n)/600,0,1);paint(val,g);} // glow fades out after release
+    else{render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);}
+    requestAnimationFrame(l);
+  })(performance.now());
+}
+</script></body></html>

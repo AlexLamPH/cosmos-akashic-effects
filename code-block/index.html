@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Code Block</title>
+<style>
+  :root{
+    --bg:#0a0816; --violet:#8b5cff; --cosmic:#46b4ff;
+    --aurora:#36d39a; --solaris:#ff6a3d; --sacred:#e0b24a; --nebula:#ff5cc2;
+    --ink:#e9e6f2; --muted:#7e7791;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    font-family:-apple-system,"Segoe UI",system-ui,sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .panel{
+    position:relative;width:560px;
+    background:linear-gradient(180deg,#14101e,#0e0a17);
+    border:1px solid #ffffff14;border-radius:14px;overflow:hidden;
+    box-shadow:0 30px 80px -30px #000, inset 0 1px 0 #ffffff10;
+  }
+  .bar{
+    display:flex;align-items:center;gap:8px;
+    padding:11px 14px;background:#ffffff08;border-bottom:1px solid #ffffff10;
+  }
+  .tl{width:11px;height:11px;border-radius:50%}
+  .tl.r{background:#ff5f57}.tl.y{background:#febc2e}.tl.g{background:#28c840}
+  .fname{margin-left:10px;font-size:12px;color:var(--muted);
+    font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  .copy{
+    margin-left:auto;position:relative;
+    display:flex;align-items:center;gap:6px;
+    height:28px;padding:0 11px;border-radius:8px;cursor:pointer;
+    font-size:12px;font-weight:600;color:#cfc8e0;
+    background:#ffffff0d;border:1px solid #ffffff18;
+    transition:background .2s,transform .08s,color .2s;
+  }
+  .copy:hover{background:#ffffff16}
+  .copy:active{transform:scale(.95)}
+  .copy svg{width:14px;height:14px;display:block}
+  .ico{position:relative;width:14px;height:14px}
+  .ico svg{position:absolute;inset:0}
+  .ttip{
+    position:absolute;top:-30px;right:0;
+    font-size:11px;font-weight:700;color:#0a0816;
+    background:var(--aurora);padding:3px 8px;border-radius:6px;
+    white-space:nowrap;pointer-events:none;
+    box-shadow:0 6px 18px -6px var(--aurora);
+  }
+  .ttip::after{content:"";position:absolute;right:14px;bottom:-4px;
+    width:8px;height:8px;background:var(--aurora);transform:rotate(45deg)}
+  pre{
+    margin:0;padding:16px 0;position:relative;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:12.5px;line-height:1.65;
+  }
+  .ln{display:flex;padding:0 16px;position:relative}
+  .ln .num{width:26px;flex:0 0 26px;text-align:right;margin-right:16px;
+    color:#4d4760;user-select:none}
+  .ln .code{color:var(--ink);white-space:pre}
+  .scan{position:absolute;left:0;right:0;height:22px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,#8b5cff22 30%,#8b5cff33 50%,#8b5cff22 70%,transparent);
+    border-radius:4px;opacity:0}
+  .kw{color:var(--violet)}
+  .fn{color:var(--cosmic)}
+  .str{color:var(--aurora)}
+  .num2{color:var(--sacred)}
+  .com{color:#5b5470;font-style:italic}
+  .pn{color:#b9b2cc}
+</style>
+</head>
+<body>
+  <div class="panel">
+    <div class="bar">
+      <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
+      <span class="fname">orbit.ts</span>
+      <div class="copy" id="copy">
+        <span class="ico">
+          <svg id="icoCopy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          <svg id="icoCheck" viewBox="0 0 24 24" fill="none" stroke="var(--aurora)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:0"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        <span id="copyTxt">Copy</span>
+        <span class="ttip" id="ttip" style="opacity:0;transform:translateY(6px)">Copied!</span>
+      </div>
+    </div>
+    <pre id="pre">
+<div class="scan" id="scan"></div></pre>
+  </div>
+
+<script>
+// ---- seeded, static syntax-highlighted content ----
+const LINES = [
+  '<span class="com">// compute a stable orbital period</span>',
+  '<span class="kw">import</span> { <span class="fn">sqrt</span>, PI } <span class="kw">from</span> <span class="str">"./math"</span>;',
+  '',
+  '<span class="kw">export function</span> <span class="fn">period</span>(<span class="pn">a</span>, <span class="pn">mu</span>) {',
+  '  <span class="kw">const</span> tau = <span class="num2">2</span> * PI;',
+  '  <span class="kw">return</span> tau * <span class="fn">sqrt</span>((a*a*a) / mu);',
+  '}',
+  '',
+  '<span class="com">// km, standard gravitational param</span>',
+  '<span class="fn">period</span>(<span class="num2">6771</span>, <span class="num2">398600</span>); <span class="com">// → 5553s</span>',
+];
+
+const pre = document.getElementById("pre");
+const scan = document.getElementById("scan");
+const lineEls = LINES.map((html,i)=>{
+  const ln=document.createElement("div"); ln.className="ln";
+  const num=document.createElement("span"); num.className="num"; num.textContent=i+1;
+  const code=document.createElement("span"); code.className="code"; code.innerHTML=html||" ";
+  ln.appendChild(num); ln.appendChild(code);
+  pre.insertBefore(ln, scan);
+  return ln;
+});
+
+const copyBtn  = document.getElementById("copy");
+const icoCopy  = document.getElementById("icoCopy");
+const icoCheck = document.getElementById("icoCheck");
+const copyTxt  = document.getElementById("copyTxt");
+const ttip     = document.getElementById("ttip");
+
+const LOOP = 5200;
+const LH = 20.6;            // line height px (approx, matches font-size*line-height)
+const PAD_TOP = 16;
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const easeIO=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+
+function setCopied(c){   // c in [0,1]: 0 = idle copy icon, 1 = checked + Copied!
+  icoCopy.style.opacity  = (1-c).toFixed(3);
+  icoCopy.style.transform= `scale(${(1-0.3*c).toFixed(3)})`;
+  icoCheck.style.opacity = c.toFixed(3);
+  icoCheck.style.transform = `scale(${(0.6+0.4*c).toFixed(3)})`;
+  copyTxt.textContent = c>.5 ? "Copied" : "Copy";
+  copyTxt.style.color = c>.5 ? "var(--aurora)" : "#cfc8e0";
+  copyBtn.style.borderColor = `rgba(54,211,154,${(0.4*c).toFixed(3)})`;
+  copyBtn.style.background = `rgba(54,211,154,${(0.10*c).toFixed(3)})`;
+}
+function setTooltip(p){   // p in [0,1]: float-up + fade
+  // 0 hidden -> rises and fades in -> floats up and fades out
+  let op, ty;
+  if(p<.25){ const k=easeIO(p/.25); op=k; ty=6-10*k; }      // appear, rise to -4
+  else if(p<.7){ op=1; ty=-4 - (p-.25)/.45*6; }              // hold, drift to -10
+  else { const k=easeIO((p-.7)/.3); op=1-k; ty=-10-8*k; }    // float up + fade
+  ttip.style.opacity = op.toFixed(3);
+  ttip.style.transform = `translateY(${ty.toFixed(2)}px)`;
+}
+
+const OFFSET = 0.60;   // shift so t=0 lands in the "Copied!" confirmation window
+function render(u0){
+  const u = ((u0 + OFFSET) % 1 + 1) % 1;
+  // phases: [0,.40) scan lines  | [.40,.50) press  | [.50,.88) copied+tooltip | [.88,1) reset/pause
+  // ---- scan highlight sweeping down the code ----
+  if(u<.40){
+    const k = u/.40;                       // 0..1
+    const pos = PAD_TOP + k*(LINES.length*LH);
+    scan.style.opacity = "1";
+    scan.style.transform = `translateY(${pos.toFixed(1)}px)`;
+  } else {
+    scan.style.opacity = "0";
+  }
+
+  // ---- copy button press + icon morph ----
+  let pressed;
+  if(u<.40) pressed=0;
+  else if(u<.50) pressed=easeIO((u-.40)/.10);   // press in
+  else if(u<.86) pressed=1;                       // stay copied
+  else pressed=1-easeIO((u-.86)/.14);             // reset
+  setCopied(pressed);
+  copyBtn.style.transform = (u>=.40&&u<.50)? `scale(${(1-0.05*pressed).toFixed(3)})` : "scale(1)";
+
+  // ---- "Copied!" tooltip float ----
+  let tp=0;
+  if(u>=.46 && u<.90) tp = (u-.46)/.44;
+  setTooltip(clamp(tp,0,1));
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+
+// live interactivity: real click triggers a one-shot copied animation
+if(!AUTO){
+  copyBtn.addEventListener("click", ()=>{
+    const code = LINES.map(h=>h.replace(/<[^>]+>/g,"")).join("\n");
+    if(navigator.clipboard) navigator.clipboard.writeText(code).catch(()=>{});
+  });
+}
+
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else { const s=performance.now(); (function l(n){ render((((n-s)%LOOP)+LOOP)%LOOP/LOOP); requestAnimationFrame(l);})(performance.now()); }
+</script>
+</body>
+</html>

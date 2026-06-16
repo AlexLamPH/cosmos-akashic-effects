@@ -1,0 +1,11 @@
+{
+  "slug": "remix-mandala",
+  "title": "Cosmos Remix — Mandala you can retune and reskin live",
+  "title_vi": "",
+  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
+  "tags": ["remix", "mandala", "generative", "interactive", "themeable", "canvas2d"],
+  "summary": "Remixable particle mandala / rose: particles are placed on a rose curve r = cos(m*theta) and copied with k-fold rotational symmetry, then mirrored across each wedge for a kaleidoscopic bloom that pulses (breathing radius) and slowly rotates with time. A live glass panel retunes palette, shape, density, speed, dot size and a Petals knob in real time, and reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
+  "usage_notes": "RUN: open index.html and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Petals to change the symmetry, press the Seed button to shuffle, Copy to copy your config. KEY TECHNIQUES: each particle sits on a rose curve r = cos(m*theta) inside one angular wedge, then is stamped across k = Petals rotational copies and mirrored within each wedge (2k copies total) so the field is perfectly kaleidoscopic; a seamless breathe = sin(2pi*u*2) pulses the bloom and a slow spin rotates it; petal-tip depth drives per-particle size and brightness. All motion is a pure function of params + time u (sin/cos with integer harmonics) so the panel updates instantly and the capture loop stays seamless. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them, so a generic remix harness can auto-build the panel for ANY effect; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp(cols,t); shapes come from the shared SHAPES set via drawShape(). CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: change Petals for different symmetry, Spread for bloom size, Density for richer petals; add palettes to PALETTES, extend window.__params.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -1,0 +1,15 @@
+{
+  "slug": "game-snake",
+  "title": "Cosmos Snake — grow a glowing serpent eating cosmic food on a neon grid",
+  "title_vi": "",
+  "W": 560,
+  "H": 640,
+  "LOOP": 11000,
+  "N": 100,
+  "live_fit": true,
+  "tags": ["game", "snake", "playable", "interactive", "arcade", "canvas2d"],
+  "summary": "A real, fully playable classic Snake game in one self-contained HTML file with zero dependencies. You steer a glowing serpent around a 17x17 neon grid, eating pulsing cosmic food to grow longer while avoiding the walls and your own tail; the score is your length and the run ends with a game-over screen and restart. Controls work with both keyboard (arrows/WASD, R to restart) and on-screen touch buttons. It also ships a deterministic self-playing attract demo for capture: a seeded greedy AI snake hunts seeded food as a pure function of time.",
+  "usage_notes": "RUN: double-click index.html (or serve it). CONTROLS: Arrow keys or WASD turn the snake; on-screen D-pad buttons work on touch; R key or the Restart button starts a new run. GOAL: eat the glowing food to grow and raise your score (+10 each); you lose if you hit a wall or your own body. KEY TECHNIQUES: the game is a deterministic grid simulation seeded with mulberry32 (never Math.random in the sim); for AUTO a greedy auto-player picks each move by minimizing Manhattan distance to seeded food while avoiding its body, and food is placed deterministically by scanning from a seeded index. drawAt(ms) re-simulates from a fixed seeded start to ms with a frame-0 offset so capture opens mid-game with the snake already grown and score above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: GRID (17), STEP/SPEED (move cadence), LOOP, frame-0 offset, accent colors.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Flower of Life</title><style>*{margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#05030d}canvas{display:block;position:fixed;inset:0}</style></head>
+<body><canvas id="c"></canvas><script>
+// Cosmos Flower of Life — overlapping circles on a hex lattice as glowing accent strokes; circles draw-in while a luminous pulse ripples outward, rotating and breathing. Deterministic, seamless.
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+const AUTO=new URLSearchParams(location.search).has('auto'); const LOOP=8000,TAU=6.28318530718;
+let W,H,DPR,cx,cy,R,circ=[],maxd=1;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+// Cosmos accents: violet, cosmic, nebula, aurora, solaris, sacred
+const AC=[[139,92,255],[70,180,255],[255,92,194],[54,211,154],[255,106,61],[224,178,74]];
+const RINGS=3;                                             // hex lattice ring count -> classic 19-circle flower
+function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx=W/2;cy=H/2;
+  R=Math.min(W,H)*0.5/(RINGS*1.05+1);                       // circle radius so lattice fits
+  const r=mul(137);circ=[];
+  // hex-lattice centres: axial coords (q,s) -> the Flower of Life spacing is exactly R between neighbours
+  const bx=R, by=R*Math.sqrt(3)/2;                          // column/row pitch on the triangular lattice
+  for(let row=-RINGS*2;row<=RINGS*2;row++){
+    for(let col=-RINGS*2;col<=RINGS*2;col++){
+      const px=col*bx*1.0;                                  // horizontal half-steps
+      const py=row*by;
+      // valid lattice point only where row+col share parity (triangular packing)
+      if(((row+col)&1)!==0) continue;
+      const d=Math.hypot(px,py);
+      if(d>R*(RINGS+0.05)) continue;                        // keep inside the flower disc
+      circ.push({px,py,d,col:AC[((row*7+col*3)%AC.length+AC.length)%AC.length],tw:r()*TAU});
+    }}
+  maxd=0;for(const c of circ)maxd=Math.max(maxd,c.d);maxd=maxd||1;
+  // order by distance so draw-in reveals from centre outward
+  circ.sort((a,b)=>a.d-b.d);}
+rs();addEventListener('resize',rs);
+function frame(t){const u=((t%LOOP)+LOOP)%LOOP/LOOP;
+  x.fillStyle='#05030d';x.fillRect(0,0,W,H);                // full repaint, pure of t
+  x.globalCompositeOperation='lighter';
+  const spin=u*TAU*0.5*0+u*TAU/6;                           // gentle rotation, 1/6 turn per loop component
+  const breath=1+0.04*Math.sin(TAU*u);                     // breathe in/out once per loop
+  x.save();x.translate(cx,cy);x.rotate(spin);x.scale(breath,breath);
+  // sacred core glow
+  const cg=x.createRadialGradient(0,0,0,0,0,maxd+R);
+  cg.addColorStop(0,'rgba(224,178,74,0.26)');cg.addColorStop(0.5,'rgba(139,92,255,0.08)');cg.addColorStop(1,'rgba(5,3,13,0)');
+  x.fillStyle=cg;x.fillRect(-W,-H,2*W,2*H);
+  for(const c of circ){
+    const nd=c.d/maxd;                                      // normalised radius for outward ripple
+    // luminous pulse rippling outward through the circles (integer harmonics of u)
+    const pulse=0.5+0.5*Math.sin(TAU*(u*2 - nd*2.5));
+    // draw-in: each circle's arc sweeps from 0..full once per loop, phased by radius so it reveals outward
+    const ph=(u - nd*0.5)%1; const dphase=(ph+1)%1;
+    const sweep=TAU*Math.min(1, dphase*1.6);               // arc length currently drawn (full for most of loop)
+    const tw=0.6+0.4*Math.sin(c.tw+spin*4);
+    const a=(0.22+0.55*pulse)*tw;
+    const col=c.col, lw=(1.1+0.9*pulse)*DPR;
+    // glowing circle stroke (accent), drawn-in arc
+    x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;x.lineWidth=lw;
+    x.beginPath();x.arc(c.px,c.py,R,-Math.PI/2,-Math.PI/2+sweep);x.stroke();
+    // bright white core highlight on the pulse crest
+    x.strokeStyle=`rgba(255,255,255,${a*0.30*pulse})`;x.lineWidth=lw*0.5;
+    x.beginPath();x.arc(c.px,c.py,R,-Math.PI/2,-Math.PI/2+sweep);x.stroke();
+  }
+  x.restore();
+  x.globalCompositeOperation='source-over';}
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;}else{const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script></body></html>

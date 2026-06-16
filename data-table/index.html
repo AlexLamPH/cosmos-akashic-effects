@@ -1,0 +1,228 @@
+<!-- Cosmos Data Table: a polished glassy data table on the Phantom-dark theme. Sticky header with sortable columns (sort arrow flips, column highlights), zebra rows, a gliding hover-row highlight, a status pill per row, and a checkbox-select column with a violet row-selection tint. Deterministic render(u): a hover highlight sweeps down the rows, a header column is "clicked" (arrow flips + rows re-sort), and rows get selected. -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cosmos Data Table</title>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0816;
+  font-family:-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.panel{width:640px;border-radius:18px;overflow:hidden;
+  background:linear-gradient(170deg,rgba(28,24,46,.96),rgba(15,12,26,.98));
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 26px 60px rgba(0,0,0,.5)}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px}
+.bar h1{font-size:15px;font-weight:700;color:#f4f2fb;letter-spacing:.2px}
+.bar .sub{font-size:12px;color:#8e89ad;font-weight:520}
+.bar .sel{font-size:11.5px;font-weight:640;color:#b79bff;
+  background:rgba(139,92,255,.14);border:1px solid rgba(139,92,255,.3);padding:3px 9px;border-radius:20px;
+  opacity:0;transition:opacity .2s}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{position:sticky;top:0;background:rgba(20,17,34,.96);
+  font-size:11px;font-weight:640;letter-spacing:.4px;text-transform:uppercase;color:#8e89ad;
+  text-align:left;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.09);
+  user-select:none;white-space:nowrap}
+thead th.sortable{cursor:pointer;transition:color .15s,background .2s}
+thead th.act{color:#cdbcff;background:rgba(139,92,255,.1)}
+thead th .arw{display:inline-block;margin-left:5px;font-size:9px;opacity:0;
+  transition:opacity .2s,transform .2s;transform:translateY(1px)}
+thead th.act .arw{opacity:1}
+.cChk{width:42px;text-align:center}.cName{width:34%}.cRole{width:24%}.cVal{width:16%;text-align:right}.cStat{width:auto}
+tbody td{padding:0 14px;height:42px;font-size:12.5px;color:#cfcbe6;
+  border-bottom:1px solid rgba(255,255,255,.045);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+tbody td.cVal{text-align:right;font-variant-numeric:tabular-nums;color:#e8e5f4;font-weight:600}
+tbody td.cChk{text-align:center}
+tbody tr{position:relative}
+tbody tr.zeb td{background:rgba(255,255,255,.018)}
+tbody tr.hov td{background:rgba(70,180,255,.10)}
+tbody tr.selrow td{background:rgba(139,92,255,.16)}
+tbody tr.selrow td:first-child{box-shadow:inset 3px 0 0 #8b5cff}
+.nm{display:flex;align-items:center;gap:10px}
+.av{width:26px;height:26px;border-radius:50%;flex:0 0 26px;font-size:11px;font-weight:680;color:#fff;
+  display:flex;align-items:center;justify-content:center}
+.nmtxt{display:flex;flex-direction:column;line-height:1.25;overflow:hidden}
+.nmtxt b{font-size:12.5px;font-weight:600;color:#f1eff9}
+.nmtxt s{font-size:11px;color:#817ca0;text-decoration:none}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:620;
+  padding:3px 9px 3px 8px;border-radius:20px;letter-spacing:.2px}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-active{color:#36d39a;background:rgba(54,211,154,.13);border:1px solid rgba(54,211,154,.26)}
+.p-pending{color:#e0b24a;background:rgba(224,178,74,.13);border:1px solid rgba(224,178,74,.26)}
+.p-paused{color:#ff6a3d;background:rgba(255,106,61,.13);border:1px solid rgba(255,106,61,.26)}
+.cb{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;
+  border:1.6px solid rgba(255,255,255,.22);background:rgba(255,255,255,.04);transition:.15s;vertical-align:middle}
+.cb svg{width:11px;height:11px;opacity:0;transform:scale(.5);transition:.15s;color:#fff}
+.cb.on{background:linear-gradient(160deg,#8b5cff,#6a3dff);border-color:transparent;box-shadow:0 3px 9px rgba(139,92,255,.5)}
+.cb.on svg{opacity:1;transform:scale(1)}
+.cb.head{border-radius:5px}
+</style></head>
+<body><div id="stage">
+  <div class="panel">
+    <div class="bar"><div><h1>Team members</h1></div>
+      <div class="sel" id="selCount">0 selected</div></div>
+    <table>
+      <thead><tr id="hrow">
+        <th class="cChk"><span class="cb head" id="cbAll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span></th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const COLS=[
+  {key:"name", label:"Name", cls:"cName", sortable:true},
+  {key:"role", label:"Role", cls:"cRole", sortable:true},
+  {key:"val",  label:"Tasks", cls:"cVal", sortable:true},
+  {key:"stat", label:"Status", cls:"cStat", sortable:true},
+];
+const ACC=["#8b5cff","#46b4ff","#ff5cc2","#36d39a","#ff6a3d","#e0b24a"];
+const ROWS=[
+  {first:"Ada",  last:"Lovelace",  mail:"ada@cosmos.io",   role:"Engineering", val:24, stat:"active"},
+  {first:"Grace",last:"Hopper",    mail:"grace@cosmos.io", role:"Architecture",val:31, stat:"active"},
+  {first:"Alan", last:"Turing",    mail:"alan@cosmos.io",  role:"Research",    val:12, stat:"pending"},
+  {first:"Katherine",last:"Johnson",mail:"kj@cosmos.io",   role:"Analytics",   val:28, stat:"active"},
+  {first:"Linus",last:"Pauling",   mail:"linus@cosmos.io", role:"Platform",    val:9,  stat:"paused"},
+  {first:"Marie",last:"Curie",     mail:"marie@cosmos.io", role:"Research",    val:19, stat:"pending"},
+  {first:"Nikola",last:"Tesla",    mail:"nikola@cosmos.io",role:"Hardware",    val:22, stat:"active"},
+];
+ROWS.forEach((r,i)=>{r.acc=ACC[i%ACC.length];r.init=r.first[0]+r.last[0];r.name=r.first+" "+r.last;});
+const STATLABEL={active:"Active",pending:"Pending",paused:"Paused"};
+const CHK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+
+// build header cells
+const hrow=document.getElementById('hrow');
+const headEls=COLS.map(c=>{
+  const th=document.createElement('th');th.className=c.cls+(c.sortable?' sortable':'');
+  th.innerHTML=c.label+'<span class="arw" data-arw>▲</span>';
+  hrow.appendChild(th);return th;
+});
+// build rows once; we re-fill text per render to allow re-sorting
+const tb=document.getElementById('tb');
+const rowEls=ROWS.map(()=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td class="cChk"><span class="cb" data-cb></span></td>'+
+    '<td class="cName"><div class="nm"><span class="av" data-av></span><span class="nmtxt"><b data-nm></b><s data-ml></s></span></div></td>'+
+    '<td class="cRole" data-role></td>'+
+    '<td class="cVal" data-val></td>'+
+    '<td class="cStat"><span class="pill" data-pill></span></td>';
+  tb.appendChild(tr);
+  return {tr, cb:tr.querySelector('[data-cb]'), av:tr.querySelector('[data-av]'),
+    nm:tr.querySelector('[data-nm]'), ml:tr.querySelector('[data-ml]'),
+    role:tr.querySelector('[data-role]'), val:tr.querySelector('[data-val]'),
+    pill:tr.querySelector('[data-pill]')};
+});
+const selCount=document.getElementById('selCount'), cbAll=document.getElementById('cbAll');
+
+function sortIndices(colKey, dir){
+  const idx=ROWS.map((_,i)=>i);
+  idx.sort((a,b)=>{
+    let va,vb;
+    if(colKey==='val'){va=ROWS[a].val;vb=ROWS[b].val;}
+    else{va=String(ROWS[a][colKey]).toLowerCase();vb=String(ROWS[b][colKey]).toLowerCase();}
+    if(va<vb)return -1*dir; if(va>vb)return 1*dir; return 0;
+  });
+  return idx;
+}
+function paintRow(el,r){
+  el.av.textContent=r.init; el.av.style.background='linear-gradient(160deg,'+r.acc+',#6a3dff)';
+  el.nm.textContent=r.name; el.ml.textContent=r.mail;
+  el.role.textContent=r.role; el.val.textContent=r.val;
+  el.pill.textContent=STATLABEL[r.stat]; el.pill.className='pill p-'+r.stat;
+}
+
+const LOOP=8000;
+function easeIO(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+// state to paint:
+//  sortCol index, sortDir (+1/-1), set of selected ORIGINAL-row indices, hovered VISUAL-row index
+function paint(state){
+  // active header
+  headEls.forEach((th,i)=>{
+    const on=i===state.sortCol;
+    th.classList.toggle('act',on);
+    const arw=th.querySelector('[data-arw]');
+    arw.style.transform='translateY(1px) rotate('+(state.sortDir>0?0:180)+'deg)';
+  });
+  // order rows
+  const order=sortIndices(COLS[state.sortCol].key, state.sortDir);
+  order.forEach((origIdx,vis)=>{
+    const el=rowEls[vis]; const r=ROWS[origIdx];
+    paintRow(el,r);
+    const sel=state.sel.has(origIdx);
+    const hov=vis===state.hov;
+    el.tr.className=(vis%2?'zeb':'')+(sel?' selrow':'')+((hov&&!sel)?' hov':'');
+    el.cb.className='cb'+(sel?' on':''); el.cb.innerHTML=sel?CHK:'';
+  });
+  selCount.textContent=state.sel.size+' selected';
+  selCount.style.opacity=state.sel.size?1:0;
+  const allOn=state.sel.size===ROWS.length;
+  cbAll.classList.toggle('on',allOn);
+}
+
+function render(u){
+  // frame-0 offset: open already sorted by Tasks(desc) with a row hovered + a row selected
+  const p=(u+0.52)%1;
+  // default sort: name ascending
+  let sortCol=0, sortDir=1;
+  const sel=new Set(); let hov=-1;
+  // phase A 0..0.34: hover sweep down rows (name-sorted), no selection yet
+  // phase B 0.34..0.46: click "Tasks" header -> sort desc
+  // phase C 0.46..0.70: with tasks-sorted, select two top rows one by one
+  // phase D 0.70..0.84: hover sweep continues over tasks-sorted view
+  // phase E 0.84..1: click "Name" header -> back to name-asc, deselect (reset)
+  if(p<0.34){
+    sortCol=0;sortDir=1;
+    const k=p/0.34; hov=Math.min(ROWS.length-1, Math.floor(k*ROWS.length));
+  } else if(p<0.46){
+    // transition click on Tasks; show tasks-desc immediately, arrow flips
+    sortCol=2;sortDir=-1; hov=0;
+  } else if(p<0.70){
+    sortCol=2;sortDir=-1;
+    const k=(p-0.46)/0.24;
+    // tasks-desc order: select visual rows 0 then 1
+    const order=sortIndices('val',-1);
+    if(k>0.18) sel.add(order[0]);
+    if(k>0.55) sel.add(order[1]);
+    hov=k<0.18?0:(k<0.55?1:-1);
+  } else if(p<0.84){
+    sortCol=2;sortDir=-1;
+    const order=sortIndices('val',-1);
+    sel.add(order[0]);sel.add(order[1]);
+    const k=(p-0.70)/0.14; hov=2+Math.floor(k*(ROWS.length-2));
+  } else {
+    // click Name -> name asc, selection clears
+    sortCol=0;sortDir=1; hov=-1;
+  }
+  paint({sortCol,sortDir,sel,hov});
+}
+
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>render(((t%LOOP)+LOOP)%LOOP/LOOP); window.__seek(0); window.__ready=true;}
+else{
+  // LIVE: real sortable headers, hover highlight, checkbox selection.
+  let liveState={sortCol:0,sortDir:1,sel:new Set(),hov:-1}, live=false;
+  function refresh(){paint(liveState);}
+  headEls.forEach((th,i)=>{
+    if(!COLS[i].sortable)return;
+    th.addEventListener('click',()=>{live=true;
+      if(liveState.sortCol===i)liveState.sortDir*=-1;
+      else{liveState.sortCol=i;liveState.sortDir=COLS[i].key==='val'?-1:1;}
+      refresh();});
+  });
+  // delegate hover + checkbox via tbody (rows reused; bind by current visual index)
+  rowEls.forEach((el,vis)=>{
+    el.tr.style.transition='';
+    el.tr.addEventListener('mouseenter',()=>{live=true;liveState.hov=vis;refresh();});
+    el.tr.addEventListener('mouseleave',()=>{liveState.hov=-1;refresh();});
+    el.cb.addEventListener('click',(e)=>{e.stopPropagation();live=true;
+      const order=sortIndices(COLS[liveState.sortCol].key,liveState.sortDir);
+      const orig=order[vis];
+      if(liveState.sel.has(orig))liveState.sel.delete(orig);else liveState.sel.add(orig);
+      refresh();});
+  });
+  cbAll.parentElement.addEventListener('click',()=>{live=true;
+    if(liveState.sel.size===ROWS.length)liveState.sel.clear();
+    else ROWS.forEach((_,i)=>liveState.sel.add(i));
+    refresh();});
+  // idle autoplay demo (fallback until the user interacts)
+  const s=performance.now();
+  (function l(n){ if(!live){render((((n-s)%LOOP)+LOOP)%LOOP/LOOP);} requestAnimationFrame(l); })(performance.now());
+}
+</script></body></html>

@@ -1,0 +1,65 @@
+<!-- Cosmos Circuit Traces — Tron-like board: right-angle traces, light pulses flowing past glowing nodes. -->
+<!doctype html><meta charset="utf-8"><title>circuit-traces</title>
+<style>html,body{margin:0;background:#05030d;overflow:hidden}canvas{position:fixed;inset:0;width:100%;height:100%}</style>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;x.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd=mulberry32(0xC1C017);
+const LOOP=8000, GW=20, GH=15;                 // grid cells
+// Build seeded right-angle traces (Manhattan routing) + node set.
+const TRACES=[], NODES=new Set(), TCOL=['#8b5cff','#46b4ff'];
+function key(a,b){return a+','+b;}
+for(let i=0;i<46;i++){
+  let cx=(rnd()*GW)|0, cy=(rnd()*GH)|0; const pts=[[cx,cy]]; NODES.add(key(cx,cy));
+  const segs=2+((rnd()*3)|0);
+  for(let s=0;s<segs;s++){
+    const horiz=rnd()<.5, len=1+((rnd()*4)|0)*(rnd()<.5?1:-1);
+    if(horiz)cx=Math.max(0,Math.min(GW,cx+len)); else cy=Math.max(0,Math.min(GH,cy+len));
+    pts.push([cx,cy]); NODES.add(key(cx,cy));
+  }
+  // path length in cells
+  let L=0;for(let p=1;p<pts.length;p++)L+=Math.abs(pts[p][0]-pts[p-1][0])+Math.abs(pts[p][1]-pts[p-1][1]);
+  if(L>0)TRACES.push({pts,L,c:TCOL[i&1],off:rnd(),sp:1+((rnd()*3)|0)});
+}
+const NODEARR=[...NODES].map(k=>k.split(',').map(Number));
+function frame(t){
+  const u=((t%LOOP)+LOOP)%LOOP/LOOP, w=W||innerWidth, h=H||innerHeight;
+  const mx=w*.06, my=h*.06, sx=(w-2*mx)/GW, sy=(h-2*my)/GH;
+  const X=c=>mx+c*sx, Y=c=>my+c*sy;
+  x.setTransform(DPR,0,0,DPR,0,0);x.globalCompositeOperation='source-over';
+  x.fillStyle='#05030d';x.fillRect(0,0,w,h);
+  x.globalCompositeOperation='lighter';x.lineCap='round';x.lineJoin='round';
+  // base traces (dim)
+  for(const tr of TRACES){
+    x.strokeStyle=tr.c;x.globalAlpha=.16;x.lineWidth=1.4;
+    x.beginPath();x.moveTo(X(tr.pts[0][0]),Y(tr.pts[0][1]));
+    for(let p=1;p<tr.pts.length;p++)x.lineTo(X(tr.pts[p][0]),Y(tr.pts[p][1]));x.stroke();
+  }
+  // flowing pulses via dash offset (nebula), mod-1 seamless
+  for(const tr of TRACES){
+    const Lpx=tr.L*((sx+sy)/2), dash=Math.max(24,Lpx/2.2), patt=dash*1.34;
+    x.strokeStyle='#ff5cc2';x.globalAlpha=.9;x.lineWidth=2.6;
+    x.setLineDash([dash*.34,dash]);
+    x.lineDashOffset=-((u*tr.sp+tr.off)%1)*patt; // sp integer => offset equal at u=0 and u=1 (seamless)
+    x.beginPath();x.moveTo(X(tr.pts[0][0]),Y(tr.pts[0][1]));
+    for(let p=1;p<tr.pts.length;p++)x.lineTo(X(tr.pts[p][0]),Y(tr.pts[p][1]));x.stroke();
+  }
+  x.setLineDash([]);
+  // glowing nodes
+  for(let i=0;i<NODEARR.length;i++){
+    const n=NODEARR[i], px=X(n[0]),py=Y(n[1]);
+    const tw=.5+.5*Math.sin((u+i*.013)*6.283*2);
+    const g=x.createRadialGradient(px,py,0,px,py,5+5*tw);
+    g.addColorStop(0,'#46b4ff');g.addColorStop(.4,'rgba(139,92,255,.5)');g.addColorStop(1,'rgba(0,0,0,0)');
+    x.globalAlpha=.45+.5*tw;x.fillStyle=g;x.beginPath();x.arc(px,py,5+5*tw,0,7);x.fill();
+    x.globalAlpha=.8;x.fillStyle='#e0b24a';x.beginPath();x.arc(px,py,1.1+.7*tw,0,7);x.fill();
+  }
+  x.globalAlpha=1;
+}
+const AUTO=new URLSearchParams(location.search).has('auto');
+if(AUTO){window.__seek=t=>frame(t);frame(0);window.__ready=true;} else {const s=performance.now();(function l(n){frame(n-s);requestAnimationFrame(l);})(performance.now());}
+</script>
