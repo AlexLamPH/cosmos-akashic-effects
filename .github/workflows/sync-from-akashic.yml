@@ -1,0 +1,39 @@
+name: Sync gallery from Akashic
+# §26 auto-sync — pull effect cards from Akashic (source of truth) and rebuild this
+# static gallery. Runs on a schedule + manual dispatch. Pushes to main if anything
+# changed; the existing Pages workflow (pages.yml) then redeploys.
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sync-from-akashic
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install tool deps
+        run: npm install --prefix tools --no-audit --no-fund
+      - name: Export gallery from Akashic
+        run: node tools/export-gallery.cjs
+        env:
+          AKASHIC_API_KEY: ${{ secrets.AKASHIC_API_KEY }}
+      - name: Commit + push if changed
+        run: |
+          git config user.name "cosmos-gallery-bot"
+          git config user.email "bot@cosmos-ai-lab.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore(sync): refresh gallery from Akashic [skip ci]"
+            git push
+            echo "pushed gallery update"
+          else
+            echo "no changes — gallery already in sync"
+          fi
