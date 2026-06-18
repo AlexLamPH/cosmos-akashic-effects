@@ -6,9 +6,21 @@
   "H": 540,
   "LOOP": 7000,
   "N": 88,
-  "tags": ["canvas2d", "generative", "ecg", "medical", "glow"],
+  "tags": [
+    "canvas2d",
+    "generative",
+    "ecg",
+    "medical",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A glowing green/cosmic ECG trace scrolls across a faint blue grid with the classic PQRST heartbeat spike repeating, and a soft pulsing glow dot rides the leading edge. The scroll wraps seamlessly with an integer number of beats per loop. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the PQRST waveform is a sum of Gaussian bumps over a beat-phase in [0,1); screen x maps to a scrolling beat coordinate advanced by an integer beat count over the loop so it wraps; the trace is layered (wide soft glow + crisp core) under 'lighter'; a leading glow dot samples the same waveform and pulses with the beat. CAPTURE: ?auto=1 + window.__seek(t). TUNE: BEATS (beats per loop), amp (height), the Gaussian centers/widths/amplitudes in pqrst().",
   "summary_vi": "Một đường ECG phát sáng xanh lục/xanh vũ trụ cuộn ngang qua lưới mờ với gai nhịp tim PQRST cổ điển lặp lại, kèm chấm sáng nhấp nháy ở mép dẫn đầu. Cuộn lặp liền mạch với số nhịp nguyên mỗi vòng. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Sóng PQRST là tổng các hàm Gaussian theo pha nhịp; số nhịp nguyên mỗi vòng đảm bảo cuộn lặp liền mạch."
+  "notes": "Sóng PQRST là tổng các hàm Gaussian theo pha nhịp; số nhịp nguyên mỗi vòng đảm bảo cuộn lặp liền mạch.",
+  "card_number": "AK-CDP-0000036",
+  "tier": "canvas"
 }

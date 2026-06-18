@@ -12,11 +12,17 @@
     "particles",
     "glow",
     "canvas2d",
-    "generative"
+    "generative",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Layered upward-licking flame tongues built from seeded sine-wobbled shapes in solaris/sacred/nebula gradients, with additive glow, a hot core and rising embers. The flicker is a pure function of loop phase u so it repeats seamlessly. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each flame tongue is a closed polygon whose edges are sine-wobbled (width tapers to the tip, lateral wobble grows with height); the per-tongue flicker is sin(2pi*u*k1)*cos(2pi*u*k2) with integer k so frame(0)==frame(LOOP); additive 'lighter' blending stacks a ground glow, hot inner core and the tongues; embers ride looping phase p=(seed+u*rise)%1 fading via sin(p*pi). All randomness is mulberry32-seeded once at setup. CAPTURE: ?auto=1 + window.__seek(t). TUNE: tongue count n, flicker integers k1/k2, ember count m, gradient stops HOT/MID/COOL/TIP.",
   "summary_vi": "Các lưỡi lửa liếm lên xếp lớp dựng từ hình sine nhiễu có seed theo gradient solaris/sacred/nebula, kèm glow cộng dồn, lõi nóng và tàn lửa bay lên. Nhấp nháy là hàm thuần của pha u nên lặp liền mạch. Thuần Canvas 2D, không lib, chạy offline.",
   "notes": "Batch factory. Flicker = sin(2pi*u*k1)*cos(2pi*u*k2) với k nguyên -> seamless; lưỡi lửa là polygon sine-wobbled; embers theo pha (seed+u*rise)%1; additive glow.",
-  "START": 0
+  "START": 0,
+  "card_number": "AK-CDP-000003H",
+  "tier": "canvas"
 }

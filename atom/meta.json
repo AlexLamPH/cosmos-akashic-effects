@@ -2,10 +2,26 @@
   "slug": "atom",
   "title": "Cosmos Atom — a Bohr-model atom with electrons orbiting a glowing nucleus in 3D",
   "title_vi": "Cosmos Atom — nguyên tử kiểu Bohr với electron quay quanh hạt nhân phát sáng trong 3D",
-  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
-  "tags": ["atom","bohr","electrons","orbit","3d","canvas2d"],
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "atom",
+    "bohr",
+    "electrons",
+    "orbit",
+    "3d",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A glowing nucleus sits at the centre while electrons sweep three tilted elliptical orbit rings, hand-rolled 3D so each orbit and electron passes correctly in front of or behind the nucleus; electrons drag faint colour trails. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each ellipse lives in its own plane, rotated into 3D world space by per-ring Euler angles (rot3) so its z gives depth; the renderer draws back halves of all rings, then electrons with z<0, then the nucleus, then front halves and electrons with z>=0 — so depth ordering is correct with no WebGL. Electron angle = th0 + 2PI*u*period with INTEGER period (2,3,4), so every electron returns to its start at u=1, giving frame(0)==frame(LOOP). A mild perspective scale by depth and short back-sampled trails complete the look; nucleus and electrons drawn additively ('lighter') over a seeded starfield. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N rings, R orbit size, ellipse b/a, per-ring tilt (ax,az), integer periods, trail SEG/sp, AC palette, LOOP.",
   "summary_vi": "Hạt nhân phát sáng nằm ở tâm trong khi các electron quét ba vòng quỹ đạo elip nghiêng; 3D tự dựng nên mỗi quỹ đạo và electron đi đúng phía trước hoặc phía sau hạt nhân, electron kéo vệt màu mờ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Mỗi elip xoay vào không gian 3D bằng góc Euler riêng; sắp xếp độ sâu theo z (vẽ nửa sau, electron z<0, hạt nhân, nửa trước, electron z>=0); period nguyên nên loop liền mạch."
+  "notes": "Mỗi elip xoay vào không gian 3D bằng góc Euler riêng; sắp xếp độ sâu theo z (vẽ nửa sau, electron z<0, hạt nhân, nửa trước, electron z>=0); period nguyên nên loop liền mạch.",
+  "card_number": "AK-CDP-000005B",
+  "tier": "canvas"
 }

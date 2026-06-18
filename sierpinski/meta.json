@@ -2,10 +2,26 @@
   "slug": "sierpinski",
   "title": "Cosmos Sierpinski — a glowing recursive triangle fractal breathing and rotating with a depth colour wave",
   "title_vi": "Cosmos Sierpinski — fractal tam giác đệ quy phát sáng, thở và xoay với sóng màu theo độ sâu",
-  "W": 700, "H": 700, "LOOP": 8000, "N": 100,
-  "tags": ["fractal","sierpinski","recursion","triangle","generative","canvas2d"],
+  "W": 700,
+  "H": 700,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "fractal",
+    "sierpinski",
+    "recursion",
+    "triangle",
+    "generative",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A Sierpinski triangle drawn by recursively subdividing an equilateral triangle to depth 6, each level's empty centre triangle stroked as a glowing accent outline. The whole figure breathes (scale = 1+0.10*sin) and rotates one full turn per loop, while a colour wave sweeps through the Cosmos palette by recursion depth. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: tri() recurses DEPTH levels, splitting each triangle at edge midpoints into three corner sub-triangles and stroking the empty central triangle to form the Sierpinski gasket; colour comes from depthCol(d,u) which blends adjacent palette accents using fractional phase (d/DEPTH + u) mod 1 so the colour wave sweeps by depth and returns at u=1. Motion is all integer-harmonic in u: breathing scale 1+0.10*sin(2PI*u), one-turn rotation spin=2PI*u, and a per-depth glow pulse sin(2PI*u + d*0.9) -> frame(0)==frame(LOOP). All glow drawn with globalCompositeOperation='lighter'. CAPTURE: ?auto=1 + window.__seek(t). TUNE: DEPTH recursion depth, breathe amplitude, R radius scale, AC palette.",
   "summary_vi": "Tam giác Sierpinski dựng bằng cách chia đệ quy một tam giác đều tới độ sâu 6, mỗi tầng vẽ viền tam giác rỗng ở giữa thành đường sáng accent. Toàn hình thở (scale = 1+0.10*sin) và xoay trọn một vòng mỗi loop, đồng thời một sóng màu quét qua bảng màu Cosmos theo độ sâu đệ quy. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Mọi chuyển động dùng tần số nguyên theo u (scale 1+0.10*sin(2PI*u), spin 2PI*u, pulse sin(2PI*u+d*0.9)) và sóng màu (d/DEPTH+u) mod 1 nên frame(0)==frame(LOOP) → loop liền."
+  "notes": "Mọi chuyển động dùng tần số nguyên theo u (scale 1+0.10*sin(2PI*u), spin 2PI*u, pulse sin(2PI*u+d*0.9)) và sóng màu (d/DEPTH+u) mod 1 nên frame(0)==frame(LOOP) → loop liền.",
+  "card_number": "AK-CDP-000004F",
+  "tier": "canvas"
 }

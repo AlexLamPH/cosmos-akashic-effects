@@ -6,9 +6,21 @@
   "H": 420,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "clock", "flipclock", "cosmos", "loop"],
+  "tags": [
+    "canvas2d",
+    "clock",
+    "flipclock",
+    "cosmos",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A split-flap flip clock of six glossy dark digit cards: when a digit changes, its top half folds down on a hinge while the next digit's bottom half rises to meet it, complete with falling-flap shadow and a Cosmos accent edge glow. The whole HH:MM:SS readout counts forward and loops seamlessly because the flip is a deterministic function of the loop phase. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: per-card flip as a pure function of phase — flap scaleY = cos(prog*pi) for the first half then cos((1-prog)*pi) for the second, clipped top/bottom halves with a gradient glossy body, hinge line, falling-flap shadow, additive accent edge stroke and top sheen, blinking colons. The clock advances one tick (TICKS=60) per loop and only the changing digit flips. CAPTURE: ?auto=1 + window.__seek(t). TUNE: TICKS (count speed), flip window (fr-0.55)/0.4, card size 0.13, LOOP.",
   "summary_vi": "Đồng hồ lật split-flap gồm sáu thẻ số tối bóng bẩy: khi một chữ số đổi, nửa trên gập xuống quanh bản lề trong khi nửa dưới của số kế tiếp dâng lên, kèm bóng đổ của nắp lật và viền sáng màu nhấn Cosmos. Toàn bộ chuỗi HH:MM:SS đếm tiến và lặp liền mạch vì cú lật là hàm tất định của pha vòng lặp. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Vòng lặp 8s liền mạch, TICKS=60. Cú lật dùng scaleY=cos(prog*pi); chỉ chữ số thay đổi mới lật. Điều chỉnh TICKS để đổi tốc độ đếm."
+  "notes": "Vòng lặp 8s liền mạch, TICKS=60. Cú lật dùng scaleY=cos(prog*pi); chỉ chữ số thay đổi mới lật. Điều chỉnh TICKS để đổi tốc độ đếm.",
+  "card_number": "AK-CDP-000003R",
+  "tier": "canvas"
 }

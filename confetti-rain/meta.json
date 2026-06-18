@@ -2,10 +2,26 @@
   "slug": "confetti-rain",
   "title": "Cosmos Confetti Rain — tumbling accent rects and triangles falling with depth",
   "title_vi": "Cosmos Confetti Rain — mảnh giấy màu xoay rơi theo chiều sâu",
-  "W": 600, "H": 760, "LOOP": 7000, "N": 88,
-  "tags": ["confetti","particles","falling","tumble","glow","canvas2d"],
+  "W": 600,
+  "H": 760,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "confetti",
+    "particles",
+    "falling",
+    "tumble",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Colourful confetti pieces — small rects and triangles in the Cosmos accents — fall and tumble through a glowing dark column with parallax depth. Each piece wraps seamlessly by taking its fall phase mod 1, sways on an integer-harmonic sine, and foreshortens as it rotates to read as 3D. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: vertical position uses (phase + u*z) mod 1 so every piece wraps from bottom to top seamlessly; depth z scales size, speed and alpha for parallax (far pieces drawn first); tumble is rotate(2pi*u*rk) with integer rk plus a cos-based vertical scale for foreshortening; horizontal sway is a small sin(2pi*u*sk); additive 'lighter' blend with per-piece shadowBlur gives the accent glow; mulberry32 seeds all pieces once. CAPTURE: ?auto=1 + window.__seek(t). TUNE: piece count, size range, depth band, sway amount, tri ratio, COLS palette, LOOP.",
   "summary_vi": "Những mảnh giấy kim tuyến nhiều màu — hình chữ nhật và tam giác nhỏ theo màu nhấn Cosmos — rơi và xoay lộn qua cột tối phát sáng với chiều sâu thị sai. Mỗi mảnh wrap liền mạch nhờ lấy pha rơi mod 1, lắc theo sin hài nguyên và bị thu ngắn khi xoay để tạo cảm giác 3D. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
-  "notes": "Rơi dùng (pha + u*z) mod 1 nên wrap liền; xoay rotate(2pi*u*rk) với k nguyên + thu ngắn theo cos; z tạo thị sai; gieo bằng mulberry32."
+  "notes": "Rơi dùng (pha + u*z) mod 1 nên wrap liền; xoay rotate(2pi*u*rk) với k nguyên + thu ngắn theo cos; z tạo thị sai; gieo bằng mulberry32.",
+  "card_number": "AK-CDP-0000034",
+  "tier": "canvas"
 }

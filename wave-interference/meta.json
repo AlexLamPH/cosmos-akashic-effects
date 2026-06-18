@@ -12,10 +12,16 @@
     "canvas2d",
     "generative",
     "hypnotic",
-    "cosmos"
+    "cosmos",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Three point sources, each orbiting its base position on an integer-harmonic loop, emit concentric circular waves that sum into a constantly shifting ripple and moiré field. The wave amplitude is computed on a tiny offscreen buffer, colour-mapped through the Cosmos accents via a looping 256-stop LUT, and upscaled with additive glow. Pure Canvas 2D, zero deps, runs offline, deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: per-pixel field on a 200px offscreen summing sin(dist*freq - 2π*u*k) per source with INTEGER k so the ripple loops exactly; sources orbit via cos/sin of integer harmonics of u; magnitude squared brightens antinodes; smooth looping LUT through six accents with additive 'lighter' upscale. CAPTURE: ?auto=1 + window.__seek(t). TUNE: source count/spread (SRC), per-source freq (26-40), offscreen RW (200), antinode gamma (g), LOOP.",
   "summary_vi": "Ba nguồn điểm, mỗi nguồn quay quanh vị trí gốc theo vòng lặp hài bậc nguyên, phát ra các sóng tròn đồng tâm cộng lại thành trường gợn sóng và moiré chuyển động liên tục. Biên độ sóng được tính trên một bộ đệm offscreen nhỏ, ánh xạ màu qua các sắc Cosmos bằng LUT 256 nấc lặp, rồi phóng to với hiệu ứng phát sáng cộng dồn. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Vòng lặp 8s liền mạch nhờ k nguyên trong pha sóng; tăng freq để gợn mịn hơn, tăng số nguồn để trường phức tạp hơn. Field tính trên offscreen 200px rồi upscale để GIF nhẹ."
+  "notes": "Vòng lặp 8s liền mạch nhờ k nguyên trong pha sóng; tăng freq để gợn mịn hơn, tăng số nguồn để trường phức tạp hơn. Field tính trên offscreen 200px rồi upscale để GIF nhẹ.",
+  "card_number": "AK-CDP-000003B",
+  "tier": "canvas"
 }

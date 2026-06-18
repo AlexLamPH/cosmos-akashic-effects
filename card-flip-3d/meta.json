@@ -2,10 +2,26 @@
   "slug": "card-flip-3d",
   "title": "Cosmos Card Flip 3D — a glowing card flipping in perspective",
   "title_vi": "Cosmos Card Flip 3D — lá bài sáng lật 3D theo phối cảnh",
-  "W": 600, "H": 620, "LOOP": 8000, "N": 100,
-  "tags": ["3d","card","flip","perspective","glow","canvas2d"],
+  "W": 600,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "3d",
+    "card",
+    "flip",
+    "perspective",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A single card flips over and over about its vertical axis with hand-rolled perspective foreshortening: the front shows a glowing six-point emblem over an accent gradient, the back a subtle dotted weave with a faint frame, and a soft squashed shadow grounds it. Two flips per loop return it exactly to start. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the card spins about its vertical (Y) axis by angle 2*pi*2*u; the two vertical edges sit at local x=±1 with depth z=±CW*sin(ang), each projected by perspective scale=F/(F+z) by hand (no WebGL), so the nearer edge is wider/taller and the card foreshortens; any card-local point is found by bilinear lerp between the two projected edges; cos(ang) sign picks front vs back face and its magnitude (vis) drives alpha/width so the card vanishes to a bright sliver edge-on; front is an additive emblem starburst + accent sheen, back a seeded dotted pattern, with an additive glowing rim and a foreshortened floor shadow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: CW/CH (card size & aspect), F (perspective strength), flips-per-loop (the 2 in 2*pi*2*u), LOOP, emblem ray count, COL palette, shadow opacity.",
   "summary_vi": "Một lá bài lật liên tục quanh trục dọc với phối cảnh thủ công: mặt trước hiện huy hiệu sáu cánh phát sáng trên nền gradient nhấn, mặt sau là hoa văn chấm mờ với khung nhạt, kèm bóng đổ mềm bị nén. Hai lần lật mỗi loop đưa lá bài về đúng vị trí ban đầu. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
-  "notes": "Hai cạnh dọc của bài ở x=±CW có độ sâu z=±CW*sin(góc), chiếu bằng scale=F/(F+z); dấu cos(góc) chọn mặt trước/sau, độ lớn của nó điều khiển độ sáng và bề rộng để bài thu về vạch sáng khi nhìn nghiêng cạnh."
+  "notes": "Hai cạnh dọc của bài ở x=±CW có độ sâu z=±CW*sin(góc), chiếu bằng scale=F/(F+z); dấu cos(góc) chọn mặt trước/sau, độ lớn của nó điều khiển độ sáng và bề rộng để bài thu về vạch sáng khi nhìn nghiêng cạnh.",
+  "card_number": "AK-CDP-000003Y",
+  "tier": "canvas"
 }

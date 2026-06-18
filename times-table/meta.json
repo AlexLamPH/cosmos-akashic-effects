@@ -12,10 +12,16 @@
     "geometry",
     "modular",
     "cardioid",
-    "loop"
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A modular-multiplication times table: N points sit on a circle and a chord runs from each i to (i*m mod N). As the multiplier m slowly sweeps, the chord envelope morphs through cardioid, nephroid and star patterns, with chords coloured by angle through the Cosmos accents. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: 240 points on a circle; chord from i to fractional (i*m mod N) with linear interpolation between neighbouring nodes for smooth envelopes; m driven by a cosine sweep (2->50->2) so it returns at u=1; additive 'lighter' blending and per-chord angle-based palette rotation build the glow; seeded mulberry32 starfield. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N (point count / detail), the m sweep amplitude (48) and base (2), chord alpha (0.28), and LOOP.",
   "summary_vi": "Bảng cửu chương modulo: N điểm trên vòng tròn, mỗi điểm i nối dây cung tới (i*m mod N). Khi hệ số nhân m quét chậm, đường bao dây cung biến đổi qua các hình cardioid, nephroid và sao, dây cung được tô màu theo góc qua bảng màu Cosmos. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và liền mạch.",
-  "notes": "m quét theo hàm cosin (2->50->2) nên cảnh trở về đúng trạng thái đầu tại u=1, đảm bảo vòng lặp liền mạch."
+  "notes": "m quét theo hàm cosin (2->50->2) nên cảnh trở về đúng trạng thái đầu tại u=1, đảm bảo vòng lặp liền mạch.",
+  "card_number": "AK-CDP-000004N",
+  "tier": "canvas"
 }

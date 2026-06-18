@@ -6,9 +6,21 @@
   "H": 600,
   "LOOP": 6000,
   "N": 75,
-  "tags": ["ascii", "logo", "shimmer", "cosmos", "grid"],
+  "tags": [
+    "ascii",
+    "logo",
+    "shimmer",
+    "cosmos",
+    "grid",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "The Cosmos logo sampled to an offscreen buffer and re-rendered as a 72x72 grid of monospace glyphs, where each cell's character is chosen from a ' .:-=+*#%@' ramp by source brightness and tinted by the sampled logo colour blended with cosmic accents. A deterministic diagonal shimmer wave modulates per-cell size and opacity.",
   "usage_notes": "RUN: open index.html (auto-anim) or append ?auto=1 for capture. KEY TECHNIQUES: offscreen pixel sampling of an inlined data-URI logo, brightness-to-glyph ramp mapping, per-cell colour tint, deterministic diagonal shimmer (sin of u harmonics + seeded jitter table). CAPTURE: ?auto=1 + window.__seek(t). TUNE: COLS/ROWS (grid density), RAMP string, shimmer harmonic in the wave term, jitter amplitude on font size.",
   "summary_vi": "Logo Cosmos được lấy mẫu vào bộ đệm ẩn rồi vẽ lại thành lưới 72x72 ký tự monospace; mỗi ô chọn ký tự từ dải ' .:-=+*#%@' theo độ sáng nguồn và nhuộm màu theo màu logo pha với sắc vũ trụ. Sóng lung linh chéo tất định điều biến kích thước và độ mờ từng ô.",
-  "notes": "Vòng lặp liền mạch 6000ms: mọi chuyển động là hàm tất định của u nên frame(0)===frame(LOOP). Logo nhúng inline dạng data-URI, lấy mẫu một lần sau khi ảnh tải xong để tránh lỗi taint canvas headless."
+  "notes": "Vòng lặp liền mạch 6000ms: mọi chuyển động là hàm tất định của u nên frame(0)===frame(LOOP). Logo nhúng inline dạng data-URI, lấy mẫu một lần sau khi ảnh tải xong để tránh lỗi taint canvas headless.",
+  "card_number": "AK-CDP-000002W",
+  "tier": "canvas"
 }

@@ -12,10 +12,16 @@
     "scanlines",
     "glitch",
     "text",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "The word COSMOS on a retro CRT phosphor screen: scanlines, RGB colour bleed, a rolling bright band, edge vignette/curvature and a subtle flicker. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the text is drawn three times (cosmic/nebula offset + a glowing white core) for RGB bleed; horizontal scanlines + a radial vignette sell the CRT; a bright band rolls down at y=(u mod 1)*H; flicker is a seeded table indexed by floor(u*K) (loops). CAPTURE: ?auto=1 + window.__seek(t). TUNE: scanline pitch, bleed offset, flicker table, colours.",
   "summary_vi": "Chữ COSMOS trên màn hình CRT phosphor hoài cổ: scanline, viền màu RGB, dải sáng chạy, vignette cong mép và nhấp nháy nhẹ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Batch 6/7 — Ra viết lại (bản subagent bị trống palette 2). Text 3 lớp RGB bleed + scanline + rolling band + flicker seeded loop."
+  "notes": "Batch 6/7 — Ra viết lại (bản subagent bị trống palette 2). Text 3 lớp RGB bleed + scanline + rolling band + flicker seeded loop.",
+  "card_number": "AK-CDP-000002Z",
+  "tier": "canvas"
 }
