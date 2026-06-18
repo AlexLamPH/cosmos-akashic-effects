@@ -2,27 +2,24 @@
 /* export-gallery.cjs — §26 auto-sync: Akashic (source of truth) → this gallery.
  *
  * Ra's build pipeline runs LOCAL → upload → card, so Akashic is the DESTINATION.
- * To keep this static gallery in sync we pull the cards back DOWN: each effect
- * card's `core_payload.code` IS that effect's <slug>/index.html, and the thumb
- * is frame 0 of its preview GIF (the same render the GIF was captured from).
+ * To keep this static gallery in sync we pull the cards back DOWN.
  *
- * For each effect in tools/manifest.json:
- *   - fetch the card by card_number from the Akashic API
- *   - write <slug>/index.html  = core_payload.code
- *   - write <slug>/meta.json   = existing meta (build params) + card prose (refreshed)
- *   - write <slug>/thumb.png   = frame 0 of the preview GIF (kept if already present,
- *                                unless REFRESH_THUMBS=1; placeholder if no GIF + no thumb)
- * then runs tools/build-gallery.cjs (NOGIF=1) to regenerate the gallery index.html.
+ * SOURCE OF TRUTH = the API: every Cosmos `code_pattern` card (so effects ADDED to
+ * Akashic later also sync, not just a frozen list). For each effect:
+ *   - <slug>/index.html  = core_payload.code
+ *   - <slug>/meta.json   = existing build params (W/H/LOOP/N) + refreshed card prose
+ *   - <slug>/thumb.png   = frame 0 of the preview GIF (kept if present; placeholder if none)
+ * then runs build-gallery.cjs (NOGIF=1) to regenerate the gallery index.html.
  *
- * Deterministic → git only commits when content actually changed. The GitHub
- * Action commits + pushes; Pages auto-deploys on push to main.
+ * slug/tier: cards don't store a slug → resolved from the card's curator_annotations
+ * (.slug/.tier, once Ra backfills), else manifest.json, else slugify(title)+tier-from-tags.
+ * Only PUBLIC effects are exported (never leak a private card into the public gallery).
  *
- * Env:
- *   AKASHIC_API_KEY   (required)  Bearer key — read scope is enough
- *   AKASHIC_BASE      (optional)  default https://akashic.cosmos-ai-lab.com
- *   GALLERY_DIR       (optional)  default = repo root (parent of tools/)
- *   LIMIT             (optional)  only process the first N effects (testing)
- *   REFRESH_THUMBS    (optional)  =1 → regenerate every thumb from GIF (else keep existing)
+ * Deterministic → git only commits when content actually changed.
+ *
+ * Env: AKASHIC_API_KEY (required, read scope) · AKASHIC_BASE (default prod) ·
+ *      GALLERY_DIR (default repo root) · LIMIT (first N, testing) ·
+ *      REFRESH_THUMBS=1 (regenerate every thumb from GIF).
  */
 const fs = require('fs');
 const path = require('path');
@@ -48,6 +45,7 @@ async function getJson(url) {
   if (!r.ok) throw new Error('GET ' + url + ' → ' + r.status);
   return r.json();
 }
+
 // File cards (AK-FIL) don't serve bytes directly — the download endpoint returns
 // JSON { download_url: <signed GCS url> }. Fetch that, then the bytes (no auth on GCS).
 async function getSignedFileBytes(fileCn) {
@@ -56,6 +54,39 @@ async function getSignedFileBytes(fileCn) {
   const r = await fetch(meta.download_url, { redirect: 'follow' }); // signed URL — send NO auth header
   if (!r.ok) throw new Error('GCS GET → ' + r.status);
   return Buffer.from(await r.arrayBuffer());
+}
+
+// Every Cosmos code_pattern card, paginated. Title filter mirrors Ra's bundle.
+async function listAllCosmosEffects() {
+  const out = [];
+  let offset = 0; const limit = 100;
+  for (;;) {
+    const d = await getJson(BASE + '/api/cards?type=code_pattern&limit=' + limit + '&offset=' + offset);
+    const arr = d.cards || d.data || [];
+    for (const c of arr) {
+      if (!c.deleted_at && c.status !== 'quarantined' && /^Cosmos\s/i.test(c.title || '')) out.push(c);
+    }
+    offset += limit;
+    if (arr.length === 0 || offset >= (d.total || 0)) break;
+  }
+  return out;
+}
+
+function slugify(title) {
+  return String(title || '').replace(/^Cosmos\s+/i, '').split(/[—–]/)[0]
+    .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'effect';
+}
+
+// Best-effort tier for cards not in the manifest (until Ra backfills curator_annotations.tier).
+function tierFallback(tags, slug) {
+  const t = (tags || []).map(function (x) { return String(x).toLowerCase(); });
+  if (/^(micviz|webcam|tilt)-/.test(slug)) return 'reactive';
+  if (/^game-/.test(slug)) return 'game';
+  if (/^remix-/.test(slug)) return 'remix';
+  if (t.some(function (x) { return /shader|webgl|glsl|raymarch/.test(x); })) return 'shader';
+  if (t.some(function (x) { return /audio|webaudio|sound|synth|music/.test(x); })) return 'audio';
+  if (t.some(function (x) { return /^(ui|component|form|button|input|widget)$/.test(x); })) return 'ui';
+  return 'canvas';
 }
 
 // GIF first frame → PNG buffer (no headless browser: thumb == GIF frame 0).
@@ -70,7 +101,7 @@ function gifFrame0ToPng(gifBuf) {
 }
 
 // Solid tier-tinted placeholder so an effect with no GIF + no existing thumb still
-// shows in the gallery (build-gallery.cjs skips any <slug> lacking thumb.png).
+// shows (build-gallery.cjs skips any <slug> lacking thumb.png).
 function placeholderPng(tier, w, h) {
   const c = TIER_RGB[tier] || [110, 110, 140];
   const png = new PNG({ width: w, height: h });
@@ -86,23 +117,30 @@ function placeholderPng(tier, w, h) {
 function readJsonSafe(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return null; } }
 
 async function main() {
-  const manifest = readJsonSafe(path.join(__dirname, 'manifest.json'));
-  if (!manifest || !Array.isArray(manifest.effects)) { console.error('tools/manifest.json missing/invalid'); process.exit(1); }
-  let effects = manifest.effects;
-  if (LIMIT > 0) effects = effects.slice(0, LIMIT);
-  console.log('export-gallery: ' + effects.length + ' effects from ' + BASE + ' → ' + ROOT);
+  const manifest = readJsonSafe(path.join(__dirname, 'manifest.json')) || { effects: [] };
+  const mByCn = {};
+  (manifest.effects || []).forEach(function (e) { mByCn[e.card_number] = e; });
 
-  const stats = { written: 0, thumbsNew: 0, thumbsKept: 0, placeholders: [], missingCode: [], errors: [] };
+  let cards = await listAllCosmosEffects();
+  if (LIMIT > 0) cards = cards.slice(0, LIMIT);
+  console.log('export-gallery: ' + cards.length + ' Cosmos code_pattern effects from ' + BASE + ' → ' + ROOT);
 
-  for (const fx of effects) {
-    const slug = fx.slug;
+  const stats = { written: 0, thumbsNew: 0, thumbsKept: 0, placeholders: [], missingCode: [], skippedPrivate: [], errors: [] };
+
+  for (const summary of cards) {
+    const cn = summary.card_number;
+    let slug = cn;
     try {
-      const data = await getJson(BASE + '/api/cards/' + encodeURIComponent(fx.card_number));
+      const data = await getJson(BASE + '/api/cards/' + encodeURIComponent(cn));
       const card = data.card || data;
       const cp = card.core_payload || {};
       const ann = card.curator_annotations || {};
-      // The preview GIF ref lives on the CARD (manifest.json leaves it null).
-      const previewFile = ann.preview_file || fx.preview_file || null;
+      const m = mByCn[cn] || {};
+      slug = ann.slug || m.slug || slugify(card.title);
+      const tier = ann.tier || m.tier || tierFallback(card.tags, slug);
+      const previewFile = ann.preview_file || m.preview_file || null;
+
+      if (card.visibility && card.visibility !== 'public') { stats.skippedPrivate.push(slug); continue; }
       if (typeof cp.code !== 'string' || !cp.code.trim()) { stats.missingCode.push(slug); continue; }
 
       const dir = path.join(ROOT, slug);
@@ -115,8 +153,8 @@ async function main() {
       const prev = readJsonSafe(path.join(dir, 'meta.json')) || {};
       const meta = Object.assign({}, prev, {
         slug: slug,
-        card_number: fx.card_number,
-        tier: fx.tier || prev.tier,
+        card_number: cn,
+        tier: tier,
         title: card.title || prev.title || slug,
         title_vi: ann.title_vi || prev.title_vi || '',
         tags: Array.isArray(card.tags) ? card.tags : (prev.tags || []),
@@ -131,28 +169,27 @@ async function main() {
       fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 2) + '\n');
 
       // thumb.png — keep existing (cheap, deterministic) unless REFRESH_THUMBS;
-      // new effect → frame 0 of its preview GIF; no GIF + no thumb → placeholder.
+      // else frame 0 of the preview GIF; no GIF + no thumb → tier placeholder.
       const thumbPath = path.join(dir, 'thumb.png');
       const haveThumb = fs.existsSync(thumbPath);
       if (haveThumb && !REFRESH_THUMBS) {
         stats.thumbsKept++;
       } else if (previewFile) {
         try {
-          const gif = await getSignedFileBytes(previewFile);
-          fs.writeFileSync(thumbPath, gifFrame0ToPng(gif));
+          fs.writeFileSync(thumbPath, gifFrame0ToPng(await getSignedFileBytes(previewFile)));
           stats.thumbsNew++;
         } catch (e) {
           stats.errors.push(slug + ' thumb: ' + e.message);
-          if (!haveThumb) { fs.writeFileSync(thumbPath, placeholderPng(meta.tier, 320, 230)); stats.placeholders.push(slug); }
+          if (!haveThumb) { fs.writeFileSync(thumbPath, placeholderPng(tier, 320, 230)); stats.placeholders.push(slug); }
         }
       } else if (!haveThumb) {
-        fs.writeFileSync(thumbPath, placeholderPng(meta.tier, 320, 230));
+        fs.writeFileSync(thumbPath, placeholderPng(tier, 320, 230));
         stats.placeholders.push(slug);
       }
 
       stats.written++;
     } catch (e) {
-      stats.errors.push(slug + ': ' + e.message);
+      stats.errors.push((slug || cn) + ': ' + e.message);
     }
   }
 
@@ -164,10 +201,10 @@ async function main() {
 
   console.log('\n— export-gallery summary —');
   console.log('written: ' + stats.written + ' | thumbs new: ' + stats.thumbsNew + ' | kept: ' + stats.thumbsKept + ' | placeholders: ' + stats.placeholders.length);
+  if (stats.skippedPrivate.length) console.log('SKIPPED (not public): ' + stats.skippedPrivate.join(', '));
   if (stats.missingCode.length) console.log('NO CODE (skipped): ' + stats.missingCode.join(', '));
-  if (stats.placeholders.length) console.log('PLACEHOLDER THUMB (needs a real one — add a preview GIF on the card): ' + stats.placeholders.join(', '));
+  if (stats.placeholders.length) console.log('PLACEHOLDER THUMB (add a preview GIF on the card for a real one): ' + stats.placeholders.join(', '));
   if (stats.errors.length) console.log('ERRORS (' + stats.errors.length + '):\n  ' + stats.errors.join('\n  '));
-  // Non-zero exit if NOTHING was written (likely a bad key / API down) so CI fails loudly.
   if (stats.written === 0) { console.error('\nNothing written — aborting (check AKASHIC_API_KEY / API).'); process.exit(1); }
 }
 
