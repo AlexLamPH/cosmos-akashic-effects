@@ -1,0 +1,2922 @@
+{
+  "generated": "2026-06-17T19:41:52.487Z",
+  "count": 324,
+  "effects": [
+    {
+      "slug": "ambient-generator",
+      "tier": "audio",
+      "title": "Cosmos Ambient Generator — generative drone pad that really plays",
+      "card_number": "AK-CDP-0000080",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "arpeggiator",
+      "tier": "audio",
+      "title": "Cosmos Arpeggiator — chord arp with plucky Web Audio oscillators",
+      "card_number": "AK-CDP-000007N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "bass-sequencer",
+      "tier": "audio",
+      "title": "Cosmos Bass Sequencer — 16-step acid bassline with a resonant filter wah",
+      "card_number": "AK-CDP-000007S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "beat-looper",
+      "tier": "audio",
+      "title": "Cosmos Beat Looper — 4-track live loop station layering a groove bar by bar",
+      "card_number": "AK-CDP-000008E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "chord-pad",
+      "tier": "audio",
+      "title": "Cosmos Chord Pad — grid of named chord pads voicing a lush Rhodes-ish synth",
+      "card_number": "AK-CDP-0000084",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "chord-strummer",
+      "tier": "audio",
+      "title": "Cosmos Chord Strummer — an autoharp: pick a chord, drag to strum its strings into real plucked sound",
+      "card_number": "AK-CDP-000007W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "drum-circle",
+      "tier": "audio",
+      "title": "Cosmos Drum Circle — playable ring of synthesized hand-drums",
+      "card_number": "AK-CDP-000008G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "drum-machine",
+      "tier": "audio",
+      "title": "Cosmos Drum Machine — 16-step x 4-track step sequencer that makes real sound via Web Audio",
+      "card_number": "AK-CDP-000007K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "drum-pads",
+      "tier": "audio",
+      "title": "Cosmos Drum Pads — MPC-style 16-pad synthesized percussion instrument",
+      "card_number": "AK-CDP-000007Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "euclidean-rhythm",
+      "tier": "audio",
+      "title": "Cosmos Euclidean Rhythm — 3-ring Euclidean polyrhythm sequencer that makes real sound via Web Audio",
+      "card_number": "AK-CDP-0000086",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fm-bells",
+      "tier": "audio",
+      "title": "Cosmos FM Bells — click-to-ring inharmonic FM bell tones with expanding glowing rings",
+      "card_number": "AK-CDP-000008F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fm-pad",
+      "tier": "audio",
+      "title": "Cosmos FM Pad — XY touch pad FM synth that morphs timbre and cutoff",
+      "card_number": "AK-CDP-000007R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "glockenspiel",
+      "tier": "audio",
+      "title": "Cosmos Glockenspiel — playable tuned metal bars that ring real bright metallic notes via Web Audio",
+      "card_number": "AK-CDP-0000082",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "gravity-harp",
+      "tier": "audio",
+      "title": "Cosmos Gravity Harp — bouncing balls pluck pentatonic string-lines under gravity",
+      "card_number": "AK-CDP-0000088",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "handpan",
+      "tier": "audio",
+      "title": "Cosmos Handpan — a tappable hang drum tuned to a meditative D Kurd scale",
+      "card_number": "AK-CDP-000008C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "harp-strings",
+      "tier": "audio",
+      "title": "Cosmos Harp Strings — pluckable Karplus-Strong string harp you can strum",
+      "card_number": "AK-CDP-000007Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "kalimba",
+      "tier": "audio",
+      "title": "Cosmos Kalimba — playable thumb piano that rings real warm bell-like notes via Web Audio",
+      "card_number": "AK-CDP-000007Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "laser-harp",
+      "tier": "audio",
+      "title": "Cosmos Laser Harp — break the light beams to play a sustained synth",
+      "card_number": "AK-CDP-000008D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "mono-synth",
+      "tier": "audio",
+      "title": "Cosmos Mono Synth — a classic monophonic subtractive synth keyboard that makes real sound via Web Audio",
+      "card_number": "AK-CDP-000008B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "music-box",
+      "tier": "audio",
+      "title": "Cosmos Music Box — a rotating pinned cylinder plucking a comb of tuned tines into a gentle melody",
+      "card_number": "AK-CDP-000007X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pluck-sequencer",
+      "tier": "audio",
+      "title": "Cosmos Pluck Sequencer — 16-step pentatonic Karplus pluck melody sequencer that makes real sound via Web Audio",
+      "card_number": "AK-CDP-0000087",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "sine-choir",
+      "tier": "audio",
+      "title": "Cosmos Sine Choir — stacked pure-sine voices that shimmer into angelic chords",
+      "card_number": "AK-CDP-0000085",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "singing-bowl",
+      "tier": "audio",
+      "title": "Cosmos Singing Bowl — a Tibetan bowl that rings a deep sustained tone when struck or sung",
+      "card_number": "AK-CDP-000007V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "spiral-sequencer",
+      "tier": "audio",
+      "title": "Cosmos Spiral Sequencer — a rotating-arm spiral note sequencer that rings real pentatonic bells via Web Audio",
+      "card_number": "AK-CDP-000008A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "step-808",
+      "tier": "audio",
+      "title": "Cosmos Step-808 — 16-step 808 drum + gliding sub-bass groovebox",
+      "card_number": "AK-CDP-0000089",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "synth-keyboard",
+      "tier": "audio",
+      "title": "Cosmos Synth Keyboard — playable 2-octave piano/synth that makes real sound via Web Audio",
+      "card_number": "AK-CDP-000007J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "theremin",
+      "tier": "audio",
+      "title": "Cosmos Theremin — mouse-played pitch/volume field with real Web Audio",
+      "card_number": "AK-CDP-000007M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "theremin-grid",
+      "tier": "audio",
+      "title": "Cosmos Theremin Grid — quantized tone-grid theremin with portamento",
+      "card_number": "AK-CDP-000008H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tone-matrix",
+      "tier": "audio",
+      "title": "Cosmos Tone Matrix — Tenori-on style 16x16 grid sequencer that plays real bells",
+      "card_number": "AK-CDP-000007P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "vocoder-talk",
+      "tier": "audio",
+      "title": "Cosmos Vocoder-Talk — robotic vocoder synth that really speaks a buzzing talking phrase via Web Audio",
+      "card_number": "AK-CDP-0000083",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "vowel-synth",
+      "tier": "audio",
+      "title": "Cosmos Vowel Synth — formant synthesizer that sings A-E-I-O-U vowels",
+      "card_number": "AK-CDP-0000081",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "wind-chimes",
+      "tier": "audio",
+      "title": "Cosmos Wind Chimes — generative pentatonic chimes that ring real bell tones on a breeze",
+      "card_number": "AK-CDP-000007T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "ascii-art",
+      "tier": "canvas",
+      "title": "Cosmos ASCII — logo rendered as a live shimmering ASCII-art glyph grid",
+      "card_number": "AK-CDP-000002W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "atom",
+      "tier": "canvas",
+      "title": "Cosmos Atom — a Bohr-model atom with electrons orbiting a glowing nucleus in 3D",
+      "card_number": "AK-CDP-000005B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "audio-bars",
+      "tier": "canvas",
+      "title": "Cosmos Audio Bars — music-style frequency-bar visualizer with mirrored reflection",
+      "card_number": "AK-CDP-000002K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "aurora-veil",
+      "tier": "canvas",
+      "title": "Cosmos Aurora Veil — northern-lights curtains over a starfield",
+      "card_number": "AK-CDP-000001F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "barcode-scan",
+      "tier": "canvas",
+      "title": "Cosmos Barcode Scan — laser line sweeping a seeded barcode",
+      "card_number": "AK-CDP-000004X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "blob-loader",
+      "tier": "canvas",
+      "title": "Cosmos Blob Loader — a single gooey metaball blob morphing and glowing",
+      "card_number": "AK-CDP-0000023",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "bokeh",
+      "tier": "canvas",
+      "title": "Cosmos Bokeh — dreamy out-of-focus light circles drifting in the dark",
+      "card_number": "AK-CDP-000003N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "bouncing-dvd",
+      "tier": "canvas",
+      "title": "Cosmos Bouncing Logo — the classic DVD bounce reborn with the Cosmos mark",
+      "card_number": "AK-CDP-000003Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "brain-network",
+      "tier": "canvas",
+      "title": "Cosmos Brain Network — neural firing graph",
+      "card_number": "AK-CDP-000003V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "bubbles",
+      "tier": "canvas",
+      "title": "Cosmos Bubbles — translucent bubbles rising with rim light",
+      "card_number": "AK-CDP-000002B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "card-flip-3d",
+      "tier": "canvas",
+      "title": "Cosmos Card Flip 3D — a glowing card flipping in perspective",
+      "card_number": "AK-CDP-000003Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "cassette-tape",
+      "tier": "canvas",
+      "title": "Cosmos Cassette Tape — retro reels winding tape with glowing label",
+      "card_number": "AK-CDP-0000057",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "caustics",
+      "tier": "canvas",
+      "title": "Cosmos Caustics — underwater pool-floor light caustics, a shifting bright web in cosmic blues",
+      "card_number": "AK-CDP-000004M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "chladni",
+      "tier": "canvas",
+      "title": "Cosmos Chladni — cymatic standing-wave plate figures",
+      "card_number": "AK-CDP-000003D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "circuit-traces",
+      "tier": "canvas",
+      "title": "Cosmos Circuit Traces — Tron-like board with light pulses flowing along right-angle traces",
+      "card_number": "AK-CDP-000002R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "clock-analog",
+      "tier": "canvas",
+      "title": "Cosmos Analog Clock — sleek geometric clock with glowing ticks and sweeping hands",
+      "card_number": "AK-CDP-0000055",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "confetti-rain",
+      "tier": "canvas",
+      "title": "Cosmos Confetti Rain — tumbling accent rects and triangles falling with depth",
+      "card_number": "AK-CDP-0000034",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "constellation",
+      "tier": "canvas",
+      "title": "Cosmos Constellation — proximity network background",
+      "card_number": "AK-CDP-0000017",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "contour-lines",
+      "tier": "canvas",
+      "title": "Cosmos Contour Lines — animated topographic iso-contours of a morphing noise field, glowing like a living map",
+      "card_number": "AK-CDP-000002T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "cosmic-snow",
+      "tier": "canvas",
+      "title": "Cosmos Cosmic Snow — drifting glints with depth parallax",
+      "card_number": "AK-CDP-000002C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "crt-scanlines",
+      "tier": "canvas",
+      "title": "Cosmos CRT Scanlines — retro phosphor screen text",
+      "card_number": "AK-CDP-000002Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "cube-wave",
+      "tier": "canvas",
+      "title": "Cosmos Cube Wave — an isometric city of light whose cube heights ripple in a travelling wave",
+      "card_number": "AK-CDP-000002V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "data-stream",
+      "tier": "canvas",
+      "title": "Cosmos Data Stream — glowing packets flowing along fibre-optic routes between nodes",
+      "card_number": "AK-CDP-000003T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "delaunay-lowpoly",
+      "tier": "canvas",
+      "title": "Cosmos Delaunay Lowpoly — shimmering animated triangulated facet mesh",
+      "card_number": "AK-CDP-000003A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "disco-ball",
+      "tier": "canvas",
+      "title": "Cosmos Disco Ball — a faceted mirror sphere glinting and throwing coloured light spots",
+      "card_number": "AK-CDP-000004Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "dither",
+      "tier": "canvas",
+      "title": "Cosmos Dither — an animated accent blob field crushed through a moving Bayer ordered-dither into shifting retro dot patterns",
+      "card_number": "AK-CDP-000005F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "dna-helix",
+      "tier": "canvas",
+      "title": "Cosmos DNA Helix — rotating double-helix of glowing dots",
+      "card_number": "AK-CDP-000001N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "dot-globe",
+      "tier": "canvas",
+      "title": "Cosmos Dot Globe — rotating dotted lat/long sphere with orbiting arc rings",
+      "card_number": "AK-CDP-000002E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "dot-wave-loader",
+      "tier": "canvas",
+      "title": "Cosmos Dot Wave Loader — a grid of glowing dots rippling in a travelling wave",
+      "card_number": "AK-CDP-0000024",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "epicycloid",
+      "tier": "canvas",
+      "title": "Cosmos Epicycloid — a rolling circle traces glowing looping curves",
+      "card_number": "AK-CDP-000004Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "falling-leaves",
+      "tier": "canvas",
+      "title": "Cosmos Falling Leaves — autumn leaves tumbling and swaying as they drift down",
+      "card_number": "AK-CDP-0000046",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fibonacci-spiral",
+      "tier": "canvas",
+      "title": "Cosmos Fibonacci Spiral — nested golden squares with the glowing golden-spiral arc",
+      "card_number": "AK-CDP-0000051",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fire-flames",
+      "tier": "canvas",
+      "title": "Cosmos Fire Flames — flickering campfire tongues",
+      "card_number": "AK-CDP-000003H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "firefly-swarm",
+      "tier": "canvas",
+      "title": "Cosmos Firefly Swarm — warm fireflies drifting and blinking in the dark",
+      "card_number": "AK-CDP-0000039",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fireworks",
+      "tier": "canvas",
+      "title": "Cosmos Fireworks — gravity burst particles",
+      "card_number": "AK-CDP-000001B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "flip-clock",
+      "tier": "canvas",
+      "title": "Cosmos Flip Clock — glossy split-flap cards fold over to count the time",
+      "card_number": "AK-CDP-000003R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "flow-field",
+      "tier": "canvas",
+      "title": "Cosmos Flow Field — noise-driven flowing streams",
+      "card_number": "AK-CDP-000001C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "flower-bloom",
+      "tier": "canvas",
+      "title": "Cosmos Flower Bloom — a glowing geometric flower unfurling open then closing in a ping-pong loop",
+      "card_number": "AK-CDP-000004K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "flower-of-life",
+      "tier": "canvas",
+      "title": "Cosmos Flower of Life — overlapping hex-lattice circles drawn in as a glowing sacred pattern",
+      "card_number": "AK-CDP-0000052",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fourier-epicycles",
+      "tier": "canvas",
+      "title": "Cosmos Fourier Epicycles — rotating circle chain draws a star",
+      "card_number": "AK-CDP-000004R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "fractal-tree",
+      "tier": "canvas",
+      "title": "Cosmos Fractal Tree — a recursive tree swaying in the wind with blossoming tips",
+      "card_number": "AK-CDP-0000025",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "galaxy-spiral",
+      "tier": "canvas",
+      "title": "Cosmos Galaxy Spiral — rotating spiral galaxy of glowing particles",
+      "card_number": "AK-CDP-000001D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "gears",
+      "tier": "canvas",
+      "title": "Cosmos Gears — interlocking glowing gear train meshing in the dark",
+      "card_number": "AK-CDP-0000032",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "glitch-text",
+      "tier": "canvas",
+      "title": "Cosmos Glitch Text — the word COSMOS with RGB-split datamosh jitter and scanline tears",
+      "card_number": "AK-CDP-0000028",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "gradient-mesh",
+      "tier": "canvas",
+      "title": "Cosmos Gradient Mesh — large blurred colour orbs drifting and blending into a living mesh gradient",
+      "card_number": "AK-CDP-000001M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "gravity-orbit",
+      "tier": "canvas",
+      "title": "Cosmos Gravity Orbit — a mini solar system of planets sweeping a glowing star",
+      "card_number": "AK-CDP-000002J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "gyroscope",
+      "tier": "canvas",
+      "title": "Cosmos Gyroscope — three nested gimbal rings spinning on perpendicular axes",
+      "card_number": "AK-CDP-000004T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "halftone-logo",
+      "tier": "canvas",
+      "title": "Cosmos Halftone Logo — the logo reborn as a shimmering grid of brightness-driven dots",
+      "card_number": "AK-CDP-000002F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "harmonograph",
+      "tier": "canvas",
+      "title": "Cosmos Harmonograph — glowing harmonograph curves with integer frequency ratios",
+      "card_number": "AK-CDP-000003G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "heart-burst",
+      "tier": "canvas",
+      "title": "Cosmos Heart Burst — a like-heart pops and bursts a ring of sparkles",
+      "card_number": "AK-CDP-000004B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "heartbeat-ecg",
+      "tier": "canvas",
+      "title": "Cosmos Heartbeat ECG — a glowing PQRST trace scrolling over a faint grid",
+      "card_number": "AK-CDP-0000036",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "hexagon-grid",
+      "tier": "canvas",
+      "title": "Cosmos Hexagon Grid — sci-fi honeycomb HUD pulsing in concentric travelling waves",
+      "card_number": "AK-CDP-000002S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "hologram",
+      "tier": "canvas",
+      "title": "Cosmos Hologram — logo projected as a flickering cyan-violet sci-fi hologram",
+      "card_number": "AK-CDP-000002X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "icosahedron",
+      "tier": "canvas",
+      "title": "Cosmos Icosahedron — a glowing wireframe d20 rotating in 3D",
+      "card_number": "AK-CDP-000003X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "infinity-flow",
+      "tier": "canvas",
+      "title": "Cosmos Infinity Flow — particles streaming on a lemniscate",
+      "card_number": "AK-CDP-000005H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "ink-drop",
+      "tier": "canvas",
+      "title": "Cosmos Ink Drop — glowing ink blooming into water",
+      "card_number": "AK-CDP-000003E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "iridescent",
+      "tier": "canvas",
+      "title": "Cosmos Iridescent — a holographic oil-slick sheen of flowing hue bands",
+      "card_number": "AK-CDP-0000050",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "jellyfish",
+      "tier": "canvas",
+      "title": "Cosmos Jellyfish — bioluminescent jellies drifting upward with pulsing bells",
+      "card_number": "AK-CDP-0000045",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "kaleidoscope",
+      "tier": "canvas",
+      "title": "Cosmos Kaleidoscope — a rotating wedge of moving shapes mirrored into radial symmetry",
+      "card_number": "AK-CDP-000001K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "koch-snowflake",
+      "tier": "canvas",
+      "title": "Cosmos Koch Snowflake — a glowing recursive snowflake outline rotating and breathing in icy aurora tones",
+      "card_number": "AK-CDP-000004G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "laser-grid",
+      "tier": "canvas",
+      "title": "Cosmos Laser Grid — pulsing neon beams with sequenced node flares",
+      "card_number": "AK-CDP-000004Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "lava-lamp",
+      "tier": "canvas",
+      "title": "Cosmos Lava Lamp — accent blobs rising and merging in a glowing column",
+      "card_number": "AK-CDP-0000033",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "led-matrix",
+      "tier": "canvas",
+      "title": "Cosmos LED Matrix — dot-matrix display scrolling text and a pulsing heart",
+      "card_number": "AK-CDP-000004V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "lens-flare",
+      "tier": "canvas",
+      "title": "Cosmos Lens Flare — an anamorphic flare sweeping across the frame",
+      "card_number": "AK-CDP-000003M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "lightning",
+      "tier": "canvas",
+      "title": "Cosmos Lightning — branching electric bolts strobing over the void",
+      "card_number": "AK-CDP-0000031",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "liquid-fill",
+      "tier": "canvas",
+      "title": "Cosmos Liquid Fill — a circular container filling with wobbling glossy liquid",
+      "card_number": "AK-CDP-0000038",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "lissajous",
+      "tier": "canvas",
+      "title": "Cosmos Lissajous — glowing harmonic curve morphing through integer ratios",
+      "card_number": "AK-CDP-000004P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "lorenz-attractor",
+      "tier": "canvas",
+      "title": "Cosmos Lorenz Attractor — butterfly strange attractor with a flowing comet",
+      "card_number": "AK-CDP-000004E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "mandala",
+      "tier": "canvas",
+      "title": "Cosmos Mandala — radial sacred-geometry bloom",
+      "card_number": "AK-CDP-0000030",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "matrix-rain",
+      "tier": "canvas",
+      "title": "Cosmos Matrix Rain — falling glyph code rain",
+      "card_number": "AK-CDP-0000018",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "maze",
+      "tier": "canvas",
+      "title": "Cosmos Maze — glowing walls with a bright comet flowing the solution path",
+      "card_number": "AK-CDP-000002A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "metaballs",
+      "tier": "canvas",
+      "title": "Cosmos Metaballs — gooey glowing blobs that float and fuse",
+      "card_number": "AK-CDP-000001G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "metatrons-cube",
+      "tier": "canvas",
+      "title": "Cosmos Metatron's Cube — glowing sacred-geometry web with travelling pulses",
+      "card_number": "AK-CDP-0000053",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "meteor-shower",
+      "tier": "canvas",
+      "title": "Cosmos Meteor Shower — shooting stars streaking over a faint starfield",
+      "card_number": "AK-CDP-000003P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "mobius-strip",
+      "tier": "canvas",
+      "title": "Cosmos Mobius Strip — rotating half-twist ribbon of glowing points",
+      "card_number": "AK-CDP-000004D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "moire",
+      "tier": "canvas",
+      "title": "Cosmos Moiré — two ring fields drifting into shifting interference bands",
+      "card_number": "AK-CDP-000002G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "moon-phases",
+      "tier": "canvas",
+      "title": "Cosmos Moon Phases — a shaded moon whose terminator sweeps new to full to new",
+      "card_number": "AK-CDP-000005C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "neon-rings",
+      "tier": "canvas",
+      "title": "Cosmos Neon Rings — sonar rings pulsing outward with a radar sweep",
+      "card_number": "AK-CDP-000001W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "neon-sign",
+      "tier": "canvas",
+      "title": "Cosmos Neon Sign — the word COSMOS as glowing flickering neon tubes with halo and reflection",
+      "card_number": "AK-CDP-0000027",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "newtons-cradle",
+      "tier": "canvas",
+      "title": "Cosmos Newton's Cradle — an end ball swings out and the impulse passes through a still row",
+      "card_number": "AK-CDP-000002H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "noise-clouds",
+      "tier": "canvas",
+      "title": "Cosmos Noise Clouds — soft drifting fractal-noise nebula",
+      "card_number": "AK-CDP-000001S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "ocean-waves",
+      "tier": "canvas",
+      "title": "Cosmos Ocean Waves — stylized rolling sea of parallax sine bands under a moon",
+      "card_number": "AK-CDP-0000047",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "op-art",
+      "tier": "canvas",
+      "title": "Cosmos Op-Art — hypnotic warping concentric rings over a bulging wavy grid",
+      "card_number": "AK-CDP-0000048",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "orbit-spinner",
+      "tier": "canvas",
+      "title": "Cosmos Orbit Spinner — concentric rings of orbiting dots circling a glowing core",
+      "card_number": "AK-CDP-0000022",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "particle-text",
+      "tier": "canvas",
+      "title": "Cosmos Particle Text — glowing dots assemble into the word COSMOS then disperse",
+      "card_number": "AK-CDP-000003F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pendulum-wave",
+      "tier": "canvas",
+      "title": "Cosmos Pendulum Wave — a row of length-graded pendulums weaving travelling waves",
+      "card_number": "AK-CDP-000001Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "penrose-triangle",
+      "tier": "canvas",
+      "title": "Cosmos Penrose Triangle — the impossible tribar slowly rotating",
+      "card_number": "AK-CDP-000005E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "phyllotaxis",
+      "tier": "canvas",
+      "title": "Cosmos Phyllotaxis — golden-angle sunflower spiral that blooms and rotates",
+      "card_number": "AK-CDP-000001J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "piano-roll",
+      "tier": "canvas",
+      "title": "Cosmos Piano Roll — synthesia notes falling onto a glowing keyboard",
+      "card_number": "AK-CDP-0000058",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pinwheel",
+      "tier": "canvas",
+      "title": "Cosmos Pinwheel — spinning colour-blade pinwheel",
+      "card_number": "AK-CDP-000005J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "piston-engine",
+      "tier": "canvas",
+      "title": "Cosmos Piston Engine — crankshaft drives four pistons via conrods in a glowing schematic cross-section",
+      "card_number": "AK-CDP-0000059",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pixel-dissolve",
+      "tier": "canvas",
+      "title": "Cosmos Pixel Dissolve — the logo scattering into and reassembling from pixel blocks",
+      "card_number": "AK-CDP-000002Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "plasma-ball",
+      "tier": "canvas",
+      "title": "Cosmos Plasma Ball — a Tesla globe crackling with electric filaments",
+      "card_number": "AK-CDP-000003K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "plasma-field",
+      "tier": "canvas",
+      "title": "Cosmos Plasma Field — classic per-pixel plasma of shifting colour bands",
+      "card_number": "AK-CDP-000001E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "prism-dispersion",
+      "tier": "canvas",
+      "title": "Cosmos Prism Dispersion — a white beam enters a triangular prism and fans into a spectrum",
+      "card_number": "AK-CDP-0000040",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pulsar",
+      "tier": "canvas",
+      "title": "Cosmos Pulsar — rotating neutron star firing two opposite sweeping light beams with a pulsing core",
+      "card_number": "AK-CDP-000005A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "radial-audio",
+      "tier": "canvas",
+      "title": "Cosmos Radial Audio — circular visualizer with radiating spikes and a glowing core",
+      "card_number": "AK-CDP-000002M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "rain",
+      "tier": "canvas",
+      "title": "Cosmos Rain — slanted glowing streaks falling with splash rings",
+      "card_number": "AK-CDP-000004H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "ribbon-3d",
+      "tier": "canvas",
+      "title": "Cosmos Ribbon 3D — a flowing band of quads twisting through space",
+      "card_number": "AK-CDP-0000035",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "rose-curve",
+      "tier": "canvas",
+      "title": "Cosmos Rose Curve — a glowing rhodonea whose petals morph and rotate through integer harmonics",
+      "card_number": "AK-CDP-000003C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "saturn-planet",
+      "tier": "canvas",
+      "title": "Cosmos Saturn Planet — a ringed gas giant slowly turning under tilted ring arcs",
+      "card_number": "AK-CDP-0000043",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "scramble-text",
+      "tier": "canvas",
+      "title": "Cosmos Scramble Text — decrypt/scramble reveal of the word COSMOS",
+      "card_number": "AK-CDP-000001X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "seven-segment",
+      "tier": "canvas",
+      "title": "Cosmos Seven-Segment — glowing digital clock counting up",
+      "card_number": "AK-CDP-000004W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "sierpinski",
+      "tier": "canvas",
+      "title": "Cosmos Sierpinski — a glowing recursive triangle fractal breathing and rotating with a depth colour wave",
+      "card_number": "AK-CDP-000004F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "smoke",
+      "tier": "canvas",
+      "title": "Cosmos Smoke — soft rising violet wisps",
+      "card_number": "AK-CDP-000003J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "spinning-coin",
+      "tier": "canvas",
+      "title": "Cosmos Spinning Coin — a metallic star coin flipping about its vertical axis",
+      "card_number": "AK-CDP-0000037",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "spirograph",
+      "tier": "canvas",
+      "title": "Cosmos Spirograph — layered hypotrochoid curves traced and rotating",
+      "card_number": "AK-CDP-000001H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "spring-bounce",
+      "tier": "canvas",
+      "title": "Cosmos Spring Bounce — a coiled helix spring stretches and compresses as a glowing bob bounces on a sine",
+      "card_number": "AK-CDP-000003Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "star-trails",
+      "tier": "canvas",
+      "title": "Cosmos Star Trails — long-exposure arcs of starlight circling a pole star",
+      "card_number": "AK-CDP-0000044",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "starburst",
+      "tier": "canvas",
+      "title": "Cosmos Starburst — radiant pulsing ray burst",
+      "card_number": "AK-CDP-000003W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "starfield-warp",
+      "tier": "canvas",
+      "title": "Cosmos Starfield Warp — hyperspace streaks",
+      "card_number": "AK-CDP-0000019",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "supernova",
+      "tier": "canvas",
+      "title": "Cosmos Supernova — core flash, shockwave ring and radial debris blast",
+      "card_number": "AK-CDP-0000042",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "synthwave-grid",
+      "tier": "canvas",
+      "title": "Cosmos Synthwave Grid — neon perspective horizon",
+      "card_number": "AK-CDP-000001A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tesseract",
+      "tier": "canvas",
+      "title": "Cosmos Tesseract — a glowing 4D hypercube rotating through itself",
+      "card_number": "AK-CDP-000004S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "times-table",
+      "tier": "canvas",
+      "title": "Cosmos Times Table — modular multiplication chords morphing on a circle",
+      "card_number": "AK-CDP-000004N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "torus-knot",
+      "tier": "canvas",
+      "title": "Cosmos Torus Knot — a rotating 3D torus-knot traced by glowing points",
+      "card_number": "AK-CDP-000002D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "trefoil-knot",
+      "tier": "canvas",
+      "title": "Cosmos Trefoil Knot — a glowing 3D (2,3) torus-knot tube spinning in space",
+      "card_number": "AK-CDP-000005D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "truchet",
+      "tier": "canvas",
+      "title": "Cosmos Truchet — flowing quarter-arc tiles forming glowing maze paths",
+      "card_number": "AK-CDP-000001V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tunnel",
+      "tier": "canvas",
+      "title": "Cosmos Tunnel — infinite hypnotic zoom through rushing rings",
+      "card_number": "AK-CDP-000002P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "typing-terminal",
+      "tier": "canvas",
+      "title": "Cosmos Typing Terminal — retro monospace prompt typing code lines with a blinking cursor",
+      "card_number": "AK-CDP-000003S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "vhs-glitch",
+      "tier": "canvas",
+      "title": "Cosmos VHS Glitch — the word COSMOS on a worn tape with tracking tears, chroma bleed and rolling noise",
+      "card_number": "AK-CDP-000005G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "vinyl-record",
+      "tier": "canvas",
+      "title": "Cosmos Vinyl Record — spinning black disc with groove rings, accent label and tonearm",
+      "card_number": "AK-CDP-0000056",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "voronoi-cells",
+      "tier": "canvas",
+      "title": "Cosmos Voronoi Cells — drifting seeds form a shimmering glowing mosaic",
+      "card_number": "AK-CDP-0000029",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "vortex",
+      "tier": "canvas",
+      "title": "Cosmos Vortex — particles spiralling inward to a glowing accretion core",
+      "card_number": "AK-CDP-000001R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "water-ripple",
+      "tier": "canvas",
+      "title": "Cosmos Water Ripple — concentric ripples interfering on a dark pond with crest glints",
+      "card_number": "AK-CDP-000002Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "waterfall",
+      "tier": "canvas",
+      "title": "Cosmos Waterfall — cascading streams pour into a glowing misty pool",
+      "card_number": "AK-CDP-000004J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "wave-grid",
+      "tier": "canvas",
+      "title": "Cosmos Wave Grid — perspective wireframe terrain rippling as a travelling wave",
+      "card_number": "AK-CDP-000001P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "wave-interference",
+      "tier": "canvas",
+      "title": "Cosmos Wave Interference — three oscillating point sources ripple into a shifting interference field",
+      "card_number": "AK-CDP-000003B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "waveform-scope",
+      "tier": "canvas",
+      "title": "Cosmos Waveform Scope — glowing oscilloscope traces on a phosphor grid",
+      "card_number": "AK-CDP-000002N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "wavy-lines",
+      "tier": "canvas",
+      "title": "Cosmos Wavy Lines — flowing glowing sine ribbons like rippling silk",
+      "card_number": "AK-CDP-000001T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "wavy-text",
+      "tier": "canvas",
+      "title": "Cosmos Wavy Text — COSMOS letters bobbing on a travelling sine wave",
+      "card_number": "AK-CDP-000001Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "wormhole",
+      "tier": "canvas",
+      "title": "Cosmos Wormhole — concentric rings twisting into a swirling vortex tunnel",
+      "card_number": "AK-CDP-0000041",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "yin-yang",
+      "tier": "canvas",
+      "title": "Cosmos Yin-Yang — rotating Taiji disc in violet & cosmic blue",
+      "card_number": "AK-CDP-0000054",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-2048",
+      "tier": "game",
+      "title": "Cosmos 2048 — slide and merge glowing numbered tiles to 2048",
+      "card_number": "AK-CDP-000009W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-airhockey",
+      "tier": "game",
+      "title": "Cosmos Air Hockey — drag your mallet to slam a glowing puck past the CPU",
+      "card_number": "AK-CDP-00000BA",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-asteroids",
+      "tier": "game",
+      "title": "Cosmos Asteroids — rotate, thrust and shoot to split drifting asteroids",
+      "card_number": "AK-CDP-000009Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-breakout",
+      "tier": "game",
+      "title": "Cosmos Breakout — bounce a ball off your paddle to shatter a wall of cosmic bricks",
+      "card_number": "AK-CDP-000009T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-bubble",
+      "tier": "game",
+      "title": "Cosmos Bubble Shooter — aim and fire colored bubbles to pop matching clusters",
+      "card_number": "AK-CDP-00000AF",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-colorflood",
+      "tier": "game",
+      "title": "Cosmos Flood-It — pick colors to flood the whole board in few moves",
+      "card_number": "AK-CDP-00000B9",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-connect4",
+      "tier": "game",
+      "title": "Cosmos Connect Four — drop discs, beat a minimax CPU",
+      "card_number": "AK-CDP-00000A6",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-dodge",
+      "tier": "game",
+      "title": "Cosmos Dodge — steer a glowing orb through a rain of cosmic obstacles",
+      "card_number": "AK-CDP-00000BB",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-doodle",
+      "tier": "game",
+      "title": "Cosmos Ascent — tilt a bouncing orb up endless glowing platforms",
+      "card_number": "AK-CDP-00000AB",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-fifteen",
+      "tier": "game",
+      "title": "Cosmos Fifteen — slide numbered tiles into order on a 4x4 board",
+      "card_number": "AK-CDP-00000A9",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-flappy",
+      "tier": "game",
+      "title": "Cosmos Flap — tap a glowing orb through gaps in cosmic pipes",
+      "card_number": "AK-CDP-000009V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-frogger",
+      "tier": "game",
+      "title": "Cosmos Frogger — hop a frog up across cosmic traffic and a river",
+      "card_number": "AK-CDP-00000AA",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-hanoi",
+      "tier": "game",
+      "title": "Cosmos Hanoi — move glowing discs across three pegs to rebuild the tower",
+      "card_number": "AK-CDP-00000BD",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-helix",
+      "tier": "game",
+      "title": "Cosmos Helix — bounce a ball down a rotating helix tower through the gaps",
+      "card_number": "AK-CDP-00000BC",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-invaders",
+      "tier": "game",
+      "title": "Cosmos Invaders — strafe your ship and blast a descending formation of cosmic aliens",
+      "card_number": "AK-CDP-00000A7",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-lights-out",
+      "tier": "game",
+      "title": "Cosmos Lights Out — click tiles to flip them and their neighbors until every light is off",
+      "card_number": "AK-CDP-00000A8",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-mahjong",
+      "tier": "game",
+      "title": "Cosmos Mahjong Pairs — clear a stacked tile mound by matching free symbol pairs",
+      "card_number": "AK-CDP-00000BF",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-match3",
+      "tier": "game",
+      "title": "Cosmos Match-3 — swap adjacent gems to line up 3+ and cascade",
+      "card_number": "AK-CDP-00000BK",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-maze",
+      "tier": "game",
+      "title": "Cosmos Maze Runner — guide a glowing dot through a seeded maze to the goal",
+      "card_number": "AK-CDP-00000A2",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-memory",
+      "tier": "game",
+      "title": "Cosmos Memory — flip-and-match pairs of glowing cosmic symbols",
+      "card_number": "AK-CDP-00000BJ",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-minesweeper",
+      "tier": "game",
+      "title": "Cosmos Minesweeper — clear the field, flag the mines",
+      "card_number": "AK-CDP-00000A5",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-pinball",
+      "tier": "game",
+      "title": "Cosmos Pinball — flip a gravity-bound ball off glowing bumpers to rack up score",
+      "card_number": "AK-CDP-00000AG",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-platformer",
+      "tier": "game",
+      "title": "Cosmos Leap — run and jump a glowing hero across floating platforms to the goal flag",
+      "card_number": "AK-CDP-00000B6",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-pong",
+      "tier": "game",
+      "title": "Cosmos Pong — rally a glowing ball past a tracking CPU paddle",
+      "card_number": "AK-CDP-000009Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-reaction",
+      "tier": "game",
+      "title": "Cosmos Reflex — tap glowing targets fast for reaction-time score",
+      "card_number": "AK-CDP-00000AC",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-runner",
+      "tier": "game",
+      "title": "Cosmos Runner — jump and duck a glowing runner past endless obstacles",
+      "card_number": "AK-CDP-00000AE",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-simon",
+      "tier": "game",
+      "title": "Cosmos Simon — repeat the growing sequence of glowing Cosmos-colored pads",
+      "card_number": "AK-CDP-00000A0",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-snake",
+      "tier": "game",
+      "title": "Cosmos Snake — grow a glowing serpent eating cosmic food on a neon grid",
+      "card_number": "AK-CDP-000009S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-snakeladder",
+      "tier": "game",
+      "title": "Cosmos Snakes & Ladders — race a CPU to 100",
+      "card_number": "AK-CDP-00000BH",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-spaceshooter",
+      "tier": "game",
+      "title": "Cosmos Strike — pilot a ship and blast weaving waves of descending cosmic enemies",
+      "card_number": "AK-CDP-00000B7",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-stack",
+      "tier": "game",
+      "title": "Cosmos Stack — drop sliding blocks to build a glowing tower",
+      "card_number": "AK-CDP-00000AD",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-sudoku",
+      "tier": "game",
+      "title": "Cosmos Mini Sudoku — fill a 6x6 grid so every row, column and 2x3 region has 1-6",
+      "card_number": "AK-CDP-00000BE",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-tetris",
+      "tier": "game",
+      "title": "Cosmos Tetris — stack falling tetrominoes and clear glowing lines",
+      "card_number": "AK-CDP-000009X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-tictactoe",
+      "tier": "game",
+      "title": "Cosmos Tic-Tac-Toe — outwit a perfect minimax CPU",
+      "card_number": "AK-CDP-00000A4",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-whack",
+      "tier": "game",
+      "title": "Cosmos Whack — bop glowing creatures before they duck back down",
+      "card_number": "AK-CDP-00000A3",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "game-wordsearch",
+      "tier": "game",
+      "title": "Cosmos Word Search — find the hidden cosmic words",
+      "card_number": "AK-CDP-00000BG",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-bars",
+      "tier": "reactive",
+      "title": "Cosmos Mic Bars — mic-reactive spectrum bar visualizer with mirrored reflection and peak-hold caps",
+      "card_number": "AK-CDP-00000AH",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-blob",
+      "tier": "reactive",
+      "title": "Cosmos Sound Blob — mic-reactive living orb modulated by the spectrum",
+      "card_number": "AK-CDP-00000B5",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-kaleido",
+      "tier": "reactive",
+      "title": "Cosmos Kaleido — mic-reactive k-fold kaleidoscope visualizer",
+      "card_number": "AK-CDP-00000AV",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-liquid",
+      "tier": "reactive",
+      "title": "Cosmos Reactive Liquid — mic-reactive liquid surface with rippling metaball blobs and beat slosh",
+      "card_number": "AK-CDP-00000AT",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-particles",
+      "tier": "reactive",
+      "title": "Cosmos Particle Burst — mic-reactive particle field that bursts on every beat",
+      "card_number": "AK-CDP-00000AN",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-radial",
+      "tier": "reactive",
+      "title": "Cosmos Mic Radial — mic-reactive circular spectrum with bars radiating around a breathing glow ring",
+      "card_number": "AK-CDP-00000AJ",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-rings",
+      "tier": "reactive",
+      "title": "Cosmos Frequency Rings — mic-reactive rings emitted on every beat",
+      "card_number": "AK-CDP-00000AP",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-starburst",
+      "tier": "reactive",
+      "title": "Cosmos Starburst — mic-reactive radial light burst with rotating spectrum rays and beat sparkles",
+      "card_number": "AK-CDP-00000AS",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-terrain",
+      "tier": "reactive",
+      "title": "Cosmos Mic Terrain — mic-reactive 3D spectrum waterfall scrolling toward a horizon, each ridge a frozen spectrum slice",
+      "card_number": "AK-CDP-00000AR",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-tunnel",
+      "tier": "reactive",
+      "title": "Cosmos Mic Tunnel — mic-reactive perspective tunnel whose speed and twist ride loudness and ring radii ride the spectrum",
+      "card_number": "AK-CDP-00000AQ",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-vortex",
+      "tier": "reactive",
+      "title": "Cosmos Vortex — mic-reactive spiral whirlpool visualizer",
+      "card_number": "AK-CDP-00000AW",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "micviz-waveform",
+      "tier": "reactive",
+      "title": "Cosmos Oscilloscope — mic-reactive glowing time-domain waveform",
+      "card_number": "AK-CDP-00000B4",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tilt-liquid",
+      "tier": "reactive",
+      "title": "Cosmos Tilt Liquid — device-tilt reactive glossy liquid that sloshes in its container with waves rebounding off the walls",
+      "card_number": "AK-CDP-00000BN",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tilt-orbs",
+      "tier": "reactive",
+      "title": "Cosmos Tilt Orbs — glowing balls that roll and settle under device tilt",
+      "card_number": "AK-CDP-00000BP",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tilt-parallax",
+      "tier": "reactive",
+      "title": "Cosmos Tilt Parallax — layered cosmic depth planes that shift with device tilt",
+      "card_number": "AK-CDP-00000BQ",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tilt-sand",
+      "tier": "reactive",
+      "title": "Cosmos Tilt Sand — device-tilt reactive pile of glowing sand grains that pour and settle toward gravity, building dunes",
+      "card_number": "AK-CDP-00000BM",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "webcam-ascii",
+      "tier": "reactive",
+      "title": "Cosmos ASCII-Cam — see yourself rendered live in flowing glowing ASCII glyphs",
+      "card_number": "AK-CDP-00000BT",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "webcam-edges",
+      "tier": "reactive",
+      "title": "Cosmos Neon Edges — glowing webcam edge silhouette that brightens where you move",
+      "card_number": "AK-CDP-00000BS",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "webcam-mirror",
+      "tier": "reactive",
+      "title": "Cosmos Kaleido-Mirror — your reflection folded live into a glowing kaleidoscope",
+      "card_number": "AK-CDP-00000BV",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "webcam-particles",
+      "tier": "reactive",
+      "title": "Cosmos Motion Sparks — webcam motion throws glowing particles where you move",
+      "card_number": "AK-CDP-00000BR",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-blob",
+      "tier": "remix",
+      "title": "Cosmos Remix — Noise Blob you can retune and reskin live",
+      "card_number": "AK-CDP-000009P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-bloom",
+      "tier": "remix",
+      "title": "Cosmos Remix — Bloom you can retune and reskin live",
+      "card_number": "AK-CDP-000009C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-burst",
+      "tier": "remix",
+      "title": "Cosmos Remix — Burst you can retune and reskin live",
+      "card_number": "AK-CDP-000008R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-butterfly",
+      "tier": "remix",
+      "title": "Cosmos Remix — Butterfly Curve you can retune and reskin live",
+      "card_number": "AK-CDP-0000094",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-cardioid",
+      "tier": "remix",
+      "title": "Cosmos Remix — Times-Table Cardioid you can retune and reskin live",
+      "card_number": "AK-CDP-000009M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-confetti",
+      "tier": "remix",
+      "title": "Cosmos Remix — Confetti you can retune and reskin live",
+      "card_number": "AK-CDP-000009R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-cube3d",
+      "tier": "remix",
+      "title": "Cosmos Remix — 3D Cube Lattice you can retune and reskin live",
+      "card_number": "AK-CDP-000009E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-flowfield",
+      "tier": "remix",
+      "title": "Cosmos Remix — Flow Field you can retune and reskin live",
+      "card_number": "AK-CDP-000008Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-fountain",
+      "tier": "remix",
+      "title": "Cosmos Remix — Fountain you can retune and reskin live",
+      "card_number": "AK-CDP-0000095",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-galaxy",
+      "tier": "remix",
+      "title": "Cosmos Remix — Galaxy you can retune and reskin live",
+      "card_number": "AK-CDP-000008M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-grid3d",
+      "tier": "remix",
+      "title": "Cosmos Remix — Grid Floor you can retune and reskin live",
+      "card_number": "AK-CDP-000009H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-harmonograph",
+      "tier": "remix",
+      "title": "Cosmos Remix — Harmonograph you can retune and reskin live",
+      "card_number": "AK-CDP-000009N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-heart",
+      "tier": "remix",
+      "title": "Cosmos Remix — Heart you can retune and reskin live",
+      "card_number": "AK-CDP-000008Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-helix",
+      "tier": "remix",
+      "title": "Cosmos Remix — Double Helix you can retune and reskin live",
+      "card_number": "AK-CDP-000008T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-lissajous",
+      "tier": "remix",
+      "title": "Cosmos Remix — Lissajous you can retune and reskin live",
+      "card_number": "AK-CDP-000008S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-lorenz",
+      "tier": "remix",
+      "title": "Cosmos Remix — Lorenz Attractor you can retune and reskin live",
+      "card_number": "AK-CDP-000009D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-mandala",
+      "tier": "remix",
+      "title": "Cosmos Remix — Mandala you can retune and reskin live",
+      "card_number": "AK-CDP-000008V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-molecule",
+      "tier": "remix",
+      "title": "Cosmos Remix — Molecule you can retune and reskin live",
+      "card_number": "AK-CDP-000009J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-orbit",
+      "tier": "remix",
+      "title": "Cosmos Remix — Orbit System you can retune and reskin live",
+      "card_number": "AK-CDP-0000097",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-pendulum-wave",
+      "tier": "remix",
+      "title": "Cosmos Remix — Pendulum Wave you can retune and reskin live",
+      "card_number": "AK-CDP-000009Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-phyllotaxis",
+      "tier": "remix",
+      "title": "Cosmos Remix — Phyllotaxis you can retune and reskin live",
+      "card_number": "AK-CDP-0000090",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-ribbon",
+      "tier": "remix",
+      "title": "Cosmos Remix — Ribbon you can retune and reskin live",
+      "card_number": "AK-CDP-000009G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-rings",
+      "tier": "remix",
+      "title": "Cosmos Remix — Orbiting Rings you can retune and reskin live",
+      "card_number": "AK-CDP-000008N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-ripple",
+      "tier": "remix",
+      "title": "Cosmos Remix — Ripple you can retune and reskin live",
+      "card_number": "AK-CDP-000008W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-rose3d",
+      "tier": "remix",
+      "title": "Cosmos Remix — Rose 3D you can retune and reskin live",
+      "card_number": "AK-CDP-000009F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-snowfall",
+      "tier": "remix",
+      "title": "Cosmos Remix — Snowfall you can retune and reskin live",
+      "card_number": "AK-CDP-0000099",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-sphere",
+      "tier": "remix",
+      "title": "Cosmos Remix — Sphere you can retune and reskin live",
+      "card_number": "AK-CDP-000008X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-spiraltube",
+      "tier": "remix",
+      "title": "Cosmos Remix — Spiral Tube you can retune and reskin live",
+      "card_number": "AK-CDP-000009B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-spirograph",
+      "tier": "remix",
+      "title": "Cosmos Remix — Spirograph you can retune and reskin live",
+      "card_number": "AK-CDP-0000093",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-starfield",
+      "tier": "remix",
+      "title": "Cosmos Remix — Starfield Warp you can retune and reskin live",
+      "card_number": "AK-CDP-0000098",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-supershape",
+      "tier": "remix",
+      "title": "Cosmos Remix — Supershape you can retune and reskin live",
+      "card_number": "AK-CDP-0000091",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-terrain",
+      "tier": "remix",
+      "title": "Cosmos Remix — Terrain you can retune and reskin live",
+      "card_number": "AK-CDP-000009A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-torus",
+      "tier": "remix",
+      "title": "Cosmos Remix — Torus you can retune and reskin live",
+      "card_number": "AK-CDP-0000092",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-tunnel",
+      "tier": "remix",
+      "title": "Cosmos Remix — Tunnel you can retune and reskin live",
+      "card_number": "AK-CDP-0000096",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-vortex",
+      "tier": "remix",
+      "title": "Cosmos Remix — Vortex you can retune and reskin live",
+      "card_number": "AK-CDP-000008Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-wavefield",
+      "tier": "remix",
+      "title": "Cosmos Remix — Wave Field you can retune and reskin live",
+      "card_number": "AK-CDP-000008P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "remix-wormhole",
+      "tier": "remix",
+      "title": "Cosmos Remix — Wormhole you can retune and reskin live",
+      "card_number": "AK-CDP-000009K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "apollonian",
+      "tier": "shader",
+      "title": "Cosmos Apollonian — glowing iterated circle-inversion gasket fractal (WebGL shader)",
+      "card_number": "AK-CDP-000005R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "clouds-raymarch",
+      "tier": "shader",
+      "title": "Cosmos Clouds Raymarch — volumetric fbm nebula lit by a single light (WebGL shader)",
+      "card_number": "AK-CDP-0000061",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "domain-warp",
+      "tier": "shader",
+      "title": "Cosmos Domain Warp — fbm domain-warped nebula (WebGL shader)",
+      "card_number": "AK-CDP-000005K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "gyroid",
+      "tier": "shader",
+      "title": "Cosmos Gyroid — raymarched gyroid minimal surface with accent glow (WebGL shader)",
+      "card_number": "AK-CDP-000005S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "hex-tunnel",
+      "tier": "shader",
+      "title": "Cosmos Hex Tunnel — hexagonal-grid tunnel flythrough with neon edges (WebGL shader)",
+      "card_number": "AK-CDP-000005Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "julia-set",
+      "tier": "shader",
+      "title": "Cosmos Julia Set — animated escape-time Julia fractal (WebGL shader)",
+      "card_number": "AK-CDP-000005M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "kaleidoscope-glsl",
+      "tier": "shader",
+      "title": "Cosmos Kaleidoscope — radial mirror of glowing rings and noise (WebGL shader)",
+      "card_number": "AK-CDP-000005W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "mandelbrot",
+      "tier": "shader",
+      "title": "Cosmos Mandelbrot — escape-time Mandelbrot with looping zoom (WebGL shader)",
+      "card_number": "AK-CDP-000005N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "mandelbulb",
+      "tier": "shader",
+      "title": "Cosmos Mandelbulb — raymarched power-8 3D fractal (WebGL shader)",
+      "card_number": "AK-CDP-000005Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "metaballs-glsl",
+      "tier": "shader",
+      "title": "Cosmos Metaballs — gooey 2D metaballs orbiting on looping paths, glowing iso-surface (WebGL shader)",
+      "card_number": "AK-CDP-000005V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "plasma-glsl",
+      "tier": "shader",
+      "title": "Cosmos Plasma — demoscene plasma of summed sines colour-mapped through Cosmos accents (WebGL shader)",
+      "card_number": "AK-CDP-000005T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "raymarch-blob",
+      "tier": "shader",
+      "title": "Cosmos Raymarch Blob — glowing morphing metaball SDF (WebGL shader)",
+      "card_number": "AK-CDP-000005P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "star-nest",
+      "tier": "shader",
+      "title": "Cosmos Star Nest — volumetric kaleidoscopic IFS deep-space star field (WebGL shader)",
+      "card_number": "AK-CDP-0000060",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tunnel-glsl",
+      "tier": "shader",
+      "title": "Cosmos Tunnel — infinite polar tunnel flythrough with striped walls (WebGL shader)",
+      "card_number": "AK-CDP-000005Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "voronoi-glsl",
+      "tier": "shader",
+      "title": "Cosmos Voronoi — drifting cells with glowing F2-F1 edges (WebGL shader)",
+      "card_number": "AK-CDP-000005X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "accordion",
+      "tier": "ui",
+      "title": "Cosmos Accordion — an FAQ accordion with one expanding panel and a rotating chevron",
+      "card_number": "AK-CDP-0000069",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "animated-chart",
+      "tier": "ui",
+      "title": "Cosmos Animated Chart — dashboard revenue card with growing bars, drawing line/area and a travelling tooltip",
+      "card_number": "AK-CDP-000006C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "audio-player",
+      "tier": "ui",
+      "title": "Cosmos Audio Player — music player card with album art, seekable progress and bar visualizer",
+      "card_number": "AK-CDP-000006Y",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "avatar-stack",
+      "tier": "ui",
+      "title": "Cosmos Avatar Stack — overlapping gradient avatars with a +N counter that slide in, spread apart on hover with a name tooltip, and re-stack",
+      "card_number": "AK-CDP-000006R",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "badge-notification",
+      "tier": "ui",
+      "title": "Cosmos Badge Notification — a bell icon with a pulsing accent count badge that rings, ticks the count up with a pop and a ripple ring, then settles",
+      "card_number": "AK-CDP-000006S",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "breadcrumb",
+      "tier": "ui",
+      "title": "Cosmos Breadcrumb — animated trail whose segments slide/fade in one by one with chevron separators",
+      "card_number": "AK-CDP-000006Q",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "calendar-agenda",
+      "tier": "ui",
+      "title": "Cosmos Calendar Agenda — day schedule view with time axis, colored event blocks, and a sweeping now-line",
+      "card_number": "AK-CDP-000007H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "carousel",
+      "tier": "ui",
+      "title": "Cosmos Carousel — horizontal content carousel with neighbour peek, centre scale and dot indicators",
+      "card_number": "AK-CDP-000006V",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "chat-bubble",
+      "tier": "ui",
+      "title": "Cosmos Chat Bubble — a messaging conversation with typing indicator and slide-up bubbles",
+      "card_number": "AK-CDP-000006X",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "checkbox-radio",
+      "tier": "ui",
+      "title": "Cosmos Checkbox & Radio — animated checkboxes with stroke-draw ticks and radios with an expanding dot",
+      "card_number": "AK-CDP-000006N",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "code-block",
+      "tier": "ui",
+      "title": "Cosmos Code Block — glassy syntax-highlighted panel with copy button",
+      "card_number": "AK-CDP-000007D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "color-picker",
+      "tier": "ui",
+      "title": "Cosmos Color Picker — saturation/value square with a draggable ring, hue strip, and live HEX/RGB readout",
+      "card_number": "AK-CDP-0000076",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "command-palette",
+      "tier": "ui",
+      "title": "Cosmos Command Palette — a ⌘K palette that types, filters, and moves its selection",
+      "card_number": "AK-CDP-000006A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "copy-button",
+      "tier": "ui",
+      "title": "Cosmos Copy Button — copy-to-clipboard button that morphs into a green 'Copied!' check with a spark burst",
+      "card_number": "AK-CDP-000006F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "data-table",
+      "tier": "ui",
+      "title": "Cosmos Data Table — glassy sortable table with sticky header, status pills, and checkbox row selection",
+      "card_number": "AK-CDP-000007G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "date-picker",
+      "tier": "ui",
+      "title": "Cosmos Date Picker — a calendar popover that hovers across days, pops a selection, and flips months",
+      "card_number": "AK-CDP-000006K",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "dropdown-menu",
+      "tier": "ui",
+      "title": "Cosmos Dropdown Menu — a glassy account menu that opens with staggered items and a gliding highlight",
+      "card_number": "AK-CDP-000006J",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "empty-state",
+      "tier": "ui",
+      "title": "Cosmos Empty State — glassy 'no projects yet' placeholder with a floating cosmic illustration and shimmering CTA",
+      "card_number": "AK-CDP-000007E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "file-tree",
+      "tier": "ui",
+      "title": "Cosmos File Tree — a glassy file explorer with chevrons, icons, indent guides and a violet selection that walks the rows",
+      "card_number": "AK-CDP-0000075",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "file-upload",
+      "tier": "ui",
+      "title": "Cosmos File Upload — drag-and-drop dropzone with file drop, progress bar and success state",
+      "card_number": "AK-CDP-000006G",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "form-validation",
+      "tier": "ui",
+      "title": "Cosmos Form Validation — sign-in card with inline field validation, error shake and success checks",
+      "card_number": "AK-CDP-000006E",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "hamburger-menu",
+      "tier": "ui",
+      "title": "Cosmos Hamburger Menu — a menu icon morphing into an X and back",
+      "card_number": "AK-CDP-000004C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "kanban-card",
+      "tier": "ui",
+      "title": "Cosmos Kanban Board — a glassy task card that lifts and drags across To Do / In Progress / Done columns",
+      "card_number": "AK-CDP-0000074",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "kbd-shortcut",
+      "tier": "ui",
+      "title": "Cosmos Keyboard Shortcut — 3D keycap cheat-sheet with animated combos",
+      "card_number": "AK-CDP-000007C",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "loading-button",
+      "tier": "ui",
+      "title": "Cosmos Loading Button — submit button that morphs through click ripple, spinner and success checkmark",
+      "card_number": "AK-CDP-0000065",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "login-form",
+      "tier": "ui",
+      "title": "Cosmos Login Form — sign-in card with floating labels, gliding focus ring, password toggle and spinner→success button",
+      "card_number": "AK-CDP-000007F",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "modal-dialog",
+      "tier": "ui",
+      "title": "Cosmos Modal Dialog — a glassy confirm dialog with a blurred dimming backdrop",
+      "card_number": "AK-CDP-0000068",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "navbar",
+      "tier": "ui",
+      "title": "Cosmos Navbar — top navigation bar with a violet pill indicator that glides between links, search + CTA, and scroll-shrink",
+      "card_number": "AK-CDP-000007B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "notification-stack",
+      "tier": "ui",
+      "title": "Cosmos Notification Stack — cards push in and stack, older ones settling behind while the oldest slides out",
+      "card_number": "AK-CDP-0000063",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "otp-input",
+      "tier": "ui",
+      "title": "Cosmos OTP Input — six digit boxes with a violet active box, blinking caret, and green success state",
+      "card_number": "AK-CDP-0000077",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pagination",
+      "tier": "ui",
+      "title": "Cosmos Pagination — numbered pages + prev/next arrows with a sliding accent highlight and scale pop",
+      "card_number": "AK-CDP-000006P",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "pricing-card",
+      "tier": "ui",
+      "title": "Cosmos Pricing Card — 3-plan pricing table with Monthly/Yearly toggle and count animation",
+      "card_number": "AK-CDP-000006Z",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "progress-bar",
+      "tier": "ui",
+      "title": "Cosmos Progress Bars — determinate fill with moving sheen + % label and an indeterminate striped sweep",
+      "card_number": "AK-CDP-000006T",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "progress-ring",
+      "tier": "ui",
+      "title": "Cosmos Progress Ring — circular loader sweeping 0->100% with glowing dot and % count",
+      "card_number": "AK-CDP-000004A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "range-slider",
+      "tier": "ui",
+      "title": "Cosmos Range Slider — accent-filled track with a draggable knob and a value bubble that follows",
+      "card_number": "AK-CDP-000006M",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "rating-input",
+      "tier": "ui",
+      "title": "Cosmos Rating Input — an interactive 5-star rater with a hover sweep, halves, value and label",
+      "card_number": "AK-CDP-0000079",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "rating-stars",
+      "tier": "ui",
+      "title": "Cosmos Rating Stars — 5-star rating control filling gold left-to-right with a per-star pop and numeric label",
+      "card_number": "AK-CDP-000006H",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "search-bar",
+      "tier": "ui",
+      "title": "Cosmos Search Bar — an icon that expands into a typing search with a staggered results dropdown",
+      "card_number": "AK-CDP-000006B",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "segmented-control",
+      "tier": "ui",
+      "title": "Cosmos Segmented Control — iOS-style 4-segment control with a sliding spring accent highlight",
+      "card_number": "AK-CDP-0000067",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "side-drawer",
+      "tier": "ui",
+      "title": "Cosmos Side Drawer — a slide-out navigation drawer over a dimmed backdrop",
+      "card_number": "AK-CDP-000006W",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "skeleton-loader",
+      "tier": "ui",
+      "title": "Cosmos Skeleton Loader — content card with shimmering skeleton placeholders that sweep, resolve into real content, and loop",
+      "card_number": "AK-CDP-0000064",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "snackbar",
+      "tier": "ui",
+      "title": "Cosmos Snackbar — Material-style alert stack that slides up from the bottom with UNDO action and countdown",
+      "card_number": "AK-CDP-0000073",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "social-share",
+      "tier": "ui",
+      "title": "Cosmos Social Share — share button that fans out a radial cluster of social icon chips on a staggered arc",
+      "card_number": "AK-CDP-0000071",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "stat-card",
+      "tier": "ui",
+      "title": "Cosmos Stat Card — dashboard KPI cards with count-up metric, drawing sparkline and trend pill",
+      "card_number": "AK-CDP-0000070",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "stepper",
+      "tier": "ui",
+      "title": "Cosmos Stepper — a 4-step progress wizard with icons, labels and an accent-filling connector",
+      "card_number": "AK-CDP-000006D",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tab-switcher",
+      "tier": "ui",
+      "title": "Cosmos Tab Switcher — 4-tab bar with a sliding morphing active-indicator pill and cross-fading panels",
+      "card_number": "AK-CDP-0000066",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tag-input",
+      "tier": "ui",
+      "title": "Cosmos Tag Input — a multi-select chips field that types, suggests, and pops in removable tags",
+      "card_number": "AK-CDP-0000078",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "timeline",
+      "tier": "ui",
+      "title": "Cosmos Timeline — vertical activity timeline whose glowing spine draws down and event cards pop in one by one",
+      "card_number": "AK-CDP-000007A",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "toast-notification",
+      "tier": "ui",
+      "title": "Cosmos Toast Notification — corner snackbar that slides in with icon, title, message and auto-dismiss",
+      "card_number": "AK-CDP-0000062",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "toggle-switch",
+      "tier": "ui",
+      "title": "Cosmos Toggle Switch — sleek UI toggle flicking ON/OFF with knob bounce and accent glow",
+      "card_number": "AK-CDP-0000049",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    },
+    {
+      "slug": "tooltip",
+      "tier": "ui",
+      "title": "Cosmos Tooltip — glassy dark tooltip with arrow that fades and rises above hovered triggers",
+      "card_number": "AK-CDP-0000072",
+      "preview_file": null,
+      "live_width": null,
+      "live_height": null
+    }
+  ]
+}

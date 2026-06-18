@@ -1,0 +1,14 @@
+{
+  "name": "cosmos-akashic-gallery-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "§26 auto-sync tooling: rebuild the static effect gallery from Akashic cards.",
+  "scripts": {
+    "export-gallery": "node export-gallery.cjs",
+    "build-gallery": "node build-gallery.cjs"
+  },
+  "dependencies": {
+    "omggif": "^1.0.10",
+    "pngjs": "^7.0.0"
+  }
+}
