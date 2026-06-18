@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 12000,
   "N": 100,
-  "tags": ["remix", "lissajous", "generative", "interactive", "themeable", "canvas2d"],
+  "tags": [
+    "remix",
+    "lissajous",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle Lissajous curve: particles are placed along a Lissajous path x=sin(A·θ+φ), y=sin(B·θ) with θ=i/count·2π, and the phase φ advances with u so the figure morphs and rotates while looping seamlessly. Live panel retunes palette / shape / density / speed / size plus A and B integer-ratio knobs; reskins to any brand colour in one click. Self-contained, zero-deps. ?auto=1 hides the panel and runs a deterministic seamless loop.",
   "usage_notes": "RUN: open index.html in any browser — a glowing Lissajous figure traced by particles slowly morphs and rotates. PANEL: the glass control panel (top-right) retunes the field live — pick a Palette skin, a Shape (dot/ruby/atom/star/crystal/spark), and drag Density, Spread, Speed, Dot size, and the A ratio / B ratio sliders (integers 1–5) that set the harmonic ratio of the curve; ↻ Seed cycles palette/spread and ⧉ Copy exports your tuned config to the clipboard. KEY TECHNIQUES: geometry — each particle gets θ=i/count·2π and sits at x=sin(A·θ+φ), y=sin(B·θ) scaled by P.scale, where the phase φ=u·2π·speed advances with normalised time so the figure morphs; an additional gentle rotation spins the whole figure, and frame(0)===frame(LOOP) for integer speed. PARAMS convention — window.__params describes each knob and window.setParam(key,value) applies it, which the generic remix harness reads. Theme tokens — PALETTES holds accent + 3-colour ramp per brand skin; ramp(pal.cols, i/count) colours each particle. Shapes — drawShape() renders the six cheap additive shapes. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: A:B = 3:2 or 5:4 give classic woven figures; equal A=B collapse to a diagonal/ellipse; raise Density for a continuous glowing line, Dot size for a thicker ribbon.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000008S",
+  "tier": "remix"
 }

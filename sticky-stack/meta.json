@@ -1,0 +1,26 @@
+{
+  "slug": "sticky-stack",
+  "card_number": "AK-CDP-0000015",
+  "tier": "ui",
+  "title": "Cosmos Sticky Stack — pure-CSS sticky-scroll deck reveal",
+  "title_vi": "",
+  "tags": [
+    "sticky",
+    "scroll",
+    "stack",
+    "deck",
+    "css",
+    "position-sticky",
+    "no-js",
+    "scroll-reveal",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A pure-CSS sticky scroll: six themed slides each use position:sticky pinned at a slightly larger top offset, so scrolling stacks them like a deck — each slide rises and covers the previous while the previous one's edge peeks above. The reveal needs NO JavaScript; the six Cosmos themes (Phantom/Solaris/Sacred/Aurora/Cosmic/Nebula) scroll past as full-bleed cards. Runs offline.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); keep cosmos-logo.png beside it. HOW IT WORKS: each slide sits in a 100vh .sec and is position:sticky; top:calc(34px + i*16px). Because each later slide pins a little lower and comes later in the DOM, scrolling makes slide i+1 climb up and overlap slide i (rounded corners + shadow show the stack). That's the whole effect — pure CSS. INTERACTION: just scroll. CAPTURE: ?auto=1 exposes window.__seek(t) which sets scrollTop along an eased PING-PONG curve (0 -> bottom -> 0) so the GIF loops seamlessly; capture.cjs steps it WITHOUT the puppeteer `clip` option. TUNE: SLIDES[], slide height/offset, radius. BRAND: each slide uses one of the six theme accents over Phantom dark.",
+  "summary_vi": "",
+  "notes": ""
+}

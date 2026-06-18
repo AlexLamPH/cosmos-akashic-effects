@@ -2,11 +2,27 @@
   "slug": "game-whack",
   "title": "Cosmos Whack — bop glowing creatures before they duck back down",
   "title_vi": "",
-  "W": 560, "H": 620, "LOOP": 12000, "N": 109,
+  "W": 560,
+  "H": 620,
+  "LOOP": 12000,
+  "N": 109,
   "live_fit": true,
-  "tags": ["game","arcade","whack-a-mole","playable","interactive","canvas2d"],
+  "tags": [
+    "game",
+    "arcade",
+    "whack-a-mole",
+    "playable",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained whack-a-mole game in one HTML file with zero dependencies. Glowing Cosmos creatures pop up from a 3x3 grid of holes; click or tap them (or use the Q/W/E A/S/D Z/X/C keys mapped to the nine holes) to whack them for points before they duck back down, while a 30-second timer counts down and a miss counter tracks the ones you let escape. A hit splash and +10 popup confirm every whack; press R or the button to restart. It ships with a deterministic self-playing attract demo for capture: a seeded pop schedule and a scripted auto-player whack every mole on cue.",
   "usage_notes": "RUN: double-click index.html. CONTROLS: click/tap a glowing mole, or press keys Q W E / A S D / Z X C for the top, middle and bottom rows of the 3x3 grid; mis-clicks count as a miss. GOAL: score 10 points per whacked mole inside the 30-second round; the HUD shows SCORE, TIME and MISS; press R or the Restart button to play again. KEY TECHNIQUES: the whole round is a deterministic simulation — mulberry32 seeds a fixed pop schedule (hole, color, up-duration) and a scripted auto-player times each whack; AUTO is a pure function of time, drawAt(ms) re-derives score, the mole currently up and any active splash from ms alone, so window.__seek(t) is reproducible. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: ROUND length, POP_MS up-time, LOOP, T0OFF (frame-0 offset), grid via COLS/ROWS, mole colors MOLECOL.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000A3",
+  "tier": "game"
 }

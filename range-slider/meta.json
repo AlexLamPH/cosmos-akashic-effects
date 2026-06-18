@@ -2,10 +2,25 @@
   "slug": "range-slider",
   "title": "Cosmos Range Slider — accent-filled track with a draggable knob and a value bubble that follows",
   "title_vi": "Cosmos Range Slider — thanh trượt có phần nền nhấn, knob kéo được và bong bóng giá trị đi theo",
-  "W": 600, "H": 480, "LOOP": 6000, "N": 75,
-  "tags": ["range-slider","slider","component","interactive","css"],
+  "W": 600,
+  "H": 480,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "range-slider",
+    "slider",
+    "component",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained range slider control on the Cosmos Phantom-dark theme: a glassy rounded track shows an accent-filled portion (violet->cosmic gradient) up to a draggable circular knob, and a violet value bubble/tooltip floats above the knob, following it horizontally while its number updates live. The knob glows brighter and scales up when grabbed and the bubble lifts. Zero dependencies, pure HTML/CSS/vanilla JS. LIVE mode is genuinely interactive (drag the knob, click anywhere on the track to jump, or use arrow keys; the glow fades after release); AUTO mode plays a deterministic, seamlessly looping demo that glides the knob across the full range and back with the value counting up and down. All captured motion is a pure function of u via render(u)/__seek so frames are exact regardless of timing.",
   "usage_notes": "RUN: double-click index.html. LIVE: press and drag the knob (or click/keyboard with arrow keys) to set the value; the fill grows, the bubble follows the knob and updates its number, and the knob glows violet + scales while grabbed, then the glow eases off after release; when idle it auto-plays the demo loop. KEY TECHNIQUES: the knob x-position is computed as PAD + v*(width-2*PAD) so the 24px knob never overruns the track ends; fill width, knob left, and bubble left are all driven from the same x; the value bubble uses an absolutely-positioned arrow (rotated square) and shares the knob's x; a grab amount g (0..1) drives the knob box-shadow glow radius, knob scale, and bubble lift/opacity; the demo phases (glide up, dwell hi, glide down, dwell lo) use smoothstep easing with a sin-shaped grab-glow pulse during travel, and a 0.18 phase offset places frame 0 mid-glide (rich, never at an endpoint). CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (cycle speed), MIN/MAX (value range), PAD (knob inset), the 0.42/0.5/0.92 phase splits, the glow constants in paint(), and the accent colours in the .fill / .bubble gradients.",
   "summary_vi": "Control range slider hoàn chỉnh, tự chứa, theme Phantom-dark của Cosmos: track bo tròn kính hiển thị phần nền nhấn (gradient tím->cosmic) tới knob tròn kéo được, và một bong bóng giá trị màu tím nổi phía trên knob, đi theo knob theo chiều ngang trong khi số cập nhật trực tiếp. Knob sáng hơn và phóng to khi nắm, bong bóng nâng lên. Không phụ thuộc, thuần HTML/CSS/JS. LIVE tương tác thật (kéo knob, bấm trên track để nhảy, hoặc dùng phím mũi tên; glow mờ dần sau khi thả); AUTO chạy demo loop liền mạch trượt knob hết tầm rồi quay lại với giá trị tăng giảm theo. Mọi chuyển động là hàm thuần của u qua render(u)/__seek.",
-  "notes": "Vị trí knob tính bằng PAD + v*(rộng-2*PAD) nên knob 24px không tràn đầu track; fill, knob, bong bóng dùng chung x; mức nắm g điều khiển glow/scale knob và độ nâng bong bóng; demo các pha trượt/dừng dùng smoothstep với offset 0.18 để frame 0 nằm giữa lúc trượt."
+  "notes": "Vị trí knob tính bằng PAD + v*(rộng-2*PAD) nên knob 24px không tràn đầu track; fill, knob, bong bóng dùng chung x; mức nắm g điều khiển glow/scale knob và độ nâng bong bóng; demo các pha trượt/dừng dùng smoothstep với offset 0.18 để frame 0 nằm giữa lúc trượt.",
+  "card_number": "AK-CDP-000006M",
+  "tier": "ui"
 }

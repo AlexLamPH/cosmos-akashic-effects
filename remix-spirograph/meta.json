@@ -2,10 +2,27 @@
   "slug": "remix-spirograph",
   "title": "Cosmos Remix — Spirograph you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "spirograph", "hypotrochoid", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "spirograph",
+    "hypotrochoid",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle spirograph: particles trace a hypotrochoid rosette (a small circle rolling inside a big one) with a live glass control panel — change palette (brand theme tokens), shape, density, speed, dot size, and the Petals (R:r) ratio in real time, shuffle the seed, and Copy your tuned version. The inner radius and pen offset slowly drift with time so the rosette pattern evolves while gently rotating. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Petals (R:r) to change the number of rosette lobes, press the shape buttons, then Copy to export your config. KEY TECHNIQUES: the geometry is the classic hypotrochoid x=(R−r)cosθ+d·cos((R−r)/r·θ), y=(R−r)sinθ−d·sin((R−r)/r·θ); θ is spread over R full turns by particle index i so the whole rosette is drawn, the pen offset d breathes with time and the figure rotates, all as a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them — the same contract the generic remix harness reads to auto-build panels. Theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; SHAPES are cheap canvas glyphs chosen via drawShape(). CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: change Petals (R:r) for different symmetry, add palettes to PALETTES, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-0000093",
+  "tier": "remix"
 }

@@ -2,10 +2,26 @@
   "slug": "progress-bar",
   "title": "Cosmos Progress Bars — determinate fill with moving sheen + % label and an indeterminate striped sweep",
   "title_vi": "Cosmos Progress Bars — thanh xác định đổ đầy có ánh quét + nhãn % và thanh sọc vô định",
-  "W": 600, "H": 420, "LOOP": 5200, "N": 65,
-  "tags": ["progress","loader","bar","indeterminate","interactive","css"],
+  "W": 600,
+  "H": 420,
+  "LOOP": 5200,
+  "N": 65,
+  "tags": [
+    "progress",
+    "loader",
+    "bar",
+    "indeterminate",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished pair of linear progress bars on the Phantom-dark theme: a determinate bar that fills 0->100% with a violet->cosmic accent gradient, a moving white sheen sweeping across the fill, and a live percentage label that turns aurora-green on completion; below it an indeterminate striped bar with an accent stripe that ping-pongs back and forth over a diagonal stripe texture. A self-contained polished component with zero dependencies, runs offline; interactive live (autoplays the loop) and a deterministic seamless auto-demo.",
   "usage_notes": "RUN: double-click index.html. The live interaction: both bars animate continuously via the same render loop — the determinate bar fills, holds at 100%, then resets for the next cycle while the indeterminate bar sweeps endlessly. KEY TECHNIQUES: render(u) drives both bars as a pure function of u in [0,1); the determinate fill width = smooth(u/0.78)*trackWidth over the first 78% of the loop, then holds at 100% and fades out at the very end so frame(0) equals frame(LOOP); the sheen is a screen-blend gradient strip whose translateX cycles ~2.4 times across the filled portion; the indeterminate stripe uses a smoothed triangle wave (|((u*1.6)%1)*2-1|) so it ping-pongs and returns to start at u=1; widths are measured from the live track so it stays responsive. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, fillP fill fraction, sheen cycle count (2.4), stripe speed (1.6) and width (0.35), gradient colours, completion colour.",
   "summary_vi": "Cặp thanh tiến trình tuyến tính tinh tế trên nền Phantom tối: một thanh xác định đổ đầy 0->100% với gradient accent tím->xanh vũ trụ, dải ánh trắng quét qua phần đã đổ, và nhãn phần trăm sống chuyển xanh aurora khi hoàn tất; bên dưới là thanh sọc vô định với một dải accent quét tới lui trên nền sọc chéo. Component tinh tế, không lib, chạy offline; tương tác live và auto-demo deterministic loop liền mạch.",
-  "notes": "render(u) điều khiển cả hai thanh thuần theo u: thanh xác định đổ đầy trong 78% đầu rồi giữ 100% và mờ dần cuối loop nên frame(0) bằng frame(LOOP), còn thanh vô định dùng sóng tam giác làm mượt để quét tới lui và về lại điểm đầu tại u=1."
+  "notes": "render(u) điều khiển cả hai thanh thuần theo u: thanh xác định đổ đầy trong 78% đầu rồi giữ 100% và mờ dần cuối loop nên frame(0) bằng frame(LOOP), còn thanh vô định dùng sóng tam giác làm mượt để quét tới lui và về lại điểm đầu tại u=1.",
+  "card_number": "AK-CDP-000006T",
+  "tier": "ui"
 }

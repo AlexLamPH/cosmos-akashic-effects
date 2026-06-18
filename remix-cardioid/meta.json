@@ -2,10 +2,26 @@
   "slug": "remix-cardioid",
   "title": "Cosmos Remix — Times-Table Cardioid you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "cardioid", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "cardioid",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A remixable times-table cardioid: points sit evenly on a circle and each particle is sampled along the chord from i to (i·mult mod N), so the dense overlap of chords traces the caustic envelope — a cardioid at mult≈2, a nephroid at 3, and higher mystic-rose patterns beyond. The Multiplier advances slowly with u so the curve morphs through the classic times-table family. Live glass panel retunes palette (brand theme tokens), shape, density, spread, speed, dot size and a Multiplier knob in real time, and reskins to any brand colour in one click. Uses the PARAMS convention (window.__params + setParam) the generic remix harness reads. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, drag Multiplier to jump between cardioid/nephroid/rose figures, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: N points sit evenly on a circle; each chord connects point c to its times-table partner (c·mult mod N); particles are distributed as samples along these chords so the overlapping point cloud draws the caustic ENVELOPE rather than just endpoints; the multiplier drifts with u (mult = P.mult + u·speed·8) to morph the figure; additive blending of many overlapping samples builds the glowing curve. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them so a generic harness can auto-build the panel; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; SHAPES + drawShape render the chosen particle cheaply. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: set Multiplier to 2 for a clean cardioid or 3 for a nephroid, add palettes to PALETTES, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009M",
+  "tier": "remix"
 }

@@ -6,9 +6,22 @@
   "H": 300,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "generative", "glow", "digital", "clock", "loop"],
+  "tags": [
+    "canvas2d",
+    "generative",
+    "glow",
+    "digital",
+    "clock",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A classic seven-segment digital readout counting up like a clock/timer, with glowing nebula and cosmic segments on a dark panel and off-segments faintly visible. Each digit is drawn from a real seven-segment lookup table with additive glow and a blinking colon. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a SEG lookup table maps each digit 0-9 to its 7 active bars; each segment is a glow-rounded bar drawn with additive 'lighter' blending and a shadow halo when lit, or a faint flat bar when off; the MM:SS count and the blinking colon are pure integer functions of u=t/LOOP so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for tick speed, total/100 count range, colon blink count (4), ON1/ON2 segment colors.",
   "summary_vi": "Màn hình LED bảy đoạn cổ điển đếm lên như đồng hồ, các đoạn sáng màu nebula và cosmic trên nền tối, đoạn tắt vẫn mờ mờ. Mỗi chữ số dựng từ bảng tra bảy đoạn với quầng sáng cộng và dấu hai chấm nhấp nháy. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
-  "notes": "Bảng tra SEG cho từng số; đếm và nhấp nháy đều là hàm nguyên của u nên lặp liền mạch."
+  "notes": "Bảng tra SEG cho từng số; đếm và nhấp nháy đều là hàm nguyên của u nên lặp liền mạch.",
+  "card_number": "AK-CDP-000004W",
+  "tier": "canvas"
 }

@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "particles", "waterfall", "generative", "aurora", "loop"],
+  "tags": [
+    "canvas2d",
+    "particles",
+    "waterfall",
+    "generative",
+    "aurora",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Vertical streams of flowing aurora-toned streaks pour down a sheet of falling water into a glowing misty pool, with rising spray and drifting mist at the surface over the Phantom dark. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each streak falls with a seeded phase and an INTEGER number of drops per loop so flow wraps mod 1 seamlessly; gentle sway uses sin of integer harmonics; spray motes rise on a sin(pi*p) envelope (zero at both ends) and mist puffs pulse on integer harmonics; all drawn additively with 'lighter'; a layered pool gradient glows at the base. CAPTURE: ?auto=1 + window.__seek(t). TUNE: stream count N=220, sway amplitude, pool height (0.74), spray rise, AUR palette.",
   "summary_vi": "Những dòng vệt sáng màu cực quang đổ xuống tấm nước rơi vào hồ nước phát sáng đầy sương mù, với bụi nước bốc lên và sương trôi trên mặt hồ trên nền tối Phantom. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và liền mạch.",
-  "notes": "Dòng chảy lặp theo mod 1 với số giọt nguyên mỗi vòng nên vòng lặp liền mạch hoàn hảo."
+  "notes": "Dòng chảy lặp theo mod 1 với số giọt nguyên mỗi vòng nên vòng lặp liền mạch hoàn hảo.",
+  "card_number": "AK-CDP-000004J",
+  "tier": "canvas"
 }

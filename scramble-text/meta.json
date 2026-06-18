@@ -2,10 +2,26 @@
   "slug": "scramble-text",
   "title": "Cosmos Scramble Text — decrypt/scramble reveal of the word COSMOS",
   "title_vi": "Cosmos Scramble Text — chữ COSMOS giải mã hiện ra rồi xáo trộn lại",
-  "W": 760, "H": 400, "LOOP": 8000, "N": 100,
-  "tags": ["text","scramble","decrypt","glyphs","reveal","canvas2d"],
+  "W": 760,
+  "H": 400,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "text",
+    "scramble",
+    "decrypt",
+    "glyphs",
+    "reveal",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A decrypt-style text reveal: the word COSMOS resolves letter by letter out of churning seeded random glyphs, holds, then re-scrambles and loops. Each letter glows in a Cosmos accent (violet, cosmic, nebula, aurora, solaris, sacred) with additive 'lighter' compositing and a brightening white core as it locks. Pure Canvas 2D, zero dependencies, runs offline; fully deterministic and seamless (frame 0 === frame LOOP).",
   "usage_notes": "RUN: double-click index.html (or open in any browser). KEY TECHNIQUES: per-letter lock(u,i) is a PURE function of looping time — letters resolve staggered in the first ~40% of their phase, hold to ~80%, then re-scramble back to fully scrambled at the loop seam so progress returns to 0 at u=1; scramble glyphs are read from a seeded table pick[floor(u*STEPS)][letterIndex] (deterministic hash, never Math.random in frame); mulberry32 builds the glyph table once at setup; additive glow via shadowBlur in 'lighter' mode plus a white core that grows with lock^2; a +0.18 time offset makes frame 0 a rich mostly-resolved thumbnail. CAPTURE: ?auto=1 + window.__seek(t). TUNE: WORD, GLYPHS charset, STEPS (churn rate), resolve/hold/re-scramble windows in lock(), glow blur, ACC palette.",
   "summary_vi": "Hiệu ứng giải mã chữ: từ COSMOS hiện dần ra từng chữ từ các ký tự ngẫu nhiên có seed xoay vần, giữ một nhịp rồi xáo trộn lại và lặp. Mỗi chữ phát sáng tông Cosmos với chế độ cộng sáng 'lighter' và lõi trắng sáng dần khi khoá. Thuần Canvas 2D, không phụ thuộc, chạy offline; deterministic và loop liền khít.",
-  "notes": "Tiến độ khoá từng chữ là hàm thuần của thời gian lặp nên loop khít; glyph xáo chọn theo bảng có seed theo floor(u*STEPS)."
+  "notes": "Tiến độ khoá từng chữ là hàm thuần của thời gian lặp nên loop khít; glyph xáo chọn theo bảng có seed theo floor(u*STEPS).",
+  "card_number": "AK-CDP-000001X",
+  "tier": "canvas"
 }

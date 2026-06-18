@@ -6,9 +6,24 @@
   "H": 420,
   "LOOP": 9000,
   "N": 90,
-  "tags": ["shader", "webgl", "glsl", "fractal", "apollonian", "gasket", "generative", "loop"],
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "fractal",
+    "apollonian",
+    "gasket",
+    "generative",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real WebGL GLSL fragment shader rendering an Apollonian gasket via iterated circle inversion (Kaleidoscopic IFS). Glowing violet/cosmic/nebula/aurora accent rings sit over a dark base, slowly breathing and rocking. Zero dependencies, runs fully offline, deterministic and seamless (the loop time t wraps 0..1 driving all motion through sin/cos).",
   "usage_notes": "RUN: open index.html in a WebGL-capable browser. KEY TECHNIQUES: iterated unit-circle inversion fold (7 iterations) producing the gasket, distance-estimate edge glow (exp falloff) plus orbit-trap colouring, breathing inversion radius and rotation driven by 2*PI*t for seamless looping. CAPTURE: ?auto=1 + window.__seek(t). TUNE: iteration count in apollo(), edge sharpness (220.0), glow radius (26.0), breathing amplitude on s and rotation.",
   "summary_vi": "Shader fragment WebGL GLSL thật dựng fractal gasket Apollonian bằng phép nghịch đảo đường tròn lặp lại; các vòng sáng tím/xanh/hồng/lục trên nền tối, thở và xoay nhẹ, không phụ thuộc, chạy offline, tất định và liền mạch.",
-  "notes": "Fractal gasket Apollonian phát sáng dựng bằng shader WebGL, lặp liền mạch theo t."
+  "notes": "Fractal gasket Apollonian phát sáng dựng bằng shader WebGL, lặp liền mạch theo t.",
+  "card_number": "AK-CDP-000005R",
+  "tier": "shader"
 }

@@ -2,10 +2,26 @@
   "slug": "remix-bloom",
   "title": "Cosmos Remix — Bloom you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "flower", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "flower",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle flower bloom: particles ride k-fold symmetric petals that unfurl — radius and petal spread are eased by sin(2π·u) so the blossom opens and closes around a bright dense center cluster while it rotates slowly. A live glass control panel changes palette (brand theme tokens), shape, density, speed, dot size and Petals in real time, and reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, and turn the Petals knob to set the k-fold symmetry; ↻ Seed cycles the palette, ⧉ Copy copies your config. KEY TECHNIQUES: a rose-curve petal field where |sin(k·θ/2)| shapes each of k petals and an open/close ease (0.5+0.5·sin(2π·u)) modulates both radius and angular spread so the flower breathes open then folds shut; a separate bright center cluster (golden-angle spiral) anchors the bloom; perpendicular jitter gives petals body; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays seamless and deterministic. PARAMS convention: window.__params + setParam(key,value) is the contract the generic remix harness reads to auto-build panels; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; SHAPES picks the per-particle glyph. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: change Petals for the symmetry, Spread for size, add palettes to PALETTES.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009C",
+  "tier": "remix"
 }

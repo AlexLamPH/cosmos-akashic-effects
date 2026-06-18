@@ -2,10 +2,26 @@
   "slug": "matrix-rain",
   "title": "Cosmos Matrix Rain — falling glyph code rain",
   "title_vi": "Cosmos Matrix Rain — mưa ký tự đổ",
-  "W": 760, "H": 540, "LOOP": 6000, "N": 75,
-  "tags": ["matrix","rain","glyphs","code","background","canvas2d"],
+  "W": 760,
+  "H": 540,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "matrix",
+    "rain",
+    "glyphs",
+    "code",
+    "background",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "The classic falling-glyph code rain, re-tinted to Aurora green with Cosmos accent columns and bright white leading characters. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. Each column has an integer turn-count so its head position ((u*turns+phase) mod 1) loops perfectly; the leading glyph is bright white, trailing glyphs fade in the column's accent. Glyphs are katakana code points chosen deterministically from a per-column seed. CAPTURE: ?auto=1 + window.__seek(t). TUNE: cell size, tail length, AC colours.",
   "summary_vi": "Mưa ký tự kiểu Matrix kinh điển, nhuộm tông xanh Aurora + cột accent Cosmos, ký tự đầu dòng trắng sáng. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Batch factory #2. Mỗi cột số vòng nguyên nên head ((u*turns+phase)mod1) loop khít; glyph katakana chọn theo seed. B-tier."
+  "notes": "Batch factory #2. Mỗi cột số vòng nguyên nên head ((u*turns+phase)mod1) loop khít; glyph katakana chọn theo seed. B-tier.",
+  "card_number": "AK-CDP-0000018",
+  "tier": "canvas"
 }

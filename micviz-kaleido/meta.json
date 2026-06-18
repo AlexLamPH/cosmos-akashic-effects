@@ -6,9 +6,22 @@
   "H": 420,
   "LOOP": 8400,
   "N": 93,
-  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A mirrored k-fold kaleidoscope visualizer: spectrum bins scale and rotate the symmetric shapes while beats recolor the whole bloom. Reacts to the MICROPHONE live (gracefully falls back to a synthetic signal if the mic is unavailable/denied) plus a deterministic synthetic demo for capture. Self-contained, zero-deps.",
   "usage_notes": "RUN: open and click \"enable mic\" to make the kaleidoscope dance to your voice/music; it falls back to a built-in beat if no mic is granted. KEY TECHNIQUES: an AnalyserNode feeds a 64-bin spectrum + level into render(spectrum, level, t); a seeded synthSpectrum(u) drives the same render for auto/fallback; alternating mirrored wedges build the k-fold symmetry; a low-band beat detector swaps the palette. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: FOLDS (symmetry count), PALS (color sets), LOOP (cycle length), and the beat threshold in detectBeat.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AV",
+  "tier": "reactive"
 }

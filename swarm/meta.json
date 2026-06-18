@@ -1,0 +1,27 @@
+{
+  "slug": "swarm",
+  "card_number": "AK-CDP-0000013",
+  "tier": "canvas",
+  "title": "Cosmos Swarm — 3D cards morphing between formations + click-to-profile (CSS 3D)",
+  "title_vi": "",
+  "tags": [
+    "3d",
+    "formation",
+    "periodic-table",
+    "drone-swarm",
+    "css3d",
+    "quaternion",
+    "slerp",
+    "cards",
+    "profile",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "48 element-style cards fly through 3D space like a drone swarm, morphing between four formations — grid, sphere, helix and a cloth-in-the-wind wave — while the whole field slowly rotates around its centre. Click any card and its profile panel opens (it's data, not just decoration). Pure CSS 3D transforms + quaternion slerp; no Three.js, no libraries; runs offline. Inspired by the classic CSS3D periodic-table demo, re-skinned to the six Cosmos themes.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN). INTERACTION: click a card -> profile opens; click empty space -> close. KEY TECHNIQUES: (1) each card's placement in every formation is a (position vec3 + orientation quaternion): grid = flat XY; sphere = Ry(theta)*Rx(phi) so the card both sits on the sphere AND faces outward; helix = Ry(angle) on a cylinder + Y offset; wave = grid with z = A*sin(k + phase) and a matching tilt quaternion (the phase is periodic over LOOP so it loops); (2) morphing = per-card lerp(position) + qSlerp(orientation) between the previous and current formation with an eased progress -> no shear/skew (lerping raw matrices would skew); (3) a tiny quat->matrix3d builder writes each card's CSS transform; (4) the .world container rotates (integer turns over LOOP -> seamless). CAPTURE: ?auto=1 + window.__seek(t) (pure function of time) cycles the four formations (DWELL each) and pops one card's profile during the grid phase; capture WITHOUT puppeteer `clip` (clip drops 3D/transformed content). TUNE: FORMS, N, DWELL/MORPH, card data. BRAND: Phantom dark; cards use the six theme accents.",
+  "summary_vi": "",
+  "notes": ""
+}

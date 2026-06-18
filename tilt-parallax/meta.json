@@ -2,10 +2,25 @@
   "slug": "tilt-parallax",
   "title": "Cosmos Tilt Parallax — layered cosmic depth planes that shift with device tilt",
   "title_vi": "",
-  "W": 640, "H": 420, "LOOP": 9000, "N": 100,
-  "tags": ["tilt","sensor","reactive","interactive","canvas2d"],
+  "W": 640,
+  "H": 420,
+  "LOOP": 9000,
+  "N": 100,
+  "tags": [
+    "tilt",
+    "sensor",
+    "reactive",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Layered depth planes (deep stars, nebula clouds, mid stars, and a foreground ridge) each shift by a different amount with the tilt gravity vector {gx,gy}, giving a window-into-3D parallax as you tilt the phone. Live, the vector comes from the device tilt (deviceorientation); it gracefully falls back to a synthetic oscillating tilt when the sensor is unavailable, and on desktop the mouse position becomes the tilt vector so it stays interactive. A deterministic synthetic signal drives the capture demo. Self-contained, zero-deps; privacy: all processing happens in-browser, nothing is uploaded.",
   "usage_notes": "RUN: open index.html, then tap to enable motion (iOS prompts for permission) and tilt the phone — far star planes drift slightly while near planes and the foreground ridge swing more, creating depth. DESKTOP fallback: no sensor needed, move the mouse and its position becomes the tilt vector. KEY TECHNIQUES: gravity vector {gx,gy} comes from deviceorientation (gamma->gx, beta->gy) or mouse, is smoothed, then feeds one render(SIG,t) that offsets each layer by shift*depth (parallax), wraps stars toroidally, blends additive nebula gradients, and frames a dark foreground ridge; synthSig(u) = {0.7*sin(2pi*u), 0.7*cos(2pi*2u)} supplies a rocking tilt for auto and fallback so it never goes blank. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: layer depths/counts, SHIFT magnitude, nebula colors, ridge height.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BQ",
+  "tier": "reactive"
 }

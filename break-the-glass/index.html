@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Break the Glass</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #04030c; cursor: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// ============================================================================
+//  Cosmos — Break the Glass.  Click the dark glass pane: cracks spider-web out
+//  from the impact, glass shards fade in (fadeInShard), and the Cosmos logo
+//  glows through the breaks. Pure Canvas 2D, zero deps, runs offline.
+//  ?auto=1 plays a deterministic, seamless-looping shatter→heal cycle for GIF
+//  capture via window.__seek(t).
+// ============================================================================
+
+const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+const AUTO = new URLSearchParams(location.search).has('auto');
+const ACCENT = [185, 163, 255];          // Phantom violet glow for the cracks
+let W, H, DPR;
+
+// ---- seeded RNG so the fracture geometry is identical every run (capture-safe)
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+// ---- logo behind the glass ----
+const logo = new Image(); let logoOK = false;
+logo.onload = () => logoOK = true; logo.src = './cosmos-logo.png';
+
+// ---- impacts: fixed normalized positions + times (deterministic clusters) ----
+const LOOP = 6800;                        // ms; full shatter→heal cycle (auto)
+const IMPACTS = [
+  { nx: 0.34, ny: 0.44, t: 500,  seed: 1337 },
+  { nx: 0.64, ny: 0.56, t: 1900, seed: 7., }, // (seed set below)
+  { nx: 0.50, ny: 0.33, t: 3300, seed: 99 },
+];
+IMPACTS[1].seed = 4242;
+const PROP = 300;                         // ms for a crack to reach full radius
+const HEAL_START = 5000, HEAL_END = 6100; // cracks fade back out -> seamless loop
+
+// ---- build one realistic glass fracture: uneven radial cracks + branches +
+//      sparse jagged cross-links (angular shards, NO concentric rings) ----
+function buildFracture(cx, cy, R, seed) {
+  const rnd = mulberry32(seed);
+  const TAU = 6.28318;
+  const K = 9 + (rnd() * 6 | 0);           // 9-14 primary radial cracks
+  const segs = [], radials = [];
+  let base = rnd() * TAU;
+  // grow a jagged crack from a start point along an angle; records segments
+  function grow(sx, sy, sd, ang, L, steps, jitter) {
+    let px = sx, py = sy, pd = sd, a = ang;
+    const pts = [{ x: sx, y: sy, d: sd }];
+    for (let s = 1; s <= steps; s++) {
+      a += (rnd() - 0.5) * jitter;
+      const seglen = L / steps;
+      const nx = px + Math.cos(a) * seglen, ny = py + Math.sin(a) * seglen, nd = pd + seglen;
+      segs.push({ a: { x: px, y: py }, b: { x: nx, y: ny }, near: pd, far: nd });
+      pts.push({ x: nx, y: ny, d: nd });
+      px = nx; py = ny; pd = nd;
+    }
+    return { pts, endAng: a };
+  }
+  for (let i = 0; i < K; i++) {
+    const a0 = base + (i / K) * TAU + (rnd() - 0.5) * 0.6;   // uneven angular spacing
+    const L = R * (0.42 + rnd() * 0.6);                      // uneven radial length
+    const steps = 5 + (rnd() * 4 | 0);
+    const g = grow(cx, cy, 0, a0, L, steps, 0.26);
+    radials.push(g.pts);
+    if (rnd() < 0.55 && g.pts.length > 3) {                  // occasional branch
+      const bi = 2 + (rnd() * (g.pts.length - 3) | 0), sp = g.pts[bi];
+      const bang = g.endAng + (rnd() < 0.5 ? 1 : -1) * (0.45 + rnd() * 0.5);
+      const bL = (L - sp.d) * (0.5 + rnd() * 0.6);
+      if (bL > R * 0.08) grow(sp.x, sp.y, sp.d, bang, bL, 2 + (rnd() * 3 | 0), 0.3);
+    }
+  }
+  // sparse jagged cross-links between adjacent radials at scattered radii
+  for (let i = 0; i < K; i++) {
+    const Ri = radials[i], Rj = radials[(i + 1) % K];
+    const n = (rnd() * 2.3) | 0;                             // 0-2 links per gap
+    for (let c = 0; c < n; c++) {
+      const A = Ri[1 + (rnd() * (Ri.length - 1) | 0)], Bp = Rj[1 + (rnd() * (Rj.length - 1) | 0)];
+      const mx = (A.x + Bp.x) / 2, my = (A.y + Bp.y) / 2;
+      const dx = Bp.x - A.x, dy = Bp.y - A.y, len = Math.hypot(dx, dy) || 1;
+      const k = (rnd() - 0.5) * len * 0.45;
+      const kx = mx - dy / len * k, ky = my + dx / len * k, dmid = (A.d + Bp.d) / 2;
+      segs.push({ a: A, b: { x: kx, y: ky }, near: Math.min(A.d, dmid), far: Math.max(A.d, dmid) });
+      segs.push({ a: { x: kx, y: ky }, b: Bp, near: Math.min(dmid, Bp.d), far: Math.max(dmid, Bp.d) });
+    }
+  }
+  return { cx, cy, R, segs };
+}
+
+// ---- starfield (deterministic) ----
+let stars = [];
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  W = canvas.width = innerWidth * DPR; H = canvas.height = innerHeight * DPR;
+  canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+  const rnd = mulberry32(2024); stars = [];
+  for (let i = 0; i < 130; i++) stars.push({ x: rnd()*W, y: rnd()*H,
+    r: (rnd()*1.2+0.3)*DPR, tw: rnd()*6.28, sp: 0.4+rnd()*1.2 });
+  fractures = IMPACTS.map(im => buildFracture(im.nx*W, im.ny*H, Math.min(W,H)*0.62, im.seed));
+}
+let fractures = [];
+
+// ---- drawing helpers ----
+function drawBg(t) {
+  const g = ctx.createRadialGradient(W*0.5, H*0.46, 0, W*0.5, H*0.46, Math.max(W,H)*0.7);
+  g.addColorStop(0, '#0d0a20'); g.addColorStop(0.6, '#070514'); g.addColorStop(1, '#04030c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  for (const s of stars) {
+    ctx.globalAlpha = 0.4 + 0.6*Math.abs(Math.sin(t*0.001*s.sp + s.tw));
+    ctx.fillStyle = '#cdd6ff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawLogo(reveal) {
+  if (!logoOK || reveal <= 0.001) return;
+  const size = Math.min(W, H) * 0.5, x = W/2 - size/2, y = H*0.46 - size/2;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = reveal;
+  ctx.drawImage(logo, x, y, size, size);
+  ctx.restore();
+}
+
+const ac = (a) => `rgba(${ACCENT[0]},${ACCENT[1]},${ACCENT[2]},${a})`;
+
+function drawFracture(f, age, heal) {
+  if (age <= 0) return 0;
+  const reach = age * (f.R / PROP);
+  let progress = Math.min(1, reach / f.R);
+
+  // cracks (glowing lines), additive, growing leading edge, tapered by distance
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const s of f.segs) {
+    if (reach < s.near) continue;
+    let bx = s.b.x, by = s.b.y;
+    if (reach < s.far) { const u = (reach - s.near) / (s.far - s.near);
+      bx = s.a.x + (s.b.x - s.a.x) * u; by = s.a.y + (s.b.y - s.a.y) * u; }
+    const wf = Math.max(0.22, 1 - s.near / f.R);   // thicker near impact, thin at tips
+    // outer accent glow
+    ctx.strokeStyle = ac(0.22 * heal); ctx.lineWidth = (5.5 * wf + 1.5) * DPR;
+    ctx.beginPath(); ctx.moveTo(s.a.x, s.a.y); ctx.lineTo(bx, by); ctx.stroke();
+    // bright white core
+    ctx.strokeStyle = `rgba(255,255,255,${0.97 * heal})`; ctx.lineWidth = (1.6 * wf + 0.5) * DPR;
+    ctx.beginPath(); ctx.moveTo(s.a.x, s.a.y); ctx.lineTo(bx, by); ctx.stroke();
+  }
+  // impact flash + hot core
+  if (age < 220) {
+    const fa = (1 - age/220) * heal;
+    const rr = 6*DPR + age * 0.5 * DPR;
+    const fg = ctx.createRadialGradient(f.cx, f.cy, 0, f.cx, f.cy, rr*4);
+    fg.addColorStop(0, `rgba(255,255,255,${0.9*fa})`);
+    fg.addColorStop(0.3, ac(0.6*fa)); fg.addColorStop(1, ac(0));
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(f.cx, f.cy, rr*4, 0, 6.283); ctx.fill();
+  }
+  // glowing impact node
+  const ng = ctx.createRadialGradient(f.cx, f.cy, 0, f.cx, f.cy, 14*DPR);
+  ng.addColorStop(0, `rgba(255,255,255,${0.85*heal})`); ng.addColorStop(1, ac(0));
+  ctx.fillStyle = ng; ctx.beginPath(); ctx.arc(f.cx, f.cy, 14*DPR, 0, 6.283); ctx.fill();
+  ctx.restore();
+
+  return progress * heal;
+}
+
+// reticle cursor (drawn on canvas; px,py in device px)
+function drawCursor(px, py, pulse) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  if (pulse > 0) {                        // expanding click ring
+    const rr = (1 - pulse) * 26 * DPR + 4*DPR;
+    ctx.strokeStyle = ac(pulse * 0.8); ctx.lineWidth = 2*DPR;
+    ctx.beginPath(); ctx.arc(px, py, rr, 0, 6.283); ctx.stroke();
+  }
+  ctx.translate(px, py); ctx.rotate(Math.PI/4);
+  ctx.strokeStyle = 'rgba(235,230,255,0.9)'; ctx.lineWidth = 1.5*DPR;
+  const s = 9*DPR; ctx.strokeRect(-s/2, -s/2, s, s);
+  ctx.rotate(-Math.PI/4);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 2*DPR, 0, 6.283); ctx.fill();
+  ctx.restore();
+}
+
+resize(); addEventListener('resize', resize);
+
+// ============================ AUTO (capture) ============================
+if (AUTO) {
+  const easeIO = x => x < 0.5 ? 2*x*x : 1 - Math.pow(-2*x+2, 2)/2;
+  function cursorAt(tmod) {
+    // travel between impact points, arriving exactly on each impact time
+    let prev = { x: IMPACTS[0].nx*W, y: IMPACTS[0].ny*H, t: -800 };
+    for (const im of IMPACTS) {
+      const cur = { x: im.nx*W, y: im.ny*H, t: im.t };
+      if (tmod <= cur.t) { const u = easeIO(Math.min(1, (tmod - prev.t)/(cur.t - prev.t)));
+        return { x: prev.x + (cur.x-prev.x)*u, y: prev.y + (cur.y-prev.y)*u }; }
+      prev = cur;
+    }
+    return { x: prev.x, y: prev.y };
+  }
+  window.__seek = function (t) {
+    const tmod = ((t % LOOP) + LOOP) % LOOP;
+    const heal = tmod < HEAL_START ? 1
+      : tmod > HEAL_END ? 0
+      : 1 - (tmod - HEAL_START) / (HEAL_END - HEAL_START);
+    ctx.clearRect(0,0,W,H);
+    drawBg(t);
+    let reveal = 0;
+    for (let i = 0; i < fractures.length; i++)
+      reveal = Math.max(reveal, drawFracture(fractures[i], tmod - IMPACTS[i].t, heal));
+    drawLogo(0.18 + reveal*0.8);
+    // cursor + click pulse
+    const c = cursorAt(tmod);
+    let pulse = 0;
+    for (const im of IMPACTS) { const d = tmod - im.t; if (d >= 0 && d < 300) pulse = Math.max(pulse, 1 - d/300); }
+    drawCursor(c.x, c.y, pulse);
+  };
+  window.__seek(0); window.__ready = true;
+
+// ============================ LIVE (interactive) ============================
+} else {
+  let live = [];                           // {f, t0}
+  let mx = W/2, my = H/2, lastClick = -1e9;
+  addEventListener('pointermove', e => { mx = e.clientX*DPR; my = e.clientY*DPR; });
+  addEventListener('pointerdown', e => {
+    const x = e.clientX*DPR, y = e.clientY*DPR;
+    live.push({ f: buildFracture(x, y, Math.min(W,H)*0.6, (Math.random()*99999)|0), t0: performance.now() });
+    if (live.length > 6) live.shift();
+    lastClick = performance.now();
+  });
+  const start = performance.now();
+  (function loop(now) {
+    ctx.clearRect(0,0,W,H);
+    drawBg(now - start);
+    let reveal = 0;
+    for (const L of live) reveal = Math.max(reveal, drawFracture(L.f, now - L.t0, 1));
+    drawLogo(0.1 + reveal*0.6);
+    drawCursor(mx, my, Math.max(0, 1 - (now - lastClick)/300));
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+</script>
+</body>
+</html>

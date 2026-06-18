@@ -6,9 +6,21 @@
   "H": 620,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "space", "generative", "neutronstar", "beams"],
+  "tags": [
+    "canvas2d",
+    "space",
+    "generative",
+    "neutronstar",
+    "beams",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A pulsar / cosmic lighthouse: a rotating neutron star fires two opposite sweeping light cones that complete one turn per loop, over a bright double-pulsing core and faint expanding radio rings. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: two beams drawn as additive cone triangles offset by PI rotate at angle = 2*pi*u (exactly one turn per LOOP); core brightness uses a cubed double-pulse sin(u*pi*4) lightcurve; radio rings expand with phase taken mod 1 so they loop seamlessly; seeded mulberry32 starfield twinkles via periodic phase; all glow via globalCompositeOperation='lighter'. CAPTURE: ?auto=1 + window.__seek(t). TUNE: cone half-angle in beam(), beam len, ring count, pulse exponent, star count in build().",
   "summary_vi": "Sao xung / ngọn hải đăng vũ trụ: một sao neutron quay phát ra hai chùm sáng hình nón đối nhau quét trọn một vòng mỗi chu kỳ, trên lõi nhấp nháy kép và các vòng sóng vô tuyến lan tỏa mờ. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Hai chùm tia lệch nhau PI quay theo góc = 2*pi*u nên đúng một vòng mỗi LOOP; vòng sóng dùng pha mod 1 để khép kín."
+  "notes": "Hai chùm tia lệch nhau PI quay theo góc = 2*pi*u nên đúng một vòng mỗi LOOP; vòng sóng dùng pha mod 1 để khép kín.",
+  "card_number": "AK-CDP-000005A",
+  "tier": "canvas"
 }

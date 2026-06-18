@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Cube — self-scrambling Rubik (CSS 3D)</title>
+<style>
+  /* ===== Cosmos Cube =====
+     A 3x3x3 Rubik's cube in pure CSS 3D. It tumbles, scrambles itself, then
+     solves itself (the move list is mirrored, so it returns to solved -> the
+     loop is seamless). Six faces = the six Cosmos theme accents.
+     No libraries, runs offline. ?auto=1 + window.__seek(t) drives a GIF.       */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #06040f; }
+  .bg { position: fixed; inset: 0;
+    background: radial-gradient(120% 90% at 50% 42%, #140d2a 0%, #08051a 55%, #05030d 100%); }
+  .stars { position: fixed; inset: 0; pointer-events: none; }
+  .logo-glow { position: fixed; left: 50%; top: 46%; width: 60vmin; height: 60vmin;
+    translate: -50% -50%; background-size: contain; background-repeat: no-repeat;
+    background-position: center; opacity: .10; filter: blur(2px); pointer-events: none; }
+
+  .scene { position: fixed; inset: 0; display: grid; place-items: center;
+           perspective: 1200px; }
+  .cube { position: relative; width: 0; height: 0; transform-style: preserve-3d; }
+  .cubie { position: absolute; transform-style: preserve-3d; will-change: transform; }
+
+  .face {
+    position: absolute; border-radius: 11px;
+    background: #0c0a18;                    /* dark plastic body */
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    backface-visibility: hidden;
+  }
+  .sticker {
+    position: absolute; inset: 7px; border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.30), rgba(255,255,255,0) 55%),
+      var(--col);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.18), 0 0 14px -2px var(--col);
+  }
+
+  .timer { position: fixed; left: 50%; top: 8%; translate: -50%;
+    font-family: "SF Mono", ui-monospace, monospace; font-weight: 700;
+    font-size: 30px; letter-spacing: .12em; color: #ece9f7;
+    text-shadow: 0 2px 20px rgba(150,120,255,.5); opacity: .92; }
+  .tag { position: fixed; left: 50%; bottom: 7%; translate: -50%; text-align: center;
+    font-family: -apple-system, system-ui, sans-serif; }
+  .tag .a { font-size: 11px; letter-spacing: .5em; text-transform: uppercase; color: #b9a3ff; font-weight: 700; }
+  .tag .b { margin-top: 5px; font-size: 19px; font-weight: 800; letter-spacing: .05em; color: #ece9f7; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <canvas class="stars" id="stars"></canvas>
+  <div class="logo-glow" id="glow"></div>
+  <div class="scene"><div class="cube" id="cube"></div></div>
+  <div class="timer" id="timer">0:00</div>
+  <div class="tag"><div class="a">Cosmos AI Lab</div><div class="b">The Cube</div></div>
+
+<script>
+// ---------- config ----------
+const AUTO = new URLSearchParams(location.search).has('auto');
+const S = 58, GAP = 6, SP = S + GAP, HALF = S/2;     // cubie size / spacing
+const LOOP = 7200, SCRAMBLE = 8;                      // ms loop, # scramble moves
+// 6 face colours = 6 Cosmos themes  [ +x,-x,+y,-y,+z,-z ]
+const COLORS = {
+  px:'#ff6a3d' /*Solaris*/, nx:'#46b4ff' /*Cosmic*/, py:'#e0b24a' /*Sacred*/,
+  ny:'#36d39a' /*Aurora*/,  pz:'#ff5cc2' /*Nebula*/, nz:'#8b5cff' /*Phantom*/ };
+
+document.getElementById('glow').style.backgroundImage = "url('./cosmos-logo.png')";
+
+// ---------- tiny mat4 (column-major) ----------
+const I4 = () => [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+function mul(a,b){ const o=new Array(16);
+  for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;} return o; }
+const T=(x,y,z)=>[1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1];
+function R(axis,deg){ const a=deg*Math.PI/180, c=Math.cos(a), s=Math.sin(a);
+  if(axis===0) return [1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1];
+  if(axis===1) return [c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1];
+  return [c,s,0,0, -s,c,0,0, 0,0,1,0, 0,0,0,1]; }
+const css = m => 'matrix3d(' + m.map(v=>v.toFixed(5)).join(',') + ')';
+
+// rotate an integer grid coord 90*dir about axis
+function rotCoord(p, axis, dir){
+  const [x,y,z]=p;
+  if(axis===0) return dir>0 ? [x,-z,y] : [x,z,-y];
+  if(axis===1) return dir>0 ? [z,y,-x] : [-z,y,x];
+  return dir>0 ? [-y,x,z] : [y,-x,z];
+}
+
+// ---------- build cubies ----------
+const cubeEl = document.getElementById('cube');
+const FACES = [
+  { key:'px', t:`rotateY(90deg) translateZ(${HALF}px)`,  ax:0, v:1 },
+  { key:'nx', t:`rotateY(-90deg) translateZ(${HALF}px)`, ax:0, v:-1 },
+  { key:'py', t:`rotateX(90deg) translateZ(${HALF}px)`,  ax:1, v:1 },
+  { key:'ny', t:`rotateX(-90deg) translateZ(${HALF}px)`, ax:1, v:-1 },
+  { key:'pz', t:`translateZ(${HALF}px)`,                 ax:2, v:1 },
+  { key:'nz', t:`rotateY(180deg) translateZ(${HALF}px)`, ax:2, v:-1 },
+];
+const cubies = [];
+for(let x=-1;x<=1;x++) for(let y=-1;y<=1;y++) for(let z=-1;z<=1;z++){
+  const el = document.createElement('div'); el.className='cubie';
+  el.style.width=S+'px'; el.style.height=S+'px'; el.style.left=(-HALF)+'px'; el.style.top=(-HALF)+'px';
+  const home=[x,y,z];
+  for(const f of FACES){
+    const fc=document.createElement('div'); fc.className='face';
+    fc.style.width=S+'px'; fc.style.height=S+'px'; fc.style.transform=f.t;
+    if(home[f.ax]===f.v){                        // outer face -> coloured sticker
+      const st=document.createElement('div'); st.className='sticker';
+      st.style.setProperty('--col', COLORS[f.key]); fc.appendChild(st);
+    }
+    el.appendChild(fc);
+  }
+  cubeEl.appendChild(el);
+  cubies.push({ home, el });
+}
+
+// ---------- move list: scramble then mirror (solve) -> returns to solved ----------
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const rnd = mulberry32(20260612);
+const scr = [];
+for(let i=0;i<SCRAMBLE;i++){
+  let axis=(rnd()*3)|0, layer=(rnd()<0.5?-1:1), dir=(rnd()<0.5?-1:1);
+  if(scr.length){ const p=scr[scr.length-1]; if(p.axis===axis && p.layer===layer){ dir=p.dir; } }
+  scr.push({axis,layer,dir});
+}
+const solve = scr.slice().reverse().map(m=>({axis:m.axis,layer:m.layer,dir:-m.dir}));
+const seq = scr.concat(solve);
+const M = seq.length;
+const winA = LOOP*0.06, winB = LOOP*0.94, seg=(winB-winA)/M, DUR=seg*0.82;
+seq.forEach((m,i)=>{ m.t0 = winA + i*seg; m.t1 = m.t0 + DUR; });
+
+const easeIO = x => x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2;
+
+// ---------- render one frame (stateless: rebuild from solved) ----------
+function render(t){
+  const tmod = ((t%LOOP)+LOOP)%LOOP;
+  // simulate moves up to tmod
+  const st = cubies.map(c=>({coord:c.home.slice(), ori:I4()}));
+  let prog=null;
+  for(const m of seq){
+    if(tmod>=m.t1){
+      const rm=R(m.axis, 90*m.dir);
+      for(const s of st) if(s.coord[m.axis]===m.layer){ s.coord=rotCoord(s.coord,m.axis,m.dir); s.ori=mul(rm,s.ori); }
+    } else if(tmod>=m.t0){ prog={m, f:easeIO((tmod-m.t0)/(m.t1-m.t0))}; }
+  }
+  // write transforms
+  for(let i=0;i<cubies.length;i++){
+    const s=st[i];
+    let mat = mul(T(s.coord[0]*SP, s.coord[1]*SP, s.coord[2]*SP), s.ori);
+    if(prog && s.coord[prog.m.axis]===prog.m.layer) mat = mul(R(prog.m.axis, 90*prog.m.dir*prog.f), mat);
+    cubies[i].el.style.transform = css(mat);
+  }
+  // tumble (integer turns over LOOP -> seamless) + fixed tilt
+  const fr = tmod/LOOP;
+  cubeEl.style.transform = `rotateX(${-24 + 360*fr}deg) rotateY(${-32 + 360*fr}deg)`;
+  // timer (counts within the loop)
+  const sec = tmod/1000, mm = (sec/60|0), ss = (sec%60).toFixed(0).padStart(2,'0');
+  document.getElementById('timer').textContent = `${mm}:${ss}`;
+  drawStars(t);
+}
+
+// ---------- starfield ----------
+const sc=document.getElementById('stars'), sx=sc.getContext('2d'); let W,H,DPR,stars=[];
+function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=sc.width=innerWidth*DPR; H=sc.height=innerHeight*DPR;
+  sc.style.width=innerWidth+'px'; sc.style.height=innerHeight+'px'; const r=mulberry32(7); stars=[];
+  for(let i=0;i<120;i++) stars.push({x:r()*W,y:r()*H,rad:(r()*1.2+0.3)*DPR,tw:r()*6.28,sp:0.4+r()*1.2}); }
+resize(); addEventListener('resize',resize);
+function drawStars(t){ sx.clearRect(0,0,W,H);
+  for(const s of stars){ sx.globalAlpha=0.4+0.6*Math.abs(Math.sin(t*0.001*s.sp+s.tw));
+    sx.fillStyle='#cdd6ff'; sx.beginPath(); sx.arc(s.x,s.y,s.rad,0,6.283); sx.fill(); } sx.globalAlpha=1; }
+
+// ---------- drive ----------
+if (AUTO) {
+  window.__seek = t => render(t);
+  render(0); window.__ready = true;
+} else {
+  const start = performance.now();
+  (function loop(now){ render(now-start); requestAnimationFrame(loop); })(performance.now());
+}
+</script>
+</body>
+</html>

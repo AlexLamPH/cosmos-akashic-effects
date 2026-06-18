@@ -1,0 +1,25 @@
+{
+  "slug": "fluid",
+  "card_number": "AK-CDP-0000011",
+  "tier": "shader",
+  "title": "Cosmos Fluid — real-time GLSL Navier-Stokes dye mixing (WebGL)",
+  "title_vi": "",
+  "tags": [
+    "fluid",
+    "webgl",
+    "glsl",
+    "navier-stokes",
+    "simulation",
+    "dye",
+    "mixing",
+    "shader",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A real-time fluid simulation in pure WebGL1: a velocity field is advanced with advection, vorticity confinement, a Jacobi pressure solve and gradient subtraction, while dye in the six Cosmos theme colours is advected through it — swirling and mixing into glowing smoke on a Phantom-dark background. Half-float framebuffers; no libraries; runs offline. Drag to inject dye (interactive); auto mode runs scripted emitters.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN). Needs WebGL + OES_texture_half_float (falls back to NEAREST filtering if half-float-linear is absent). INTERACTION: drag the mouse to paint dye + velocity. PIPELINE per step(): curl -> vorticity force -> divergence -> clear pressure (xPRESS_DISS) -> ITER Jacobi pressure iterations -> gradient subtract (make velocity divergence-free) -> advect velocity -> advect dye. Double-buffered FBOs (velocity/dye/pressure) at SIM=128 / DYE=256; a display shader tone-maps the dye. TUNE: VEL_DISS, DEN_DISS, CURL, ITER, splat radius/strength, COLORS (the six accents), emitter paths. CAPTURE: ?auto=1 exposes window.__tick() (advance one deterministic step); capture.cjs warms up, captures N+CF frames WITHOUT the puppeteer `clip` option (clip drops <canvas>/WebGL content), then CROSSFADES the first CF frames with the continuation so the chaotic sim loops seamlessly. BRAND: Phantom dark; the dye uses the six Cosmos theme accents.",
+  "summary_vi": "",
+  "notes": ""
+}

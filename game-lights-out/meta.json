@@ -7,9 +7,22 @@
   "LOOP": 11000,
   "N": 100,
   "live_fit": true,
-  "tags": ["game", "puzzle", "playable", "interactive", "arcade", "canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, fully playable Lights Out puzzle in one self-contained HTML file with zero dependencies. You face a 5x5 grid of glowing Cosmos-colored tiles; clicking any tile toggles it plus its four orthogonal neighbors, and the goal is to turn every light off. A move counter tracks your efficiency, solving a board pops a SOLVED banner and deals a fresh seeded puzzle, and you can reset or grab a new puzzle anytime. It works with mouse or touch (tap a tile) and keyboard (R to reset), plus on-screen New Puzzle / Reset buttons. It also ships a deterministic self-playing attract demo for capture: a precomputed solution sequence is applied click-by-click, driving the board toward all-off then resetting to a new seeded puzzle, all as a pure function of time.",
   "usage_notes": "RUN: double-click index.html (or serve it). CONTROLS: click or tap a tile to toggle it and its up/down/left/right neighbors; R key or the Reset button reshuffles; the New Puzzle button (and the banner button) deals a fresh seeded board. GOAL: turn every light off in as few moves as possible — the move counter shows your count; solving advances to a new puzzle automatically. KEY TECHNIQUES: puzzles are generated solvable-by-construction — start from all-off and apply a seeded set of toggle clicks (mulberry32, never Math.random in the sim), so the reverse of those clicks is a guaranteed solution; clicks are parity-collapsed since toggling is self-inverse and order-independent. For AUTO a deterministic schedule replays the seeded board and applies its solution one click per fixed interval, chaining to the next seeded puzzle when solved. drawAt(ms) is a pure function of time that picks the current puzzle and move index from ms with a frame-0 offset, so capture opens mid-solve with several tiles already cleared, a highlighted next move, and the move counter above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: grid N, setup-click count K, per-move interval, frame-0 offset, LOOP, tile colors/glow.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000A8",
+  "tier": "game"
 }

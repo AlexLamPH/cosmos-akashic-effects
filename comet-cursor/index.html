@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Comet Cursor</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #05030f; cursor: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// ===== Cosmos Comet Cursor — pure Canvas 2D particle trail (no deps, runs offline) =====
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, DPR;
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.width = innerWidth * DPR;
+  H = canvas.height = innerHeight * DPR;
+  canvas.style.width = innerWidth + 'px';
+  canvas.style.height = innerHeight + 'px';
+}
+resize();
+addEventListener('resize', resize);
+
+// ----- starfield (static, gentle twinkle) -----
+const stars = [];
+for (let i = 0; i < 170; i++) {
+  stars.push({ x: Math.random() * W, y: Math.random() * H,
+    r: (Math.random() * 1.3 + 0.3) * DPR, tw: Math.random() * 6.28, sp: 0.5 + Math.random() * 1.5 });
+}
+
+// ----- cursor state + path ribbon -----
+const mouse = { x: W / 2, y: H / 2, px: W / 2, py: H / 2, has: false };
+const path = [];          // recent points for the glowing ribbon (the "tentacle" core)
+const particles = [];     // spray of fading sparks (the wispy filaments)
+let hue = 200;
+
+function spawn(x, y, count, h) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * 6.283, sp = Math.random() * 1.6 * DPR;
+    particles.push({
+      x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      life: 1, decay: 0.012 + Math.random() * 0.022,
+      size: (Math.random() * 2.6 + 1) * DPR, hue: h + (Math.random() - 0.5) * 40,
+    });
+  }
+}
+
+function onMove(x, y) {
+  x *= DPR; y *= DPR;
+  if (!mouse.has) { mouse.x = mouse.px = x; mouse.y = mouse.py = y; mouse.has = true; }
+  mouse.px = mouse.x; mouse.py = mouse.y; mouse.x = x; mouse.y = y;
+  const dx = x - mouse.px, dy = y - mouse.py;
+  const dist = Math.hypot(dx, dy);
+  hue = (hue + dist * 0.25 + 1.2) % 360;
+  // interpolate emission along the move so fast strokes stay continuous
+  const steps = Math.max(1, Math.min(14, Math.floor(dist / (6 * DPR))));
+  for (let s = 0; s < steps; s++) {
+    const t = s / steps, ix = mouse.px + dx * t, iy = mouse.py + dy * t;
+    spawn(ix, iy, 2, hue);
+    path.push({ x: ix, y: iy, life: 1, hue });
+  }
+  path.push({ x, y, life: 1, hue });
+  while (path.length > 90) path.shift();
+}
+addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
+
+function frame(time) {
+  // base space gradient
+  const g = ctx.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.45, Math.max(W, H) * 0.75);
+  g.addColorStop(0, '#0b0820'); g.addColorStop(1, '#05030f');
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // stars
+  for (const s of stars) {
+    const tw = 0.45 + 0.55 * Math.abs(Math.sin(time * 0.001 * s.sp + s.tw));
+    ctx.globalAlpha = tw;
+    ctx.fillStyle = '#cfe0ff';
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.globalCompositeOperation = 'lighter';   // additive glow for the trail
+
+  // glowing ribbon core through recent path points (tapered by life)
+  for (let i = 1; i < path.length; i++) {
+    const p0 = path[i - 1], p1 = path[i];
+    const lf = p1.life;
+    ctx.strokeStyle = `hsla(${p1.hue}, 90%, 62%, ${lf * 0.5})`;
+    ctx.lineWidth = (i / path.length) * 9 * DPR * lf;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    p1.life -= 0.02;
+  }
+  while (path.length && path[0].life <= 0) path.shift();
+
+  // spark particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vx *= 0.95; p.vy *= 0.95; p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    const r = p.size * (0.6 + p.life);
+    const rg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3);
+    rg.addColorStop(0, `hsla(${p.hue}, 95%, 70%, ${p.life})`);
+    rg.addColorStop(1, `hsla(${p.hue}, 95%, 60%, 0)`);
+    ctx.fillStyle = rg;
+    ctx.beginPath(); ctx.arc(p.x, p.y, r * 3, 0, 6.283); ctx.fill();
+  }
+
+  // bright cursor orb + halo
+  if (mouse.has) {
+    const orb = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 26 * DPR);
+    orb.addColorStop(0, 'rgba(255,255,255,0.95)');
+    orb.addColorStop(0.25, `hsla(${hue}, 95%, 72%, 0.85)`);
+    orb.addColorStop(1, `hsla(${hue}, 95%, 60%, 0)`);
+    ctx.fillStyle = orb;
+    ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 26 * DPR, 0, 6.283); ctx.fill();
+  }
+
+  ctx.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

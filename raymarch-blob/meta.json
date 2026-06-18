@@ -6,9 +6,26 @@
   "H": 420,
   "LOOP": 9000,
   "N": 90,
-  "tags": ["shader", "webgl", "glsl", "raymarch", "sdf", "metaball", "blob", "3d", "phantom", "cosmos"],
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "raymarch",
+    "sdf",
+    "metaball",
+    "blob",
+    "3d",
+    "phantom",
+    "cosmos",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real WebGL GLSL fragment shader that raymarches a glowing metaball built from the smooth-minimum (smin) union of several orbiting SDF spheres. The blob slowly morphs and rotates over the loop, lit with a single diffuse light plus a Fresnel rim, accent-tinted between violet and cosmic blue over a dark background. Zero dependencies, fully offline, deterministic and seamless (time uniform loops 0..1).",
   "usage_notes": "RUN: open index.html in a WebGL-capable browser (needs WebGL). KEY TECHNIQUES: sphere-tracing raymarch (<=80 steps), polynomial smooth-min for metaball fusion, finite-difference surface normals, diffuse + Fresnel-rim lighting, accent palette tinting. CAPTURE: ?auto=1 + window.__seek(t). TUNE: edit map() sphere offsets/radii and the smin k for blobbiness; adjust ld light direction and rim power for the lighting feel; change the violet/cosmic/nebula accents.",
   "summary_vi": "Một fragment shader WebGL GLSL thực thụ raymarch một khối metaball phát sáng ghép từ smooth-min của vài hình cầu SDF quay quanh nhau, biến hình và xoay chậm theo vòng lặp, chiếu sáng diffuse + viền Fresnel, nhuốm màu tím và xanh vũ trụ trên nền tối. Không phụ thuộc, chạy offline, xác định và liền mạch.",
-  "notes": "Khối blob phát sáng raymarch biến hình mềm mại, xoay tròn liền mạch một vòng."
+  "notes": "Khối blob phát sáng raymarch biến hình mềm mại, xoay tròn liền mạch một vòng.",
+  "card_number": "AK-CDP-000005P",
+  "tier": "shader"
 }

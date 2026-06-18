@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Product Slider</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --hue: 280; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(60% 80% at 78% 50%, hsla(var(--hue), 85%, 72%, 0.42), transparent 70%),
+      linear-gradient(120deg, #eef0f6 0%, #f7f8fc 60%, #eceef6 100%);
+    color: #1c2030; transition: background 1.6s ease;
+  }
+
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; padding: 22px 46px;
+  }
+  .brand { font-weight: 800; letter-spacing: .5px; font-size: 18px; }
+  .brand b { color: hsl(var(--hue), 80%, 52%); transition: color 1.6s; }
+  nav a { margin-left: 26px; text-decoration: none; color: #4a5066; font-size: 14px; font-weight: 600; }
+  nav a:first-child { color: #1c2030; }
+
+  .slider { position: absolute; inset: 0; }
+  .slide { position: absolute; inset: 0; }
+
+  .content { position: absolute; left: 8%; top: 50%; transform: translateY(-50%); max-width: 42%; z-index: 10; }
+  .content .label {
+    font-size: 13px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase;
+    color: hsl(var(--hue), 70%, 50%); transition: color 1.6s;
+  }
+  .content h2 {
+    font-size: clamp(40px, 8vw, 92px); font-weight: 800; line-height: 0.98; margin: 10px 0 16px;
+    background: linear-gradient(120deg, #20243a, hsl(var(--hue), 60%, 45%));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .content p { font-size: 15px; line-height: 1.65; color: #555c72; max-width: 360px; }
+  .content button {
+    margin-top: 26px; padding: 13px 30px; border: none; border-radius: 999px; cursor: pointer;
+    font-weight: 700; letter-spacing: .5px; color: #fff;
+    background: linear-gradient(120deg, hsl(var(--hue), 80%, 58%), hsl(calc(var(--hue) + 40), 80%, 60%));
+    box-shadow: 0 10px 26px hsla(var(--hue), 80%, 55%, 0.45);
+  }
+
+  .visual { position: absolute; right: 7%; top: 50%; z-index: 5; }
+  .orb {
+    width: 330px; height: 330px; border-radius: 50%; position: relative;
+    background:
+      radial-gradient(36% 36% at 34% 30%, #ffffff 0%, hsl(var(--hue), 90%, 72%) 22%,
+                      hsl(var(--hue), 78%, 52%) 55%, hsl(var(--hue), 80%, 32%) 100%);
+    box-shadow: 0 34px 80px hsla(var(--hue), 70%, 40%, 0.45),
+                inset -16px -22px 52px hsla(var(--hue), 80%, 22%, 0.55),
+                0 0 100px hsla(var(--hue), 90%, 65%, 0.5);
+    animation: float 7s ease-in-out infinite;
+  }
+  .ring {
+    position: absolute; left: 50%; top: 50%; width: 470px; height: 470px;
+    transform: translate(-50%, -50%) rotate(-22deg);
+    border-radius: 50%; border: 2px solid hsla(var(--hue), 80%, 60%, 0.5);
+    box-shadow: 0 0 24px hsla(var(--hue), 85%, 62%, 0.3);
+  }
+  .ring::after {
+    content: ''; position: absolute; left: 50%; top: 50%; width: 70%; height: 70%;
+    transform: translate(-50%, -50%) rotate(18deg);
+    border-radius: 50%; border: 1.5px solid hsla(var(--hue), 70%, 55%, 0.32);
+  }
+  @keyframes float { 0%,100% { translate: 0 -12px; } 50% { translate: 0 12px; } }
+
+  /* ============ gentle slide: enter from RIGHT, blurry -> sharp ============ */
+  /* parked (incoming, off to the right, blurred, invisible) */
+  .visual {
+    opacity: 0; filter: blur(28px);
+    transform: translateY(-50%) translateX(135%) scale(.9);
+    transition: opacity 1.7s ease, filter 1.9s ease,
+                transform 2s cubic-bezier(.16, 1, .3, 1);          /* slow, soft deceleration */
+  }
+  .content > * {
+    opacity: 0; filter: blur(7px); transform: translateY(26px);
+    transition: opacity 1.2s ease, filter 1.2s ease, transform 1.3s cubic-bezier(.16, 1, .3, 1);
+  }
+
+  /* active (rest: centered, crisp 3D) */
+  .slide.active .visual { opacity: 1; filter: blur(0); transform: translateY(-50%) translateX(0) scale(1); }
+  .slide.active .content .label  { opacity: 1; filter: none; transform: none; transition-delay: .45s; }
+  .slide.active .content h2      { opacity: 1; filter: none; transform: none; transition-delay: .6s; }
+  .slide.active .content p       { opacity: 1; filter: none; transform: none; transition-delay: .78s; }
+  .slide.active .content button  { opacity: 1; filter: none; transform: none; transition-delay: .95s; }
+
+  /* leaving (drift on out to the LEFT, blur + fade) */
+  .slide.leaving .visual {
+    opacity: 0; filter: blur(26px);
+    transform: translateY(-50%) translateX(-55%) scale(.94);
+    transition: opacity 1.1s ease, filter 1.1s ease, transform 1.5s cubic-bezier(.4, 0, .55, 1);
+  }
+  .slide.leaving .content > * { opacity: 0; filter: blur(6px); transition: opacity .6s ease, filter .6s ease; }
+
+  .slide.active  { z-index: 2; }
+  .slide.leaving { z-index: 1; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">Cosmos<b>·</b>AI Lab</div>
+    <nav><a>Home</a><a>Lab</a><a>Contact</a></nav>
+  </header>
+  <div class="slider" id="slider"></div>
+
+<script>
+const SLIDES = [
+  { hue: 280, label: 'Design Slider', title: 'Nebula', desc: 'Sinh ra giữa bụi sao — một đám mây phát sáng nơi những vì sao mới bắt đầu hình thành.' },
+  { hue: 205, label: 'Design Slider', title: 'Quasar', desc: 'Trái tim rực sáng của một thiên hà xa xôi, chiếu sáng hơn cả tỷ mặt trời cộng lại.' },
+  { hue: 330, label: 'Design Slider', title: 'Pulsar', desc: 'Ngọn hải đăng vũ trụ — quay tròn và phát ra những nhịp năng lượng đều đặn xuyên không gian.' },
+  { hue: 155, label: 'Design Slider', title: 'Aurora', desc: 'Tấm rèm ánh sáng nhảy múa, dệt nên từ gió mặt trời chạm vào từ trường hành tinh.' },
+];
+
+const slider = document.getElementById('slider');
+SLIDES.forEach(s => {
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.style.setProperty('--hue', s.hue);
+  el.innerHTML =
+    '<div class="content">' +
+      '<div class="label">' + s.label + '</div>' +
+      '<h2>' + s.title + '</h2>' +
+      '<p>' + s.desc + '</p>' +
+      '<button>SEE MORE &nbsp;&#8594;</button>' +
+    '</div>' +
+    '<div class="visual"><div class="ring"></div><div class="orb"></div></div>';
+  slider.appendChild(el);
+});
+
+const slides = [...slider.children];
+let cur = -1, timer;
+
+function go(i) {
+  i = (i + slides.length) % slides.length;
+  if (i === cur) return;
+  const old = cur; cur = i;
+  if (old >= 0) {
+    const o = slides[old];
+    o.classList.remove('active'); o.classList.add('leaving');
+    setTimeout(() => o.classList.remove('leaving'), 1600);   // reset to right-parked once gone
+  }
+  slides[cur].classList.remove('leaving');
+  slides[cur].classList.add('active');
+  document.body.style.setProperty('--hue', SLIDES[cur].hue);
+  clearTimeout(timer);
+  timer = setTimeout(() => go(cur + 1), 5000);               // gentle auto-advance
+}
+window.go = go;
+go(0);
+
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') go(cur + 1);
+  if (e.key === 'ArrowLeft') go(cur - 1);
+});
+</script>
+</body>
+</html>

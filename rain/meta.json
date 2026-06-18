@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 7000,
   "N": 88,
-  "tags": ["canvas2d", "particles", "rain", "generative", "weather", "loop"],
+  "tags": [
+    "canvas2d",
+    "particles",
+    "rain",
+    "generative",
+    "weather",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Fast slanted rain streaks fall through a faint cosmic starfield over the Phantom dark, with occasional splash rings expanding where drops hit the wet ground. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each drop has a seeded phase and an INTEGER number of falls per loop so its position wraps mod 1 seamlessly; streaks are tapered linear-gradient lines drawn with additive 'lighter' blending; splash rings are time-windowed expanding ellipses keyed to seeded ground points. CAPTURE: ?auto=1 + window.__seek(t). TUNE: drop count N=150, slant=0.30, splash count/dur, COOL palette for tones.",
   "summary_vi": "Những vệt mưa nghiêng rơi nhanh qua nền sao vũ trụ mờ trên nền tối Phantom, thỉnh thoảng có vòng nước bắn lan ra nơi giọt chạm đất. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và liền mạch.",
-  "notes": "Pha rơi của mỗi giọt lặp theo mod 1 với số lần nguyên nên vòng lặp khớp hoàn hảo."
+  "notes": "Pha rơi của mỗi giọt lặp theo mod 1 với số lần nguyên nên vòng lặp khớp hoàn hảo.",
+  "card_number": "AK-CDP-000004H",
+  "tier": "canvas"
 }

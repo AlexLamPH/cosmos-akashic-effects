@@ -2,10 +2,26 @@
   "slug": "galaxy-spiral",
   "title": "Cosmos Galaxy Spiral — rotating spiral galaxy of glowing particles",
   "title_vi": "Cosmos Galaxy Spiral — thiên hà xoắn ốc quay với hạt phát sáng",
-  "W": 760, "H": 540, "LOOP": 8000, "N": 100,
-  "tags": ["galaxy","spiral","particles","space","rotation","canvas2d"],
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "galaxy",
+    "spiral",
+    "particles",
+    "space",
+    "rotation",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A four-armed spiral galaxy of ~2600 glowing particles sweeps around a warm central bulge, with inner stars rotating faster than the outer arms (differential rotation) for a real swirling feel. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each particle is seeded once with a radius and a log-spiral base angle (arm offset + radius winding + jitter); per frame its angle = base + spin*(2 + (1-rad)) so inner orbits sweep faster, drawn additively ('lighter') as a soft disc, with a radial bulge glow and a sin twinkle. spin = u*2PI gives exactly one rotation per loop, and all twinkles use integer harmonics of u, so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: particle count, ARMS, spiral winding (rad*3.4), inclination flatten (0.66), AC palette.",
   "summary_vi": "Thiên hà xoắn ốc bốn nhánh gồm ~2600 hạt phát sáng quét quanh quầng trung tâm ấm, với các sao bên trong quay nhanh hơn nhánh ngoài (quay vi sai) tạo cảm giác cuộn xoáy thật. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Góc = base + spin*(2+(1-rad)) cho quay vi sai; spin=u*2PI → đúng một vòng mỗi loop nên liền mạch."
+  "notes": "Góc = base + spin*(2+(1-rad)) cho quay vi sai; spin=u*2PI → đúng một vòng mỗi loop nên liền mạch.",
+  "card_number": "AK-CDP-000001D",
+  "tier": "canvas"
 }

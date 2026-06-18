@@ -2,10 +2,26 @@
   "slug": "checkbox-radio",
   "title": "Cosmos Checkbox & Radio — animated checkboxes with stroke-draw ticks and radios with an expanding dot",
   "title_vi": "Cosmos Checkbox & Radio — checkbox vẽ dấu tick theo nét và radio nở chấm tròn",
-  "W": 600, "H": 480, "LOOP": 7000, "N": 88,
-  "tags": ["checkbox","radio","toggle","component","interactive","css"],
+  "W": 600,
+  "H": 480,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "checkbox",
+    "radio",
+    "toggle",
+    "component",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained set of animated form controls on the Cosmos Phantom-dark theme: a column of checkboxes whose box fills with a violet gradient and pops in scale while the check mark draws itself with an animated stroke, beside a column of radio buttons whose ring lights up and whose inner dot expands with a springy back-ease. Every toggle emits a soft expanding ring ripple. Zero dependencies, pure HTML/CSS/vanilla JS. LIVE mode is genuinely interactive (click or press Space/Enter on any control to toggle it, with a real ripple and draw animation); AUTO mode plays a deterministic, seamlessly looping demo that switches every control ON in staggered sequence, then OFF again, ripples firing as each flips. All captured motion is a pure function of u via render(u)/__seek so frames are exact regardless of timing.",
   "usage_notes": "RUN: double-click index.html. LIVE: click a checkbox or radio row (or focus it and press Space/Enter) to toggle it; the checkbox box fills + pops while its tick strokes in, the radio ring lights and its dot springs open, and a ring ripple expands from the control; when idle it auto-plays the demo loop. KEY TECHNIQUES: each control's visual state is driven by an activation amount a(0..1) and a ripple amount r(0..1); the checkbox uses an SVG path with stroke-dasharray/dashoffset to draw the tick (offset = 24*(1-draw)), with the box fill leading and the stroke-draw following, plus a back-ease scale pop; the radio dot uses transform scale with a back-ease for the springy expand; ripples are an absolutely-positioned bordered circle scaled+faded from r. The auto-demo staggers six controls along u with short rise windows, builds an ON wave across the first half and an OFF wave across the second, and uses a 0.30 phase offset so frame 0 shows several controls already on with live ripples. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (cycle speed), the labels arrays, the 0.42 stagger and 0.13 window widths in cycle(), the back-ease overshoot, and the accent colours ACCENT/ACCENT2.",
   "summary_vi": "Bộ form control hoạt họa hoàn chỉnh, tự chứa, theme Phantom-dark của Cosmos: cột checkbox với ô nền đổ gradient tím và phóng to nảy trong khi dấu tick tự vẽ theo nét, cạnh cột radio có vòng sáng lên và chấm trong nở ra theo back-ease lò xo. Mỗi lần bật/tắt phát một gợn sóng vòng. Không phụ thuộc, thuần HTML/CSS/JS. LIVE tương tác thật (bấm hoặc Space/Enter để toggle, có ripple và animation vẽ thật); AUTO chạy demo loop bật lần lượt từng control rồi tắt lại, ripple nổ khi mỗi cái lật. Mọi chuyển động là hàm thuần của u qua render(u)/__seek.",
-  "notes": "Mỗi control điều khiển bằng mức kích hoạt a và mức ripple r; checkbox dùng stroke-dasharray/dashoffset để vẽ tick (offset=24*(1-draw)), ô đổ nền trước rồi nét vẽ theo, thêm pop scale back-ease; chấm radio nở bằng scale back-ease; demo so le 6 control với offset 0.30 để frame 0 đã có vài control bật và ripple."
+  "notes": "Mỗi control điều khiển bằng mức kích hoạt a và mức ripple r; checkbox dùng stroke-dasharray/dashoffset để vẽ tick (offset=24*(1-draw)), ô đổ nền trước rồi nét vẽ theo, thêm pop scale back-ease; chấm radio nở bằng scale back-ease; demo so le 6 control với offset 0.30 để frame 0 đã có vài control bật và ripple.",
+  "card_number": "AK-CDP-000006N",
+  "tier": "ui"
 }

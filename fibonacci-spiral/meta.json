@@ -2,10 +2,26 @@
   "slug": "fibonacci-spiral",
   "title": "Cosmos Fibonacci Spiral — nested golden squares with the glowing golden-spiral arc",
   "title_vi": "Cosmos Fibonacci Spiral — các hình vuông tỉ lệ vàng lồng nhau với cung xoắn ốc vàng phát sáng",
-  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
-  "tags": ["fibonacci","golden-ratio","spiral","sacred-geometry","generative","canvas2d"],
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "fibonacci",
+    "golden-ratio",
+    "spiral",
+    "sacred-geometry",
+    "generative",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Eleven nested golden-ratio squares (each side shrinks by PHI=1.618) with the classic quarter-arc golden spiral threaded continuously through them, drawn as glowing additive strokes that slowly rotate while a colour wave sweeps outward by square index. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a chain of 11 quarter arcs is built so each arc starts exactly where the previous ended and its radius shrinks by PHI per step, giving the true golden spiral; each arc's square is aligned to its quadrant. Per frame the whole figure rotates by spin=u*2PI (one turn per loop) and each arc's brightness follows an outward colour wave 0.5+0.5*sin(2PI*(2u - norm*3)) plus a per-arc twinkle 0.65+0.35*sin(tw+2*spin) — all integer harmonics of u so frame(0)==frame(LOOP). Arcs are drawn additively ('lighter') with a white core highlight over a sacred radial glow at the spiral eye. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N square count, base scale, colour-wave speed/scale, AC palette, line widths.",
   "summary_vi": "Mười một hình vuông tỉ lệ vàng lồng nhau (mỗi cạnh nhỏ đi PHI=1.618) với cung xoắn ốc vàng kinh điển nối liền qua chúng, vẽ bằng nét phát sáng cộng dồn, xoay chậm trong khi sóng màu lan ra ngoài theo chỉ số ô vuông. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Chuỗi 11 cung 90 độ nối liền, bán kính giảm theo PHI mỗi bước; spin và sóng màu dùng harmonic nguyên của u nên loop liền."
+  "notes": "Chuỗi 11 cung 90 độ nối liền, bán kính giảm theo PHI mỗi bước; spin và sóng màu dùng harmonic nguyên của u nên loop liền.",
+  "card_number": "AK-CDP-0000051",
+  "tier": "canvas"
 }

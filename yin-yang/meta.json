@@ -6,9 +6,21 @@
   "H": 620,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "generative", "geometric", "glow", "rotation"],
+  "tags": [
+    "canvas2d",
+    "generative",
+    "geometric",
+    "glow",
+    "rotation",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A classic Taiji (yin-yang) disc with its two interlocking swirls and the two eye-dots, spinning exactly one turn per loop. The two halves are tinted in Cosmos accents — phantom violet and cosmic blue — instead of black and white, wrapped in a soft breathing glow and rim light. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the yin-yang silhouette is built from filled arc paths — one outer half-circle plus two half-circle lobes of radius R/2 for each colour, giving the interlocking S-curve; the two dots are small circles of opposite tint; an additive radial halo and a rim-light ring breathe via 0.5+0.5*sin(2pi*u) (integer k for a seamless loop); the whole disc rotates rot=2pi*u for exactly one turn per LOOP. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for spin speed, R fraction for disc size, dot radius (R*0.16), and the halo/rim alphas.",
   "summary_vi": "Đĩa Thái Cực (âm dương) cổ điển với hai xoáy lồng vào nhau và hai chấm mắt, xoay đúng một vòng mỗi chu kỳ. Hai nửa được nhuộm màu nhấn Cosmos — tím phantom và xanh vũ trụ — thay cho đen trắng, bao quanh bởi quầng sáng nhẹ nhịp thở. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Hình âm dương dựng từ các cung tròn bán kính R và R/2; xoay và quầng sáng dùng tần số nguyên nên frame(0) trùng frame(LOOP)."
+  "notes": "Hình âm dương dựng từ các cung tròn bán kính R và R/2; xoay và quầng sáng dùng tần số nguyên nên frame(0) trùng frame(LOOP).",
+  "card_number": "AK-CDP-0000054",
+  "tier": "canvas"
 }

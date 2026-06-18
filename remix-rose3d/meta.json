@@ -2,10 +2,26 @@
   "slug": "remix-rose3d",
   "title": "Cosmos Remix — Rose 3D you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "rose3d", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "rose3d",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle 3D rose: particles ride a rose-modulated torus surface (tube radius r = base + amp·cos(petals·θ)) sampled in 3D, spun and tilted with time and projected with perspective so depth drives size and brightness — a slowly turning luminous flower. Live glass panel: palette, shape, density, speed, dot size plus a Petals knob; reskins to any brand colour in one click. Self-contained, zero dependencies; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Petals to change the flower symmetry, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: a rose-modulated toroidal surface (ring and tube both scaled by 1+0.55·cos(petals·θ)) sampled with a golden-angle stagger, rotated in 3D (yaw from speed, nodding pitch from u) and perspective-projected so nearer points are larger and brighter; the geometry is a pure function of params + time so the panel updates instantly and the capture loop stays deterministic; theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; window.__params + setParam(key,value) is the contract a generic remix harness uses to auto-build panels for ANY effect. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: change Petals, add palettes to PALETTES, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009F",
+  "tier": "remix"
 }

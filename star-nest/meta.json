@@ -16,10 +16,16 @@
     "ifs",
     "kaleidoscope",
     "volumetric",
-    "cosmos"
+    "cosmos",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A real WebGL GLSL fragment shader rendering a volumetric 'star nest': a kaleidoscopic iterated function system (IFS) folds 3D coordinates sampled along a ray to build a glittering deep-space nebula of stars in violet, cosmic-blue and nebula-pink accents. The camera and ray slowly drift and rotate on circular paths so the field loops seamlessly. Zero dependencies, fully offline, deterministic and seamless (uT loops 0..1).",
   "usage_notes": "RUN: needs WebGL (renders on a fullscreen triangle). KEY TECHNIQUES: ray-sampled kaleidoscopic IFS folding (abs(p)/dot(p,p) per iteration), modest 14 volume steps x 14 fold iterations for software-GPU speed, cubic contrast on per-step brightness for sharp star glints, cosmos accent tinting. CAPTURE: ?auto=1 + window.__seek(t). TUNE: VOLSTEPS/ITERS for detail vs speed, the -0.828 fold constant for nest structure, the orbit radii in 'from' and 'dir' rotations for drift speed, final tint mix for colour balance.",
   "summary_vi": "Fragment shader WebGL GLSL thật dựng 'tổ sao' thể tích: hệ hàm lặp IFS kính vạn hoa gập tọa độ 3D dọc theo tia để tạo tinh vân vũ trụ lấp lánh với các điểm nhấn tím, xanh vũ trụ và hồng tinh vân. Camera trôi theo quỹ đạo tròn nên lặp liền mạch. Không phụ thuộc, chạy offline, tất định.",
-  "notes": "Tổ sao IFS kính vạn hoa thể tích trôi nhẹ trong không gian sâu, lặp liền mạch."
+  "notes": "Tổ sao IFS kính vạn hoa thể tích trôi nhẹ trong không gian sâu, lặp liền mạch.",
+  "card_number": "AK-CDP-0000060",
+  "tier": "shader"
 }

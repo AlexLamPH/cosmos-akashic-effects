@@ -6,9 +6,22 @@
   "H": 340,
   "LOOP": 8500,
   "N": 64,
-  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "An audio-reactive tunnel: particles and glowing rings fly down a perspective bore toward a pulsing core. The fly speed and the swirl twist ride the overall loudness, while each ring's radius (and a per-segment warp wobble) rides the spectrum, so the bore pulses, accelerates, and warps to the beat. It reacts to the MICROPHONE live (gracefully falls back to a synthetic signal if the mic is unavailable/denied) and runs a deterministic synthetic demo for capture. Pure Canvas 2D, self-contained, zero dependencies.",
   "usage_notes": "RUN: open & click \"enable mic\" to react to your voice/music; falls back to a built-in beat if no mic. KEY TECHNIQUES: an AnalyserNode (fftSize 128) feeds a 64-bin spectrum + RMS level into render(spectrum,level,t); tunnel fly speed = 0.10+level, twist rate = 0.25+level so loudness drives motion; rings recede in z with focal-length perspective and their radius = spectrum bin value, plus a per-segment wobble sampled from neighbouring bins for warp; particles stream down the bore with depth-scaled size/alpha; central core glow pulses with level; synthSpectrum (mulberry32-seeded sum of moving formant bumps + a 4-kick-per-loop beat pulse) drives auto/fallback deterministically and loops seamlessly. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: NP (particle count), NR (ring count), speed/twist gains, FL focal length, ring radius range, core pulse depth.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AQ",
+  "tier": "reactive"
 }

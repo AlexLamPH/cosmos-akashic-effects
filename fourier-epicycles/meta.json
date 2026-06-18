@@ -2,10 +2,26 @@
   "slug": "fourier-epicycles",
   "title": "Cosmos Fourier Epicycles — rotating circle chain draws a star",
   "title_vi": "Cosmos Fourier Epicycles — chuỗi vòng tròn quay vẽ ngôi sao",
-  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
-  "tags": ["fourier","epicycles","rotating-circles","generative","geometry","canvas2d"],
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "fourier",
+    "epicycles",
+    "rotating-circles",
+    "generative",
+    "geometry",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A chain of rotating circles, each an integer-frequency Fourier term, links tip-to-tip and traces out a glowing closed five-point star over exactly one period. The spinning circle chain with its radius arms is drawn alongside the bright completed path. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a target star shape is sampled as a periodic complex signal and run through a discrete Fourier transform; each term has an INTEGER frequency, amplitude and phase, so the sum of rotating vectors sum amp*e^{i(2PI*freq*u+phase)} is exactly periodic over one period u in [0,1] -> the tip path is closed and frame(0)==frame(LOOP). The 28 strongest terms are chained tip-to-tip; each draws a faint circle and a radius arm, and the chain tip carries a glowing pen head. The full traced path is precomputed once and always stroked complete. Additive 'lighter' blending over a cosmic core glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: shape() function (star/heart), DFT sample count N, number of kept terms, scale, AC palette.",
   "summary_vi": "Một chuỗi vòng tròn quay, mỗi vòng là một số hạng Fourier tần số nguyên, nối đầu-đến-đuôi và vẽ ra một ngôi sao năm cánh kín phát sáng trong đúng một chu kỳ. Chuỗi vòng quay cùng các cánh tay bán kính được vẽ bên cạnh đường vẽ hoàn chỉnh sáng. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "DFT cho các số hạng tần số nguyên nên tổng vector quay tuần hoàn đúng một chu kỳ -> đường khép kín, frame(0)==frame(LOOP)."
+  "notes": "DFT cho các số hạng tần số nguyên nên tổng vector quay tuần hoàn đúng một chu kỳ -> đường khép kín, frame(0)==frame(LOOP).",
+  "card_number": "AK-CDP-000004R",
+  "tier": "canvas"
 }

@@ -1,0 +1,26 @@
+{
+  "slug": "reveal",
+  "card_number": "AK-CDP-0000016",
+  "tier": "canvas",
+  "title": "Cosmos Reveal — cursor spotlight hover-reveal (Canvas 2D)",
+  "title_vi": "",
+  "tags": [
+    "spotlight",
+    "reveal",
+    "hover",
+    "torch",
+    "flashlight",
+    "cursor",
+    "canvas2d",
+    "mask",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "The scene is veiled in near-darkness; the cursor becomes a soft spotlight that reveals the glowing Cosmos content (logo + COSMOS wordmark on a starfield) only where it shines, ringed by a luminous halo. Move the light to uncover the hidden art. The whole reveal is a single radial-gradient veil — pure Canvas 2D, no libraries, runs offline; cursor:none because the light IS the cursor.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); keep cosmos-logo.png beside it. MOVE the mouse to sweep the light. KEY TECHNIQUE: draw the bright content first, then fill the whole canvas with ONE radial gradient centred on the cursor whose stops go transparent (the hole, content shows) -> opaque dark (the veil) — beyond the gradient's outer radius the last (dark) stop continues, so everything outside the light is veiled. A luminous rim + center dot are added with additive ('lighter') compositing. CONTENT is drawn normally (not additive) so the veil truly hides it -> the reveal is dramatic. CAPTURE: ?auto=1 + window.__seek(t) sweeps a virtual light on a figure-8 (mx=sin a, my=sin 2a) across the logo + wordmark -> seamless; capture WITHOUT puppeteer `clip` (clip drops <canvas>). TUNE: spotlight R, veil alpha, path. BRAND: Phantom-dark veil; the revealed logo keeps the rainbow.",
+  "summary_vi": "",
+  "notes": ""
+}

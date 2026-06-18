@@ -6,9 +6,22 @@
   "H": 420,
   "LOOP": 9000,
   "N": 100,
-  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "An audio-reactive spectrum terrain: a scrolling 3D landscape where each new ridge row's heights are the current spectrum, so the field is a waterfall spectrogram rendered in perspective receding to a glowing horizon. The nearest ridge is brightest and the whole terrain scrolls forward with time, ridges shrinking and dimming as they recede. It reacts to the MICROPHONE live (gracefully falls back to a synthetic signal if the mic is unavailable/denied) and runs a deterministic synthetic demo for capture. Pure Canvas 2D, self-contained, zero dependencies.",
   "usage_notes": "RUN: open & click \"enable mic\" to react to your voice/music; falls back to a built-in beat if no mic. KEY TECHNIQUES: an AnalyserNode (fftSize 128) feeds a 64-bin spectrum + RMS level into render(spectrum,level,t); a rolling buffer of ROWS ridge rows is scrolled like a waterfall — every ~45ms the current spectrum is unshifted as a new near ridge and the far one drops off; each row is projected with a perspective that bunches rows toward a horizon (depth eases width/height/brightness), the nearest ridge drawn brightest with sparkle peaks on tall bins; horizon glow pulses with level; synthSpectrum (mulberry32-seeded sum of moving formant bumps + a 4-kick-per-loop beat pulse) drives auto/fallback deterministically and loops seamlessly. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: ROWS (ridge count), pushEvery (scroll speed), horizonY/nearY, height scale, sparkle threshold.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AR",
+  "tier": "reactive"
 }

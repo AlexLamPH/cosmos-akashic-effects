@@ -12,10 +12,16 @@
     "accretion",
     "particles",
     "spiral",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "About 1500 glowing particles spiral inward toward a bright central core like a black-hole accretion disc, each leaving a short trailing arc, fading out as it nears the core and reappearing at the rim for a continuous flow. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each particle gets a seeded start phase and rim angle; its progress p=(u+phase) mod 1 drives radius=R*(1-p) (spirals in) and angle=startAngle+p*TURNS*2PI with TURNS integer, so the mod-1 wrap respawns it at the rim and frame(0)==frame(LOOP). A short trailing arc and twinkle (integer harmonic of u) add motion; particles fade in at the rim and out near the core, which is a layered radial-gradient glow, all drawn additively ('lighter'). CAPTURE: ?auto=1 + window.__seek(t). TUNE: particle count, TURNS, disc inclination, core gradient stops, AC palette.",
   "summary_vi": "Khoảng 1500 hạt phát sáng xoáy vào lõi trung tâm sáng rực như đĩa bồi tụ hố đen, mỗi hạt kéo một vệt cung ngắn, mờ dần khi tới gần lõi rồi xuất hiện lại ở vành ngoài tạo dòng chảy liên tục. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "p=(u+phase) mod 1 với bán kính R*(1-p) và góc p*TURNS*2PI (TURNS nguyên) nên hạt tái sinh ở vành và loop liền mạch."
+  "notes": "p=(u+phase) mod 1 với bán kính R*(1-p) và góc p*TURNS*2PI (TURNS nguyên) nên hạt tái sinh ở vành và loop liền mạch.",
+  "card_number": "AK-CDP-000001R",
+  "tier": "canvas"
 }

@@ -2,10 +2,25 @@
   "slug": "toast-notification",
   "title": "Cosmos Toast Notification — corner snackbar that slides in with icon, title, message and auto-dismiss",
   "title_vi": "Cosmos Toast Notification — thông báo góc trượt vào kèm icon, tiêu đề, nội dung và tự ẩn",
-  "W": 640, "H": 420, "LOOP": 8000, "N": 100,
-  "tags": ["toast","snackbar","notification","interactive","css"],
+  "W": 640,
+  "H": 420,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "toast",
+    "snackbar",
+    "notification",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished toast/snackbar UI component on the Cosmos Phantom-dark theme, self-contained with zero dependencies. The toast slides in from the top-right corner with an accent bar, coloured icon tile, title, message and a close button, holds while a progress bar drains, then slides out. The looping auto-demo cycles through four variants — success (aurora), error (solaris), info (cosmic), warning (sacred) — each with its own accent colour, giving in → hold → out → next. Live mode is interactive (the close button restarts the cycle) with an autoplay fallback; the captured motion is a pure deterministic function of u so it loops seamlessly.",
   "usage_notes": "RUN: double-click index.html. LIVE: the toast auto-plays the cycle; clicking the close (×) button restarts it. KEY TECHNIQUES: the whole motion is driven by render(u) which maps u to one of 4 equal slots, then sub-phases each slot into slide-in / hold / slide-out using easeOut, easeIn and a back-overshoot ease writing translateX, opacity and scale as inline styles (no reliance on CSS-transition timing); the accent colour, icon (inline SVG) and copy are swapped per slot via a --acc custom property and color-mix; a progress bar drains during hold via scaleX. Frame 0 is offset to land inside the first toast's hold so the thumbnail is rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (per-toast duration = LOOP/4), the IN/OUT phase boundaries, HOLD_CENTER offset, the TYPES array (type/accent/title/message).",
   "summary_vi": "Một component toast/snackbar UI thực sự chỉn chu trên nền Phantom-dark của Cosmos, độc lập và không phụ thuộc thư viện. Toast trượt vào từ góc trên phải kèm thanh accent, ô icon màu, tiêu đề, nội dung và nút đóng, giữ lại trong khi thanh tiến trình rút cạn rồi trượt ra. Demo lặp xoay vòng bốn biến thể — success, error, info, warning — mỗi loại một màu accent riêng. Bản live tương tác được (nút đóng khởi động lại vòng) với autoplay dự phòng; chuyển động chụp là hàm thuần của u nên loop liền mạch.",
-  "notes": "Toàn bộ chuyển động do render(u) điều khiển qua 4 khe đều nhau với các pha trượt-vào/giữ/trượt-ra, viết translateX/opacity/scale nội tuyến; màu accent, icon và nội dung đổi theo từng khe."
+  "notes": "Toàn bộ chuyển động do render(u) điều khiển qua 4 khe đều nhau với các pha trượt-vào/giữ/trượt-ra, viết translateX/opacity/scale nội tuyến; màu accent, icon và nội dung đổi theo từng khe.",
+  "card_number": "AK-CDP-0000062",
+  "tier": "ui"
 }

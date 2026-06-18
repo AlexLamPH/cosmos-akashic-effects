@@ -12,10 +12,16 @@
     "moire",
     "concentric",
     "generative",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A hypnotic optical-illusion pattern of high-contrast concentric rings that warp into rotating lobed shapes while an inward brightness band pulses like a breathing tunnel, overlaid with a bulging wavy-line grid that lenses outward from the centre. Pure Canvas 2D, zero deps, runs offline, deterministic and seamless. All motion is driven by sines of 2*pi*u with integer harmonics so frame(0) equals frame(LOOP).",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: concentric rings drawn as petal-bulged loops whose phase travels inward (integer ring index multiplier), a square-sharpened brightness band cycling on an integer harmonic for the depth-tunnel illusion, an additive ('lighter') wavy grid with a gaussian central lens for the bulge, and a breathing focus glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: rings (ring count), petals (lobe count), NL (grid lines), amp (bulge strength), LOOP, PAL (accent palette), and the integer time multipliers in the sine phases.",
   "summary_vi": "Một hoa văn ảo giác thị giác thôi miên gồm các vòng tròn đồng tâm tương phản cao biến dạng thành hình thùy xoay, trong khi một dải sáng chạy vào tâm nhấp nháy như đường hầm đang thở, phủ thêm lưới đường sóng phồng lên từ tâm. Thuần Canvas 2D, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
-  "notes": "Mọi chuyển động dùng sin của 2*pi*u với bội số nguyên nên frame(0) trùng khít frame(LOOP)."
+  "notes": "Mọi chuyển động dùng sin của 2*pi*u với bội số nguyên nên frame(0) trùng khít frame(LOOP).",
+  "card_number": "AK-CDP-0000048",
+  "tier": "canvas"
 }

@@ -2,10 +2,26 @@
   "slug": "kaleidoscope",
   "title": "Cosmos Kaleidoscope — a rotating wedge of moving shapes mirrored into radial symmetry",
   "title_vi": "Cosmos Kaleidoscope — nêm xoay chứa các hình chuyển động được phản chiếu thành đối xứng tỏa tròn",
-  "W": 760, "H": 540, "LOOP": 8000, "N": 100,
-  "tags": ["kaleidoscope","symmetry","mirror","radial","glow","canvas2d"],
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "kaleidoscope",
+    "symmetry",
+    "mirror",
+    "radial",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Glowing shapes drift inside a single clipped wedge, which is replicated around the centre with rotation and alternating mirror to form a 10-fold kaleidoscope. Orbs, petals and streaks sweep across the wedge on looping sine paths and are blended additively over the Cosmos Phantom dark background. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: one wedge is clipped via ctx.arc/clip, then rotated by s*TAU/SEG with ctx.scale(1,-1) on odd segments for mirror symmetry; shapes move along angle/radius using sin(TAU*u*k) with integer k so frame(0)===frame(LOOP); whole canvas repainted each frame as a pure function of time; mulberry32 seeds all shape params once at setup/resize; additive 'lighter' blend plus a central bloom. CAPTURE: ?auto=1 then call window.__seek(t). TUNE: SEG (segment count), blob count n, radial/size amplitudes, AC palette, LOOP.",
   "summary_vi": "Các hình phát sáng trôi trong một nêm được cắt, rồi nhân quanh tâm bằng phép xoay và phản chiếu xen kẽ tạo kính vạn hoa 10 nan. Quả cầu, cánh hoa và vệt sáng quét qua nêm theo quỹ đạo sin lặp và hòa trộn additive trên nền tối Cosmos Phantom. Thuần Canvas 2D, không thư viện, chạy offline; deterministic và loop liền.",
-  "notes": "Một nêm được clip rồi xoay và phản chiếu (scale -1) tạo đối xứng; chuyển động sin(TAU*u*k) với k nguyên nên loop liền; gieo bằng mulberry32."
+  "notes": "Một nêm được clip rồi xoay và phản chiếu (scale -1) tạo đối xứng; chuyển động sin(TAU*u*k) với k nguyên nên loop liền; gieo bằng mulberry32.",
+  "card_number": "AK-CDP-000001K",
+  "tier": "canvas"
 }

@@ -2,10 +2,26 @@
   "slug": "segmented-control",
   "title": "Cosmos Segmented Control — iOS-style 4-segment control with a sliding spring accent highlight",
   "title_vi": "Cosmos Segmented Control — control 4 phân đoạn kiểu iOS với highlight nhấn trượt có spring",
-  "W": 720, "H": 480, "LOOP": 6400, "N": 80,
-  "tags": ["segmented-control","segment","component","interactive","css","spring"],
+  "W": 720,
+  "H": 480,
+  "LOOP": 6400,
+  "N": 80,
+  "tags": [
+    "segmented-control",
+    "segment",
+    "component",
+    "interactive",
+    "css",
+    "spring",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained iOS-style segmented control on the Cosmos Phantom-dark theme: a glassy track holds four icon+label segments, and a violet accent thumb slides behind the selected segment with a subtle underdamped spring (slight launch squash + settle), while label colours swap from muted to bright white as the thumb arrives. Zero dependencies, pure HTML/CSS/vanilla JS. LIVE mode is genuinely interactive (click any segment to spring the highlight to it, hover lightens labels); AUTO mode plays a deterministic, seamlessly looping demo that slides the selection 0->1->2->3 and back. All captured motion is a pure function of u via render(u)/__seek so frames are exact regardless of timing.",
   "usage_notes": "RUN: double-click index.html. LIVE: click a segment and the accent thumb springs under it while the selected label brightens and the caption updates; hover lightens labels; when idle it auto-plays the demo loop. KEY TECHNIQUES: segment geometry is measured live with getBoundingClientRect so the thumb exactly matches each segment's x/width; the demo sequence [0,1,2,3,2,1,0] gives 6 segments, each split into a glide phase (underdamped spring 1-e^-7t*cos(11t) for the iOS bounce) and a dwell phase; a sin-based squash subtly compresses the thumb on launch then settles; label colours lerp muted->white by fade and bump to weight 700 when selected; a 42%/SEG phase offset makes frame 0 land mid-slide between the first two segments (rich, never blank). CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (cycle speed), SEQ (selection order), the 0.6 glide/dwell split, spring decay/frequency constants (7 / 11), squash amount (0.07), accent colours in .thumb gradient.",
   "summary_vi": "Component segmented control kiểu iOS hoàn chỉnh, tự chứa, theme Phantom-dark của Cosmos: track kính chứa bốn phân đoạn icon+nhãn, thumb nhấn màu tím trượt phía sau phân đoạn đang chọn với spring giảm chấn nhẹ (nén lúc phóng + ổn định), đồng thời màu nhãn đổi từ mờ sang trắng sáng khi thumb tới. Không phụ thuộc, thuần HTML/CSS/JS. LIVE tương tác thật (bấm phân đoạn để spring highlight, hover sáng nhãn); AUTO chạy demo loop liền mạch deterministic trượt 0->1->2->3 rồi quay lại. Mọi chuyển động là hàm thuần của u qua render(u)/__seek.",
-  "notes": "Thumb đo hình học bằng getBoundingClientRect nên khớp x/width mỗi phân đoạn; chuỗi [0,1,2,3,2,1,0] cho 6 đoạn, mỗi đoạn có pha trượt (spring giảm chấn nảy kiểu iOS) và pha dừng; offset 42%/SEG để frame 0 nằm giữa lúc trượt nên không trống."
+  "notes": "Thumb đo hình học bằng getBoundingClientRect nên khớp x/width mỗi phân đoạn; chuỗi [0,1,2,3,2,1,0] cho 6 đoạn, mỗi đoạn có pha trượt (spring giảm chấn nảy kiểu iOS) và pha dừng; offset 42%/SEG để frame 0 nằm giữa lúc trượt nên không trống.",
+  "card_number": "AK-CDP-0000067",
+  "tier": "ui"
 }

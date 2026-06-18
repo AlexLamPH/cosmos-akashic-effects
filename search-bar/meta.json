@@ -2,10 +2,26 @@
   "slug": "search-bar",
   "title": "Cosmos Search Bar — an icon that expands into a typing search with a staggered results dropdown",
   "title_vi": "Cosmos Search Bar — biểu tượng nở thành ô tìm kiếm tự gõ với dropdown kết quả hiện dần",
-  "W": 600, "H": 560, "LOOP": 7000, "N": 88,
-  "tags": ["search-bar","search","input","dropdown","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "search-bar",
+    "search",
+    "input",
+    "dropdown",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished search bar as a self-contained component: a glassy pill that expands from a compact search icon into a full-width input, a blinking cosmic-blue caret types a query, and a results dropdown drops in below with each row fading and sliding up in a staggered cascade. Each result has an icon tile, a title with the matched query highlighted, a description, and a chevron. Zero dependencies, pure HTML/CSS/vanilla JS, runs offline. Interactive in live mode and loops a deterministic auto-demo for capture.",
   "usage_notes": "RUN: double-click index.html. LIVE: the bar auto-plays the demo via requestAnimationFrame; the markup is real, copy-pasteable component structure (glass pill, animated icon, caret, clear button, dropdown with icon tiles and result rows). KEY TECHNIQUES: a single render(u) function is the source of truth — it computes the bar width (collapsed icon -> expanded input), the typed query (eased character count off a TARGET), the per-row staggered reveal of the dropdown, the caret blink, and the clear-button opacity purely from u, then writes inline width/opacity/transform; sub-phases of one loop are expand -> type -> results-stagger-in -> hold -> collapse -> pause; each result row reveals across its own slice of the dropOpen progress so the cascade is a pure function of u (no reliance on CSS-transition timing); the matched query prefix is bolded inside each title; a frame-0 OFF offset lands t=0 mid-interaction (query typed, rows cascading in) so the thumbnail is rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: TARGET query, RESULTS list, LOOP speed, OFF offset, stagger spacing, accent (cosmic #46b4ff).",
   "summary_vi": "Một ô tìm kiếm thực sự chỉn chu dạng component tự chứa: viên kính nở ra từ biểu tượng tìm kiếm thành ô nhập đầy đủ, con trỏ xanh nhấp nháy tự gõ truy vấn, và dropdown kết quả rơi xuống với từng dòng hiện dần theo hiệu ứng so le. Không phụ thuộc, thuần HTML/CSS/JS, chạy offline; tương tác ở chế độ live và lặp auto-demo deterministic để quay.",
-  "notes": "render(u) tính bề rộng thanh, query gõ, độ hiện so le của từng dòng và nhấp nháy con trỏ thuần từ u; offset OFF đưa frame 0 vào giữa tương tác."
+  "notes": "render(u) tính bề rộng thanh, query gõ, độ hiện so le của từng dòng và nhấp nháy con trỏ thuần từ u; offset OFF đưa frame 0 vào giữa tương tác.",
+  "card_number": "AK-CDP-000006B",
+  "tier": "ui"
 }

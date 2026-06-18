@@ -6,9 +6,22 @@
   "H": 420,
   "LOOP": 8400,
   "N": 93,
-  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A seeded field of glowing particles gently orbits the center and, on each beat (a level spike), bursts outward and brightens; each particle's size rides the spectrum at its bin and its hue comes from the Cosmos accent palette, with a central glow pulsing on overall level. It reacts to the MICROPHONE live (gracefully falls back to a synthetic signal if the mic is unavailable/denied) and ships a deterministic synthetic demo for capture. Self-contained, zero dependencies, runs fully offline.",
   "usage_notes": "RUN: open & click \"enable mic\" to react to your voice/music; it falls back to a built-in beat if no mic is available. KEY TECHNIQUES: a live AnalyserNode (fftSize 128) supplies a 64-bin spectrum + RMS-ish level into one render(spectrum,level,t); a beat is detected as the spike of level above a decaying envelope, which adds an outward burst impulse per particle; particle radius = base*(1+burst) plus a spectrum-driven wobble, size and brightness scale with spec[bin]; synthSpectrum(u) is a mulberry32-seeded sum of moving formant bumps plus a sharpened 4-per-loop kick so the field pulses rhythmically and loops seamlessly. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: NP (particle count), RAD (field radius), burst gain, formant count/spread, kick sharpness, central glow depth.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AN",
+  "tier": "reactive"
 }

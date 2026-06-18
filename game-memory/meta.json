@@ -2,11 +2,27 @@
   "slug": "game-memory",
   "title": "Cosmos Memory — flip-and-match pairs of glowing cosmic symbols",
   "title_vi": "",
-  "W": 560, "H": 620, "LOOP": 11000, "N": 55,
+  "W": 560,
+  "H": 620,
+  "LOOP": 11000,
+  "N": 55,
   "live_fit": true,
-  "tags": ["game","memory","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "memory",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained Cosmos Memory match game in one HTML file with zero dependencies. A 4x4 grid of face-down cards hides eight pairs of glowing cosmic symbols (star, orbit, bloom, leaf, comet, sun, ring, diamond). Click or tap two cards to flip them; matching pairs lock and glow, mismatches flip back; a moves counter and pairs-found score track progress and you win when all eight pairs are matched. Keyboard and touch both work, with a restart button and R key. It also ships a deterministic self-playing attract demo for capture: a perfect-memory AI flips seeded pairs in order as a pure function of time.",
   "usage_notes": "RUN: double-click index.html (or open in any browser). CONTROLS: click/tap a face-down card to flip it, flip two to attempt a match; press R or the Restart button to deal a new board (touch buttons supported). GOAL/SCORING: match all 8 cosmic-symbol pairs in as few Moves as possible; matched pairs glow and lock, the HUD shows Moves and Pairs found, and SOLVED appears on a win. KEY TECHNIQUES: a mulberry32-seeded deck (Fisher-Yates shuffle, never Math.random in the sim) plus a deterministic 'perfect memory' auto-player that flips known pairs in a fixed seeded order; drawAt(ms) re-derives the whole board state purely from time (resolved pairs locked+glowing, current pair mid-flip) with a frame-0 offset so capture starts mid-game. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: A_SEED, FLIP (ms per pair), OFFSET (frame-0 mid-game point), LOOP, the SYM color/glyph table, grid COLS/ROWS.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BJ",
+  "tier": "game"
 }

@@ -6,9 +6,21 @@
   "H": 620,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "generative", "sacred-geometry", "glow", "geometric"],
+  "tags": [
+    "canvas2d",
+    "generative",
+    "sacred-geometry",
+    "glow",
+    "geometric",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Metatron's Cube: 13 circles arranged in the classic centre + inner hexagon + outer hexagon, with every pair of nodes joined to form the full sacred-geometry web. Glowing violet accent edges carry travelling light pulses while the whole figure slowly rotates. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: 13 node centres derived from two rotated hexagons plus the origin; all 78 unique node-to-node segments drawn as a faint base web plus a brighter violet accent layer with additive 'lighter' blending; a radial-gradient light pulse travels along each edge with position d=((u + len/maxLen*0.5)%1) for a seamless sweep; node blooms and a central core glow add depth; one full rotation per LOOP. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for speed, S (R*0.34) for figure size, pulse radius (10*DPR), and the per-layer line alphas.",
   "summary_vi": "Khối Lập Phương Metatron: 13 vòng tròn xếp theo tâm cộng hai lục giác trong và ngoài, mọi cặp đỉnh được nối thành mạng lưới hình học thiêng liêng. Các cạnh tím phát sáng mang xung ánh sáng chạy dọc trong khi toàn bộ hình xoay chậm. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Xung sáng chạy theo tham số d tuần hoàn với tần số nguyên k=1 nên frame(0) và frame(LOOP) trùng khớp."
+  "notes": "Xung sáng chạy theo tham số d tuần hoàn với tần số nguyên k=1 nên frame(0) và frame(LOOP) trùng khớp.",
+  "card_number": "AK-CDP-0000053",
+  "tier": "canvas"
 }

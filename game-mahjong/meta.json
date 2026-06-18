@@ -2,11 +2,27 @@
   "slug": "game-mahjong",
   "title": "Cosmos Mahjong Pairs — clear a stacked tile mound by matching free symbol pairs",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 109,
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 109,
   "live_fit": true,
-  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained mahjong-solitaire pair matcher in a single HTML file with zero dependencies. A small three-layer mound of tiles bearing six glowing Cosmos symbols (star, ring, diamond, crescent, spark, orbit) is laid out and stacked; tap two free matching tiles to remove them and clear the whole board. A tile is only selectable when it is edge-free, meaning nothing covers it from the layer above and at least one of its left or right sides is open, exactly like classic mahjong solitaire. Score climbs per matched pair, a tile counter shows what remains, and the round ends on a clear (or when no legal pair is left). Playable with mouse or touch, with R to restart. It also ships a deterministic self-playing attract demo for capture: a seeded solver removes matching pairs one by one and the mound visibly shrinks, rendered as a pure function of time via window.__seek(t).",
   "usage_notes": "RUN: double-click index.html. CONTROLS: tap/click a free tile to select it (it gets a white outline), then tap another free tile of the same symbol to remove the pair; tapping the same tile deselects, tapping a different free tile reselects; covered or side-blocked tiles cannot be selected; the R key or the New Board button deals a fresh seeded mound. GOAL: remove every tile by clearing matching pairs; each pair scores 100, the TILES counter tracks remaining tiles, and you win when the board is empty (or the game ends early if no matching free pair remains). KEY TECHNIQUES: tiles live on a half-cell grid across three layers; isFree() checks both coverage from above (overlap test) and left/right openness on the same layer to decide selectability, and the same function drives the live dim/glow and the click gate. Symbols are dealt in pairs and mulberry32-shuffled for a solvable count. The AUTO attract demo is built once from a fixed seed by a deterministic solver that repeatedly finds the lowest-id free matching pair and records the removal order; drawAt then derives pairs-removed = floor(time/STEP_MS), reconstructs the gone-set, and fades the current pair, so every frame is a pure function of time, with START_OFFSET placing frame 0 mid-clear over a partially dismantled mound with score showing. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: STEP_MS removal speed, START_OFFSET, BSEED for the demo deal, the layoutTemplate mound shape, SYMCOL/symbol set, LOOP.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BF",
+  "tier": "game"
 }

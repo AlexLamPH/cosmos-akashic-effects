@@ -6,9 +6,26 @@
   "H": 420,
   "LOOP": 9000,
   "N": 90,
-  "tags": ["shader", "webgl", "glsl", "raymarch", "fractal", "mandelbulb", "distance-estimator", "3d", "phantom", "cosmos"],
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "raymarch",
+    "fractal",
+    "mandelbulb",
+    "distance-estimator",
+    "3d",
+    "phantom",
+    "cosmos",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real WebGL GLSL fragment shader that raymarches a power-8 3D Mandelbulb fractal using its distance estimator. The camera orbits one full turn around the bulb over the loop, with orbit-trap and surface-normal driven accent colouring (violet/cosmic/nebula) plus a soft accumulated glow halo over a dark background. Zero dependencies, fully offline, deterministic and seamless (time uniform loops 0..1).",
   "usage_notes": "RUN: open index.html in a WebGL-capable browser (needs WebGL). KEY TECHNIQUES: Mandelbulb distance-estimator (power-8, 6 iterations), sphere-tracing raymarch (<=78 steps), finite-difference normals, orbit-trap colour mapping, diffuse + Fresnel rim + ambient-occlusion lighting, exponential glow accumulation. CAPTURE: ?auto=1 + window.__seek(t). TUNE: raise DE iteration count or march steps for more detail (slower); adjust trap*1.4 mapping for hue; tweak glow factor 1.4 and rim power for the bloom feel.",
   "summary_vi": "Một fragment shader WebGL GLSL thực thụ raymarch fractal Mandelbulb 3D power-8 bằng distance estimator, camera quay trọn một vòng quanh khối theo vòng lặp, tô màu theo orbit-trap và pháp tuyến (tím/xanh vũ trụ/nebula) cùng quầng sáng mềm trên nền tối. Không phụ thuộc, chạy offline, xác định và liền mạch.",
-  "notes": "Fractal Mandelbulb power-8 raymarch xoay trọn một vòng với quầng sáng và màu accent."
+  "notes": "Fractal Mandelbulb power-8 raymarch xoay trọn một vòng với quầng sáng và màu accent.",
+  "card_number": "AK-CDP-000005Q",
+  "tier": "shader"
 }

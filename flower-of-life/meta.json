@@ -2,10 +2,26 @@
   "slug": "flower-of-life",
   "title": "Cosmos Flower of Life — overlapping hex-lattice circles drawn in as a glowing sacred pattern",
   "title_vi": "Cosmos Flower of Life — các vòng tròn chồng nhau trên lưới lục giác vẽ dần thành hoa sự sống phát sáng",
-  "W": 620, "H": 620, "LOOP": 8000, "N": 100,
-  "tags": ["flower-of-life","sacred-geometry","circles","generative","canvas2d","mandala"],
+  "W": 620,
+  "H": 620,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "flower-of-life",
+    "sacred-geometry",
+    "circles",
+    "generative",
+    "canvas2d",
+    "mandala",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "The classic Flower of Life: overlapping equal circles packed on a triangular/hex lattice (neighbours spaced exactly one radius apart) drawn as glowing additive accent strokes, with each circle drawing-in from the centre outward while a luminous pulse ripples through them. The whole figure gently rotates and breathes. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: circle centres are generated on a triangular lattice using pitch bx=R, by=R*sqrt(3)/2 with row+col parity, then clipped to a disc of radius R*(RINGS+0.05) and sorted by distance so the draw-in reveals outward. Per frame each circle's arc sweep is phased by its normalised radius nd via (u - nd*0.5) mod 1, and a luminous pulse 0.5+0.5*sin(2PI*(2u - nd*2.5)) plus per-circle twinkle drives brightness — all integer harmonics of u so frame(0)==frame(LOOP). A 1/6-turn rotation and a once-per-loop breathing scale wrap the group; strokes are additive ('lighter') with a white crest highlight over a sacred radial glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: RINGS lattice size, R radius, pulse speed/scale, breath amount, AC palette, line widths.",
   "summary_vi": "Hoa sự sống kinh điển: các vòng tròn bằng nhau chồng lên nhau trên lưới tam giác/lục giác (khoảng cách đúng bằng một bán kính) vẽ bằng nét cộng dồn phát sáng, mỗi vòng vẽ dần từ tâm ra ngoài trong khi xung sáng lan qua chúng, cả hình xoay nhẹ và thở. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Tâm vòng tròn sinh trên lưới tam giác (bx=R, by=R*căn3/2), sắp theo khoảng cách; sweep, pulse và breath dùng harmonic nguyên của u nên loop liền."
+  "notes": "Tâm vòng tròn sinh trên lưới tam giác (bx=R, by=R*căn3/2), sắp theo khoảng cách; sweep, pulse và breath dùng harmonic nguyên của u nên loop liền.",
+  "card_number": "AK-CDP-0000052",
+  "tier": "canvas"
 }

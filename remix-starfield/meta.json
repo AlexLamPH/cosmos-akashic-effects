@@ -2,10 +2,26 @@
   "slug": "remix-starfield",
   "title": "Cosmos Remix — Starfield Warp you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "starfield", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "starfield",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable 3D starfield warp: particles are stars flying past the camera — each has a depth z that decreases with time and wraps, projected with perspective so stars streak outward from the centre, growing and brightening as they approach. Live glass panel retunes palette (brand theme tokens), shape, density, spread, speed, dot size and a Warp knob (streak length / hyperspace feel) in real time; reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open index.html and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, push Warp up for longer hyperspace streaks, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: each star has a fixed angular direction and a seeded off-axis radius in the screen plane plus a seeded base depth z; z decreases with u and wraps in [0,1), and screen position = direction * (focalLength / z) so stars rush outward from centre under perspective; a short additive line from the star's previous (farther) depth to its current position draws the warp streak, and near stars are scaled up and brightened. The number of depth wraps per loop is quantised to an integer so the loop is seamless for any speed/warp. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them, the contract a generic remix harness uses; theme tokens = a PALETTES map driving both a CSS accent var and the star colour ramp; SHAPES + drawShape render the chosen glyph cheaply. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: add palettes to PALETTES, adjust focal length / spread, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-0000098",
+  "tier": "remix"
 }

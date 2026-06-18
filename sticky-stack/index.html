@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Sticky Stack — scroll reveal</title>
+<style>
+  /* ===== Cosmos Sticky Stack =====
+     Pure-CSS sticky scroll: each slide pins (position:sticky) at a slightly
+     larger offset, so scrolling stacks them like a deck — the next slide rises
+     and covers the previous. No JavaScript needed for the effect itself.        */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:auto; }
+  body { background:#05030d; font-family:-apple-system,"Segoe UI",system-ui,sans-serif;
+    overflow-x:hidden; }
+  .sec { height:100vh; }
+  .slide {
+    position:sticky; height:84vh; margin:0 auto; width:min(86vw,860px);
+    border-radius:26px; overflow:hidden; color:#fff;
+    box-shadow:0 -10px 40px rgba(0,0,0,.45), 0 30px 70px rgba(0,0,0,.5);
+    display:flex; flex-direction:column; justify-content:space-between; padding:38px 42px;
+  }
+  .slide::before { content:""; position:absolute; inset:0; z-index:0;
+    background:
+      radial-gradient(120% 90% at 78% 18%, color-mix(in srgb, var(--c) 70%, transparent), transparent 60%),
+      linear-gradient(150deg, color-mix(in srgb, var(--c) 38%, #0b0820), #07050f 88%); }
+  .slide::after { content:""; position:absolute; inset:0; z-index:0; opacity:.5; mix-blend-mode:screen;
+    background:radial-gradient(60% 50% at 20% 90%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%); }
+  .slide > * { position:relative; z-index:1; }
+
+  .top { display:flex; justify-content:space-between; align-items:flex-start; }
+  .num { font-size:15px; letter-spacing:.4em; font-weight:700; color:#fff; opacity:.85; }
+  .kind { font-size:11px; letter-spacing:.42em; text-transform:uppercase; font-weight:700;
+    color:color-mix(in srgb, var(--c) 50%, #fff); }
+  .logo { position:absolute; right:34px; top:50%; translate:0 -50%; width:38vh; opacity:.9;
+    filter:hue-rotate(var(--h)) drop-shadow(0 12px 40px color-mix(in srgb, var(--c) 60%, transparent)); }
+  .mid { max-width:62%; }
+  .name { font-size:clamp(40px,8vh,80px); font-weight:800; letter-spacing:.01em; line-height:.98;
+    text-transform:uppercase; text-shadow:0 6px 34px rgba(0,0,0,.4); }
+  .role { margin-top:14px; font-size:clamp(13px,1.9vh,17px); letter-spacing:.06em; color:#e7e2f6; line-height:1.5; }
+  .foot { display:flex; align-items:center; gap:14px; font-size:12px; letter-spacing:.3em;
+    text-transform:uppercase; color:#d9d2ee; }
+  .foot .bar { flex:1; height:2px; background:color-mix(in srgb, var(--c) 70%, transparent); border-radius:2px; }
+
+  .scrollhint { position:fixed; left:50%; bottom:22px; translate:-50%; z-index:50;
+    font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:#9b94bd; pointer-events:none; }
+</style>
+</head>
+<body>
+  <div id="track"></div>
+  <div class="scrollhint">↓ Scroll</div>
+<script>
+const AUTO = new URLSearchParams(location.search).has('auto');
+const SLIDES = [
+  { name:'Phantom', role:'Stealth · Recon — bóng tối tuyệt đối, di chuyển không tiếng động.', c:'#8b5cff', h:0 },
+  { name:'Solaris', role:'Burst · Ignite — bùng nổ sắc cam đỏ, năng lượng và tốc độ.',       c:'#ff6a3d', h:325 },
+  { name:'Sacred',  role:'Ward · Restore — ánh vàng thiêng, dựng vòng bảo hộ và hồi phục.',  c:'#e0b24a', h:40 },
+  { name:'Aurora',  role:'Flux · Bloom — cực quang xanh ngọc, uốn dòng năng lượng nở rộ.',    c:'#36d39a', h:95 },
+  { name:'Cosmic',  role:'Drift · Scan — thiên hà xanh thẳm, quét toàn cảnh không gian.',     c:'#46b4ff', h:165 },
+  { name:'Nebula',  role:'Lure · Charm — tinh vân hồng tím, quyến rũ và dẫn dụ.',             c:'#ff5cc2', h:255 },
+];
+const track = document.getElementById('track');
+SLIDES.forEach((s,i)=>{
+  const sec=document.createElement('div'); sec.className='sec';
+  const sl=document.createElement('div'); sl.className='slide';
+  sl.style.setProperty('--c',s.c); sl.style.setProperty('--h',s.h+'deg');
+  sl.style.top = (34 + i*16) + 'px';                 // each pins a bit lower -> deck stack
+  sl.innerHTML = `
+    <div class="top"><div class="num">// ${String(i+1).padStart(2,'0')}</div><div class="kind">Cosmos Theme</div></div>
+    <img class="logo" src="./cosmos-logo.png" alt="">
+    <div class="mid"><div class="name">${s.name}</div><div class="role">${s.role}</div></div>
+    <div class="foot"><span>Cosmos&nbsp;AI&nbsp;Lab</span><span class="bar"></span><span>${i+1} / ${SLIDES.length}</span></div>`;
+  sec.appendChild(sl); track.appendChild(sec);
+});
+
+if (AUTO) {
+  const easeIO = x => x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2;
+  const LOOP = 9000;
+  window.__seek = function(t){
+    const u = ((t%LOOP)+LOOP)%LOOP / LOOP;
+    const tri = u<0.5 ? easeIO(u/0.5) : easeIO((1-u)/0.5);   // ping-pong 0->1->0 (seamless)
+    const max = document.scrollingElement.scrollHeight - innerHeight;
+    document.scrollingElement.scrollTop = tri * max;
+  };
+  window.__seek(0); window.__ready = true;
+}
+</script>
+</body>
+</html>

@@ -11,10 +11,16 @@
     "retro",
     "scanlines",
     "canvas2d",
-    "generative"
+    "generative",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A retro phosphor terminal that types out lines of code and commands character by character ('> initializing cosmos...') in violet, cosmic, aurora and sacred glow, with a blinking block cursor, faint scanlines and an ambient screen glow. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the number of revealed characters is a pure function of u — a piecewise ramp types the whole script across u 0..0.72, holds during a pause, then unwinds back to empty so frame(0)==frame(LOOP) (type -> pause -> clear -> retype); each line is sliced to its visible length and drawn additively with a per-line shadow glow; the block cursor sits at the end of the last revealed line and blinks via sin(2*pi*u*4) (integer cycles -> seamless); faint black scanlines, a radial screen glow and a vignette finish the CRT look. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LINES array (text + colour), type fraction 0.72, pause window, cursor blink frequency, font size, scanline spacing.",
   "summary_vi": "Terminal phosphor hoài cổ gõ ra từng dòng mã và lệnh theo từng ký tự ('> initializing cosmos...') với màu tím, xanh vũ trụ, aurora và vàng thiêng, kèm con trỏ khối nhấp nháy, đường quét mờ và quầng sáng màn hình. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Số ký tự hiện ra là hàm thuần của u (gõ -> dừng -> xoá), con trỏ nhấp nháy theo sin(2π·u·4) với số chu kỳ nguyên nên loop liền."
+  "notes": "Số ký tự hiện ra là hàm thuần của u (gõ -> dừng -> xoá), con trỏ nhấp nháy theo sin(2π·u·4) với số chu kỳ nguyên nên loop liền.",
+  "card_number": "AK-CDP-000003S",
+  "tier": "canvas"
 }

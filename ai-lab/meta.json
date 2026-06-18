@@ -1,0 +1,23 @@
+{
+  "slug": "ai-lab",
+  "card_number": "AK-CDP-000000M",
+  "tier": "canvas",
+  "title": "Cosmos AI Lab — 3D Butterfly Swarm (self-contained Three.js showcase)",
+  "title_vi": "",
+  "tags": [
+    "3d",
+    "threejs",
+    "webgl",
+    "butterflies",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "showcase",
+    "procedural-texture",
+    "offline-demo",
+    "ra"
+  ],
+  "summary": "Single-file, dependency-vendored Three.js scene: a swarm of ~80 butterflies with procedurally textured wings (8 species), flapping wings, Lissajous flight paths, a smooth click-to-gather flock effect, drifting clouds, a glowing sun, and soft PCF shadows. Built as a brand showcase for Cosmos AI Lab; runs fully offline by double-clicking index.html (no server, no CDN).",
+  "usage_notes": "RUN: unzip so index.html sits next to the vendor/ folder, then double-click index.html. Works on file:// because it uses CLASSIC scripts (three.min.js UMD + global OrbitControls) instead of ES modules — ES modules are blocked under file:// by browser CORS (the original blank-screen bug). CONTROLS: drag = orbit, scroll = zoom, bottom slider = swarm speed (0 = hover-in-place, still flapping), click anywhere = the whole flock eases over and gathers into a swirling cluster at that point, holds, then disperses (per-butterfly staggered arrival for an organic feel). KEY TECHNIQUES: (1) wing texture painted on a 2D canvas (gradient base + bands + radiating veins + eye-spots + dark frame + marginal dots) → CanvasTexture with remapped UVs on a ShapeGeometry wing; (2) two mirrored wing groups flapping about the forward axis; (3) movement = sum of sines (Lissajous) scaled by a speed multiplier, facing derived from frame-to-frame position delta; (4) gather = smoothstepped strength ramp toward a raycast-on-plane world point + swirling personal offsets. VERIFIED: rendered headless via puppeteer over file:// (swiftshader WebGL), captured normal + gather timelapse, zero console errors.",
+  "summary_vi": "",
+  "notes": ""
+}

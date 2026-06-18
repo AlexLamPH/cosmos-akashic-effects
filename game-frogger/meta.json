@@ -2,11 +2,27 @@
   "slug": "game-frogger",
   "title": "Cosmos Frogger — hop a frog up across cosmic traffic and a river",
   "title_vi": "",
-  "W": 540, "H": 640, "LOOP": 13000, "N": 118,
+  "W": 540,
+  "H": 640,
+  "LOOP": 13000,
+  "N": 118,
   "live_fit": true,
-  "tags": ["game","arcade","playable","interactive","action","canvas2d"],
+  "tags": [
+    "game",
+    "arcade",
+    "playable",
+    "interactive",
+    "action",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained Frogger-style arcade game in a single HTML file with zero dependencies. Hop a glowing frog upward from the start bank, dodging lanes of moving cosmic hazards on the road and riding drifting logs across a river, to reach the goal bank at the top. Each crossing scores points, a collision (or falling in the river) costs a life, and three lives end the run. Playable with arrow keys, WASD, and on-screen touch buttons, with R or a button to restart. It also ships a deterministic self-playing attract demo for capture: a seeded AI frog times its hops across the seeded traffic to reach the goal, rendered as a pure function of time via window.__seek(t).",
   "usage_notes": "RUN: double-click index.html. CONTROLS: Arrow keys / WASD (up to hop forward, left/right/down to reposition) or the on-screen touch pad; R key or the Play Again button restarts. GOAL: hop from the bottom bank to the top goal bank without being hit by a hazard on the road or drifting off a log into the river; each successful crossing adds 100 to your score and you have three lives. KEY TECHNIQUES: lanes are defined as continuous functions of time (direction, speed, spacing, length) seeded once with mulberry32, so obstacle coverage at any cell is a closed-form lookup shared by live and AUTO; the AUTO run is built once by simulating a deterministic AI frog that hops up only when the target road cell is clear or a river cell carries a log (and rides/drifts on logs while waiting), recording per-step keyframes; frameAt(ms) binary-searches the keyframe list so every frame is a pure function of time, with START_T offsetting frame 0 to a mid-crossing with the frog among the lanes and a non-zero score. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: LANES table, HOP_MS/WAIT_MS, START_T, SEED, palette PAL, LOOP.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AA",
+  "tier": "game"
 }

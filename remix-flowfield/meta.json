@@ -2,10 +2,26 @@
   "slug": "remix-flowfield",
   "title": "Cosmos Remix — Flow Field you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "flowfield", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "flowfield",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle flow field: particles are advected along a cheap seeded value-noise field (angle = noise(x,y)·2π + drift) so they stream in organic, curl-like ribbons, recycling positions seamlessly via a periodic loop on u. A live glass control panel lets you retune palette/shape/density/speed/size plus a Turbulence knob, and reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open index.html and use the top-right panel — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot size, and drag Turbulence to make the ribbons calmer or wilder; ↻ Seed cycles palette, ⧉ Copy copies your config. KEY TECHNIQUES: a cheap deterministic seeded value-noise (smoothstep-interpolated integer hash) defines a flow field; each particle starts at a fixed golden-angle seed point and is integrated downstream along the field (angle = vnoise(x,y)·2π·turb + u·2π drift), wrapping on the torus and fading at its life ends so recycling is invisible and frame(0)===frame(LOOP); colour comes from ramp(pal.cols,t) over the per-particle index; PARAMS convention = window.__params describes knobs and window.setParam(key,value) applies them so a generic remix harness can auto-build the panel; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; shapes via drawShape(). CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Turbulence for tighter curls, lower Spread for finer ribbons; add palettes to PALETTES, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000008Y",
+  "tier": "remix"
 }

@@ -2,10 +2,26 @@
   "slug": "flow-field",
   "title": "Cosmos Flow Field — noise-driven flowing streams",
   "title_vi": "Cosmos Flow Field — dòng chảy theo trường nhiễu",
-  "W": 760, "H": 540, "LOOP": 8000, "N": 80,
-  "tags": ["flow-field","perlin","generative","particles","streams","canvas2d"],
+  "W": 760,
+  "H": 540,
+  "LOOP": 8000,
+  "N": 80,
+  "tags": [
+    "flow-field",
+    "perlin",
+    "generative",
+    "particles",
+    "streams",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Particles trace a value-noise flow field into long curving streamlines; glowing dashes flow along each path in the Cosmos accents, creating a silky generative current. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. Streamlines are precomputed once by integrating a value-noise angle field (ang = noise(x,y)*2.2τ) from seeded start points. Each frame a short bright dash flows along its path at head=((u+phase) mod 1)*len (mod-1 → seamless), fading at the ends with a sine envelope; additive blending glows. CAPTURE: ?auto=1 + window.__seek(t). TUNE: line count, fs (field scale), step, dash length.",
   "summary_vi": "Hạt men theo trường value-noise thành các dòng cong dài; vệt sáng chạy dọc mỗi đường tông Cosmos, tạo dòng chảy generative mượt. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Batch factory #6. Streamline tính sẵn từ field noise; dash chạy head=((u+phase)mod1)*len → loop; envelope sin + additive. A/B-tier."
+  "notes": "Batch factory #6. Streamline tính sẵn từ field noise; dash chạy head=((u+phase)mod1)*len → loop; envelope sin + additive. A/B-tier.",
+  "card_number": "AK-CDP-000001C",
+  "tier": "canvas"
 }

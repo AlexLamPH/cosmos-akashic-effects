@@ -6,9 +6,27 @@
   "H": 480,
   "LOOP": 6400,
   "N": 80,
-  "tags": ["theremin", "theremin-grid", "tone-grid", "audio", "webaudio", "interactive", "sound", "synth", "canvas2d", "generative", "glow"],
+  "tags": [
+    "theremin",
+    "theremin-grid",
+    "tone-grid",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "synth",
+    "canvas2d",
+    "generative",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A quantized tone-grid theremin that makes REAL sound via the Web Audio API: a glowing grid where the cursor's X picks a note from a minor-pentatonic scale and Y picks the octave and timbre, with the tone gliding between cells via portamento. Move or click across the grid to play a continuous quantized lead. The active cell lights with a pulsing glow, a glowing tail traces the cursor's path, and a live note/frequency readout updates. Fully self-contained, zero deps, runs offline. Ships with a silent deterministic looping visual demo (a seeded path gliding the grid) for capture.",
   "usage_notes": "RUN: open index.html and move the mouse across the grid to HEAR it (audio needs a user gesture); click to toggle sustain on/off. KEY TECHNIQUES: a single continuous OscillatorNode (waveform switches sine/triangle per grid row) -> resonant lowpass BiquadFilter (cutoff rises toward the top of the grid) -> a VCA gain with smooth setTargetAtTime ramps (no clicks) -> master gain (0.2) -> compressor; the cursor position is quantized to a cell whose frequency is BASE * 2**(semi/12) using minor-pentatonic degrees so every cell sounds good, and osc.frequency.setTargetAtTime gives portamento glide between notes. CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) drives a seeded smooth path across the grid that loops. TUNE: SCALE/BASE for the note set, WAVES for per-row timbre, the setTargetAtTime time-constants for portamento speed and attack, WP for the demo path.",
   "summary_vi": "Theremin lưới âm lượng tử hóa tạo âm thanh THẬT qua Web Audio API: một lưới phát sáng nơi trục X của con trỏ chọn nốt theo thang ngũ cung thứ và trục Y chọn quãng tám cùng âm sắc, tiếng lướt giữa các ô bằng portamento. Di chuyển hoặc bấm khắp lưới để chơi một giai điệu lượng tử hóa liên tục. Ô đang chơi phát sáng nhấp nháy, một vệt sáng vẽ theo đường con trỏ, và bảng đọc nốt/tần số cập nhật. Tự chứa, không phụ thuộc, chạy ngoại tuyến; kèm demo hình lặp tất định không tiếng để chụp.",
-  "notes": "Mở ra rồi rê chuột khắp lưới để nghe, bấm chuột để giữ tiếng."
+  "notes": "Mở ra rồi rê chuột khắp lưới để nghe, bấm chuột để giữ tiếng.",
+  "card_number": "AK-CDP-000008H",
+  "tier": "audio"
 }

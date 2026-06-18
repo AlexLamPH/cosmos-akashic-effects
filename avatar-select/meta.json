@@ -1,0 +1,26 @@
+{
+  "slug": "avatar-select",
+  "card_number": "AK-CDP-000000T",
+  "tier": "ui",
+  "title": "Cosmos Avatar Select — agent-style roster picker + 3D reveal (CSS/JS)",
+  "title_vi": "",
+  "tags": [
+    "avatar",
+    "agent-select",
+    "roster",
+    "picker",
+    "3d-reveal",
+    "parallax",
+    "custom-cursor",
+    "hue-rotate",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A Valorant-agent-style avatar selector: a roster of avatar cells on the right; click one and the hero on the left reveals that agent with a 3D entrance (scale + rotateY swing + fade), a diagonal highlight sweep, a glow, and a theme cross-fade (accent colour, background aura, and a hue cast on the logo). A custom ring+dot cursor replaces the system pointer and grows over interactive cells. Six Cosmos 'agents' (Phantom/Solaris/Sacred/Aurora/Cosmic/Nebula) built from one logo. Pure HTML/CSS/JS, zero dependencies, runs offline.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); drop a transparent logo next to it as cosmos-logo.png. INTERACTION: click a roster cell -> the hero reveals that agent; hover cells/button -> the custom cursor grows; mouse over the hero -> it parallax-tilts toward the cursor (live only). DATA MODEL: AGENTS[] = {name, role, accent, hue, desc} — add/edit entries and the roster + hero update automatically. KEY TECHNIQUES: (1) setAgent(i) sets discrete state (text, .sel cell, theme vars --accent/--hue/--bg0); (2) reveal(t) drives --ent (eased entrance), --sweep (highlight band) and --glow from time-since-switch, so the 3D reveal is a pure function of time; (3) perspective stage + preserve-3d layers (halo/logo/sheen/sweep) at different translateZ; (4) per-agent recolour via CSS hue-rotate(var(--hue)) on the rainbow logo + color-mix() accents; (5) custom cursor = inertial ring + snapping dot, .grow on hover. CAPTURE: open with ?auto=1 — a deterministic cursor cycles the roster (DWELL 1200ms x 6 = 7200ms loop) and window.__seek(t) renders one exact frame for capture.cjs -> seamless GIF. BRAND: Phantom-dark base; rainbow only in the logo; accents stay restrained per CAL Brand DNA.",
+  "summary_vi": "",
+  "notes": ""
+}

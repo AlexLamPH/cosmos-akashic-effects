@@ -6,9 +6,21 @@
   "H": 620,
   "LOOP": 7200,
   "N": 90,
-  "tags": ["canvas2d", "vinyl", "record", "generative", "glow"],
+  "tags": [
+    "canvas2d",
+    "vinyl",
+    "record",
+    "generative",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A black vinyl record with dozens of concentric groove rings and a glowing accent label spins beneath a resting tonearm, while a subtle specular highlight sweeps across the grooves. The disc completes an integer number of revolutions per loop so the motion is perfectly seamless. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: disc rotation = u*2pi*TURNS with integer TURNS so frame(0)==frame(LOOP); the radial label with 12 spoke marks spins with the disc so rotation reads clearly, while the groove rings and tonearm stay fixed; a specular highlight arc sweeps once per loop at angle u*2pi over the grooves using additive 'lighter' compositing; the tonearm is drawn as a glowing arm from a top-right pivot to a needle contact point with a headshell and contact glow; radial body gradient gives the vinyl its sheen. CAPTURE: ?auto=1 + window.__seek(t). TUNE: TURNS for spin speed, R for size, the groove count (46) and spacing, label radius (0.30), highlight width/position.",
   "summary_vi": "Một đĩa than đen với hàng chục vành rãnh đồng tâm và nhãn phát sáng nổi bật xoay bên dưới cần kim đang tì lên đĩa, trong khi một vệt sáng phản chiếu nhẹ quét qua các rãnh. Đĩa quay đúng số vòng nguyên mỗi chu kỳ nên chuyển động liền mạch hoàn toàn. Canvas 2D thuần, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Đĩa quay TURNS=2 vòng nguyên mỗi LOOP nên frame(0) trùng frame(LOOP); vệt sáng phản chiếu quét đúng một vòng mỗi chu kỳ."
+  "notes": "Đĩa quay TURNS=2 vòng nguyên mỗi LOOP nên frame(0) trùng frame(LOOP); vệt sáng phản chiếu quét đúng một vòng mỗi chu kỳ.",
+  "card_number": "AK-CDP-0000056",
+  "tier": "canvas"
 }

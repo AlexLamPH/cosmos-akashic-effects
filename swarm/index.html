@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Swarm — formation cards</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#06040f; cursor:default;
+    font-family:-apple-system,"Segoe UI",system-ui,sans-serif; }
+  .bg { position:fixed; inset:0; background:radial-gradient(120% 90% at 50% 40%,#130c28 0%,#08051a 55%,#05030d 100%); }
+  .stars { position:fixed; inset:0; pointer-events:none; }
+  .scene { position:fixed; inset:0; perspective:1200px; }
+  .world { position:absolute; left:50%; top:50%; transform-style:preserve-3d; }
+
+  .card {
+    position:absolute; left:0; top:0; width:82px; height:100px; margin:-50px 0 0 -41px;
+    border-radius:10px; transform-style:preserve-3d; will-change:transform; cursor:pointer;
+    background:linear-gradient(160deg, color-mix(in srgb, var(--c) 34%, #0c0820), #08061400 90%);
+    border:1px solid color-mix(in srgb, var(--c) 60%, transparent);
+    box-shadow:0 0 18px -4px color-mix(in srgb, var(--c) 70%, transparent), inset 0 0 14px -8px var(--c);
+    padding:8px; color:#eee; backface-visibility:hidden;
+  }
+  .card .num { font-size:10px; opacity:.7; }
+  .card .sym { position:absolute; left:0; right:0; top:36px; text-align:center; font-size:26px; font-weight:800; color:#fff;
+    text-shadow:0 0 10px color-mix(in srgb, var(--c) 80%, transparent); }
+  .card .nm { position:absolute; left:0; right:0; bottom:8px; text-align:center; font-size:9px; letter-spacing:.06em; color:color-mix(in srgb, var(--c) 60%, #fff); text-transform:uppercase; }
+
+  /* profile that appears on click */
+  .profile { position:fixed; left:50%; top:46%; translate:-50% -50%; width:300px; padding:26px 26px 22px;
+    border-radius:20px; background:rgba(14,10,30,.9); backdrop-filter:blur(8px);
+    border:1px solid color-mix(in srgb, var(--pc) 60%, transparent);
+    box-shadow:0 24px 70px rgba(0,0,0,.6), 0 0 40px -6px color-mix(in srgb, var(--pc) 60%, transparent);
+    opacity:0; scale:.85; pointer-events:none; transition:opacity .3s, scale .3s; z-index:30; }
+  .profile.show { opacity:1; scale:1; }
+  .profile .pn { font-size:12px; letter-spacing:.3em; color:var(--pc); font-weight:700; }
+  .profile .ps { font-size:64px; font-weight:800; color:#fff; line-height:1; margin:6px 0 2px;
+    text-shadow:0 4px 24px color-mix(in srgb, var(--pc) 60%, transparent); }
+  .profile .pnm { font-size:20px; font-weight:700; color:#ece9f7; letter-spacing:.02em; }
+  .profile .pr { margin-top:12px; font-size:13px; line-height:1.5; color:#c4bce0; }
+  .profile .bar { margin-top:14px; height:4px; border-radius:3px; background:var(--pc); opacity:.8; }
+
+  .hint { position:fixed; left:50%; bottom:6%; translate:-50%; font-size:11px; letter-spacing:.4em;
+    text-transform:uppercase; color:#8a83a8; pointer-events:none; }
+  .hint b { color:#cbb8ff; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <canvas class="stars" id="stars"></canvas>
+  <div class="scene"><div class="world" id="world"></div></div>
+  <div class="profile" id="profile">
+    <div class="pn" id="pn">NODE // 00</div><div class="ps" id="ps">Cs</div>
+    <div class="pnm" id="pnm">Cosmic</div><div class="pr" id="pr"></div><div class="bar"></div>
+  </div>
+  <div class="hint" id="hint">Formation: <b id="fname">GRID</b></div>
+<script>
+// ============================================================================
+//  Cosmos Swarm — 48 cards fly between formations (grid / sphere / helix / wave)
+//  like a drone swarm, rotating around centre. Click a card -> its profile opens.
+//  Pure CSS 3D + quaternion slerp. ?auto=1 + window.__seek(t) drives a seamless GIF.
+// ============================================================================
+const AUTO = new URLSearchParams(location.search).has('auto');
+const world = document.getElementById('world');
+const N = 48, LOOP = 9600, DWELL = LOOP/4, MORPH = 1300;
+const TAU = 6.28318;
+
+// ---- card data (6 Cosmos themes) ----
+const TH = [['Phantom','#8b5cff','Stealth · Recon'],['Solaris','#ff6a3d','Burst · Ignite'],
+            ['Sacred','#e0b24a','Ward · Restore'],['Aurora','#36d39a','Flux · Bloom'],
+            ['Cosmic','#46b4ff','Drift · Scan'],['Nebula','#ff5cc2','Lure · Charm']];
+const L2 = 'aeioustmnrl';
+const cards = [];
+for(let i=0;i<N;i++){
+  const th=TH[i%6], sym=(th[0][0]+L2[(i*5)%L2.length]).replace(/^./,c=>c.toUpperCase());
+  const el=document.createElement('div'); el.className='card'; el.style.setProperty('--c',th[1]);
+  el.innerHTML=`<div class="num">${i+1}</div><div class="sym">${sym}</div><div class="nm">${th[0]}</div>`;
+  world.appendChild(el);
+  cards.push({el, n:i+1, sym, name:th[0], color:th[1], role:th[2]});
+}
+
+// ---- quaternion + matrix ----
+const qI=[0,0,0,1];
+function qAxis(ax,a){ const h=a/2,s=Math.sin(h),c=Math.cos(h); return ax===0?[s,0,0,c]:ax===1?[0,s,0,c]:[0,0,s,c]; }
+function qMul(a,b){ return [
+  a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],
+  a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],
+  a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],
+  a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]]; }
+function qSlerp(a,b,t){ let d=a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]; let bb=b.slice();
+  if(d<0){ d=-d; bb=[-b[0],-b[1],-b[2],-b[3]]; }
+  if(d>0.9995){ const r=[a[0]+(bb[0]-a[0])*t,a[1]+(bb[1]-a[1])*t,a[2]+(bb[2]-a[2])*t,a[3]+(bb[3]-a[3])*t];
+    const l=Math.hypot(r[0],r[1],r[2],r[3])||1; return [r[0]/l,r[1]/l,r[2]/l,r[3]/l]; }
+  const th=Math.acos(d), s=Math.sin(th), w1=Math.sin((1-t)*th)/s, w2=Math.sin(t*th)/s;
+  return [a[0]*w1+bb[0]*w2,a[1]*w1+bb[1]*w2,a[2]*w1+bb[2]*w2,a[3]*w1+bb[3]*w2]; }
+function css(q,p){ const [x,y,z,w]=q;
+  const m00=1-2*(y*y+z*z), m01=2*(x*y-w*z), m02=2*(x*z+w*y);
+  const m10=2*(x*y+w*z), m11=1-2*(x*x+z*z), m12=2*(y*z-w*x);
+  const m20=2*(x*z-w*y), m21=2*(y*z+w*x), m22=1-2*(x*x+y*y);
+  return `matrix3d(${m00},${m10},${m20},0,${m01},${m11},${m21},0,${m02},${m12},${m22},0,${p[0]},${p[1]},${p[2]},1)`; }
+
+// ---- formations: return {p:[x,y,z], q:[..]} for card i ----
+function grid(i){ const c=i%8,r=(i/8|0); return {p:[(c-3.5)*98,(r-2.5)*116,0], q:qI}; }
+function sphere(i){ const R=350, phi=Math.asin(-1+2*(i+0.5)/N), th=i*2.39996;
+  return {p:[R*Math.cos(phi)*Math.sin(th), -R*Math.sin(phi), R*Math.cos(phi)*Math.cos(th)],
+          q:qMul(qAxis(1,th),qAxis(0,phi))}; }
+function helix(i){ const R=300, a=i*0.36, y=(i-(N-1)/2)*8.6;
+  return {p:[R*Math.sin(a), y, R*Math.cos(a)], q:qAxis(1,a)}; }
+function wave(i,tmod){ const c=i%8,r=(i/8|0), ph=TAU*tmod/LOOP*2, k=c*0.8+r*0.45;
+  return {p:[(c-3.5)*100,(r-2.5)*112, 66*Math.sin(k+ph)], q:qAxis(0, -0.5*Math.cos(k+ph))}; }
+const FORMS = [grid, sphere, helix, wave];
+const FNAMES = ['GRID','SPHERE','HELIX','WAVE'];
+function formAt(fn, i, tmod){ return fn(i, tmod); }
+
+const easeIO = x => x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2;
+
+function render(t){
+  const tmod=((t%LOOP)+LOOP)%LOOP;
+  const d=Math.floor(tmod/DWELL)%4, prev=(d-1+4)%4;
+  const e=easeIO(Math.min((tmod-d*DWELL)/MORPH,1));
+  const Fc=FORMS[d], Fp=FORMS[prev];
+  for(let i=0;i<N;i++){
+    const A=formAt(Fp,i,tmod), B=formAt(Fc,i,tmod);
+    const p=[A.p[0]+(B.p[0]-A.p[0])*e, A.p[1]+(B.p[1]-A.p[1])*e, A.p[2]+(B.p[2]-A.p[2])*e];
+    const q=qSlerp(A.q,B.q,e);
+    cards[i].el.style.transform=css(q,p);
+  }
+  // slow rotation about centre (integer turns -> seamless)
+  const rot=TAU*tmod/LOOP;
+  world.style.transform=`translateZ(-40px) rotateY(${rot}rad) rotateX(${0.18*Math.sin(rot)}rad)`;
+  document.getElementById('fname').textContent=FNAMES[d];
+  drawStars(t);
+}
+
+// ---- starfield ----
+const sc=document.getElementById('stars'), sx=sc.getContext('2d'); let W,H,DPR,stars=[];
+function srnd(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function rs(){ DPR=Math.min(devicePixelRatio||1,2); W=sc.width=innerWidth*DPR; H=sc.height=innerHeight*DPR;
+  sc.style.width=innerWidth+'px'; sc.style.height=innerHeight+'px'; const r=srnd(9); stars=[];
+  for(let i=0;i<120;i++) stars.push({x:r()*W,y:r()*H,rad:(r()*1.2+0.3)*DPR,tw:r()*6.28,sp:0.4+r()*1.2}); }
+rs(); addEventListener('resize',rs);
+function drawStars(t){ sx.clearRect(0,0,W,H); for(const s of stars){ sx.globalAlpha=0.4+0.6*Math.abs(Math.sin(t*0.001*s.sp+s.tw));
+  sx.fillStyle='#cdd6ff'; sx.beginPath(); sx.arc(s.x,s.y,s.rad,0,6.283); sx.fill(); } sx.globalAlpha=1; }
+
+// ---- profile open ----
+const prof=document.getElementById('profile');
+function openProfile(card){ prof.style.setProperty('--pc',card.color);
+  document.getElementById('pn').textContent='NODE // '+String(card.n).padStart(2,'0');
+  document.getElementById('ps').textContent=card.sym;
+  document.getElementById('pnm').textContent=card.name;
+  document.getElementById('pr').textContent=card.role+' — một nút trong bầy '+N+' agent Cosmos, phối hợp sắp xếp thành mọi đội hình.';
+  prof.classList.add('show'); }
+function closeProfile(){ prof.classList.remove('show'); }
+
+if(AUTO){
+  window.__seek=t=>{ render(t);
+    const tmod=((t%LOOP)+LOOP)%LOOP, d=Math.floor(tmod/DWELL)%4, ph=tmod-d*DWELL;
+    // during GRID dwell, pop one card's profile after the morph settles
+    if(d===0 && ph>MORPH+250 && ph<DWELL-250){ if(!prof.classList.contains('show')) openProfile(cards[19]); }
+    else closeProfile();
+  };
+  render(0); window.__ready=true;
+} else {
+  cards.forEach((c,i)=> c.el.addEventListener('click',()=>openProfile(c)));
+  document.addEventListener('click', e=>{ if(!e.target.closest('.card') && !e.target.closest('.profile')) closeProfile(); });
+  const start=performance.now();
+  (function loop(now){ render(now-start); requestAnimationFrame(loop); })(performance.now());
+}
+</script>
+</body>
+</html>

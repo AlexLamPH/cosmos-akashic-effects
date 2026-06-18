@@ -2,11 +2,27 @@
   "slug": "game-match3",
   "title": "Cosmos Match-3 — swap adjacent gems to line up 3+ and cascade",
   "title_vi": "",
-  "W": 540, "H": 640, "LOOP": 12000, "N": 55,
+  "W": 540,
+  "H": 640,
+  "LOOP": 12000,
+  "N": 55,
   "live_fit": true,
-  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained match-3 puzzle in a single HTML file with zero dependencies. An 8x8 grid is filled with six colors of glowing Cosmos gems; swap two adjacent gems to line up three or more of the same color, which pop and let the gems above fall with gravity and refill from the top, triggering chain cascades. Score accrues per match (bigger and chained matches score more) and a move counter limits the round. Playable with mouse or touch (click a gem then an adjacent one, or drag-swap) and R to restart. It also ships a deterministic self-playing attract demo for capture: a seeded AI makes valid swaps and matches pop and cascade, rendered as a pure function of time via window.__seek(t).",
   "usage_notes": "RUN: double-click index.html. CONTROLS: click a gem to select then click an adjacent gem to swap, or press-drag from one gem onto a neighbour; on touch the same tap/drag works; R key or the Play Again button restarts. GOAL: swap to form lines of 3+ same-color gems; matched gems pop, gems above fall to fill the gaps, new gems drop in from the top, and any new lines chain-cascade for bonus points; each match scores matchSize*10 scaled up by cascade depth; you get a limited number of moves. KEY TECHNIQUES: a pure flat 8x8 grid with findMatches (horizontal+vertical runs), swapMakesMatch validation, and a gravity collapse+refill shared by live and AUTO. The AUTO run is built once from a mulberry32-seeded board: a deterministic AI enumerates all valid swaps each turn and picks the one yielding the largest immediate match (index tie-break), then resolves every cascade; the resulting swap/pop/fall phases are precomputed so simTo(ms) walks the phase timeline and tweens, making each frame a pure function of time, with START_OFFSET placing frame 0 mid-cascade with a populated board and score. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: SWAP_MS/POP_MS/FALL_MS, START_OFFSET, the AI swap-pick heuristic, the GC gem palette, MOVES_LIMIT, LOOP.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BK",
+  "tier": "game"
 }

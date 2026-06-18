@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos AI Lab</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: linear-gradient(180deg, #8fd0f5 0%, #b6e4fb 40%, #dff4ff 75%, #eaf8e8 100%);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    cursor: grab;
+  }
+  body:active { cursor: grabbing; }
+  #app { position: fixed; inset: 0; }
+  .vignette {
+    position: fixed; inset: 0; z-index: 5; pointer-events: none;
+    box-shadow: inset 0 0 220px 60px rgba(40, 80, 120, 0.18);
+  }
+  .title {
+    position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+    z-index: 10; pointer-events: none; user-select: none;
+    font-size: clamp(30px, 6vw, 62px);
+    font-weight: 800; font-style: italic; color: #fff; white-space: nowrap;
+    letter-spacing: 1px;
+    text-shadow: 0 3px 22px rgba(60, 110, 160, 0.5), 0 1px 0 rgba(255,255,255,0.5);
+  }
+  /* speed control panel */
+  .panel {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.24);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 8px 30px rgba(60, 110, 160, 0.2);
+    user-select: none;
+  }
+  .panel .lbl { font-size: 13px; font-weight: 700; color: #2c5d86; letter-spacing: .5px; }
+  .panel .ico { font-size: 18px; }
+  .panel input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 190px; height: 6px; border-radius: 999px;
+    background: linear-gradient(90deg, #6db7ff, #ff8ac4); outline: none;
+  }
+  .panel input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: 2px solid #ff8ac4; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .panel input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: 2px solid #ff8ac4; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="vignette"></div>
+  <div class="title">Cosmos AI Lab</div>
+
+  <div class="panel">
+    <span class="lbl">Tốc độ</span>
+    <span class="ico">🐢</span>
+    <input id="speed" type="range" min="0" max="1.5" step="0.01" value="0.55" />
+    <span class="ico">🦋</span>
+  </div>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+
+  <script>
+  // ===================== Scene =====================
+  const app = document.getElementById('app');
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0xdff1fb, 0.011);
+
+  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 400);
+  camera.position.set(0, 3, 36);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  app.appendChild(renderer.domElement);
+
+  // ===================== Lights =====================
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9ec8e0, 0.95));
+  const sun = new THREE.DirectionalLight(0xfff4d6, 1.4);
+  sun.position.set(-26, 34, 14);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.4;
+  const sc = sun.shadow.camera;
+  sc.left = -28; sc.right = 28; sc.top = 28; sc.bottom = -28; sc.near = 1; sc.far = 120;
+  sc.updateProjectionMatrix();
+  scene.add(sun);
+
+  // ===================== Sun disc + glow =====================
+  const sunDir = sun.position.clone().normalize();
+  const sunPos = sunDir.clone().multiplyScalar(150);
+  const sunDisc = new THREE.Mesh(
+    new THREE.CircleGeometry(7, 40),
+    new THREE.MeshBasicMaterial({ color: 0xfff6e0, fog: false })
+  );
+  sunDisc.position.copy(sunPos); sunDisc.lookAt(0, 0, 0); scene.add(sunDisc);
+
+  function radialSprite(stops, size) {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+    stops.forEach(s => g.addColorStop(s[0], s[1]));
+    x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    }));
+    m.scale.setScalar(size); return m;
+  }
+  const glow = radialSprite(
+    [[0, 'rgba(255,247,220,0.95)'], [0.25, 'rgba(255,238,180,0.55)'], [1, 'rgba(255,238,180,0)']], 90
+  );
+  glow.position.copy(sunPos); scene.add(glow);
+
+  // ===================== Clouds =====================
+  function cloudTexture() {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const x = c.getContext('2d');
+    for (let i = 0; i < 16; i++) {
+      const r = 30 + Math.random() * 55, cx = 60 + Math.random() * 136, cy = 90 + Math.random() * 80;
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+  }
+  const cloudTex = cloudTexture();
+  const clouds = [];
+  for (let i = 0; i < 12; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: cloudTex, transparent: true, opacity: 0.55 + Math.random() * 0.25, depthWrite: false,
+    }));
+    const sz = 22 + Math.random() * 26;
+    s.scale.set(sz, sz * 0.62, 1);
+    s.position.set((Math.random() - 0.5) * 160, 8 + Math.random() * 30, -50 - Math.random() * 70);
+    s.userData.speed = 0.4 + Math.random() * 0.8;
+    clouds.push(s); scene.add(s);
+  }
+
+  // ===================== Soft shadow-catching ground =====================
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(400, 400),
+    new THREE.MeshStandardMaterial({ color: 0xe8f5ff, roughness: 1 })
+  );
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -13; ground.receiveShadow = true;
+  scene.add(ground);
+
+  // ===================== Butterfly wing textures =====================
+  function hexFill(x, g, stops) { stops.forEach(s => g.addColorStop(s[0], s[1])); x.fillStyle = g; }
+  function makeWingTexture(cfg) {
+    const W = 256, H = 256;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const x = cv.getContext('2d');
+    const root = { x: 5, y: H * 0.5 };
+    const g = x.createLinearGradient(0, 0, W, 0);
+    cfg.base.forEach((c, i) => g.addColorStop(i / (cfg.base.length - 1), c));
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    (cfg.bands || []).forEach(b => {
+      x.save(); x.translate(b.at * W, 0); x.rotate(0.12);
+      x.fillStyle = b.color; x.fillRect(-b.w / 2, -20, b.w, H + 40); x.restore();
+    });
+    x.strokeStyle = cfg.vein; x.lineWidth = cfg.veinW || 2.5; x.lineCap = 'round';
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      const a = -0.9 + (i / (n - 1)) * 1.8, len = W * (0.78 + 0.18 * Math.cos(a));
+      x.beginPath(); x.moveTo(root.x, root.y);
+      x.quadraticCurveTo(root.x + len * 0.5, root.y + Math.sin(a) * 30,
+                         root.x + len * Math.cos(a), root.y + Math.sin(a) * H * 0.5);
+      x.stroke();
+    }
+    (cfg.spots || []).forEach(s => {
+      const px = s.u * W, py = (1 - s.v) * H;
+      x.beginPath(); x.arc(px, py, s.r, 0, 7); x.fillStyle = s.ring; x.fill();
+      x.beginPath(); x.arc(px, py, s.r * 0.5, 0, 7); x.fillStyle = s.core; x.fill();
+    });
+    let gg = x.createLinearGradient(W, 0, W * 0.72, 0);
+    hexFill(x, gg, [[0, cfg.border], [1, 'rgba(0,0,0,0)']]); x.fillRect(W * 0.72, 0, W * 0.28, H);
+    gg = x.createLinearGradient(0, 0, 0, H * 0.18);
+    hexFill(x, gg, [[0, cfg.border], [1, 'rgba(0,0,0,0)']]); x.fillRect(0, 0, W, H * 0.18);
+    gg = x.createLinearGradient(0, H, 0, H * 0.82);
+    hexFill(x, gg, [[0, cfg.border], [1, 'rgba(0,0,0,0)']]); x.fillRect(0, H * 0.82, W, H * 0.18);
+    if (cfg.marginDots) {
+      x.fillStyle = cfg.marginDots;
+      for (let i = 0; i < 7; i++) { const v = 0.12 + (i / 6) * 0.76; x.beginPath(); x.arc(W * 0.91, (1 - v) * H, 4.2, 0, 7); x.fill(); }
+      for (let i = 0; i < 4; i++) { const u = 0.3 + (i / 3) * 0.5; x.beginPath(); x.arc(u * W, H * 0.085, 3.6, 0, 7); x.fill(); x.beginPath(); x.arc(u * W, H * 0.915, 3.6, 0, 7); x.fill(); }
+    }
+    const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
+  }
+  const SPECIES = [
+    { base: ['#ffb347', '#ff7a00'], vein: 'rgba(50,22,0,0.85)', veinW: 3, border: 'rgba(25,12,0,0.92)', marginDots: '#fff5e6' },
+    { base: ['#1f5cff', '#5fa0ff', '#bcd9ff'], vein: 'rgba(255,255,255,0.18)', border: 'rgba(8,18,55,0.9)', marginDots: 'rgba(255,255,255,0.6)' },
+    { base: ['#ffe24d', '#ffcf1a'], vein: 'rgba(30,20,0,0.5)',
+      bands: [{ at: 0.28, w: 16, color: 'rgba(20,12,0,0.85)' }, { at: 0.46, w: 16, color: 'rgba(20,12,0,0.85)' },
+              { at: 0.64, w: 16, color: 'rgba(20,12,0,0.85)' }, { at: 0.8, w: 14, color: 'rgba(20,12,0,0.85)' }],
+      border: 'rgba(20,12,0,0.95)', marginDots: '#1a1200', spots: [{ u: 0.8, v: 0.16, r: 9, ring: '#1a1200', core: '#ff5a3c' }] },
+    { base: ['#3a1712', '#5a241a'], vein: 'rgba(0,0,0,0.4)', bands: [{ at: 0.5, w: 34, color: '#ff3a24' }], border: 'rgba(10,4,2,0.92)', marginDots: '#ffffff' },
+    { base: ['#7a39ff', '#a874ff', '#d8c2ff'], vein: 'rgba(255,255,255,0.14)', border: 'rgba(30,8,60,0.9)',
+      spots: [{ u: 0.72, v: 0.7, r: 8, ring: '#23104a', core: '#ffb0e0' }, { u: 0.66, v: 0.26, r: 8, ring: '#23104a', core: '#ffb0e0' }] },
+    { base: ['#15b8a8', '#76e3d6'], vein: 'rgba(4,50,46,0.5)', border: 'rgba(3,40,36,0.9)', marginDots: '#063e38',
+      spots: [{ u: 0.62, v: 0.72, r: 7, ring: '#063e38', core: '#eafff9' }, { u: 0.58, v: 0.26, r: 7, ring: '#063e38', core: '#eafff9' }] },
+    { base: ['#ff5fa2', '#ff9ec6', '#ffd9e8'], vein: 'rgba(120,20,60,0.4)', border: 'rgba(120,10,50,0.85)', marginDots: '#fff' },
+    { base: ['#ff7e3d', '#ffd24a'], vein: 'rgba(60,20,0,0.55)', border: 'rgba(40,12,0,0.9)', marginDots: '#3a1400',
+      spots: [{ u: 0.7, v: 0.68, r: 8, ring: '#3a1400', core: '#1f6bff' }, { u: 0.64, v: 0.28, r: 8, ring: '#3a1400', core: '#1f6bff' }] },
+  ].map(makeWingTexture);
+
+  // ===================== Wing geometry (UV-mapped) =====================
+  function makeWingShape() {
+    const s = new THREE.Shape();
+    s.moveTo(0, 0);
+    s.bezierCurveTo(0.15, 0.65, 0.85, 1.05, 1.05, 0.45);
+    s.bezierCurveTo(1.15, 0.10, 0.70, 0.02, 0.45, -0.02);
+    s.bezierCurveTo(0.95, -0.20, 0.92, -1.00, 0.40, -0.85);
+    s.bezierCurveTo(0.12, -0.72, 0.05, -0.30, 0, 0);
+    return s;
+  }
+  const wingGeo = new THREE.ShapeGeometry(makeWingShape(), 40);
+  wingGeo.computeBoundingBox();
+  {
+    const { min, max } = wingGeo.boundingBox, pos = wingGeo.attributes.position, uv = [];
+    for (let i = 0; i < pos.count; i++) uv.push((pos.getX(i) - min.x) / (max.x - min.x), (pos.getY(i) - min.y) / (max.y - min.y));
+    wingGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  }
+  const bodyGeo = new THREE.CylinderGeometry(0.05, 0.03, 0.85, 8); bodyGeo.rotateX(Math.PI / 2);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x241c14, roughness: 0.7 });
+  const antMat = new THREE.LineBasicMaterial({ color: 0x241c14 });
+
+  function randInSphere(r) {
+    const th = Math.random() * 6.283, ph = Math.acos(2 * Math.random() - 1), rr = Math.cbrt(Math.random()) * r;
+    return new THREE.Vector3(rr * Math.sin(ph) * Math.cos(th), rr * Math.cos(ph), rr * Math.sin(ph) * Math.sin(th));
+  }
+
+  function makeButterfly() {
+    const group = new THREE.Group();
+    const tex = SPECIES[(Math.random() * SPECIES.length) | 0];
+    const wingMat = new THREE.MeshStandardMaterial({
+      map: tex, side: THREE.DoubleSide, shadowSide: THREE.DoubleSide,
+      roughness: 0.5, metalness: 0.05, emissive: 0x222222, emissiveIntensity: 0.15,
+      transparent: true, alphaTest: 0.02,
+    });
+    const right = new THREE.Group();
+    const rm = new THREE.Mesh(wingGeo, wingMat); rm.castShadow = true; right.add(rm); group.add(right);
+    const left = new THREE.Group(); left.scale.x = -1;
+    const lm = new THREE.Mesh(wingGeo, wingMat); lm.castShadow = true; left.add(lm); group.add(left);
+    const body = new THREE.Mesh(bodyGeo, bodyMat); body.castShadow = true; group.add(body);
+    for (const d of [-1, 1]) {
+      const ag = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0.38), new THREE.Vector3(d * 0.12, 0.13, 0.58)]);
+      group.add(new THREE.Line(ag, antMat));
+    }
+    group.scale.setScalar(0.7 + Math.random() * 0.95);
+    group.userData = {
+      amp: new THREE.Vector3(9 + Math.random() * 9, 5 + Math.random() * 5, 9 + Math.random() * 9),
+      freq: new THREE.Vector3(0.10 + Math.random() * 0.18, 0.16 + Math.random() * 0.22, 0.10 + Math.random() * 0.18),
+      phase: new THREE.Vector3(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28),
+      flapSpeed: 8 + Math.random() * 6, flapPhase: Math.random() * 6.28,
+      left, right,
+      cluster: randInSphere(5.2),          // personal spot within the gathered flock
+      gatherLag: Math.random() * 0.32,     // staggers arrival so they don't snap in unison
+      prev: new THREE.Vector3(),
+    };
+    return group;
+  }
+
+  const butterflies = [];
+  const COUNT = 80;
+  for (let i = 0; i < COUNT; i++) { const b = makeButterfly(); scene.add(b); butterflies.push(b); }
+
+  // ===================== Controls =====================
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.06;
+  controls.autoRotate = true; controls.autoRotateSpeed = 0.45;
+  controls.minDistance = 10; controls.maxDistance = 90;
+  controls.target.set(0, 2, 0);
+  controls.addEventListener('start', () => (controls.autoRotate = false));
+
+  // ===================== Speed slider =====================
+  let speed = 0.55;
+  document.getElementById('speed').addEventListener('input', e => { speed = parseFloat(e.target.value); });
+
+  // ===================== Click → butterflies gather at that point =====================
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const gatherPlane = new THREE.Plane(), camDir = new THREE.Vector3();
+  const gather = { pos: new THREE.Vector3(), target: 0, strength: 0, hold: 0 };
+
+  function gatherAt(clientX, clientY) {
+    const r = renderer.domElement.getBoundingClientRect();
+    ndc.x = ((clientX - r.left) / r.width) * 2 - 1;
+    ndc.y = -((clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    camera.getWorldDirection(camDir);
+    gatherPlane.setFromNormalAndCoplanarPoint(camDir, controls.target);
+    const p = new THREE.Vector3();
+    if (ray.ray.intersectPlane(gatherPlane, p)) {
+      gather.pos.copy(p); gather.target = 1; gather.hold = 2.6;  // ramp in, hold, then ease out
+    }
+  }
+  // tell a click apart from an orbit-drag
+  let dx0 = 0, dy0 = 0, dt0 = 0;
+  renderer.domElement.addEventListener('pointerdown', e => { dx0 = e.clientX; dy0 = e.clientY; dt0 = performance.now(); });
+  renderer.domElement.addEventListener('pointerup', e => {
+    if (Math.hypot(e.clientX - dx0, e.clientY - dy0) < 7 && performance.now() - dt0 < 350)
+      gatherAt(e.clientX, e.clientY);
+  });
+
+  // ===================== Animate =====================
+  const home = new THREE.Vector3(), target = new THREE.Vector3(), cl = new THREE.Vector3(), look = new THREE.Vector3();
+  const clock = new THREE.Clock();
+  let simTime = 0, spin = 0;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), 0.05), rt = clock.elapsedTime, TAU = 6.283;
+    simTime += dt * speed;                  // movement obeys the speed slider
+    spin += dt * 0.6;                       // swirl of the gathered flock
+
+    // ease the gather strength IN, hold, then ease OUT — no instant snapping
+    if (gather.target > 0.5) {
+      gather.strength += (1 - gather.strength) * (1 - Math.exp(-dt * 1.7));
+      if (gather.strength > 0.9) { gather.hold -= dt; if (gather.hold <= 0) gather.target = 0; }
+    } else {
+      gather.strength += (0 - gather.strength) * (1 - Math.exp(-dt * 0.9));
+      if (gather.strength < 0.004) gather.strength = 0;
+    }
+    const G = gather.strength;
+    const ca = Math.cos(spin), sa = Math.sin(spin);
+    const ease = 1 - Math.exp(-dt * 6);     // gentle position smoothing
+
+    for (const b of butterflies) {
+      const u = b.userData;
+      home.set(
+        u.amp.x * Math.sin(u.freq.x * simTime * TAU + u.phase.x),
+        u.amp.y * Math.sin(u.freq.y * simTime * TAU + u.phase.y) + 2,
+        u.amp.z * Math.sin(u.freq.z * simTime * TAU + u.phase.z)
+      );
+
+      // per-butterfly staggered, smoothstepped gather weight (keeps 10% personal drift)
+      let g = 0;
+      if (G > 0.001) {
+        let s = (G - u.gatherLag) / (1 - u.gatherLag);
+        s = s < 0 ? 0 : s > 1 ? 1 : s;
+        g = s * s * (3 - 2 * s) * 0.9;
+      }
+      if (g > 0.001) {
+        const o = u.cluster;
+        cl.set(gather.pos.x + (o.x * ca - o.z * sa), gather.pos.y + o.y, gather.pos.z + (o.x * sa + o.z * ca));
+        target.copy(home).lerp(cl, g);
+      } else {
+        target.copy(home);
+      }
+
+      u.prev.copy(b.position);
+      b.position.lerp(target, ease);
+
+      look.copy(b.position).sub(u.prev);     // face direction of travel
+      if (look.lengthSq() > 1e-6) { look.add(b.position); b.lookAt(look); }
+
+      const flap = Math.sin(rt * u.flapSpeed + u.flapPhase) * 1.15;
+      u.right.rotation.z = flap; u.left.rotation.z = -flap;
+    }
+
+    for (const c of clouds) { c.position.x += c.userData.speed * dt; if (c.position.x > 95) c.position.x = -95; }
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+  </script>
+</body>
+</html>

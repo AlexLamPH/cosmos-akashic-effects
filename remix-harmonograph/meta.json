@@ -2,10 +2,27 @@
   "slug": "remix-harmonograph",
   "title": "Cosmos Remix — Harmonograph you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "harmonograph", "lissajous", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "harmonograph",
+    "lissajous",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle harmonograph: particles trace a damped multi-pendulum Lissajous figure (x,y = Σ Aₖ·sin(fₖ·θ+φₖ)·e^{-decay·θ}) whose phases precess with time so the curve loops endlessly through elegant looping figures. Live glass panel: palette (brand theme tokens), shape, density, speed, dot size, plus Freq A and Freq B to retune the two driving pendulum frequencies. Reskins to any brand colour in one click. Self-contained, zero deps; the ?auto=1 capture hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot size, set Freq A / Freq B to reshape the figure, press ↻ Seed to cycle palettes, ⧉ Copy to copy your config. KEY TECHNIQUES: a harmonograph is the sum of damped sinusoids on each axis — here each particle sits at a point along the pen path (θ swept across its index i), x and y are sums of sin(fₖ·θ+φ)·e^{-decay·θ} terms, and the phases φ advance with u so the whole figure precesses (seamless because all time enters via u·2π). Freq A / Freq B drive the two base frequencies; PARAMS convention = window.__params + setParam(key,value), the contract a generic remix harness reads to auto-build panels; theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; SHAPES + drawShape render the chosen glyph cheaply and additively. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: add palettes to PALETTES, raise count/dot for a denser field, push Freq A/B apart for busier curves.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009N",
+  "tier": "remix"
 }

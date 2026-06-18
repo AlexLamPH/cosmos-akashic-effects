@@ -11,11 +11,17 @@
     "particles",
     "celebration",
     "burst",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Scheduled fireworks bursts scatter gravity-driven sparks in the six Cosmos accent colours, each shell flashing then arcing down and fading. Fully deterministic from time (no stored state) so it loops seamlessly. Pure Canvas 2D, zero deps, runs offline.",
   "usage_notes": "RUN: double-click index.html. Bursts have fixed times/positions; each spark's position is a closed-form function of its burst age (vel*t + ½g*t²), alpha = (1-f)^1.6 — so any frame is reproducible and the loop is seamless (bursts are scheduled to fully fade before LOOP). Additive 'lighter' blending gives the glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: burst count, particles per shell (m), gravity G, AC colours.",
   "summary_vi": "Các đợt pháo hoa hẹn giờ bắn tia theo trọng lực với 6 màu accent Cosmos, mỗi quả loé rồi rơi vòng cung và tắt dần. Hoàn toàn deterministic theo thời gian (không lưu trạng thái) nên loop liền. Thuần Canvas 2D, không lib, chạy offline.",
   "notes": "Batch factory #5. Vị trí hạt = hàm đóng theo age (v*t+½g*t²), alpha=(1-f)^1.6; bursts tắt hết trước LOOP → seamless; additive glow. A/B-tier.",
-  "START": 3500
+  "START": 3500,
+  "card_number": "AK-CDP-000001B",
+  "tier": "canvas"
 }

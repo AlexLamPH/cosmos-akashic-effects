@@ -2,11 +2,27 @@
   "slug": "game-minesweeper",
   "title": "Cosmos Minesweeper — clear the field, flag the mines",
   "title_vi": "",
-  "W": 520, "H": 600, "LOOP": 13000, "N": 118,
+  "W": 520,
+  "H": 600,
+  "LOOP": 13000,
+  "N": 118,
   "live_fit": true,
-  "tags": ["game","puzzle","minesweeper","playable","interactive","canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "minesweeper",
+    "playable",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained Minesweeper game in one HTML file with zero dependencies. Play on a 9x9 grid hiding 10 mines: left-click (or tap) reveals a cell, right-click (or long-press) plants a flag, numbers show how many mines touch a cell, and revealing a zero floods open its whole empty region. A live mine counter and timer sit in the HUD, the first click is always safe, hitting a mine ends the round, and clearing every safe cell wins. R, the smiley, or the button restart. It ships with a deterministic self-playing attract demo for capture: a logical solver opens a seeded board cell-by-cell, flagging obvious mines, as a pure function of time.",
   "usage_notes": "RUN: double-click index.html. CONTROLS: left-click/tap a cell to reveal it, right-click or long-press to flag/unflag a suspected mine; the first reveal is guaranteed safe. GOAL: reveal every cell that is not a mine without detonating one — numbers count adjacent mines, revealing a 0 flood-opens its empty neighbourhood, the MINES counter shows mines minus flags placed and the TIME counter ticks up; clear all safe cells to win, hit a mine to lose; press R, click the smiley, or Restart to play again. KEY TECHNIQUES: flood-fill reveal on zero cells and a logical solver that applies the two classic deduction rules (flags==count -> open the rest; hidden+flags==count -> flag the rest); the AUTO attract demo is fully deterministic — mulberry32 seeds a fixed board with a guaranteed-safe zero start, solveScript precomputes the ordered open/flag actions, and autoState(ms) replays them as a pure function of time so window.__seek(t) reproduces the exact revealed numbers, flags and mine counter from t alone. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: STEP_MS per-action pace, HOLD_MS finished-board hold, T0OFF (frame-0 offset), MINES count, seed search in pickSolve.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000A5",
+  "tier": "game"
 }

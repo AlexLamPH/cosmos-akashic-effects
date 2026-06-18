@@ -6,9 +6,22 @@
   "H": 600,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "3d", "geometry", "generative", "particles", "glow"],
+  "tags": [
+    "canvas2d",
+    "3d",
+    "geometry",
+    "generative",
+    "particles",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A 3D Mobius strip rendered as a ribbon of additive glowing points, the single-sided half-twist band traced across its width and spun one full turn about a tilted axis. Depth-shaded with an accent palette and edge glow. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: parametric Mobius band (ring radius 1 + width offset twisting by phi/2 for the single half-twist), hand-rolled 3D rotate about Y plus constant X tilt with perspective scale=F/(F+z), additive 'lighter' radial-gradient dots, depth shading from rotated z and edge brightening across band width; all motion driven by u with integer harmonics for a seamless loop. CAPTURE: ?auto=1 + window.__seek(t). TUNE: SC (size), NU/NW (point density), tilt (axis angle), LOOP (speed).",
   "summary_vi": "Dải Mobius 3D vẽ bằng các điểm phát sáng cộng dồn, dải một mặt xoắn nửa vòng được trải theo bề rộng và quay trọn một vòng quanh trục nghiêng. Tô bóng theo chiều sâu với bảng màu accent và viền sáng. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và lặp liền mạch.",
-  "notes": "Toán 3D tự viết: tham số hóa dải Mobius (xoắn phi/2), xoay quanh Y + nghiêng X, phối cảnh scale=F/(F+z)."
+  "notes": "Toán 3D tự viết: tham số hóa dải Mobius (xoắn phi/2), xoay quanh Y + nghiêng X, phối cảnh scale=F/(F+z).",
+  "card_number": "AK-CDP-000004D",
+  "tier": "canvas"
 }

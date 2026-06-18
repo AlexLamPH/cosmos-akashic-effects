@@ -7,9 +7,22 @@
   "LOOP": 12000,
   "N": 109,
   "live_fit": true,
-  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "(EN: real playable self-contained Towers of Hanoi puzzle, zero deps, click/tap + keyboard, 3 pegs and 5 glowing discs, never place larger on smaller, move counter + optimal target, win when rebuilt on the last peg, restart; PLUS a deterministic self-playing attract demo that runs the classic recursive optimal solution move-by-move via window.__seek(t).)",
   "usage_notes": "(EN: RUN: double-click index.html. CONTROLS: click/tap a peg (or its on-screen A/B/C button, or keys 1-3) to lift its top disc, then click/tap another peg to drop it; R or Restart button to restart. GOAL/scoring: rebuild all discs in order on the rightmost peg in as few moves as possible — counter shows Moves vs the optimal 2^N-1 = 31; illegal larger-on-smaller moves are rejected. KEY TECHNIQUES: the optimal solution is a deterministic recursive move list (31 moves for 5 discs); AUTO replays it move-by-move as a pure function of time (MOVE_MS=520ms per move), reconstructing peg stacks by replaying K moves and animating the in-flight disc with lift/slide/drop phases; START=3640ms offset so frame 0 is mid-solve with 7 moves done, discs spread across pegs, one disc in flight, move counter > 0. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: NDISCS, MOVE_MS, LOOP, START.)",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BD",
+  "tier": "game"
 }

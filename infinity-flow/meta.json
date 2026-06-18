@@ -2,10 +2,25 @@
   "slug": "infinity-flow",
   "title": "Cosmos Infinity Flow — particles streaming on a lemniscate",
   "title_vi": "Cosmos Infinity Flow — hạt chảy theo hình vô cực",
-  "W": 760, "H": 440, "LOOP": 6000, "N": 75,
-  "tags": ["infinity", "lemniscate", "particles", "flow", "canvas2d"],
+  "W": 760,
+  "H": 440,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "infinity",
+    "lemniscate",
+    "particles",
+    "flow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Glowing particles stream endlessly around an infinity symbol (a Bernoulli lemniscate), twinkling as they ride the figure-eight over a faint path and a soft core glow. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: positions come from the lemniscate r=A·cos/(1+sin²) parametrised by θ=p·2π where each particle's p=((u+phase) mod 1) so the flow loops; particles are additive radial glows that twinkle via sin, over a faint stroked path and a central glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: particle count N, amplitude A, AC colours.",
   "summary_vi": "Các hạt phát sáng chảy bất tận quanh biểu tượng vô cực (lemniscate Bernoulli), lấp lánh khi lướt theo hình số 8 trên một đường mờ và quầng sáng tâm. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Effect #149 — Ra tự viết. Vị trí theo lemniscate, p=((u+phase)mod1) → loop; hạt additive twinkle."
+  "notes": "Effect #149 — Ra tự viết. Vị trí theo lemniscate, p=((u+phase)mod1) → loop; hạt additive twinkle.",
+  "card_number": "AK-CDP-000005H",
+  "tier": "canvas"
 }

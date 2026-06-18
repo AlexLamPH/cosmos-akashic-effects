@@ -7,9 +7,22 @@
   "LOOP": 12000,
   "N": 109,
   "live_fit": true,
-  "tags": ["game", "helix", "playable", "interactive", "arcade", "canvas2d"],
+  "tags": [
+    "game",
+    "helix",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "EN: A fully playable self-contained Helix Jump arcade game with zero external dependencies. A golden ball bounces down an infinite rotating helix tower made of colored platform rings. Each ring has a gap the player must align under the ball by rotating the whole tower left or right. Danger arcs (magenta/orange) kill the ball on contact; landing on safe arcs bounces the ball back up. Score increases by 1 per ring the ball falls through. Controls: keyboard arrow keys (← →), A/D keys, drag on the board, or large on-screen ◀ ▶ touch buttons. Restart with R key or a visible Restart button. In AUTO mode (?auto=1) a deterministic seeded self-playing attract demo runs: the AI rotates the tower each timestep to align the next ring's gap under the ball, using mulberry32 RNG so the entire simulation is reproducible. window.__seek(t) renders the game state at any millisecond. A START offset of 5500 ms pre-descends the ball so frame t=0 shows the game mid-play with score > 0 and several rings visible.",
   "usage_notes": "EN: RUN: double-click index.html or serve locally. CONTROLS: ← → arrow keys or A/D to rotate the tower; drag the canvas left/right to rotate; on-screen ◀ ▶ buttons (large, bottom corners) rotate while held. R key or the on-screen Restart button to restart after game over. GOAL: thread the ball through the gap in each ring as it descends; each ring passed scores 1 point. Landing on a magenta/orange danger arc ends the run. KEY TECHNIQUES: fixed-timestep deterministic simulation at DT=16 ms; mulberry32-seeded ring generation (gap angle, gap half-width, danger arc placement per ring index); auto-player computes target tower angle = -gapCenter of the next ring the ball is approaching, then rotates tower smoothly toward that target each step; START=5500 ms pre-offset ensures frame 0 of the attract demo is mid-descent with visible score and rings. CAPTURE: add ?auto=1 to URL — game self-plays and exposes window.__seek(t). TUNE: LOOP (12000 ms), START (5500 ms), RING_SPACING (58 px), RING_R (76 px), RING_LW (16 px), GAP half-width range (0.42–0.62 rad), DANGER hw range (0.24–0.36 rad), GRAV (0.36), BOUNCE_VY (-7.2), BALL_SY (H*0.32), AUTO rotation speed (0.075 rad/step), SEED (0xC0571C), N=109 rings.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BC",
+  "tier": "game"
 }

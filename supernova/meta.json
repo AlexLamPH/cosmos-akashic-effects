@@ -2,10 +2,26 @@
   "slug": "supernova",
   "title": "Cosmos Supernova — core flash, shockwave ring and radial debris blast",
   "title_vi": "Cosmos Supernova — siêu tân tinh bùng nổ sóng xung kích và mảnh vỡ",
-  "W": 620, "H": 620, "LOOP": 7000, "N": 88,
-  "tags": ["supernova","explosion","shockwave","burst","particles","canvas2d"],
+  "W": 620,
+  "H": 620,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "supernova",
+    "explosion",
+    "shockwave",
+    "burst",
+    "particles",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A supernova: a brilliant core flashes, then an expanding shockwave ring and radial debris streaks blast outward and fade. The whole burst is scheduled from the loop phase so it resets cleanly each cycle. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: burst phase p=(u+0.32) mod 1 drives one detonation per loop (offset so frame 0 is mid-blast); shockwave radius=maxR*smoothstep(p^0.6) expands fast-then-slow with fade=(1-p)^2; seeded debris streaks each start at p>=ph and reach smoothstep(dp^0.55)*sp, drawn as gradient line segments (transparent tail to bright head); core flash=(1-p/0.45)^2 gives a brilliant detonation that decays to a residual afterglow; everything additive via 'lighter'; because every value is a pure function of u, frame(0)==frame(LOOP) so the loop is seamless. CAPTURE: ?auto=1 + window.__seek(t). TUNE: phase offset 0.32, expansion exponents 0.6/0.55, debris count M, flash decay 0.45, colours.",
   "summary_vi": "Siêu tân tinh: lõi sáng bùng lên, rồi một vòng sóng xung kích lan ra cùng các vệt mảnh vỡ phóng ra ngoài và mờ dần. Toàn bộ vụ nổ được lên lịch theo pha vòng lặp nên reset sạch mỗi chu kỳ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Batch factory. p=(u+0.32)mod1 một vụ nổ mỗi loop; sóng xung kích maxR*smoothstep(p^0.6), fade=(1-p)^2; vệt mảnh vỡ gradient; lõi flash=(1-p/0.45)^2; thuần hàm của u nên frame(0)==frame(LOOP)."
+  "notes": "Batch factory. p=(u+0.32)mod1 một vụ nổ mỗi loop; sóng xung kích maxR*smoothstep(p^0.6), fade=(1-p)^2; vệt mảnh vỡ gradient; lõi flash=(1-p/0.45)^2; thuần hàm của u nên frame(0)==frame(LOOP).",
+  "card_number": "AK-CDP-0000042",
+  "tier": "canvas"
 }

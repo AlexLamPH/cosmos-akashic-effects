@@ -2,10 +2,26 @@
   "slug": "prism-dispersion",
   "title": "Cosmos Prism Dispersion — a white beam enters a triangular prism and fans into a spectrum",
   "title_vi": "Cosmos Prism Dispersion — chùm sáng trắng vào lăng kính tam giác và tách thành quang phổ",
-  "W": 760, "H": 540, "LOOP": 7600, "N": 95,
-  "tags": ["prism","spectrum","light","refraction","glow","canvas2d"],
+  "W": 760,
+  "H": 540,
+  "LOOP": 7600,
+  "N": 95,
+  "tags": [
+    "prism",
+    "spectrum",
+    "light",
+    "refraction",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A white beam crosses from the left, enters a glowing triangular glass prism, and fans out the far side into a Cosmos-accent spectrum of rainbow rays with a subtle travelling shimmer. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the incoming beam angle wobbles by 0.10*sin(2PI*u) so it returns to centre at u=0,0.5,1 for a seamless loop. Seven spectrum rays fan from the prism's exit point at baseAng + (f-0.5)*spread, each coloured from the Cosmos accent spectrum and modulated by a shimmer = 0.5+0.5*sin(2PI*(2u+f)) on an integer (k=2) harmonic. Every ray and the beam are drawn additively ('lighter') in three passes (wide glow + core + hot highlight); dust motes drift on integer harmonics and the translucent glass triangle is overlaid last. CAPTURE: ?auto=1 + window.__seek(t). TUNE: NR ray count, spread fan angle, baseAng exit direction, SPEC palette, sz prism size, LOOP period.",
   "summary_vi": "Chùm sáng trắng đi từ trái, vào lăng kính thủy tinh tam giác phát sáng, rồi tỏa ra phía bên kia thành quang phổ cầu vồng theo bảng màu Cosmos với hiệu ứng lung linh chạy nhẹ. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Góc chùm vào dao động 0.10*sin(2PI*u) về tâm tại u=0,0.5,1; shimmer = 0.5+0.5*sin(2PI*(2u+f)) trên hài bậc nguyên k=2 nên loop liền mạch."
+  "notes": "Góc chùm vào dao động 0.10*sin(2PI*u) về tâm tại u=0,0.5,1; shimmer = 0.5+0.5*sin(2PI*(2u+f)) trên hài bậc nguyên k=2 nên loop liền mạch.",
+  "card_number": "AK-CDP-0000040",
+  "tier": "canvas"
 }

@@ -2,10 +2,26 @@
   "slug": "dna-helix",
   "title": "Cosmos DNA Helix — rotating double-helix of glowing dots",
   "title_vi": "Cosmos DNA Helix — chuỗi xoắn kép phát sáng đang quay",
-  "W": 760, "H": 560, "LOOP": 8000, "N": 100,
-  "tags": ["dna","helix","3d","glow","spiral","canvas2d"],
+  "W": 760,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "dna",
+    "helix",
+    "3d",
+    "glow",
+    "spiral",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A rotating DNA double helix: two intertwined strands of glowing dots joined by connecting rungs, spinning about the vertical axis. Built with pure Canvas 2D doing its own 3D rotation and perspective projection (scale=F/(F+z)), zero dependencies, runs fully offline; rendering is deterministic and the loop is seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each backbone point is placed on a circle (cos/sin of helix phase) and rotated by 2*pi*u for exactly one turn per loop; the two strands are pi apart; rungs are dot-dashed interpolations whose brightness pulses with a vertical scroll that wraps mod 1; points are painter-sorted by z and nearer (smaller z) dots are drawn bigger and brighter via additive 'lighter' radial gradients. CAPTURE: ?auto=1 + window.__seek(t). TUNE: RAD (helix radius), span (height), M (sample count), F (focal length), twist multiplier 2.4.",
   "summary_vi": "Chuỗi xoắn kép DNA đang quay: hai sợi xoắn vào nhau gồm các chấm phát sáng nối bởi các nấc thang, quay quanh trục dọc. Thuần Canvas 2D tự tính xoay 3D và phép chiếu phối cảnh (scale=F/(F+z)), không phụ thuộc thư viện, chạy offline; tất định và loop liền mạch.",
-  "notes": "Xoắn kép 3D: điểm trên đường tròn xoay 2*pi*u/vòng, nấc thang trôi mod 1, sắp xếp theo z, glow cộng dồn."
+  "notes": "Xoắn kép 3D: điểm trên đường tròn xoay 2*pi*u/vòng, nấc thang trôi mod 1, sắp xếp theo z, glow cộng dồn.",
+  "card_number": "AK-CDP-000001N",
+  "tier": "canvas"
 }

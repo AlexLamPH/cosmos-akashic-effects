@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Expanding Cards — theme gallery</title>
+<style>
+  /* ===== Cosmos Expanding Cards =====
+     A row of theme panels. Click one and it expands to a full poster (logo +
+     name + description) while the rest collapse to accent slivers. One logo,
+     six Cosmos "themes". Vanilla, no deps, runs offline.
+     ?auto=1 cycles the panels deterministically for a seamless GIF.            */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden; background: #06040f;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif; cursor: none;
+  }
+  .bg { position: fixed; inset: 0;
+    background: radial-gradient(120% 90% at 50% 30%, #120c26 0%, #08051a 55%, #05030d 100%); }
+  .stars { position: fixed; inset: 0; pointer-events: none; }
+
+  .wrap { position: fixed; inset: 0; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 22px; }
+  .head { text-align: center; }
+  .head .t { font-size: 12px; letter-spacing: .5em; text-transform: uppercase;
+             color: #b9a3ff; font-weight: 700; }
+  .head .s { margin-top: 6px; font-size: 22px; font-weight: 800; letter-spacing: .04em;
+             color: #ece9f7; text-transform: uppercase; }
+
+  .row { display: flex; gap: 12px; height: 60vh; width: 90%; max-width: 1040px; }
+
+  .panel {
+    position: relative; flex-grow: 1; flex-basis: 0; min-width: 56px;
+    border-radius: 18px; overflow: hidden; cursor: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    box-shadow: 0 18px 50px rgba(0,0,0,.45);
+    --w: 0;                                  /* 0 collapsed .. 1 expanded (JS) */
+  }
+  /* themed poster: hue-shifted logo over an accent-graded ground */
+  .pbg { position: absolute; inset: 0;
+    background: radial-gradient(120% 80% at 50% 30%,
+      color-mix(in srgb, var(--accent) 40%, #0c0820), #07050f 80%); }
+  .pbg img {
+    position: absolute; left: 50%; top: 44%; width: 165%; translate: -50% -50%;
+    filter: hue-rotate(var(--hue)) brightness(calc(.5 + var(--w)*.7)) saturate(1.05);
+    transform: scale(calc(1 + var(--w)*.10));
+    transition: filter .5s ease, transform .5s ease;
+  }
+  .shade { position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(5,3,12,.82) 100%); }
+
+  /* collapsed: vertical name pinned at the bottom */
+  .vlabel {
+    position: absolute; left: 50%; bottom: 18px; translate: -50%;
+    writing-mode: vertical-rl; transform: rotate(180deg); transform-origin: center;
+    font-size: 14px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+    color: #ece9f7; opacity: calc(1 - var(--w)); white-space: nowrap;
+    text-shadow: 0 2px 10px rgba(0,0,0,.6);
+  }
+  /* expanded: full info, fades/slides in */
+  .info {
+    position: absolute; left: 26px; right: 26px; bottom: 24px;
+    opacity: var(--w); transform: translateY(calc((1 - var(--w))*16px));
+    pointer-events: none;
+  }
+  .info .idx { font-size: 11px; letter-spacing: .4em; color: var(--accent); font-weight: 700; }
+  .info .nm  { font-size: 40px; font-weight: 800; letter-spacing: .03em; color: #fff;
+               text-transform: uppercase; line-height: 1; margin-top: 4px;
+               text-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .info .rl  { margin-top: 8px; font-size: 12px; letter-spacing: .26em; text-transform: uppercase;
+               color: #cfc7e8; }
+  .info .ds  { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #c4bce0;
+               max-width: 440px; }
+  .accentbar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+               background: var(--accent); opacity: calc(.25 + var(--w)*.75); }
+
+  .cursor-ring, .cursor-dot { position: fixed; top: 0; left: 0; pointer-events: none;
+    border-radius: 50%; transform: translate(-50%,-50%); z-index: 60; }
+  .cursor-ring { width: 28px; height: 28px; border: 1.5px solid rgba(220,212,255,.8);
+    box-shadow: 0 0 14px rgba(150,120,255,.5); transition: width .2s, height .2s, border-color .2s; }
+  .cursor-ring.grow { width: 56px; height: 56px; border-color: #fff;
+    background: radial-gradient(circle, rgba(160,130,255,.18), transparent 70%); }
+  .cursor-dot { width: 6px; height: 6px; background: #f1ecff; box-shadow: 0 0 10px rgba(225,218,255,.9); }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <canvas class="stars" id="stars"></canvas>
+
+  <div class="wrap">
+    <div class="head">
+      <div class="t">Cosmos AI Lab</div>
+      <div class="s">Theme Gallery</div>
+    </div>
+    <div class="row" id="row"></div>
+  </div>
+
+  <div class="cursor-ring" id="ring"></div>
+  <div class="cursor-dot" id="dot"></div>
+
+<script>
+const AGENTS = [
+  { name:'PHANTOM', role:'Stealth · Recon', accent:'#8b5cff', hue:0,
+    desc:'Bóng tối Phantom — nền đen tuyền, sắc tím lạnh, chuyển động không tiếng động.' },
+  { name:'SOLARIS', role:'Burst · Ignite', accent:'#ff6a3d', hue:325,
+    desc:'Ngọn lửa Solaris — bùng nổ sắc cam đỏ, năng lượng và tốc độ.' },
+  { name:'SACRED',  role:'Ward · Restore', accent:'#e0b24a', hue:40,
+    desc:'Ánh vàng Sacred — ấm áp, thiêng liêng, dựng vòng bảo hộ và hồi phục.' },
+  { name:'AURORA',  role:'Flux · Bloom', accent:'#36d39a', hue:95,
+    desc:'Cực quang Aurora — xanh ngọc rực rỡ, uốn dòng năng lượng nở rộ.' },
+  { name:'COSMIC',  role:'Drift · Scan', accent:'#46b4ff', hue:165,
+    desc:'Thiên hà Cosmic — xanh dương sâu thẳm, quét toàn cảnh không gian.' },
+  { name:'NEBULA',  role:'Lure · Charm', accent:'#ff5cc2', hue:255,
+    desc:'Tinh vân Nebula — hồng tím quyến rũ, dẫn dụ và mê hoặc.' },
+];
+const N = AGENTS.length;
+const AUTO = new URLSearchParams(location.search).has('auto');
+
+const row = document.getElementById('row');
+const ring = document.getElementById('ring'), dot = document.getElementById('dot');
+const panels = AGENTS.map((a, i) => {
+  const el = document.createElement('div');
+  el.className = 'panel'; el.dataset.i = i;
+  el.style.setProperty('--accent', a.accent); el.style.setProperty('--hue', a.hue + 'deg');
+  el.innerHTML =
+    `<div class="pbg"><img src="./cosmos-logo.png" alt=""></div>
+     <div class="shade"></div>
+     <div class="vlabel">${a.name}</div>
+     <div class="info">
+       <div class="idx">THEME // ${String(i+1).padStart(2,'0')}</div>
+       <div class="nm">${a.name}</div>
+       <div class="rl">${a.role}</div>
+       <div class="ds">${a.desc}</div>
+     </div>
+     <div class="accentbar"></div>`;
+  row.appendChild(el);
+  return el;
+});
+
+function applyWeights(w) {                 // w[i] in 0..1
+  for (let i = 0; i < N; i++) {
+    panels[i].style.flexGrow = (1 + 6 * w[i]).toFixed(3);
+    panels[i].style.setProperty('--w', w[i].toFixed(3));
+  }
+}
+function cursor(px, py, grow) {
+  ring.style.transform = `translate(${px}px,${py}px) translate(-50%,-50%)`;
+  dot.style.transform  = `translate(${px}px,${py}px) translate(-50%,-50%)`;
+  ring.classList.toggle('grow', grow);
+}
+
+// ---- starfield ----
+const sc = document.getElementById('stars'), sx = sc.getContext('2d');
+let W,H,DPR,stars=[];
+function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=sc.width=innerWidth*DPR; H=sc.height=innerHeight*DPR;
+  sc.style.width=innerWidth+'px'; sc.style.height=innerHeight+'px'; stars=[];
+  for(let i=0;i<120;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:(Math.random()*1.2+0.3)*DPR,tw:Math.random()*6.28,sp:0.4+Math.random()*1.2}); }
+resize(); addEventListener('resize',resize);
+function drawStars(t){ sx.clearRect(0,0,W,H);
+  for(const s of stars){ sx.globalAlpha=0.4+0.6*Math.abs(Math.sin(t*0.001*s.sp+s.tw));
+    sx.fillStyle='#cdd6ff'; sx.beginPath(); sx.arc(s.x,s.y,s.r,0,6.283); sx.fill(); } sx.globalAlpha=1; }
+
+const easeIO = x => x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2;
+
+// ============================ AUTO (capture) ============================
+if (AUTO) {
+  const DWELL = 1200, LOOP = N*DWELL, MORPH = 600;
+  window.__seek = function(t){
+    const tmod = ((t%LOOP)+LOOP)%LOOP;
+    const active = Math.floor(tmod/DWELL)%N, prev = (active-1+N)%N;
+    const e = easeIO(Math.min((tmod - active*DWELL)/MORPH, 1));
+    const w = new Array(N).fill(0); w[prev] = 1-e; w[active] = e;
+    applyWeights(w);
+    // cursor: glide from the (shrinking) prev panel to the (growing) active one
+    const ra = panels[active].getBoundingClientRect(), rp = panels[prev].getBoundingClientRect();
+    const ax = ra.left+ra.width/2, ay = ra.top+ra.height*0.30;
+    const px = rp.left+rp.width/2, py = rp.top+rp.height*0.30;
+    cursor(px+(ax-px)*e, py+(ay-py)*e, true);
+    drawStars(t);
+  };
+  applyWeights((()=>{const w=new Array(N).fill(0); w[N-1]=1; return w;})());
+  window.__seek(0); window.__ready = true;
+
+// ============================ LIVE (interactive) ============================
+} else {
+  let active = 0, cur = new Array(N).fill(0), tgt = new Array(N).fill(0); tgt[0]=1; cur[0]=1;
+  let mx=innerWidth/2, my=innerHeight/2, cxp=mx, cyp=my, grow=false;
+  function setActive(i){ active=i; tgt = tgt.map((_,k)=> k===i?1:0); }
+  panels.forEach(p=>{
+    p.addEventListener('pointerenter',()=>grow=true);
+    p.addEventListener('pointerleave',()=>grow=false);
+    p.addEventListener('click',()=>setActive(+p.dataset.i));
+  });
+  addEventListener('pointermove',e=>{ mx=e.clientX; my=e.clientY; });
+  const start=performance.now();
+  (function loop(now){
+    for(let i=0;i<N;i++) cur[i]+=(tgt[i]-cur[i])*0.16;
+    applyWeights(cur);
+    cxp+=(mx-cxp)*0.2; cyp+=(my-cyp)*0.2;
+    cursor(cxp,cyp,grow); dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+    drawStars(now-start);
+    requestAnimationFrame(loop);
+  })(performance.now());
+}
+</script>
+</body>
+</html>

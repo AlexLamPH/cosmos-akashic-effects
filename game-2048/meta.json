@@ -2,11 +2,27 @@
   "slug": "game-2048",
   "title": "Cosmos 2048 — slide and merge glowing numbered tiles to 2048",
   "title_vi": "",
-  "W": 560, "H": 660, "LOOP": 12000, "N": 100,
+  "W": 560,
+  "H": 660,
+  "LOOP": 12000,
+  "N": 100,
   "live_fit": true,
-  "tags": ["game","puzzle","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained 2048 sliding-tile puzzle in a single HTML file with zero dependencies. Slide all tiles on a 4x4 grid in one direction; tiles of equal value merge into their sum, doubling each time toward 2048, and your score accumulates with every merge. A new tile spawns after each valid move; the game ends when the grid is full with no moves left. Playable with arrow keys, WASD, and swipe. It also ships a deterministic self-playing attract demo for capture: a seeded corner-strategy AI makes moves, tiles slide and merge with pop animations, rendered as a pure function of time via window.__seek(t).",
   "usage_notes": "RUN: double-click index.html. CONTROLS: Arrow keys or WASD to slide, swipe on touch; R key or the New Game button to restart. GOAL: merge equal tiles (2+2=4, 4+4=8 ...) to build the 2048 tile; each merge adds its new value to your score; the board ends when full with no legal move. KEY TECHNIQUES: pure 4x4 array slide/merge logic shared by live and AUTO; the AUTO run is built once from a mulberry32-seeded game where a deterministic corner-strategy AI (priority: down, left, right, up) plays scripted moves and seeded tile spawns; per-move tile motions are precomputed so each step animates sliding tiles to their targets then pops merged and newly-spawned tiles; simTo(ms) indexes the precomputed step list and interpolates, so the frame is a pure function of time, with START_STEP offsetting frame 0 to a mid-game board that already holds a large tile and score. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: MOVE_MS, START_STEP, the aiMove priority order, tile color table TC, LOOP.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009W",
+  "tier": "game"
 }

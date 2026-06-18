@@ -2,10 +2,26 @@
   "slug": "remix-supershape",
   "title": "Cosmos Remix — Supershape you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "supershape", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "supershape",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle supershape: a glowing field of particles traced along the superformula curve r(θ)=(|cos(mθ/4)/a|^n2+|sin(mθ/4)/b|^n3)^(-1/n1), with its exponents and lobe count breathing slowly over time so the form morphs between star, flower and blob shapes while gently rotating. Live glass panel retunes palette/shape/density/speed/size plus an m (lobes) knob, and reskins to any brand colour. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set m (lobes) 2-12, ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: the superformula r(θ)=(|cos(mθ/4)/a|^n2+|sin(mθ/4)/b|^n3)^(-1/n1) sampled across several concentric rings; exponents n1/n2/n3 are driven by sin/cos of 2πu so the shape morphs star↔flower↔blob and the loop is seamless; per-index colour ramp from the active palette drawn additively; window.__params + setParam(key,value) is the contract a generic remix harness uses to auto-build panels; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: add palettes to PALETTES, adjust m (lobes) and Spread for tighter or wider blooms.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-0000091",
+  "tier": "remix"
 }

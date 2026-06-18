@@ -6,9 +6,27 @@
   "H": 560,
   "LOOP": 5200,
   "N": 65,
-  "tags": ["drum-circle", "drums", "percussion", "audio", "webaudio", "interactive", "sound", "synth", "canvas2d", "generative", "glow"],
+  "tags": [
+    "drum-circle",
+    "drums",
+    "percussion",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "synth",
+    "canvas2d",
+    "generative",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A hand-drum circle that makes REAL sound via the Web Audio API: six djembe/conga/tabla-style drums sit in a ring and each is a fully synthesized membrane hit — a pitched sine+triangle thump that drops in pitch plus a short band-limited noise slap, tuned to a different fundamental per drum. Click a drum or press 1-6 to play; tap fast for rolls. Each drum's skin ripples and flashes on a strike, a connecting spoke brightens, and a faint pulse travels the ring. Fully self-contained, zero deps, runs offline. Ships with a silent deterministic looping visual demo (a seeded polyrhythm) for capture.",
   "usage_notes": "RUN: open index.html and click a drum or press number keys 1-6 to HEAR it (audio needs a user gesture); multi-tap a drum quickly for rolls. KEY TECHNIQUES: each membrane hit is two oscillators (sine + triangle) whose frequency exponentially drops from ~1.8x to the drum's fundamental over ~50ms for the thump, summed with a bandpass-filtered noise burst (BufferSource of generated white noise) for the slap; both use ramped attack/exponential-decay gain envelopes (no clicks) into a master gain (0.2) -> compressor. Drums are tuned to distinct fundamentals (73-262 Hz) so the circle stays musical. CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) drives a seeded per-drum polyrhythm that loops. TUNE: DRUMS[].f for pitch/tuning, DRUMS[].slap for slap brightness, the envelope times in hit() for decay, PATS divisions for the demo groove.",
   "summary_vi": "Vòng trống tay tạo âm thanh THẬT qua Web Audio API: sáu trống kiểu djembe/conga/tabla xếp thành vòng, mỗi cái là một cú đánh màng trống tổng hợp hoàn toàn — tiếng thùm trầm từ dao động sine+triangle tụt cao độ cộng với tiếng vỗ ngắn từ nhiễu lọc băng, mỗi trống chỉnh một cao độ riêng. Bấm vào trống hoặc nhấn 1-6 để chơi; gõ nhanh để đánh dồn. Mặt trống gợn sóng và lóe sáng khi đánh, nan hoa nối tâm sáng lên, một xung mờ chạy quanh vòng. Tự chứa, không phụ thuộc, chạy ngoại tuyến; kèm demo hình lặp tất định không tiếng để chụp.",
-  "notes": "Mở ra rồi bấm vào trống hoặc nhấn phím 1-6 để nghe, gõ nhanh để đánh dồn."
+  "notes": "Mở ra rồi bấm vào trống hoặc nhấn phím 1-6 để nghe, gõ nhanh để đánh dồn.",
+  "card_number": "AK-CDP-000008G",
+  "tier": "audio"
 }

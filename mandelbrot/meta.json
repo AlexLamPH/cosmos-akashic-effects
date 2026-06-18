@@ -6,9 +6,24 @@
   "H": 420,
   "LOOP": 9000,
   "N": 90,
-  "tags": ["shader", "webgl", "glsl", "fractal", "mandelbrot", "escape-time", "generative", "loop"],
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "fractal",
+    "mandelbrot",
+    "escape-time",
+    "generative",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real WebGL GLSL fragment shader rendering the escape-time Mandelbrot set with a gentle looping animation. The view performs a slow breathing zoom toward a filament-rich region (driven by cos 2πt, so it returns exactly at t=1) while the escape bands cycle one full turn — both motions seamless. Smooth (continuous) iteration count is colour-mapped through the Cosmos accent palette, leaving a dark interior framed by glowing filaments. Zero dependencies, runs fully offline, deterministic and seamless.",
   "usage_notes": "RUN: open index.html in any WebGL-capable browser (needs WebGL). KEY TECHNIQUES: classic 2D escape-time iteration z=z²+c, smooth/continuous iteration colouring via log2(log2(|z|²)), breathing zoom mapped through cos(2πt) for a seamless return, escape-band colour cycling synced to t, Cosmos accent ramp, dark-interior + glowing-filament contrast. CAPTURE: ?auto=1 + window.__seek(t). TUNE: change the target center (vec2(-0.745,0.186)), zoom range (mix(2.2,0.85,...)), iteration count (MAXI/loop bound 110), or band cycling (ramp(v*2.5 - t)).",
   "summary_vi": "Shader mảnh WebGL GLSL thực vẽ tập Mandelbrot escape-time với chuyển động lặp nhẹ: zoom thở chậm về vùng nhiều sợi tơ và dải màu thoát quay đúng một vòng, đều liền mạch. Tô màu smooth-iteration theo bảng Cosmos, lõi tối với sợi tơ phát sáng. Không phụ thuộc, chạy offline, tất định.",
-  "notes": "Tập Mandelbrot với zoom thở lặp và dải màu xoay vòng, tô màu smooth-iteration, lõi tối với sợi tơ phát sáng theo bảng Cosmos."
+  "notes": "Tập Mandelbrot với zoom thở lặp và dải màu xoay vòng, tô màu smooth-iteration, lõi tối với sợi tơ phát sáng theo bảng Cosmos.",
+  "card_number": "AK-CDP-000005N",
+  "tier": "shader"
 }

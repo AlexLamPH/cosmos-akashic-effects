@@ -1,0 +1,25 @@
+{
+  "slug": "cube",
+  "card_number": "AK-CDP-000000Y",
+  "tier": "canvas",
+  "title": "Cosmos Cube — self-scrambling/solving Rubik's cube (pure CSS 3D)",
+  "title_vi": "",
+  "tags": [
+    "rubik",
+    "cube",
+    "css3d",
+    "3d-transforms",
+    "self-solving",
+    "matrix3d",
+    "animation",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A 3x3x3 Rubik's cube built entirely from CSS 3D transforms — no WebGL, no libraries. It tumbles, scrambles itself one layer-twist at a time, then solves itself; because the move list is mirrored (scramble + its inverse), the cube returns to solved and the loop is seamless. The six faces are the six Cosmos theme accents (Solaris/Cosmic/Sacred/Aurora/Nebula/Phantom) on rounded glowing stickers over dark plastic. Runs offline by double-clicking index.html.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); keep cosmos-logo.png beside it (faint backdrop glow). KEY TECHNIQUES: (1) 27 .cubie divs in a preserve-3d .cube; each cubie has 6 .face divs, outer faces get a coloured rounded .sticker; (2) a tiny column-major mat4 lib (mul/T/R) drives each cubie via transform: matrix3d(...) — no per-cubie CSS transition; (3) the frame is STATELESS: render(t) rebuilds the cube from solved, applies every completed move as a coord permutation (rotCoord) + orientation premultiply, and applies the in-progress move as a partial matrix3d on that layer's cubies — so window.__seek(t) is deterministic for any t; (4) the move list = scramble.concat(scramble reversed & inverted) so it self-solves; (5) whole-cube tumble does integer turns over LOOP -> seamless. CAPTURE: ?auto=1 + window.__seek(t) feeds capture.cjs. TUNE: SCRAMBLE (move count), LOOP, COLORS, S/GAP. BRAND: Phantom-dark; the six faces map to the six Cosmos themes.",
+  "summary_vi": "",
+  "notes": ""
+}

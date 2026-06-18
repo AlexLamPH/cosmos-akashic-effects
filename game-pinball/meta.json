@@ -7,9 +7,22 @@
   "LOOP": 12000,
   "N": 109,
   "live_fit": true,
-  "tags": ["game", "arcade", "playable", "interactive", "pinball", "canvas2d"],
+  "tags": [
+    "game",
+    "arcade",
+    "playable",
+    "interactive",
+    "pinball",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, fully playable mini pinball in one self-contained HTML file with zero dependencies. A ball obeys gravity and friction on a Cosmos-colored table, ricocheting off five glowing bumpers that flash and add score on every hit; you work two flippers at the bottom to keep the ball alive and away from the drain. You have three balls and lose one each time the ball drains, with a game-over screen and restart. Controls work with both keyboard (left/right or A/D for the flippers, R to restart) and touch (the on-screen LEFT/RIGHT buttons or tapping the left/right half of the table). It also ships a deterministic self-playing attract demo for capture: seeded flippers react to the ball, bumpers flash and the score ticks up, drawn as a pure function of time.",
   "usage_notes": "RUN: double-click index.html (or serve it) — no server, no deps. CONTROLS: Left arrow or A flips the left flipper, Right arrow or D flips the right; or hold the on-screen ◀ LEFT / RIGHT ▶ buttons, or tap-and-hold the left/right half of the table; R key or the Restart button starts a new run. GOAL: hit bumpers (+100 each) to build score and use the flippers to stop the ball draining; you have 3 balls and lose one each drain, game over at zero. KEY TECHNIQUES: a fixed-timestep deterministic physics sim seeded with mulberry32 (never Math.random in the sim) integrates gravity + friction, reflects the ball off circular bumpers (with an outward kick), line-segment flippers (which impart upward velocity proportional to swing speed), and angled drain-funnel walls; for AUTO a seeded flipper AI raises whichever flipper the descending ball is approaching, and the same sim runs from a fixed seed. drawAt(ms) re-simulates from a fixed seeded start to ms with a frame-0 offset so capture opens with the ball already bouncing near a bumper and score above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: GRAV/FRICTION, bumper positions/radii, FLIP_SPEED, flipper length/up angles, LOOP, frame-0 offset.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AG",
+  "tier": "game"
 }

@@ -2,10 +2,26 @@
   "slug": "wave-grid",
   "title": "Cosmos Wave Grid — perspective wireframe terrain rippling as a travelling wave",
   "title_vi": "Cosmos Wave Grid — địa hình lưới khung phối cảnh gợn sóng lan truyền",
-  "W": 760, "H": 560, "LOOP": 7000, "N": 88,
-  "tags": ["wave","grid","terrain","wireframe","perspective","canvas2d"],
+  "W": 760,
+  "H": 560,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "wave",
+    "grid",
+    "terrain",
+    "wireframe",
+    "perspective",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A 3D perspective wireframe terrain: a grid mesh whose vertex heights ripple as a travelling wave while rows recede into the distance with perspective. Built with pure Canvas 2D doing its own 3D projection (scale=F/(F+z)), zero dependencies, runs fully offline; rendering is deterministic and the loop is seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each grid vertex is given a world (x,y,z), height comes from sin/cos with integer-k phases of 2*pi*u so the wave travels and the loop closes exactly; vertices are perspective-projected with scale=F/(F+z); rows are drawn far-to-near as a painter's order so nearer rows (smaller z) render brighter and thicker with additive 'lighter' glow; row and column polylines form the wireframe. CAPTURE: ?auto=1 + window.__seek(t). TUNE: NX/NZ (mesh density), SP (wave amplitude), wave k-factors, F (focal length), SX (cell size).",
   "summary_vi": "Địa hình lưới khung phối cảnh 3D: độ cao các đỉnh lưới gợn sóng theo sóng lan truyền trong khi các hàng lùi xa dần theo phối cảnh. Thuần Canvas 2D tự chiếu 3D (scale=F/(F+z)), không thư viện, chạy offline; tất định và loop liền mạch.",
-  "notes": "Lưới khung phối cảnh: độ cao = sin/cos pha k nguyên của 2*pi*u → loop; vẽ hàng từ xa tới gần, gần thì sáng/dày hơn."
+  "notes": "Lưới khung phối cảnh: độ cao = sin/cos pha k nguyên của 2*pi*u → loop; vẽ hàng từ xa tới gần, gần thì sáng/dày hơn.",
+  "card_number": "AK-CDP-000001P",
+  "tier": "canvas"
 }

@@ -2,10 +2,25 @@
   "slug": "webcam-ascii",
   "title": "Cosmos ASCII-Cam — see yourself rendered live in flowing glowing ASCII glyphs",
   "title_vi": "",
-  "W": 440, "H": 290, "LOOP": 8400, "N": 38,
-  "tags": ["webcam", "sensor", "reactive", "interactive", "canvas2d"],
+  "W": 440,
+  "H": 290,
+  "LOOP": 8400,
+  "N": 38,
+  "tags": [
+    "webcam",
+    "sensor",
+    "reactive",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Reacts to the WEBCAM live: each frame is mirrored (selfie), downsampled to a 64x40 {brightness,motion} grid and frame-diffed, and every cell is drawn as a glowing Cosmos-tinted ASCII glyph chosen by brightness (dark cells become spaces and dots, bright cells become @ # W) so you literally see yourself flowing in characters; cells that just moved flare brighter and whiter. It gracefully falls back to a synthetic signal (a fake waving silhouette of moving Gaussian blobs) when the camera is unavailable or denied, and ships a deterministic synthetic demo for capture. Self-contained, zero dependencies. Privacy: all processing happens in-browser, nothing is uploaded.",
   "usage_notes": "RUN: open and click \"enable camera\", then move in frame — your silhouette resolves into a field of glowing glyphs, denser and whiter where you move. Without a camera it animates from a built-in synthetic waving silhouette so it is never blank. HOW IT REACTS: brightness picks the glyph from a dark-to-light ramp and sets glow/alpha; motion (abs frame-diff) pushes the glyph color toward white-hot and boosts its glow. DESKTOP: works the same with any webcam; no camera needed for the synthetic demo. KEY TECHNIQUES: getUserMedia({facingMode:'user'}) -> hidden <video> -> drawImage mirrored to a 64x40 offscreen canvas -> getImageData -> per-cell luminance + abs frame-diff = SIG; one render(SIG,t) maps each cell's brightness to a ramp glyph, tints by column band, and draws it with motion-driven shadow glow; synthSig(u) sums 3 looping Gaussian blobs into the same grid and diffs vs the previous frame for synthetic motion, deterministic and seamless. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: GW/GH (glyph grid res), RAMP characters, motion gain, glow blur, palette bands.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BT",
+  "tier": "reactive"
 }

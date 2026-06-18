@@ -2,10 +2,26 @@
   "slug": "remix-spiraltube",
   "title": "Cosmos Remix — Spiral Tube you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "helix", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "helix",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle helical tube: particles ride a helix wound around a tubular ring cross-section that advances along z, perspective-projected so the whole spring rotates and coils away into the distance like a glowing spring. A live glass control panel changes palette (brand theme tokens), shape, density, speed, dot size and Coils in real time, and reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, and turn the Coils knob to wind more or fewer turns into the tube; ↻ Seed cycles the palette, ⧉ Copy copies your config. KEY TECHNIQUES: a 3D helix (f·coils·2π winding angle) sampled onto a small ring cross-section to make a hollow tube, marched forward in z (phase wraps with u for a seamless loop) and perspective-projected (focal/(focal+z)) so near particles are larger and brighter; depth drives size and alpha for the receding-spring read; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS convention: window.__params + setParam(key,value) is the contract the generic remix harness reads to auto-build panels; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; SHAPES picks the per-particle glyph. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: raise Coils for a denser spring, Spread for tube radius, add palettes to PALETTES.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009B",
+  "tier": "remix"
 }

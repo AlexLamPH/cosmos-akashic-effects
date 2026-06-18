@@ -12,10 +12,16 @@
     "glsl",
     "hexagon",
     "tunnel",
-    "neon"
+    "neon",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A real WebGL GLSL fragment shader flying inward through a hexagonal tunnel. The fragment shader maps UV to polar (angle, 1/radius) for depth, tiles the tunnel walls with a hexagon-distance field, and lights crisp pulsing neon edges over dark hex faces. Per-cell pulses and a travelling accent band cycle the Cosmos palette, with fog fading toward the vanishing centre for a sci-fi flythrough feel. Zero deps, runs fully offline, deterministic and seamless: depth and pulse patterns are period-1 so frame(0)==frame(LOOP).",
   "usage_notes": "RUN: open index.html in a WebGL-capable browser (needs WebGL). KEY TECHNIQUES: hexagonal distance field tiling the tunnel walls; polar tunnel mapping via atan + 1/radius; seamless inward scroll using period-1 depth (z) and sin(2*pi) pulses; neon edge lines + exp() bloom; per-cell hash pulse and travelling accent band; distance fog to the centre. Phantom-dark base with glowing cosmic/violet/aurora accents. CAPTURE: ?auto=1 + window.__seek(t). TUNE: scroll speed (t*5.0), hex tiling scale (wall vec2), pulse rate, fog falloff.",
   "summary_vi": "Shader fragment GLSL WebGL thật bay vào trong đường hầm lục giác: ánh xạ UV sang cực để lấy độ sâu, lát vách bằng trường khoảng cách lục giác, làm sáng các cạnh neon đập nhịp trên mặt lục giác tối. Nhịp theo từng ô và dải màu chạy đổi accent Cosmos, sương mù mờ dần về tâm. Không lib, chạy offline, tất định và liền mạch.",
-  "notes": "Đường hầm lục giác neon đập nhịp bay vào tâm, cảm giác sci-fi, liền mạch khi uT lặp 0..1."
+  "notes": "Đường hầm lục giác neon đập nhịp bay vào tâm, cảm giác sci-fi, liền mạch khi uT lặp 0..1.",
+  "card_number": "AK-CDP-000005Z",
+  "tier": "shader"
 }

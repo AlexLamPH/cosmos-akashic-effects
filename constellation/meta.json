@@ -2,10 +2,26 @@
   "slug": "constellation",
   "title": "Cosmos Constellation — proximity network background",
   "title_vi": "Cosmos Constellation — nền mạng lưới sao kết nối",
-  "W": 760, "H": 540, "LOOP": 9000, "N": 90,
-  "tags": ["constellation","network","particles","background","canvas2d","nodes"],
+  "W": 760,
+  "H": 540,
+  "LOOP": 9000,
+  "N": 90,
+  "tags": [
+    "constellation",
+    "network",
+    "particles",
+    "background",
+    "canvas2d",
+    "nodes",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A field of drifting nodes that link with glowing lines whenever they come close, forming a living constellation network in the Cosmos accents. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. Each node drifts on a periodic sine path (position = base + amp*sin(2pi*u*k+phase)) so the whole field loops; every frame any two nodes closer than DIST are joined by an additive line whose alpha fades with distance, and nodes are drawn as soft radial glows. CAPTURE: ?auto=1 + window.__seek(t) renders exact frames. TUNE: node count, DIST, AC colours, drift amp.",
   "summary_vi": "Trường các nút trôi nhẹ, hễ lại gần nhau là nối bằng đường sáng — tạo mạng lưới chòm sao sống động tông Cosmos. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Batch factory #1. Nút trôi theo sin tuần hoàn (loop), nối đường additive theo khoảng cách, nút vẽ radial glow. B-tier volume."
+  "notes": "Batch factory #1. Nút trôi theo sin tuần hoàn (loop), nối đường additive theo khoảng cách, nút vẽ radial glow. B-tier volume.",
+  "card_number": "AK-CDP-0000017",
+  "tier": "canvas"
 }

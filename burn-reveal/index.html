@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Burn Reveal</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #05030d; cursor: crosshair; }
+  canvas { display: block; position: fixed; inset: 0; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// ============================================================================
+//  Cosmos Burn Reveal — a dark "paper" sheet burns away from a corner with a
+//  glowing ember edge + char, revealing the Cosmos content beneath. The burn
+//  front follows a precomputed noise field (torn-paper edge). Pure Canvas 2D,
+//  no deps, runs offline. ?auto=1 + window.__seek(t) drives a seamless GIF
+//  (burn -> hold -> the sheet magically re-forms -> loop).
+// ============================================================================
+
+const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+const AUTO = new URLSearchParams(location.search).has('auto');
+const LOOP = 7000;
+const EMBER = 0.055, CHAR = 0.075, HOT = 0.03;   // burn-front band widths
+
+const logo = new Image(); let logoOK = false; logo.onload = () => logoOK = true; logo.src = './cosmos-logo.png';
+
+// ---- seeded value-noise fbm ----
+function hash(ix, iy){ let h = (ix*374761393 + iy*668265263) | 0;
+  h = Math.imul(h ^ (h>>>13), 1274126177); return ((h ^ (h>>>16)) >>> 0) / 4294967295; }
+const sm = t => t*t*(3-2*t);
+function vnoise(x, y){
+  const ix=Math.floor(x), iy=Math.floor(y), fx=x-ix, fy=y-iy;
+  const a=hash(ix,iy), b=hash(ix+1,iy), c=hash(ix,iy+1), d=hash(ix+1,iy+1);
+  const u=sm(fx), v=sm(fy);
+  return a*(1-u)*(1-v) + b*u*(1-v) + c*(1-u)*v + d*u*v;
+}
+function fbm(x, y){ let s=0, a=0.5, f=1; for(let o=0;o<4;o++){ s+=a*vnoise(x*f,y*f); f*=2; a*=0.5; } return s; }
+
+let W, H, field, paperTex, paperImg, off, octx, content;
+function resize(){
+  W = canvas.width = innerWidth; H = canvas.height = innerHeight;
+  // offscreen for the paper overlay
+  off = document.createElement('canvas'); off.width=W; off.height=H; octx = off.getContext('2d');
+  paperImg = octx.createImageData(W, H);
+  // precompute the burn field: low near the top-right corner (ignition) + torn noise
+  field = new Float32Array(W*H);
+  paperTex = new Float32Array(W*H);               // parchment marbling 0.78..1.05
+  const diag = Math.hypot(W, H); let mn=1e9, mx=-1e9;
+  const fs = 4.2;                                  // noise frequency across screen
+  for(let y=0; y<H; y++) for(let x=0; x<W; x++){
+    const corner = Math.hypot(x - W*0.98, y - H*0.04) / diag;   // dist from top-right
+    const n = fbm(x/W*fs, y/H*fs);
+    const v = 0.62*n + 0.62*corner;
+    const idx = y*W+x;
+    field[idx] = v; if(v<mn)mn=v; if(v>mx)mx=v;
+    const veins = Math.abs(fbm(x/W*9+3.1, y/H*9+1.7) - 0.5);    // marble veins
+    paperTex[idx] = 0.80 + 0.26*fbm(x/W*14, y/H*14) - 0.14*veins;
+  }
+  const inv = 1/(mx-mn); for(let i=0;i<field.length;i++) field[i] = (field[i]-mn)*inv;  // -> 0..1
+  // prebuild the content (revealed) layer
+  content = document.createElement('canvas'); content.width=W; content.height=H;
+  drawContent(content.getContext('2d'));
+}
+// ---- the content revealed underneath ----
+let stars=[];
+function drawContent(g){
+  const grad = g.createRadialGradient(W/2,H*0.46,0, W/2,H*0.46, Math.max(W,H)*0.7);
+  grad.addColorStop(0,'#140d2a'); grad.addColorStop(0.6,'#0a0720'); grad.addColorStop(1,'#05030d');
+  g.fillStyle=grad; g.fillRect(0,0,W,H);
+  const r = hash; let seed=11; stars=[];
+  for(let i=0;i<130;i++){ const sx=r(seed++,7)*W, sy=r(seed++,3)*H, rr=r(seed++,5)*1.4+0.3;
+    g.globalAlpha=0.5+0.5*r(seed++,9); g.fillStyle='#cdd6ff'; g.beginPath(); g.arc(sx,sy,rr,0,6.283); g.fill(); }
+  g.globalAlpha=1;
+  // soft glow behind the hero so revealed area reads bright
+  const gl = g.createRadialGradient(W/2,H*0.42,0, W/2,H*0.42, Math.min(W,H)*0.5);
+  gl.addColorStop(0,'rgba(150,120,255,0.35)'); gl.addColorStop(1,'rgba(150,120,255,0)');
+  g.fillStyle=gl; g.fillRect(0,0,W,H);
+  // big wordmark
+  g.textAlign='center'; g.font = `800 ${Math.min(W*0.16,150)}px -apple-system,system-ui,sans-serif`;
+  g.fillStyle='rgba(240,237,250,0.97)';
+  g.shadowColor='rgba(150,120,255,0.7)'; g.shadowBlur=46;
+  g.fillText('COSMOS', W/2, H*0.80);
+  g.shadowBlur=0;
+  // logo (hero)
+  if(logoOK){ const s=Math.min(W,H)*0.52; g.drawImage(logo, W/2 - s/2, H*0.40 - s/2, s, s); }
+}
+resize(); addEventListener('resize', resize);
+logo.addEventListener('load', () => { if(W) drawContent(content.getContext('2d')); });
+
+// ---- compose one frame at burn progress p (0=full sheet .. ~1.05=fully gone) ----
+function frame(p, t){
+  if(!content) return;
+  ctx.clearRect(0,0,W,H);
+  ctx.drawImage(content, 0, 0);                    // revealed layer (base)
+  // build paper overlay with ember/char front
+  const d = paperImg.data;
+  const PR=206, PG=194, PB=162;                     // parchment base colour
+  for(let i=0, pi=0; i<field.length; i++, pi+=4){
+    const x = field[i] - p;                        // >0 intact, ~0 front, <0 burned
+    const tx = paperTex[i];
+    const pr=PR*tx, pg=PG*tx, pb=PB*tx;            // textured parchment
+    let r,gc,b,a;
+    if(x > EMBER){ r=pr; gc=pg; b=pb; a=255; }     // intact paper
+    else if(x > 0){ const k=x/EMBER;               // scorching: parchment -> char + ember rim
+      r=22+(pr-22)*k; gc=14+(pg-14)*k; b=11+(pb-11)*k; a=255;
+      const e=(1-k); r+=e*230; gc+=e*120; b+=e*18; }
+    else if(x > -CHAR){ const k=-x/CHAR;           // glowing char, dissolving
+      a=255*(1-k); r=24; gc=14; b=11;
+      const e=Math.max(0, 1-(-x)/HOT); r+=e*255; gc+=e*150; b+=e*28; }
+    else { a=0; r=0; gc=0; b=0; }
+    d[pi]=r>255?255:r; d[pi+1]=gc>255?255:gc; d[pi+2]=b>255?255:b; d[pi+3]=a;
+  }
+  octx.putImageData(paperImg, 0, 0);
+  ctx.drawImage(off, 0, 0);                         // paper over content (alpha-blended)
+}
+
+// burn progress curve over the loop (seamless: p(0)==p(LOOP)==0)
+function progress(tmod){
+  const u = tmod/LOOP;
+  if(u < 0.46) return (u/0.46)*1.06;               // burn away
+  if(u < 0.60) return 1.06;                         // hold (content fully shown)
+  return (1 - (u-0.60)/0.40)*1.06;                  // sheet re-forms
+}
+
+if (AUTO) {
+  window.__seek = t => { const tmod=((t%LOOP)+LOOP)%LOOP; frame(progress(tmod), t); };
+  // render once ready (wait for logo)
+  const boot = () => { if(logoOK){ window.__seek(0); window.__ready=true; } else requestAnimationFrame(boot); };
+  boot();
+} else {
+  const start = performance.now();
+  (function loop(now){ const t=now-start; frame(progress(((t%LOOP)+LOOP)%LOOP), t); requestAnimationFrame(loop); })(performance.now());
+}
+</script>
+</body>
+</html>

@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 7000,
   "N": 88,
-  "tags": ["vhs", "glitch", "chroma", "scanline", "canvas2d", "retro"],
+  "tags": [
+    "vhs",
+    "glitch",
+    "chroma",
+    "scanline",
+    "canvas2d",
+    "retro",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "The word COSMOS is painted into a small broadcast buffer with an RGB chroma-split, then blitted back to the screen one scanline at a time, each line shifted by a seeded jitter table to fake VHS head-tracking tears and a travelling tear wave. A scrolling hiss noise band, additive chroma-bleed ghosts, scanlines, a rolling sync bar and a vignette complete the worn-tape look. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: COSMOS drawn 3x in offset red/green/blue passes ('lighter') plus a white core onto a 380x240 offscreen for chroma aberration; the buffer is blitted to the main canvas one source scanline at a time with drawImage(src,0,y,PW,1,...) and each line offset by a seeded mulberry32 jitter table jit[floor(u*K)][y] -> horizontal tracking jitter; a hard tracking tear pulls a seeded band sideways from tear[floor(u*K)]; a second tear wave 14*sin(y*0.08+2PI*3u) travels vertically and loops; a rolling noise band and a rolling sync bar scroll exactly once per loop via (u*PH)%PH and (u*H)%H; additive offset ghosts give chroma bleed; scanlines + vignette overlay. All randomness from mulberry32 at setup, none in frame, and every motion uses integer harmonics of u, so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: WORD, PW/PH, K, jitter gains, tear size/probability, noise band height, beat/surge harmonics, LOOP.",
   "summary_vi": "Chữ COSMOS được vẽ vào buffer nhỏ với tách màu RGB, rồi vẽ lại lên màn hình theo từng dòng quét, mỗi dòng bị dịch bởi bảng jitter seeded để giả lập xé tracking đầu từ VHS cùng một làn sóng xé di chuyển. Thêm dải nhiễu cuộn, bóng loang màu cộng sáng, scanline, thanh đồng bộ cuộn và vignette tạo cảm giác băng cũ. Thuần Canvas 2D, không thư viện, chạy offline, tất định và liền mạch.",
-  "notes": "Jitter/tear lấy mẫu bảng seeded theo floor(u*K); dải nhiễu và thanh sync cuộn đúng một lần mỗi vòng và mọi chuyển động dùng hài số nguyên nên frame(0)==frame(LOOP)."
+  "notes": "Jitter/tear lấy mẫu bảng seeded theo floor(u*K); dải nhiễu và thanh sync cuộn đúng một lần mỗi vòng và mọi chuyển động dùng hài số nguyên nên frame(0)==frame(LOOP).",
+  "card_number": "AK-CDP-000005G",
+  "tier": "canvas"
 }

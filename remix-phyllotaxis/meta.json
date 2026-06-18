@@ -2,10 +2,27 @@
   "slug": "remix-phyllotaxis",
   "title": "Cosmos Remix — Phyllotaxis you can retune and reskin live",
   "title_vi": "Cosmos Remix — Phyllotaxis chỉnh & đổi màu trực tiếp",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 96,
-  "tags": ["remix", "phyllotaxis", "generative", "interactive", "themeable", "canvas2d", "controls"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 96,
+  "tags": [
+    "remix",
+    "phyllotaxis",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "controls",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Flagship of the Remixable tier: a glowing golden-angle phyllotaxis spiral with a live glass control panel — change palette (brand theme tokens), density, spread, speed and dot size in real time, shuffle the seed, and Copy your tuned version. Demonstrates the PARAMS convention (window.__params + setParam) the generic remix harness reads. Self-contained, zero deps; the ?auto=1 capture hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, press ↻ Seed to shuffle, ⧉ Copy to copy your config. KEY TECHNIQUES: golden-angle phyllotaxis (i·137.5°, r∝√i) drawn additively with a per-index colour ramp from the active palette; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays deterministic; theme tokens = a PALETTES map driving both a CSS accent var and the dot ramp; window.__params + setParam(key,value) is the contract a generic remix harness uses to auto-build panels for ANY effect. CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: add palettes to PALETTES, extend __params.",
   "summary_vi": "Đầu tàu của tier Remix: xoắn ốc phyllotaxis phát sáng kèm bảng điều khiển kính trực tiếp — đổi palette (theme-token thương hiệu), mật độ, độ giãn, tốc độ, cỡ chấm theo thời gian thực, đảo seed, và Copy bản đã chỉnh. Minh hoạ quy ước PARAMS (window.__params + setParam) cho harness remix dùng chung. Tự chứa, không lib; ?auto=1 ẩn bảng và render loop tất định.",
-  "notes": "POC tier Remix — bảng điều khiển live + theme-token + Copy; là template cho remix harness."
+  "notes": "POC tier Remix — bảng điều khiển live + theme-token + Copy; là template cho remix harness.",
+  "card_number": "AK-CDP-0000090",
+  "tier": "remix"
 }

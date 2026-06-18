@@ -1,0 +1,22 @@
+{
+  "slug": "product-slider",
+  "card_number": "AK-CDP-000000R",
+  "tier": "ui",
+  "title": "Cosmos Product Slider — gentle hero carousel (slide-in, blur→sharp, no dots)",
+  "title_vi": "",
+  "tags": [
+    "slider",
+    "carousel",
+    "hero",
+    "css-transition",
+    "blur-focus",
+    "staggered-text",
+    "cosmos-ai-lab",
+    "effect",
+    "ra"
+  ],
+  "summary": "A premium hero product slider with a SOFT, slow transition: the product glides in from the right while de-blurring (blurry -> crisp) and settling into a sharp 3D rest pose; the headline/paragraph/button fade up de-blurring in a staggered sequence beside it; the outgoing product drifts left, blurs and fades. Whole palette re-themes per slide. Auto-advances; NO pagination dots (arrow keys for manual nav). Pure HTML/CSS/JS, zero deps, offline. Products are procedural glowing orbs — swap for real photos to reuse.",
+  "usage_notes": "RUN: double-click index.html. Auto-advances every 5s; Left/Right arrows for manual. HOW IT WORKS: classes .active / .leaving drive everything. Incoming .visual is parked translateX(135%) scale(.9) opacity 0 filter blur(28px); .active eases to rest (transform 2s cubic-bezier(.16,1,.3,1), opacity/filter ~1.7-1.9s) -> the slow blur->sharp slide-in. Text children animate opacity+translateY+blur with staggered transition-delay (.45/.6/.78/.95s). .leaving drifts translateX(-55%) + blur + fade (exit left). A per-slide --hue var re-themes gradients/glow/text; body bg glow follows active slide. JS only toggles classes + --hue + auto-advance timer; window.go(i) exposed. ADAPT: replace .orb/.ring with <img>, edit the SLIDES array (data-driven). v2 of the effect — softened easing, added blur-focus, removed dots per Alex feedback. Built by Ra from a 5s screen-recording (Codewithayansh Airpod Slider), re-themed for Cosmos AI Lab. VERIFIED: headless render, 3-slide cycle, GIF, zero console errors.",
+  "summary_vi": "",
+  "notes": ""
+}

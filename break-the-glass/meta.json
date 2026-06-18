@@ -1,0 +1,26 @@
+{
+  "slug": "break-the-glass",
+  "card_number": "AK-CDP-0000010",
+  "tier": "canvas",
+  "title": "Cosmos Break the Glass — realistic mirror-crack shatter reveal (Canvas 2D)",
+  "title_vi": "",
+  "tags": [
+    "glass",
+    "shatter",
+    "cracks",
+    "mirror",
+    "fracture",
+    "radial",
+    "canvas2d",
+    "reveal",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "Click the dark glass and it shatters like a real cracked mirror: uneven radial cracks shoot from each impact (varying length + jagged wander), some branch, and adjacent radials are joined by sparse jagged cross-links forming angular shards — NO concentric 'spider-web' rings. Impact nodes flash and the Cosmos logo glows through the breaks. Pure HTML5 Canvas 2D, zero dependencies, runs offline. Seamless loop: shatter -> reveal -> the glass heals.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); keep cosmos-logo.png beside it. INTERACTION (live): click anywhere to spawn a fracture; the reticle cursor shows a click pulse. KEY TECHNIQUES: (1) buildFracture(cx,cy,R,seed) grows K uneven radial cracks via a grow() helper (per-step angle jitter = jagged), each radial has a RANDOM length and may spawn one branch from a mid vertex; adjacent radials get 0-2 sparse jagged cross-links at scattered radii -> angular shards, no uniform rings (this is what makes it read as glass, not a spider-web); geometry is seeded (mulberry32) so it's identical every run; (2) cracks 'grow' outward: each segment is gated by reach = age * R/PROP and the leading segment draws partially; line width tapers with distance from impact; (3) additive 'lighter' glow = wide accent stroke + thin white core; (4) the logo is drawn additively behind, revealed as shatter progresses. CAPTURE: ?auto=1 + window.__seek(t); a heal envelope fades cracks back out for a seamless loop; the GIF is captured from a START offset so frame 0 is full shatter. IMPORTANT for capture: screenshot WITHOUT the puppeteer `clip` option — clip drops <canvas> content in headless-shell (renders black). TUNE: IMPACTS[], PROP, ACCENT, HEAL_START/END.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -2,10 +2,26 @@
   "slug": "koch-snowflake",
   "title": "Cosmos Koch Snowflake — a glowing recursive snowflake outline rotating and breathing in icy aurora tones",
   "title_vi": "Cosmos Koch Snowflake — viền bông tuyết Koch đệ quy phát sáng, xoay và thở trong tông aurora băng giá",
-  "W": 700, "H": 700, "LOOP": 8000, "N": 100,
-  "tags": ["fractal","koch","snowflake","recursion","aurora","canvas2d"],
+  "W": 700,
+  "H": 700,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "fractal",
+    "koch",
+    "snowflake",
+    "recursion",
+    "aurora",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A Koch snowflake built by recursively replacing each edge of a seed triangle with four segments to depth 5, drawn as a multi-layer glowing icy-aurora path with sparkling vertices. It rotates one full turn per loop and breathes via a morph factor that grows and retracts every spike, so the outline morphs from near-triangle to full snowflake and returns exactly at u=1. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: koch() recursively replaces a segment a->b with four segments, the middle spike apex offset perpendicular by morph factor m (m=0 flat edge, m=1 full spike); the outline is the three triangle edges each subdivided to DEPTH and collected into a point list, then stroked in 4 widening/fading layers with globalCompositeOperation='lighter' for a soft icy glow plus twinkling vertex sparkles. All motion is integer-harmonic in u: morph=0.5+0.5*sin(2PI*u) breathes the spikes, spin=2PI*u rotates one turn, breathe scale uses k=2, twinkle uses k=3 -> frame(0)==frame(LOOP). Colour blends adjacent icy/aurora accents by phase (u + layer offset) mod 1. CAPTURE: ?auto=1 + window.__seek(t). TUNE: DEPTH recursion depth, morph/breathe amplitudes, R radius, AC palette.",
   "summary_vi": "Bông tuyết Koch dựng bằng cách thay đệ quy mỗi cạnh của tam giác mầm bằng bốn đoạn tới độ sâu 5, vẽ thành đường sáng aurora băng giá nhiều lớp với các đỉnh lấp lánh. Hình xoay trọn một vòng mỗi loop và thở qua hệ số morph làm mỗi gai mọc ra rồi co lại, nên viền biến đổi từ gần tam giác thành bông tuyết đầy đủ rồi trở về đúng tại u=1. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "morph=0.5+0.5*sin(2PI*u), spin=2PI*u, breathe k=2, twinkle k=3 — đều tần số nguyên theo u nên frame(0)==frame(LOOP) → loop liền."
+  "notes": "morph=0.5+0.5*sin(2PI*u), spin=2PI*u, breathe k=2, twinkle k=3 — đều tần số nguyên theo u nên frame(0)==frame(LOOP) → loop liền.",
+  "card_number": "AK-CDP-000004G",
+  "tier": "canvas"
 }

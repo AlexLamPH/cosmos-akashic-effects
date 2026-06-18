@@ -12,10 +12,16 @@
     "canvas2d",
     "generative",
     "plasma",
-    "cosmos"
+    "cosmos",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Underwater light caustics like a swimming-pool or ocean floor: a shifting bright web of light lines computed per-pixel on a small offscreen buffer from summed sine warps, then upscaled, tinted through cosmic and aurora blues into violet highlights. The wobbling 'water surface' warps the sample coordinates and the field's zero-crossings are sharpened into thin bright caustic lines. Pure Canvas 2D, zero deps, runs offline, deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a 200xRH offscreen ImageData is filled per-pixel, then drawn upscaled with additive 'lighter' blending (GIF-friendly small buffer); sample coords (fx,fy) are warped by drifting sin/cos waves to simulate a rippling water surface; two crossing sine wave-fields are summed and the caustic web is extracted via pow(1-|sum|,3) so bright thin lines appear at the field's zero crossings; a faint shimmer base keeps shadows in cosmic blue; a 256-stop LUT maps brightness deep-blue -> cosmic -> aurora -> violet. Every time term is an integer multiple of 2*pi*u, so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: RW (resolution), warp amplitudes (0.55/0.35), wave frequencies (2.0/3.0), sharpening power (3.0), base shimmer, LUT colours, LOOP.",
   "summary_vi": "Vân sáng khúc xạ dưới nước như đáy hồ bơi hay đáy biển: một mạng lưới đường sáng lung linh được tính từng pixel trên một bộ đệm offscreen nhỏ từ tổng các sóng sine bị biến dạng, rồi phóng to lên, nhuộm qua các sắc xanh vũ trụ và aurora tới điểm nhấn tím. Mặt nước gợn sóng làm biến dạng toạ độ lấy mẫu, và các điểm cắt-không của trường được làm sắc thành những đường sáng mảnh. Thuần Canvas 2D, không phụ thuộc, chạy ngoại tuyến, tất định và liền mạch.",
-  "notes": "Vòng lặp 8s liền mạch vì mọi pha thời gian là bội nguyên của 2πu. Tăng RW để nét hơn (GIF nặng hơn), đổi mũ pow để chỉnh độ mảnh của vân sáng."
+  "notes": "Vòng lặp 8s liền mạch vì mọi pha thời gian là bội nguyên của 2πu. Tăng RW để nét hơn (GIF nặng hơn), đổi mũ pow để chỉnh độ mảnh của vân sáng.",
+  "card_number": "AK-CDP-000004M",
+  "tier": "canvas"
 }

@@ -6,9 +6,22 @@
   "H": 420,
   "LOOP": 9200,
   "N": 102,
-  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A reactive liquid: a horizontal liquid surface whose height ripples and bulges from the spectrum, with glowing metaball blobs riding the crests and the whole body sloshing on the beat, finished with a glossy Cosmos sheen and specular crest sparkles. It reacts to the MICROPHONE live and gracefully falls back to a deterministic synthetic signal if the mic is unavailable or denied, plus a built-in synthetic demo for capture. Self-contained, zero dependencies, runs fully offline.",
   "usage_notes": "RUN: open index.html and click \"enable mic\" to react to your voice or music; if no mic is granted it falls back to a built-in beat so it never goes blank. KEY TECHNIQUES: an AnalyserNode (fftSize 128) feeds a 64-bin spectrum + RMS level into render(spectrum, level, t); the surface height at each x samples the spectrum band plus travelling ripple sines, and a beat-driven slosh envelope heaves the whole sheet; metaball blobs are additive radial gradients placed on the surface, their radius pulsing with their spectrum bin and the slosh; a glossy sheen stroke and under-surface highlight give the Cosmos liquid look, with specular dots on local wave crests; synthSpectrum(u) is a seeded sum-of-sines with moving formant bumps plus a bass-weighted beat kick, deterministic and loop-closing, used for AUTO and live-fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: NB (blob count), NX (surface resolution), amp (wave height), slosh power, baseLine, beat count (4).",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AT",
+  "tier": "reactive"
 }

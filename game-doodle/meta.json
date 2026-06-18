@@ -2,11 +2,27 @@
   "slug": "game-doodle",
   "title": "Cosmos Ascent — tilt a bouncing orb up endless glowing platforms",
   "title_vi": "",
-  "W": 460, "H": 640, "LOOP": 11000, "N": 100,
+  "W": 460,
+  "H": 640,
+  "LOOP": 11000,
+  "N": 100,
   "live_fit": true,
-  "tags": ["game","platformer","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "platformer",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained vertical platform-jumper (doodle-jump style) in a single HTML file with zero dependencies. A glowing orb auto-bounces on contact with rising aurora platforms; you tilt it left and right to land on the next one as the camera scrolls upward. The height you climb is your score, and falling off the bottom of the screen ends the run. Playable with keyboard and on-screen touch pads. It also ships a deterministic self-playing attract demo for capture: a seeded AI steers the orb onto each seeded platform, climbing endlessly, rendered as a pure function of time via window.__seek(t).",
   "usage_notes": "RUN: double-click index.html. CONTROLS: ◄ ► arrow keys or A/D to tilt the orb left/right; on-screen ◄ ► touch pads on mobile; the orb bounces automatically when it lands on a platform top; R key or the Restart button after a fall. GOAL: climb as high as possible — score equals height climbed; if the orb falls below the bottom of the view it is game over. KEY TECHNIQUES: the whole game is a fixed-timestep (16ms) deterministic simulation; platform x and y are derived from a mulberry32-seeded stream keyed by platform index, so AUTO replays identically; the seeded auto-player finds the next platform above the orb and steers x toward its center, bouncing up the seeded stack; AUTO re-simulates from a fixed initial state to t each seek (it auto-restarts if it ever falls) so the frame is a pure function of time, with a START offset so frame 0 is already mid-climb with score>0. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: GRAV, JUMP, MOVE, GAPY (platform spacing), PW/PH (platform size), R (orb size), LOOP, and the START offset.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AB",
+  "tier": "game"
 }

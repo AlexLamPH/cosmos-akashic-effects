@@ -2,10 +2,25 @@
   "slug": "copy-button",
   "title": "Cosmos Copy Button — copy-to-clipboard button that morphs into a green 'Copied!' check with a spark burst",
   "title_vi": "Cosmos Copy Button — nút sao chép biến thành dấu tích xanh 'Copied!' kèm hiệu ứng tia",
-  "W": 640, "H": 420, "LOOP": 4600, "N": 58,
-  "tags": ["copy","clipboard","button","interactive","css"],
+  "W": 640,
+  "H": 420,
+  "LOOP": 4600,
+  "N": 58,
+  "tags": [
+    "copy",
+    "clipboard",
+    "button",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished copy-to-clipboard button UI component on the Cosmos Phantom-dark theme, self-contained with zero dependencies. A glassy code-snippet panel (macOS-style title bar + syntax-highlighted code) carries a Copy button in its top-right corner. On copy the button dips on press, an aurora-green fill pops in with a back-overshoot, the label crossfades from 'Copy' to a 'Copied!' checkmark, and a small radial burst of coloured sparks flies out and fades — then it reverts to rest. Live mode performs a real clipboard write (navigator.clipboard) and plays the same animation on click, with an autoplay fallback; the captured motion is a pure deterministic function of u so it loops seamlessly.",
   "usage_notes": "RUN: double-click index.html. LIVE: click the Copy button — it writes the snippet to the clipboard and plays the morph + burst; an idle autoplay loops the feedback as a fallback. KEY TECHNIQUES: render(u) splits the loop into phases (idle, press+morph-in+burst, hold 'Copied!', morph-back, idle) and writes inline styles only — the green fill scales in with a back-overshoot ease, the two labels crossfade via opacity + a small translateY, the button dips with a sin press curve, and the spark burst is a seeded mulberry32 layout of 8 particles whose positions are easeOut(burstT) along fixed angles with a fade envelope (no Math.random in render). Frame 0 is offset (OFF=0.34) to land in the held 'Copied!' moment so the thumbnail is rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, the phase boundaries in render(), the NS spark count / SP layout, and the snippet text.",
   "summary_vi": "Một component nút sao chép-vào-clipboard UI thực sự chỉn chu trên nền Phantom-dark của Cosmos, độc lập và không phụ thuộc thư viện. Thẻ kính chứa đoạn code tô màu cú pháp kèm nút Copy ở góc trên phải. Khi sao chép, nút lún nhẹ, lớp nền xanh aurora bung ra với hiệu ứng nảy, nhãn chuyển từ 'Copy' sang dấu tích 'Copied!', và một chùm tia màu nhỏ bắn ra rồi mờ dần — sau đó trở về trạng thái nghỉ. Bản live ghi thật vào clipboard khi bấm với autoplay dự phòng; chuyển động chụp là hàm thuần của u nên loop liền mạch.",
-  "notes": "render(u) chia loop thành các pha nghỉ/bấm-biến-hình/giữ/trở-lại, viết nội tuyến lớp nền xanh nảy, crossfade nhãn và chùm tia seed mulberry32 theo easeOut."
+  "notes": "render(u) chia loop thành các pha nghỉ/bấm-biến-hình/giữ/trở-lại, viết nội tuyến lớp nền xanh nảy, crossfade nhãn và chùm tia seed mulberry32 theo easeOut.",
+  "card_number": "AK-CDP-000006F",
+  "tier": "ui"
 }

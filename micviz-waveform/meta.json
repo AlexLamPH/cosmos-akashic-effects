@@ -6,9 +6,22 @@
   "H": 420,
   "LOOP": 8400,
   "N": 93,
-  "tags": ["mic", "audio-reactive", "visualizer", "music", "interactive", "canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "An oscilloscope visualizer that reacts to the MICROPHONE live: multiple stacked, harmonics-tinted time-domain waveform traces with a soft trail and a center glow that pulses on beats. Gracefully falls back to a synthetic signal if the mic is unavailable or denied, plus a deterministic synthetic demo for capture. Self-contained, zero dependencies.",
   "summary_vi": "",
   "usage_notes": "RUN: open and click \"enable mic\" to drive the scope with your voice or music; if no mic is granted it falls back to a built-in beat. KEY TECHNIQUES: live AnalyserNode getByteTimeDomainData / getByteFrequencyData feeds render(spectrum, level, t); a deterministic synthSpectrum(u) (seeded sum-of-sines formants + beat kick) feeds the SAME render() for auto and fallback; stacked harmonic traces shaped by the spectrum, additive glow, trailing fade. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: TRACES, COL tints, ampBase, LOOP, the formant centers f1/f2/f3 and beat count in synthSpectrum.",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000B4",
+  "tier": "reactive"
 }

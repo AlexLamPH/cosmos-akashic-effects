@@ -6,9 +6,24 @@
   "H": 420,
   "LOOP": 9000,
   "N": 90,
-  "tags": ["shader", "webgl", "glsl", "fractal", "julia", "escape-time", "generative", "loop"],
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "fractal",
+    "julia",
+    "escape-time",
+    "generative",
+    "loop",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real WebGL GLSL fragment shader rendering an animated escape-time Julia set. The complex parameter c = 0.7885*(cos 2πt, sin 2πt) orbits a circle so the whole fractal morphs and returns seamlessly at t=1. Smooth (continuous) iteration count is colour-mapped through the Cosmos accent palette, with an orbit-trap glow lighting the interior wells. Zero dependencies, runs fully offline, deterministic and seamless.",
   "usage_notes": "RUN: open index.html in any WebGL-capable browser (needs WebGL). KEY TECHNIQUES: classic 2D escape-time iteration z=z²+c, smooth/continuous iteration colouring via log2(log2(|z|²)), parameter c swept around a circle for a seamless loop, orbit-trap (min |z|²) for the glowing interior, Cosmos accent ramp. CAPTURE: ?auto=1 + window.__seek(t). TUNE: change the view scale (z=uv*1.45), iteration count (MAXI/loop bound 90), band cycling speed (v*3.0 + t), or interior glow falloff (exp(-orbitMin*2.2)).",
   "summary_vi": "Shader mảnh WebGL GLSL thực vẽ tập Julia escape-time động; tham số c chạy quanh một đường tròn nên phân hình biến đổi và lặp liền mạch, tô màu theo bảng Cosmos với lõi phát sáng. Không phụ thuộc, chạy offline, tất định.",
-  "notes": "Tập Julia động với tham số quay vòng tròn, tô màu smooth-iteration và lõi phát sáng theo bảng Cosmos."
+  "notes": "Tập Julia động với tham số quay vòng tròn, tô màu smooth-iteration và lõi phát sáng theo bảng Cosmos.",
+  "card_number": "AK-CDP-000005M",
+  "tier": "shader"
 }

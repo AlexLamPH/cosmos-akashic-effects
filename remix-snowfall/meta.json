@@ -2,10 +2,26 @@
   "slug": "remix-snowfall",
   "title": "Cosmos Remix — Snowfall you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "snowfall", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "snowfall",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle snowfall: flakes fall downward at seeded speeds with a gentle horizontal sine sway, each on a looping vertical phase ((i/count + u·speed) mod 1) that wraps top-to-bottom seamlessly, while a seeded depth varies size and brightness for parallax. Live glass panel retunes palette (brand theme tokens), shape, density, speed, dot size and a Wind sway knob; reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Speed/Spread/Dot, and turn Wind up for stronger sway; pair with the snowflake shape for crystalline flakes. ↻ Seed cycles palette, ⧉ Copy copies your config. KEY TECHNIQUES: each flake rides a looping vertical phase ((i/count + u·speed·fall) mod 1) so it wraps from top to bottom with no seam; a seeded depth drives parallax (near flakes larger and brighter) and a per-flake sine sway scaled by the Wind knob; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them; theme tokens = a PALETTES map driving a CSS accent var and the colour ramp; SHAPES + drawShape render the chosen glyph cheaply. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Density/Dot for a thicker blizzard, Wind for drift, add palettes to PALETTES.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-0000099",
+  "tier": "remix"
 }

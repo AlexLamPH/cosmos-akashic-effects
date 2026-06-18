@@ -6,9 +6,22 @@
   "H": 420,
   "LOOP": 8800,
   "N": 98,
-  "tags": ["mic","audio-reactive","visualizer","music","interactive","canvas2d"],
+  "tags": [
+    "mic",
+    "audio-reactive",
+    "visualizer",
+    "music",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A swirling spiral-vortex visualizer: each arm's point brightness and length ride the spectrum while the spin speed rides the overall level, tightening on beats into a glowing whirlpool. Reacts to the MICROPHONE live (gracefully falls back to a synthetic signal if the mic is unavailable/denied) plus a deterministic synthetic demo for capture. Self-contained, zero-deps.",
   "usage_notes": "RUN: open and click \"enable mic\" to make the whirlpool swirl to your voice/music; it falls back to a built-in beat if no mic is granted. KEY TECHNIQUES: an AnalyserNode feeds a 64-bin spectrum + level into render(spectrum, level, t); each spiral arm samples the spectrum along its length for brightness/length, the level sets spin speed, and a low-band beat detector tightens the swirl; a seeded synthSpectrum(u) drives the same render for auto/fallback. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: ARMS and PTS (spiral density), the tight factor (swirl tightness), LOOP (cycle length), and the beat threshold in detectBeat.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AW",
+  "tier": "reactive"
 }

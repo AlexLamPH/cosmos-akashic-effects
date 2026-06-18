@@ -7,9 +7,22 @@
   "LOOP": 12000,
   "N": 109,
   "live_fit": true,
-  "tags": ["game","arcade","playable","interactive","arcade","canvas2d"],
+  "tags": [
+    "game",
+    "arcade",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, fully playable Asteroids arcade game in one self-contained HTML file with zero dependencies. You fly a glowing violet ship around a wrap-around space field: rotate left/right, thrust forward with momentum, and fire nebula bolts that split big asteroids into smaller, faster ones. Score climbs per hit, you have three lives, and clearing a wave spawns a larger next wave. Playable with keyboard and on-screen touch buttons, with a restart affordance. It also ships a deterministic self-playing attract demo for capture: a seeded AI ship hunts, aims and shoots asteroids that split, rendered as a pure function of time.",
   "usage_notes": "RUN: open index.html (double-click) — no server, no deps. CONTROLS: rotate with Left/Right arrows or A/D, thrust with Up arrow or W (momentum + screen wrap), fire with Space; on touch use the on-screen rotate / thrust / fire buttons. GOAL: shoot asteroids to score (big=20, medium=40, small=60); big asteroids split into two smaller ones; clear the wave to advance. You have 3 ships/lives; colliding with an asteroid costs a life and respawns you with brief invulnerability blink; at 0 lives it is GAME OVER. RESTART: press R or tap the board. KEY TECHNIQUES: the game is a deterministic fixed-timestep simulation (16ms) seeded with mulberry32 — no Math.random in the sim; for AUTO a seeded AI auto-player picks the nearest asteroid, leads its velocity, rotates to aim, thrusts to stay alive and fires when aligned; drawAt(ms) re-simulates from a fixed initial state to ms so any frame is reproducible from t alone, with a frame-0 offset so capture opens mid-action with score already above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: LOOP, OFFSET (frame-0 richness), ship turn/thrust/fire-rate constants, asteroid sizes SZR, wave count, accent colors.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009Z",
+  "tier": "game"
 }

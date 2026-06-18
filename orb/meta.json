@@ -1,0 +1,25 @@
+{
+  "slug": "orb",
+  "card_number": "AK-CDP-0000014",
+  "tier": "canvas",
+  "title": "Cosmos Orb — particle sphere + orbit rings (Canvas 2D 3D projection)",
+  "title_vi": "",
+  "tags": [
+    "particles",
+    "sphere",
+    "orbit",
+    "3d-projection",
+    "canvas2d",
+    "atom",
+    "points",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A sphere built from ~2000 glowing particles in a Cosmic->Phantom->Nebula gradient, wrapped by four tilted orbit rings that spin around it like electrons, with the whole scene rotating on a nodding axis. Pure HTML5 Canvas 2D with a hand-rolled perspective 3D projection — no Three.js, no libraries; runs offline.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN). KEY TECHNIQUES: (1) particles sit on a Fibonacci sphere; each frame they're rotated (Ry then Rx) and perspective-projected (scale = F/(F+z)); depth sets alpha + size so the near hemisphere glows brighter; (2) colour = a 3-stop gradient by latitude; (3) orbit rings = particle loops rotated by per-ring tilt (Rx then Rz) then the global rotation, each spinning at its own integer turn-count; (4) everything drawn additively ('lighter') = soft glow with no per-particle gradients (cheap); a radial core glow sits behind. LOOP: global rotation = 1 turn, ring spins = integer turns, axis nod = sin -> fully seamless and deterministic, so ?auto=1 + window.__seek(t) renders exact frames. Capture WITHOUT puppeteer `clip` (clip drops <canvas>). TUNE: NP, rings[], R/F, grad3 colours. BRAND: Phantom dark; particles use the Cosmic/Phantom/Nebula accents.",
+  "summary_vi": "",
+  "notes": ""
+}

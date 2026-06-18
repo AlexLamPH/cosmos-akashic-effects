@@ -12,10 +12,16 @@
     "knot",
     "glow",
     "additive",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "The (2,3) trefoil torus-knot rendered as a thick glowing tube of additive dots, spinning one full turn about a tilted axis. Built with pure Canvas 2D doing its own 3D rotation and perspective projection (scale=F/(F+z)), zero dependencies, runs fully offline; rendering is deterministic and the loop is seamless (frame(0)===frame(LOOP)).",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each centre point comes from the torus-knot parametric form (r=2+cos(3*ph); X=r*cos(2*ph), Y=-sin(3*ph), Z=r*sin(2*ph)); a tube is swept by building a local normal/binormal frame from the tangent and ringing dots around each centre (NRING points, plus a bright white core dot at radius 0); the whole knot spins exactly 2*pi*u about Y with a constant tilt about X; an accent colour gradient (6-colour Cosmos wheel) flows along the curve via (f+u) mod 1; dots are depth-sorted far-to-near and projected with scale=F/(F+z) so nearer dots are bigger and brighter, drawn additively ('lighter'). CAPTURE: ?auto=1 + window.__seek(t). TUNE: TUBE (tube thickness), NSEG/NRING (density), SC (size), F (focal length), tilt.",
   "summary_vi": "Nút ba lá (2,3) vẽ thành ống dày bằng các chấm phát sáng cộng dồn, quay trọn một vòng quanh trục nghiêng. Thuần Canvas 2D tự tính xoay 3D và phép chiếu phối cảnh (scale=F/(F+z)), không phụ thuộc thư viện, chạy offline; tất định và loop liền mạch.",
-  "notes": "Ống nút 3D: điểm tâm theo công thức tham số, dựng khung pháp tuyến/phó pháp tuyến từ tiếp tuyến để quét ống, xoay 2*pi*u quanh Y kèm nghiêng cố định, sắp xếp theo độ sâu, chiếu F/(F+z), gradient màu chạy dọc đường cong."
+  "notes": "Ống nút 3D: điểm tâm theo công thức tham số, dựng khung pháp tuyến/phó pháp tuyến từ tiếp tuyến để quét ống, xoay 2*pi*u quanh Y kèm nghiêng cố định, sắp xếp theo độ sâu, chiếu F/(F+z), gradient màu chạy dọc đường cong.",
+  "card_number": "AK-CDP-000005D",
+  "tier": "canvas"
 }

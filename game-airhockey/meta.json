@@ -2,10 +2,27 @@
   "slug": "game-airhockey",
   "title": "Cosmos Air Hockey — drag your mallet to slam a glowing puck past the CPU",
   "title_vi": "",
-  "W": 560, "H": 660, "LOOP": 12000, "N": 109, "live_fit": true,
-  "tags": ["game","sports","playable","interactive","arcade","canvas2d"],
+  "W": 560,
+  "H": 660,
+  "LOOP": 12000,
+  "N": 109,
+  "live_fit": true,
+  "tags": [
+    "game",
+    "sports",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, self-contained playable air hockey match in one HTML file with zero dependencies. Drag your bottom mallet to defend your goal and slam a glowing puck past a defending-and-attacking CPU on the top; the puck carries mallet momentum on contact, banks off the side rails, and the live scoreboard tracks first-to-7. Keyboard plus drag/touch control, win/lose banner, and instant restart. Ships with a deterministic self-playing attract demo where both mallets are AI rallying and scoring on the seeded puck.",
   "usage_notes": "RUN: open index.html (double-click) — no server, no deps. CONTROLS: drag / touch anywhere on the lower half to move your mallet, or arrows / WASD nudge it; R restarts. GOAL: knock the puck into the CPU's goal at the top of the table; first side to 7 points wins; the CPU scores on you through the bottom goal. KEY TECHNIQUES: fixed-timestep deterministic physics — circle-vs-circle mallet collision imparts mallet velocity to the puck, rail reflections, and goal-gap detection; each mallet runs a defend-or-attack AI driven only by a mulberry32 seed with per-serve aim biases so goals happen reproducibly. In AUTO both mallets use that same AI so the rally is fully reproducible, and frame 0 is offset mid-rally. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: WIN target, MR/PR sizes, GW goal width, puck speed cap in collideMallet(), mallet maxSp, T_OFFSET (frame-0 offset).",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BA",
+  "tier": "game"
 }

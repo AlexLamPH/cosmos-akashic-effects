@@ -6,9 +6,24 @@
   "H": 460,
   "LOOP": 9000,
   "N": 90,
-  "tags": ["shader", "webgl", "glsl", "plasma", "demoscene", "generative", "loop", "cosmos"],
+  "tags": [
+    "shader",
+    "webgl",
+    "glsl",
+    "plasma",
+    "demoscene",
+    "generative",
+    "loop",
+    "cosmos",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A true demoscene plasma rendered as a real WebGL GLSL fragment shader: smooth shifting bands built from summed sines of the aspect-corrected uv plus several radial sources orbiting on looping circular paths, domain-warped by a second low-frequency plasma for richer detail and colour-mapped through the Cosmos violet/cosmic/nebula/aurora accents over a dark base. Zero dependencies, runs fully offline, deterministic and seamless — the time uniform loops in [0,1) and every motion term is an integer harmonic of 2*PI*t so shade(uv,0)==shade(uv,1).",
   "usage_notes": "RUN: open index.html in any browser with WebGL support (no build, no deps, offline). KEY TECHNIQUES: classic plasma = sum of travelling/diagonal sine waves + orbiting radial ripples + a rotating angular swirl, all phases driven by ph=2*PI*t for a perfect loop; a second plasma domain-warps the sample coords for smoother richer bands; accent colours layered via smoothstep gradients with contrast so darks stay dark and bright bands glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: edit plasma() wave frequencies (3.0/3.7/2.3), orbit radii (0.9/1.1) and the smoothstep band thresholds in shade(); raise the glow add terms for more bloom.",
   "summary_vi": "Một hiệu ứng plasma demoscene thực thụ vẽ bằng fragment shader WebGL GLSL: các dải màu mượt dịch chuyển từ tổng các sóng sine của toạ độ uv cùng vài nguồn toả tròn quay theo quỹ đạo lặp, được domain-warp bởi một plasma tần số thấp thứ hai và phối màu qua các accent Cosmos trên nền tối. Không phụ thuộc, chạy offline, xác định và liền mạch (uT lặp trong [0,1)).",
-  "notes": "Plasma demoscene mượt, các dải màu Cosmos dịch chuyển theo vòng lặp hoàn hảo."
+  "notes": "Plasma demoscene mượt, các dải màu Cosmos dịch chuyển theo vòng lặp hoàn hảo.",
+  "card_number": "AK-CDP-000005T",
+  "tier": "shader"
 }

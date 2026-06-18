@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 12000,
   "N": 100,
-  "tags": ["remix", "wave-grid", "generative", "interactive", "themeable", "canvas2d"],
+  "tags": [
+    "remix",
+    "wave-grid",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A remixable particle effect: a square grid of particles undulating in a travelling 2D sine wave (z = sin(x·f + u·2π) + cos(y·f + u·2π)) whose height drives each particle's size, brightness and a slight vertical lift, like a glowing cloth. A live glass panel retunes palette / shape / density / spread / speed / size plus a Frequency knob, and the field reskins to any brand colour in one click. Self-contained, zero-dependency single HTML file; ?auto=1 hides the panel and exposes a deterministic seamless loop for capture.",
   "usage_notes": "RUN: open index.html in any modern browser; the glass control panel appears top-right. PANEL: pick a Palette swatch (brand skin) and a Shape, then drag Density (grid resolution), Spread (point spacing), Speed (wave travel rate), Dot size, and Frequency (how many wave crests across the grid); Seed cycles palette + spread, Copy exports the tuned config JSON. KEY TECHNIQUES: the geometry lays P.count particles on a square grid and computes a per-point height z = sin(x·2π·f + u·2π·speed) + cos(y·2π·f + u·2π·speed); z is normalised to 0..1 and mapped to particle size, brightness and a small vertical offset, and because all time enters through u·2π the motion loops so frame(0)===frame(LOOP); the PARAMS convention exposes every knob via window.__params and applies edits through window.setParam(key,value); PALETTES are theme tokens (accent + 3-colour ramp) consumed by ramp(cols,t); SHAPES ['dot','ruby','atom','star','crystal','spark'] are drawn cheaply by drawShape(). CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Frequency for tight rippling ridges, lower it for broad rolling swells; raise Density for a finer cloth.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000008P",
+  "tier": "remix"
 }

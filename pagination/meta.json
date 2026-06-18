@@ -2,10 +2,26 @@
   "slug": "pagination",
   "title": "Cosmos Pagination — numbered pages + prev/next arrows with a sliding accent highlight and scale pop",
   "title_vi": "Cosmos Pagination — phân trang số + mũi tên trước/sau với highlight nhấn trượt và scale pop",
-  "W": 720, "H": 480, "LOOP": 7200, "N": 90,
-  "tags": ["pagination","pager","component","interactive","css","spring"],
+  "W": 720,
+  "H": 480,
+  "LOOP": 7200,
+  "N": 90,
+  "tags": [
+    "pagination",
+    "pager",
+    "component",
+    "interactive",
+    "css",
+    "spring",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained pagination control on the Cosmos Phantom-dark theme: a glassy track holds prev/next chevron arrows and six numbered page buttons, with a violet accent thumb that slides behind the active page and gives a subtle scale pop on each change while the active number brightens to white. Prev/next dim when at the first/last page. Zero dependencies, pure HTML/CSS/vanilla JS. LIVE mode is genuinely interactive (click any number or the arrows to spring the highlight to it, hover lightens cells); AUTO mode plays a deterministic, seamlessly looping demo that walks the selection 1->6 and back. All captured motion is a pure function of u via render(u)/__seek so frames are exact regardless of capture timing.",
   "usage_notes": "RUN: double-click index.html. LIVE: click a page number, or the prev/next arrows, and the accent thumb springs under the target page with a small scale pop while the number brightens and the caption updates; arrows disable at the ends; hover lightens cells; when idle it auto-plays the demo loop. KEY TECHNIQUES: cell geometry is measured live with getBoundingClientRect so the thumb exactly matches each page button's x/y; the demo sequence walks indices 0..N-1..0, each transition split into a glide phase (underdamped spring 1-e^-7t*cos(11t)) and a dwell phase; a sin-based scale pop dips ~8% mid-flight and overshoots slightly on arrival, settling to 1; number colours lerp muted->white by fade and bump to weight 700 when active; a 0.5/SEG phase offset makes frame 0 land mid-slide between pages 1 and 2 (rich, never blank). CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (cycle speed), N (page count — also update the DOM cells), the 0.55 glide/dwell split, spring decay/frequency (7 / 11), scale pop amount (0.08), accent colours in .thumb gradient.",
   "summary_vi": "Component phân trang hoàn chỉnh, tự chứa, theme Phantom-dark của Cosmos: track kính chứa mũi tên chevron trước/sau và sáu nút trang số, với thumb nhấn màu tím trượt phía sau trang đang chọn và scale pop nhẹ mỗi lần đổi, đồng thời số đang chọn sáng lên trắng. Mũi tên mờ đi khi ở trang đầu/cuối. Không phụ thuộc, thuần HTML/CSS/JS. LIVE tương tác thật (bấm số hoặc mũi tên để spring highlight, hover sáng ô); AUTO chạy demo loop liền mạch deterministic đi 1->6 rồi quay lại. Mọi chuyển động là hàm thuần của u qua render(u)/__seek.",
-  "notes": "Thumb đo hình học bằng getBoundingClientRect nên khớp x/y mỗi nút trang; chuỗi đi 0..N-1..0, mỗi bước có pha trượt (spring giảm chấn) và pha dừng cộng scale pop dựa trên sin; offset 0.5/SEG để frame 0 nằm giữa lúc trượt giữa trang 1 và 2 nên không trống."
+  "notes": "Thumb đo hình học bằng getBoundingClientRect nên khớp x/y mỗi nút trang; chuỗi đi 0..N-1..0, mỗi bước có pha trượt (spring giảm chấn) và pha dừng cộng scale pop dựa trên sin; offset 0.5/SEG để frame 0 nằm giữa lúc trượt giữa trang 1 và 2 nên không trống.",
+  "card_number": "AK-CDP-000006P",
+  "tier": "ui"
 }

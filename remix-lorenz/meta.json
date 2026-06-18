@@ -2,10 +2,26 @@
   "slug": "remix-lorenz",
   "title": "Cosmos Remix — Lorenz Attractor you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "lorenz-attractor", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "lorenz-attractor",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle Lorenz strange-attractor: thousands of glowing points strung along a once-integrated chaotic trajectory, projected 3D to 2D and spun around the vertical axis so the butterfly / owl-mask wings emerge. A live glass control panel retunes palette (brand theme tokens), shape, density, spread, speed and dot size in real time, plus a Rho knob that subtly reshapes the attractor; reskins to any brand colour in one click. Self-contained, zero dependencies; the ?auto=1 capture hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot size, drag Rho to reshape the attractor wings, press the seed button to cycle palettes, Copy to copy your config. KEY TECHNIQUES: the Lorenz system (sigma=10, beta=8/3, rho=Rho) is integrated ONCE with RK4 into a fixed point array (settling samples discarded, then centred + normalised), so the geometry is precomputed and stable; particles sample that array evenly, are rotated around the Y axis by u and perspective-projected, and depth maps to both point size and brightness for a 3D glow; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays seamless (frame(0)===frame(LOOP)); theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; window.__params + setParam(key,value) is the contract a generic remix harness uses to auto-build panels for ANY effect. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: add palettes to PALETTES, adjust Rho or TRAJ_N, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009D",
+  "tier": "remix"
 }

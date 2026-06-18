@@ -12,10 +12,16 @@
     "tunnel",
     "spiral",
     "hypnotic",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A spiralling wormhole: concentric segmented rings twist into a swirling vortex tunnel receding to a bright/dark centre. Rings rush inward on a recycling mod-1 phase while a spiral rotation deepens toward the throat, hypnotic and accent-coloured. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each ring's depth d=((u+i/N) mod 1) recycles so the whole set rushes inward every loop; radius=maxR*d^1.9 gives the perspective tunnel; SPIRAL = swirl angle (1-d)*warp*5.5 + u*TAU twists more toward the centre so rings shear into a vortex; far/inner rings drawn first so outer ones overdraw; segmented arcs with gaps, additive 'lighter' glow (wide dim pass + thin bright pass); a white-hot radial core plus a dark rim gradient read as the tunnel throat; centre/edge fades hide the recycling seam. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N, exponent 1.9, warp/swirl factor 5.5, seg count, gap, colours.",
   "summary_vi": "Lỗ giun xoáy: các vòng phân đoạn đồng tâm xoắn vào một đường hầm xoáy lùi về tâm sáng/tối. Vòng lao vào trong theo pha mod-1 tái sinh trong khi vòng xoay xoắn càng sâu càng mạnh, thôi miên và đậm màu accent. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Batch factory. d=((u+i/N)mod1), bán kính maxR*d^1.9; swirl=(1-d)*warp*5.5+u*TAU tạo xoáy; vẽ trong trước; lõi trắng nóng + viền tối làm miệng hầm; fade giấu mối nối."
+  "notes": "Batch factory. d=((u+i/N)mod1), bán kính maxR*d^1.9; swirl=(1-d)*warp*5.5+u*TAU tạo xoáy; vẽ trong trước; lõi trắng nóng + viền tối làm miệng hầm; fade giấu mối nối.",
+  "card_number": "AK-CDP-0000041",
+  "tier": "canvas"
 }

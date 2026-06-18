@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 12000,
   "N": 100,
-  "tags": ["remix", "ripple", "generative", "interactive", "themeable", "canvas2d"],
+  "tags": [
+    "remix",
+    "ripple",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A remixable particle ripple field: expanding concentric rings of light, like raindrops on a glowing pond. A live glass panel retunes palette, shape, density, speed, dot size, and a Waves knob (number of staggered concurrent rings); one click reskins it to any brand colour. Self-contained, zero dependencies. ?auto=1 hides the panel and exposes a deterministic seamless loop for capture.",
   "usage_notes": "RUN: open index.html in any browser — no build, no dependencies. PANEL: the glass control panel (top-right) drives live params — Palette swatches reskin the field to a brand colour, Shape picks the particle glyph (dot/ruby/atom/star/crystal/spark), Density sets particle count, Spread scales ring reach, Speed sets expansion rate, Dot size sets base glyph size, and Waves sets how many concentric rings expand at once (staggered for continuous succession). KEY TECHNIQUES: geometry — each particle rides a ring whose radius grows with a smoothstep-eased phase that recycles via a per-ring offset so frame(0)===frame(LOOP); brightness follows sin(phase·pi) so it peaks mid-expansion (raindrop crest) and dissolves at birth and at the edge. PARAMS convention — window.__params describes each knob and window.setParam(key,value) applies it, so a generic remix harness can drive the same controls. Theme tokens — each PALETTE is a brand skin (accent + 3-colour ramp); ramp(cols,t) colours a particle by its normalised index. Shapes — drawShape() renders the chosen glyph cheaply with additive 'lighter' compositing on #05030d. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Waves and Density for a busier pond; lower Speed for slow majestic swells; widen Spread to fill the frame.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000008W",
+  "tier": "remix"
 }

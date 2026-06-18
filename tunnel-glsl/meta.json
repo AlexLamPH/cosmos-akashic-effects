@@ -12,10 +12,16 @@
     "glsl",
     "tunnel",
     "polar",
-    "fog"
+    "fog",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A real WebGL GLSL fragment shader rendering an infinite tunnel. The fragment shader maps screen UV to polar coordinates (angle, 1/radius) so radius inverts into forward depth toward a vanishing point; depth scrolls with the looping uT uniform to fly the viewer inward. Glowing rings, longitudinal ribs and a travelling accent stripe texture the walls while fog fades the centre to dark. Zero deps, runs fully offline, deterministic and seamless: all depth patterns are period-1 so frame(0)==frame(LOOP).",
   "usage_notes": "RUN: open index.html in a WebGL-capable browser (needs WebGL). KEY TECHNIQUES: polar tunnel mapping via atan + 1/radius; seamless depth scroll using fract and sin(2*pi*k*z) so the loop is periodic; accent stripe + rib pattern on the walls; distance fog to the centre vanishing point; Phantom-dark base with glowing violet/cosmic accents. CAPTURE: ?auto=1 + window.__seek(t). TUNE: scroll speed (t*4.0), ring frequency (z*2.0), rib count (ang*12.0), stripe speed (z*3.0), fog falloff (smoothstep on rad).",
   "summary_vi": "Shader fragment GLSL WebGL thật vẽ đường hầm vô tận: ánh xạ UV sang toạ độ cực (góc, 1/bán kính) để bán kính nghịch đảo thành độ sâu, cuộn độ sâu theo uT lặp để bay vào trong, với vòng phát sáng, gân dọc và sọc nhấn chạy trên vách cùng sương mù mờ dần về tâm. Không lib, chạy offline, tất định và liền mạch.",
-  "notes": "Đường hầm cực vô tận, vách sọc phát sáng cuộn vào tâm, liền mạch khi uT lặp 0..1."
+  "notes": "Đường hầm cực vô tận, vách sọc phát sáng cuộn vào tâm, liền mạch khi uT lặp 0..1.",
+  "card_number": "AK-CDP-000005Y",
+  "tier": "shader"
 }

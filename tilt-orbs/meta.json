@@ -2,10 +2,25 @@
   "slug": "tilt-orbs",
   "title": "Cosmos Tilt Orbs — glowing balls that roll and settle under device tilt",
   "title_vi": "",
-  "W": 640, "H": 420, "LOOP": 9000, "N": 100,
-  "tags": ["tilt","sensor","reactive","interactive","canvas2d"],
+  "W": 640,
+  "H": 420,
+  "LOOP": 9000,
+  "N": 100,
+  "tags": [
+    "tilt",
+    "sensor",
+    "reactive",
+    "interactive",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A set of glowing orbs roll, collide and settle inside a Cosmos bowl, driven by a gravity vector {gx,gy}. Live, the vector comes from the device tilt (deviceorientation); it gracefully falls back to a synthetic oscillating tilt when the sensor is unavailable, and on desktop the mouse position becomes the tilt vector so it stays interactive. A deterministic synthetic signal drives the capture demo. Self-contained, zero-deps; privacy: all processing happens in-browser, nothing is uploaded.",
   "usage_notes": "RUN: open index.html, then tap to enable motion (iOS prompts for permission) and tilt the phone — the orbs roll toward gravity, collide and pool at the low edge of the bowl. DESKTOP fallback: no sensor needed, move the mouse and its position becomes the tilt vector. KEY TECHNIQUES: gravity vector {gx,gy} comes from deviceorientation (gamma->gx, beta->gy) or mouse, then feeds one render(SIG,t) that integrates orb velocities, resolves bowl-wall and orb-orb collisions, and draws additive radial-gradient glows; synthSig(u) = {0.7*sin(2pi*u), 0.7*cos(2pi*2u)} supplies a rocking tilt for auto and fallback so it never goes blank. CAPTURE: ?auto=1 is synthetic + window.__seek(t). TUNE: orb count N, gravity G, restitution, bowl radius, COLS palette.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000BP",
+  "tier": "reactive"
 }

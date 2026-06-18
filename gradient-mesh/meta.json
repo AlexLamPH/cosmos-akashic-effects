@@ -12,10 +12,16 @@
     "ambient",
     "background",
     "glow",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Six oversized soft radial-gradient orbs in the Cosmos accent colours drift across the Phantom-dark background on looping sine paths, heavily overlapping and pulsing so they read as a smooth, breathing mesh gradient. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each orb is a large createRadialGradient whose centre follows px=sin(TAU*(u*kx+phx)), py=cos(TAU*(u*ky+phy)) at integer harmonics so frame(0)===frame(LOOP); 'lighter' blending fuses overlapping orbs into a mesh and the wide soft gradient falloff gives the blur feel; a vignette deepens dark edges; whole canvas repainted each frame as a pure function of time; mulberry32 seeds orb params once at setup/resize. CAPTURE: ?auto=1 then call window.__seek(t). TUNE: orb count n, radius rad, harmonics kx/ky, amplitudes ax/ay, AC palette, LOOP.",
   "summary_vi": "Sáu quầng radial-gradient mềm cỡ lớn theo màu accent Cosmos trôi trên nền tối Phantom theo quỹ đạo sin lặp, chồng lấn mạnh và nhấp nháy nên đọc như một mesh gradient mượt đang thở. Thuần Canvas 2D, không thư viện, chạy offline; deterministic và loop liền.",
-  "notes": "Tâm mỗi quầng là hàm sin/cos đóng theo u ở hài bậc nguyên nên loop liền; blend 'lighter' hòa các quầng thành mesh gradient; gieo bằng mulberry32."
+  "notes": "Tâm mỗi quầng là hàm sin/cos đóng theo u ở hài bậc nguyên nên loop liền; blend 'lighter' hòa các quầng thành mesh gradient; gieo bằng mulberry32.",
+  "card_number": "AK-CDP-000001M",
+  "tier": "canvas"
 }

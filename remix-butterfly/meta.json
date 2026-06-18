@@ -2,10 +2,27 @@
   "slug": "remix-butterfly",
   "title": "Cosmos Remix — Butterfly Curve you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "butterfly", "mandala", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "butterfly",
+    "mandala",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable particle butterfly curve: particles trace Temple Fay's butterfly curve into a glowing butterfly/mandala bloom with a live glass control panel — change palette (brand theme tokens), shape, density, speed, dot size, and the Wings knob in real time, shuffle the seed, and Copy your tuned version. The bloom pulses and rotates with time. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density/Spread/Speed/Dot, set Wings to scale the θ-range / petal frequency, press the shape buttons, then Copy to export your config. KEY TECHNIQUES: the geometry is the butterfly curve x=sinθ·(e^cosθ−2cos4θ−sin^5(θ/12)), y=cosθ·(…); θ=i/count·spread sweeps many turns by particle index i, the Wings knob multiplies the θ-range so more sweeps overlay into a denser mandala bloom, and the figure breathes (radius pulse) and rotates with time, all as a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them — the same contract the generic remix harness reads to auto-build panels. Theme tokens = a PALETTES map driving both a CSS accent var and the per-index colour ramp; SHAPES are cheap canvas glyphs chosen via drawShape(). CAPTURE: ?auto=1 hides the panel + window.__seek(t). TUNE: raise Wings for a fuller mandala, add palettes to PALETTES, extend __params.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-0000094",
+  "tier": "remix"
 }

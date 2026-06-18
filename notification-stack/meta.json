@@ -2,10 +2,25 @@
   "slug": "notification-stack",
   "title": "Cosmos Notification Stack — cards push in and stack, older ones settling behind while the oldest slides out",
   "title_vi": "Cosmos Notification Stack — thẻ đẩy vào xếp chồng, thẻ cũ lùi xuống sau còn thẻ cũ nhất trượt ra",
-  "W": 600, "H": 560, "LOOP": 7200, "N": 90,
-  "tags": ["notification","stack","cards","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 7200,
+  "N": 90,
+  "tags": [
+    "notification",
+    "stack",
+    "cards",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished notification-stack UI component on the Cosmos Phantom-dark theme, self-contained with zero dependencies. New notification cards push in from the top at full size (newest on top, with accent bar, coloured icon tile, title, message, timestamp and close button); as each new card arrives the older ones settle down behind it with a slight scale and vertical offset, and the oldest card fades and slides out the bottom. The looping auto-demo continuously cycles a feed of six notifications (payment, message, like, badge, deploy, backup), each with its own accent colour, so the stack endlessly advances. Live mode is interactive (clicking a card's close button advances the stack) with an autoplay fallback; the captured motion is a pure deterministic function of u so it loops seamlessly.",
   "usage_notes": "RUN: double-click index.html. LIVE: the stack auto-advances; clicking the close (×) on any card pushes the cycle forward one slot. KEY TECHNIQUES: render(u) maps u to a fractional 'advance' across the feed; for each visible depth k it computes an effective depth (k minus the in-progress advance) and writes translateY + scale + opacity + z-index as inline styles (no reliance on CSS-transition timing) so cards settle down the stack as a pure function of u; the entering card eases in from above (depth -1 to 0) while the oldest fades and slides out the bottom; accent colour, inline-SVG icon and copy are swapped per feed item via a --acc custom property and color-mix; cards are real reused DOM nodes. Frame 0 is offset to land mid-advance so the thumbnail is rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (per-advance duration = LOOP/N feed items), VISIBLE (cards shown), STEP_Y/STEP_S (settle offset/scale), the FEED array (type/accent/title/message/time).",
   "summary_vi": "Một component notification-stack UI thực sự chỉn chu trên nền Phantom-dark của Cosmos, độc lập và không phụ thuộc thư viện. Thẻ thông báo mới đẩy vào từ trên cùng ở kích thước đầy đủ (mới nhất trên cùng kèm thanh accent, ô icon màu, tiêu đề, nội dung, mốc thời gian và nút đóng); khi thẻ mới đến, các thẻ cũ lùi xuống phía sau với scale và độ dời nhỏ, còn thẻ cũ nhất mờ dần rồi trượt ra dưới cùng. Demo lặp xoay vòng liên tục sáu thông báo, mỗi loại một màu accent. Bản live tương tác được (bấm nút đóng đẩy stack tiến lên) với autoplay dự phòng; chuyển động chụp là hàm thuần của u nên loop liền mạch.",
-  "notes": "render(u) tính 'advance' phân số qua feed, viết translateY/scale/opacity/z-index nội tuyến để các thẻ lùi dần xuống stack; thẻ mới ease vào từ trên còn thẻ cũ nhất trượt ra dưới."
+  "notes": "render(u) tính 'advance' phân số qua feed, viết translateY/scale/opacity/z-index nội tuyến để các thẻ lùi dần xuống stack; thẻ mới ease vào từ trên còn thẻ cũ nhất trượt ra dưới.",
+  "card_number": "AK-CDP-0000063",
+  "tier": "ui"
 }

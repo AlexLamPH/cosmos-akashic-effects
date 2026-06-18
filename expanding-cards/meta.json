@@ -1,0 +1,25 @@
+{
+  "slug": "expanding-cards",
+  "card_number": "AK-CDP-000000X",
+  "tier": "ui",
+  "title": "Cosmos Expanding Cards — click-to-expand theme gallery (CSS flex)",
+  "title_vi": "",
+  "tags": [
+    "expanding-cards",
+    "accordion",
+    "image-slider",
+    "gallery",
+    "flex",
+    "hover-expand",
+    "reveal",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A row of theme panels in a flex track; click one and it expands into a full poster (hue-shifted logo + index + name + role + description) while the others collapse to accent slivers with vertical labels. Built from one logo and six Cosmos themes (Phantom/Solaris/Sacred/Aurora/Cosmic/Nebula). Pure HTML/CSS/JS, zero dependencies, runs offline.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); keep cosmos-logo.png beside it. INTERACTION: click any panel to expand it; hover -> custom cursor grows. DATA MODEL: AGENTS[] = {name, role, accent, hue, desc}; panels are generated from it. KEY TECHNIQUES: (1) the track is display:flex; each panel animates flex-grow 1->7 so the active one widens and the rest squeeze (flex-basis:0 + min-width keeps a sliver); (2) a single per-panel weight --w (0..1) drives everything in CSS: info opacity/translate, vertical-label fade, logo brightness/scale, accent bar — so collapsed<->expanded is one interpolated value; (3) each panel recolours the rainbow logo via hue-rotate(var(--hue)); (4) custom ring+dot cursor. CAPTURE: ?auto=1 cycles the panels (DWELL 1200ms x 6 = 7200ms loop, 600ms morph) and window.__seek(t) renders one exact frame; the weight hand-off is built so the loop is seamless (frame 0 already shows a panel expanded). BRAND: Phantom-dark gallery; rainbow only inside the logo posters.",
+  "summary_vi": "",
+  "notes": ""
+}

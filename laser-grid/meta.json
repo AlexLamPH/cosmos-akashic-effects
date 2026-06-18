@@ -6,9 +6,22 @@
   "H": 540,
   "LOOP": 8000,
   "N": 100,
-  "tags": ["canvas2d", "generative", "neon", "grid", "laser", "glow"],
+  "tags": [
+    "canvas2d",
+    "generative",
+    "neon",
+    "grid",
+    "laser",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A grid of crossing violet, nebula and cosmic neon laser beams pulses in brightness over the Phantom dark while bright white nodes flare at each intersection in sequence. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: integer-harmonic pulse phases (sin(2pi*(u*k+ph)) with integer k) so brightness loops exactly; intersection flares use a staggered sequence phase sin(2pi*(u-idx/total)) raised to a high power for a sharp travelling spark; additive 'lighter' compositing for the neon glow. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP for tempo, NV/NH for beam counts, flare sharpness via the Math.pow exponent (6).",
   "summary_vi": "Một lưới các tia laser neon tím, tinh vân và vũ trụ giao nhau nhấp nháy độ sáng trên nền tối Phantom, trong khi các nút trắng sáng bùng lên tại mỗi giao điểm theo trình tự. Canvas 2D thuần, không phụ thuộc, chạy offline, tất định và liền mạch.",
-  "notes": "Pha xung dùng hài số nguyên sin(2pi*(u*k+ph)) nên lặp chính xác; bùng nút theo trình tự sin(2pi*(u-idx/total))."
+  "notes": "Pha xung dùng hài số nguyên sin(2pi*(u*k+ph)) nên lặp chính xác; bùng nút theo trình tự sin(2pi*(u-idx/total)).",
+  "card_number": "AK-CDP-000004Y",
+  "tier": "canvas"
 }

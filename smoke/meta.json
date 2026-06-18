@@ -12,11 +12,17 @@
     "particles",
     "ambient",
     "canvas2d",
-    "generative"
+    "generative",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Soft rising smoke wisps curl upward and dissipate: layered semi-transparent blobs drift on looping sine paths, growing and fading as they rise in cool violet, cosmic and nebula tones over the Phantom dark. Pure Canvas 2D, zero deps, runs offline, deterministic & seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each wisp is a soft radial-gradient blob whose vertical rise is a looping phase ph=(seed+u*speed)%1; horizontal curl is sin(2pi*ph*k)+sin(2pi*ph*k2) with integer k so frame(0)==frame(LOOP); radius grows with ph and opacity follows sin(ph*pi)^2 so blobs are born faint at the base, peak mid-rise and dissipate at the top; additive 'lighter' blending layers them softly. All randomness is mulberry32-seeded once at setup. CAPTURE: ?auto=1 + window.__seek(t). TUNE: wisp count n, rise speed sp, curl integers k/k2, base radius r0/grow, tone mix (VIO/COS/NEB).",
   "summary_vi": "Làn khói mềm bay lên cuộn và tan dần: các đốm bán trong suốt xếp lớp trôi theo quỹ đạo sine lặp, lớn lên và mờ đi khi bay cao, theo tông tím/cosmic/nebula trên nền Phantom tối. Thuần Canvas 2D, không lib, chạy offline.",
   "notes": "Batch factory. Pha bay ph=(seed+u*sp)%1; cuộn = sin(2pi*ph*k) với k nguyên -> seamless; bán kính lớn theo ph, alpha=sin(ph*pi)^2 sinh/tan; additive glow.",
-  "START": 0
+  "START": 0,
+  "card_number": "AK-CDP-000003J",
+  "tier": "canvas"
 }

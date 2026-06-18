@@ -2,10 +2,26 @@
   "slug": "remix-terrain",
   "title": "Cosmos Remix — Terrain you can retune and reskin live",
   "title_vi": "",
-  "W": 720, "H": 540, "LOOP": 12000, "N": 100,
-  "tags": ["remix", "terrain", "generative", "interactive", "themeable", "canvas2d"],
+  "W": 720,
+  "H": 540,
+  "LOOP": 12000,
+  "N": 100,
+  "tags": [
+    "remix",
+    "terrain",
+    "generative",
+    "interactive",
+    "themeable",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Remixable scrolling 3D terrain: particles sit on a grid where each row's z recedes into the distance and the whole grid scrolls toward the viewer with u (rows wrap seamlessly), while the height (y) is read from a seeded value-noise heightmap and mapped through perspective so near rows are large and bright. Live glass panel retunes palette (brand theme tokens), shape, density, speed, dot size and a Relief height knob; reskins to any brand colour in one click. Self-contained, zero deps; ?auto=1 hides the panel and renders a deterministic seamless loop.",
   "usage_notes": "RUN: open and use the panel (top-right) to retune live — pick a palette to reskin to any brand colour, drag Density (grid resolution), Speed (scroll rate), Spread (terrain frequency) and Dot, and turn Relief up for taller mountains. ↻ Seed cycles palette, ⧉ Copy copies your config. KEY TECHNIQUES: a COLS×ROWS grid where each row's looping depth phase ((r+u·speed) mod ROWS) makes rows recede to a horizon and scroll toward the viewer with seamless wrap; height comes from 2-octave seeded value noise (smooth-interpolated integer hash) advancing in world-z so the heightmap scrolls with the grid; a perspective term spreads and brightens near rows and compresses far ones; all visuals are a pure function of params + time so the panel updates instantly and the capture loop stays deterministic. PARAMS convention: window.__params describes the knobs and window.setParam(key,value) applies them; theme tokens = a PALETTES map driving a CSS accent var and the colour ramp; SHAPES + drawShape render the chosen glyph cheaply. CAPTURE: ?auto=1 hides panel + window.__seek(t). TUNE: raise Relief for dramatic peaks, Spread for jagged ridges, Density for a finer grid, add palettes to PALETTES.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-000009A",
+  "tier": "remix"
 }

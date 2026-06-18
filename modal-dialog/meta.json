@@ -2,10 +2,25 @@
   "slug": "modal-dialog",
   "title": "Cosmos Modal Dialog — a glassy confirm dialog with a blurred dimming backdrop",
   "title_vi": "Cosmos Modal Dialog — hộp thoại xác nhận kính mờ với nền tối làm mờ phía sau",
-  "W": 720, "H": 480, "LOOP": 6000, "N": 75,
-  "tags": ["modal","dialog","overlay","interactive","css"],
+  "W": 720,
+  "H": 480,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "modal",
+    "dialog",
+    "overlay",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained confirmation modal on the Phantom-dark theme: a blurred dimming backdrop fades in over faux page content and a centred glassy violet-bordered dialog (warning icon, title, body copy, Cancel + Confirm buttons) scales and fades up with an easeOutBack pop. Zero dependencies, pure HTML/CSS/vanilla JS, fully interactive in live mode and a seamless looping auto-demo for capture.",
   "usage_notes": "RUN: double-click index.html — click 'Open dialog' to open, then Cancel/Confirm or the backdrop to close (real CSS-transitioned hover on the buttons). KEY TECHNIQUES: a single render(u) writes the exact visual state as INLINE styles (backdrop opacity, dialog opacity + translateY + scale) so the captured motion is a pure function of u, never CSS-transition timing; phases over u are open(0-.16, easeOutBack overshoot)→hold→close(smoothstep)→pause so the loop returns seamlessly to start; an OPEN_AT offset makes frame 0 show the dialog already open; CSS transitions are used ONLY for live hover/press feedback. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, OPEN_AT offset, phase boundaries, the 0.86→1.0 scale range, easeOutBack overshoot, accent (violet #8b5cff).",
   "summary_vi": "Hộp thoại xác nhận kính mờ trên nền Phantom-dark: nền tối làm mờ hậu cảnh hiện lên dần và hộp thoại ở giữa (icon cảnh báo, tiêu đề, nội dung, nút Cancel + Confirm) phóng to và hiện lên với hiệu ứng nảy easeOutBack. Không phụ thuộc thư viện, thuần HTML/CSS/JS, tương tác thật ở chế độ live và auto-demo lặp liền mạch để chụp.",
-  "notes": "render(u) ghi state inline (opacity nền, opacity + scale + translateY hộp thoại); các pha open→hold→close→pause + offset OPEN_AT đảm bảo frame 0 đã mở và loop liền mạch."
+  "notes": "render(u) ghi state inline (opacity nền, opacity + scale + translateY hộp thoại); các pha open→hold→close→pause + offset OPEN_AT đảm bảo frame 0 đã mở và loop liền mạch.",
+  "card_number": "AK-CDP-0000068",
+  "tier": "ui"
 }

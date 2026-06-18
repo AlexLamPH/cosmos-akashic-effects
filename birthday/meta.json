@@ -1,0 +1,26 @@
+{
+  "slug": "birthday",
+  "card_number": "AK-CDP-0000012",
+  "tier": "audio",
+  "title": "Cosmos Birthday — code-generated 'Happy Birthday' song card (Web Audio + Canvas)",
+  "title_vi": "",
+  "tags": [
+    "birthday",
+    "celebration",
+    "greeting-card",
+    "web-audio",
+    "oscillator",
+    "confetti",
+    "canvas2d",
+    "music",
+    "logo",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A birthday greeting card whose 'Happy Birthday' melody is generated entirely in code via the Web Audio API (triangle-wave oscillators playing the note sequence — no audio file). Geometric confetti in the six Cosmos accents drifts and rotates, the lyric lines appear in time, musical notes rise, and a progress bar fills. Click to play the tune. Canvas 2D visuals + Web Audio; no libraries; runs offline.",
+  "usage_notes": "RUN: double-click index.html (no server/CDN); keep cosmos-logo.png beside it. CLICK anywhere to start the melody. AUDIO: MEL[] is a list of [frequency, beats]; play() schedules an oscillator+gain per note with an exponential attack/decay envelope at beat spacing — that's the whole 'song code'. VISUALS: deterministic confetti (seeded; position = base + amp*sin(2pi t/LOOP) so it loops, plus integer-turn rotation), a glass card with the logo + title, lyric lines that ease-in at scripted times and a current-line highlight, rising ♪/♫ notes, and a progress bar. CAPTURE: ?auto=1 + window.__seek(t) (pure function of time); lyrics fade out before LOOP and confetti is periodic -> seamless; the GIF is grabbed from a START offset so frame 0 shows the celebration mid-song. Screenshot WITHOUT puppeteer `clip` (clip drops <canvas>). TUNE: LYRICS, MEL, confetti count, ACC. BRAND: Phantom dark; confetti uses the six theme accents.",
+  "summary_vi": "",
+  "notes": ""
+}

@@ -7,9 +7,22 @@
   "LOOP": 12000,
   "N": 109,
   "live_fit": true,
-  "tags": ["game", "puzzle", "playable", "interactive", "arcade", "canvas2d"],
+  "tags": [
+    "game",
+    "puzzle",
+    "playable",
+    "interactive",
+    "arcade",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A real, fully playable bubble shooter in one self-contained HTML file with zero dependencies. You aim a launcher at the bottom of the board and fire Cosmos-colored bubbles up into a hexagonal cluster; whenever a fired bubble lands next to two or more of its own color, the matching group of 3+ pops, any bubbles left dangling from the ceiling drop too, and your score climbs. You lose if the cluster grows down past the danger line, with a game-over / cleared screen and restart. Controls work with both keyboard (left/right or A/D to aim, space to fire, R to restart) and touch/mouse (point to aim, click or the on-screen FIRE button to shoot). It also ships a deterministic self-playing attract demo for capture: a seeded AI aims at matching clusters and fires, popping cascades, drawn as a pure function of time.",
   "usage_notes": "RUN: double-click index.html (or serve it) — no server, no deps. CONTROLS: Left/Right arrows or A/D swing the aim, Space fires; or move the mouse/finger to aim and click / tap the on-screen FIRE button to shoot; the ◀ ▶ buttons also nudge the aim; R key or the Restart button starts a new run. GOAL: fire bubbles so 3+ of the same color touch and pop (+10 each), and disconnected floaters drop for bonus (+20 each); clear the whole cluster to win, but if it reaches the dashed danger line near the launcher you lose. KEY TECHNIQUES: a fixed-timestep deterministic sim seeded with mulberry32 (never Math.random in the sim) flies the ball, snaps it to the nearest valid hex cell, flood-fills same-color groups for pops, then prunes ceiling-disconnected floaters; for AUTO a seeded aim AI targets the lowest matching cluster, fires on a fixed cooldown, and the same sim runs from a fixed seed. drawAt(ms) re-simulates from a fixed seeded start to ms with a frame-0 offset so capture opens with the cluster partially cleared, a bubble mid-flight, and score above zero. CAPTURE: ?auto=1 self-plays + window.__seek(t). TUNE: COLS/ROWS_INIT/MAXROWS, ball speed, SHOT_INTERVAL, LOOP, frame-0 offset, PAL colors.",
   "summary_vi": "",
-  "notes": ""
+  "notes": "",
+  "card_number": "AK-CDP-00000AF",
+  "tier": "game"
 }
