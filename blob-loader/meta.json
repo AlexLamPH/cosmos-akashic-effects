@@ -2,10 +2,26 @@
   "slug": "blob-loader",
   "title": "Cosmos Blob Loader — a single gooey metaball blob morphing and glowing",
   "title_vi": "Cosmos Blob Loader — một khối nhầy metaball biến hình và phát sáng",
-  "W": 560, "H": 560, "LOOP": 3200, "N": 40,
-  "tags": ["blob","loader","gooey","metaball","glow","canvas2d"],
+  "W": 560,
+  "H": 560,
+  "LOOP": 3200,
+  "N": 40,
+  "tags": [
+    "blob",
+    "loader",
+    "gooey",
+    "metaball",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A gooey morphing blob loader: one organic metaball-ish blob smoothly deforms its outline as a sum of integer-frequency sines, wrapped in additive accent glow with a shifting bright core. The outline radius(theta)=R*(1+sum amp_i*sin(k_i*theta + 2*pi*u*m_i)) with integer m_i, so the morph returns exactly at u=1. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: the blob outline is a polar curve radius(theta)=R*(1+sum amp_i*sin(k_i*theta+2*pi*u*m_i)) sampled at 180 points; integer time multipliers m_i guarantee frame(0)==frame(LOOP); the path is filled with an offset radial accent gradient (white->cosmic->violet->nebula->aurora) under 'lighter' compositing, wrapped by an outer halo and a glow layer, finished with a sacred-gold rim stroke and a shifting white core whose offset uses cos/sin(2*pi*u); mulberry32 seeds k/amp/m/phase once. CAPTURE: ?auto=1 + window.__seek(t). TUNE: WAVES count, per-wave k/amp/m, base R, point count N, gradient stops, LOOP.",
   "summary_vi": "Khối nhầy biến hình: một khối metaball hữu cơ uốn viền mượt theo tổng các sin tần số nguyên, bọc trong quầng sáng additive với lõi sáng dịch chuyển. Bán kính viền radius(theta)=R*(1+tổng amp_i*sin(k_i*theta + 2*pi*u*m_i)) với m_i nguyên, nên hình trở về đúng tại u=1. Thuần Canvas 2D, không lib, chạy offline; deterministic và loop liền.",
-  "notes": "Viền là đường cực radius(theta) với tổng sin tần số nguyên và hệ số thời gian nguyên nên loop liền; tô gradient nhấn additive, lõi sáng dịch theo cos/sin(2*pi*u); gieo bằng mulberry32."
+  "notes": "Viền là đường cực radius(theta) với tổng sin tần số nguyên và hệ số thời gian nguyên nên loop liền; tô gradient nhấn additive, lõi sáng dịch theo cos/sin(2*pi*u); gieo bằng mulberry32.",
+  "card_number": "AK-CDP-0000023",
+  "tier": "canvas"
 }

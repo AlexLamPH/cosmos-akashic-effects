@@ -2,10 +2,26 @@
   "slug": "social-share",
   "title": "Cosmos Social Share — share button that fans out a radial cluster of social icon chips on a staggered arc",
   "title_vi": "Cosmos Social Share — nút chia sẻ bung ra cụm icon mạng xã hội theo cung tròn so le rồi thu lại",
-  "W": 600, "H": 560, "LOOP": 5200, "N": 65,
-  "tags": ["social-share","share-button","radial-menu","fan-out","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 5200,
+  "N": 65,
+  "tags": [
+    "social-share",
+    "share-button",
+    "radial-menu",
+    "fan-out",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished social-share component on the Cosmos Phantom-dark theme, self-contained with zero dependencies. A glowing violet share button (hub) sits centred; when activated it fans out a radial cluster of accent-tinted social icon chips — each popping out along a top arc with a staggered overshoot — holds the cluster open, then retracts them back into the hub. Chips are glassy gradient discs with minimal line glyphs (Twitter, Instagram, Facebook, LinkedIn, copy-link, email) and a label, the hub rotates toward an X while a soft ring pulse ripples out on launch. Interactive in live mode (click the hub to toggle the fan; hover a chip to scale it up and reveal its label) with an autoplay fallback, and a seamless looping auto-demo for capture. Deterministic: the captured visual state is a pure function of u.",
   "usage_notes": "RUN: double-click index.html. LIVE: click the centre share button to fan the social chips out and click again to retract; hover any chip to scale it up and show its name label. KEY TECHNIQUES: deterministic render(u) drives a three-phase cycle entirely from inline transforms (no CSS-transition timing for the captured motion) — fan-out (0..0.30) interpolates each chip from the hub centre to its arc position (cos/sin of an angle lerped across an upper arc) with a per-chip stagger and a back/overshoot ease so each pops; a hold phase (0.30..0.70) keeps the cluster open; retract (0.70..1.0) reverses with a mirrored stagger. The hub rotates 0->135deg and a ring-pulse ripple expands and fades on launch (faded out before the hold so the loop is seamless). Chips are DOM nodes with per-accent radial gradients and inline SVG glyphs; CSS :hover scale is live-only. A phase OFFset lands frame 0 in the open/hold state so the thumbnail shows the full fan, never the closed button. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, OFF (frame-0 offset), R (fan radius), A0/A1 (arc span), the chips array (glyph/accent/label), per-chip stagger, and the phase boundaries in render(u).",
   "summary_vi": "Một component social-share chỉn chu trên nền Phantom-dark, độc lập và không phụ thuộc thư viện. Nút chia sẻ violet phát sáng ở giữa; khi kích hoạt nó bung ra cụm chip icon mạng xã hội accent — mỗi cái nảy ra theo cung tròn phía trên với độ trễ so le và hiệu ứng vọt quá — giữ mở rồi thu lại vào nút. Chip là đĩa gradient kính với glyph nét mảnh (Twitter, Instagram, Facebook, LinkedIn, copy-link, email) kèm nhãn; nút xoay về dấu X trong khi vòng sáng gợn ra lúc bung. Tương tác ở live (bấm để bung, hover để phóng to chip) với autoplay dự phòng; auto-demo lặp liền để chụp. Trạng thái chụp là hàm thuần của u.",
-  "notes": "render(u) chạy ba pha bằng transform nội tuyến: bung chip theo cung so le với độ vọt quá, giữ mở, rồi thu lại; vòng sáng gợn ra rồi tắt nên loop liền."
+  "notes": "render(u) chạy ba pha bằng transform nội tuyến: bung chip theo cung so le với độ vọt quá, giữ mở, rồi thu lại; vòng sáng gợn ra rồi tắt nên loop liền.",
+  "card_number": "AK-CDP-0000071",
+  "tier": "ui"
 }

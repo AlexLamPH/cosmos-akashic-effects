@@ -2,10 +2,26 @@
   "slug": "pendulum-wave",
   "title": "Cosmos Pendulum Wave — a row of length-graded pendulums weaving travelling waves",
   "title_vi": "Cosmos Pendulum Wave — hàng con lắc dài dần dệt sóng lan truyền",
-  "W": 760, "H": 560, "LOOP": 8000, "N": 100,
-  "tags": ["pendulum","wave","harmonic","physics","glow","canvas2d"],
+  "W": 760,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "pendulum",
+    "wave",
+    "harmonic",
+    "physics",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A row of 22 glowing pendulums hangs from a top bar, each with an incrementing length and one more integer swing per loop than its neighbour; their drifting phases sweep into travelling waves, snake curves, and chaos before snapping back into a single line at the loop point. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: pendulum i swings angle = A*cos(2PI*u*(BASE+i)) so it completes exactly BASE+i integer oscillations per loop; since every count is an integer, all bobs return to phase together at u=1, giving frame(0)==frame(LOOP). Lengths grade longer-to-shorter across the row, colour interpolates through the Cosmos accents, and each bob is drawn additively ('lighter') as halo+core+highlight with a faint string from the support bar. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N pendulum count, BASE base swing count, A amplitude, len range, AC palette.",
   "summary_vi": "Hàng 22 con lắc phát sáng treo trên thanh ngang, mỗi cái dài dần và dao động nhiều hơn cái bên cạnh đúng một chu kỳ nguyên mỗi loop; pha lệch nhau quét thành sóng lan truyền, đường rắn lượn rồi hỗn loạn, trước khi thẳng hàng lại ở điểm loop. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Góc = A*cos(2PI*u*(BASE+i)) với BASE+i nguyên nên mọi con lắc về cùng pha tại u=1 → loop liền mạch."
+  "notes": "Góc = A*cos(2PI*u*(BASE+i)) với BASE+i nguyên nên mọi con lắc về cùng pha tại u=1 → loop liền mạch.",
+  "card_number": "AK-CDP-000001Q",
+  "tier": "canvas"
 }
