@@ -40,8 +40,38 @@ const TIER_RGB = {
   audio: [139, 92, 255], remix: [224, 178, 74], game: [255, 106, 61], reactive: [54, 211, 154]
 };
 
+const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+
+// Akashic rate-limits aggressively (HTTP 429). Fetch with retry + exponential backoff,
+// honouring the Retry-After header when present. Also retries transient 5xx / network
+// errors. THROTTLE_MS adds a small gap between every call to stay under the limit.
+const MAX_RETRIES = parseInt(process.env.MAX_RETRIES || '7', 10);
+const THROTTLE_MS = parseInt(process.env.THROTTLE_MS || '120', 10);
+async function fetchRetry(url, opts) {
+  let lastErr;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const r = await fetch(url, opts);
+      if (r.status === 429 || (r.status >= 500 && r.status < 600)) {
+        const ra = parseFloat(r.headers.get('retry-after'));
+        const waitMs = (ra > 0 ? ra * 1000 : Math.min(1000 * Math.pow(2, attempt), 30000)) + Math.floor(Math.random() * 250);
+        if (attempt < MAX_RETRIES) { await sleep(waitMs); continue; }
+      }
+      return r;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < MAX_RETRIES) { await sleep(Math.min(1000 * Math.pow(2, attempt), 30000)); continue; }
+      throw e;
+    }
+  }
+  if (lastErr) throw lastErr;
+  // exhausted retries on 429/5xx — return the last response for the caller to surface
+  return fetch(url, opts);
+}
+
 async function getJson(url) {
-  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + KEY, Accept: 'application/json' } });
+  if (THROTTLE_MS > 0) await sleep(THROTTLE_MS);
+  const r = await fetchRetry(url, { headers: { Authorization: 'Bearer ' + KEY, Accept: 'application/json' } });
   if (!r.ok) throw new Error('GET ' + url + ' → ' + r.status);
   return r.json();
 }
@@ -51,7 +81,7 @@ async function getJson(url) {
 async function getSignedFileBytes(fileCn) {
   const meta = await getJson(BASE + '/api/files/' + encodeURIComponent(fileCn) + '/download?inline=1');
   if (!meta || !meta.download_url) throw new Error('no download_url for ' + fileCn);
-  const r = await fetch(meta.download_url, { redirect: 'follow' }); // signed URL — send NO auth header
+  const r = await fetchRetry(meta.download_url, { redirect: 'follow' }); // signed URL — send NO auth header
   if (!r.ok) throw new Error('GCS GET → ' + r.status);
   return Buffer.from(await r.arrayBuffer());
 }
