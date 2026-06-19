@@ -2,10 +2,30 @@
   "slug": "glockenspiel",
   "title": "Cosmos Glockenspiel — playable tuned metal bars that ring real bright metallic notes via Web Audio",
   "title_vi": "Cosmos Glockenspiel — đàn phím kim loại chơi được, ngân nốt kim loại trong trẻo thật qua Web Audio",
-  "W": 740, "H": 380, "LOOP": 6400, "N": 80,
-  "tags": ["glockenspiel","xylophone","metallophone","instrument","bells","mallet","audio","webaudio","interactive","sound"],
+  "W": 740,
+  "H": 380,
+  "LOOP": 6400,
+  "N": 80,
+  "tags": [
+    "glockenspiel",
+    "xylophone",
+    "metallophone",
+    "instrument",
+    "bells",
+    "mallet",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely playable glockenspiel on the Cosmos dark theme, fully self-contained with zero dependencies, samples, or CDN. It MAKES REAL SOUND via the Web Audio API: click any of the 13 tuned metal bars or press A,W,S,E,D,F,T,G,Y,H,U,J,K to STRIKE a bright metallic note synthesized from a sine fundamental plus high INHARMONIC partials (at 2.76x, 5.40x, 8.93x the fundamental, like a real struck bar) each with its own fast exponential decay, plus a tiny noise tink for the mallet contact, shaped by a 3ms attack and ~0.8s decay through a master gain near 0.2 so it never clicks. The bars form a graduated row — longest/lowest on the left, shortest/highest on the right — coloured by pitch from violet through cosmic blue to aurora green, mounted on pegs in a glassy frame, with a gold mallet hovering above. On each strike the hit bar flashes white, glows and bounces vertically. Because browsers block autoplay, the AudioContext is created and resumed only on the first click or key press. For capture it ships a SILENT deterministic looping visual demo: a seeded cheerful 16-note melody plays itself — struck bars flash, glow and bounce in sequence with decay tails so one is always ringing, and the mallet bobs down toward the current bar — all a pure function of u so it loops seamlessly. Frame 0 sits mid-melody with a bar struck and glowing and the mallet mid-dip.",
   "usage_notes": "RUN: open index.html and click a bar or press a key to HEAR it (audio needs a user gesture to start). HOW TO PLAY: keys A,W,S,E,D,F,T,G,Y,H,U,J,K map to the 13 bars low-to-high (a piano-like layout); or click any bar. KEY TECHNIQUES: each note is freq=BASE*2**(semitone/12) from C5 on a C-major diatonic tuning (offsets 0,2,4,5,7,9,11,12,14,16,17,19,21); synthesis = a sine fundamental plus three INHARMONIC partials at ratios 2.76/5.40/8.93 (this inharmonicity is what makes a metal bar sound metallic rather than like a harmonic pluck), each partial on its own setValueAtTime->exponentialRampToValueAtTime decay, plus a 256-sample noise burst for the strike transient; master gain 0.2. render(u) maps u to a 16-step seeded melody: for each bar it finds the wrap-aware time since last struck, then ring=exp(-dt*3.4) (brightness) and bounce=exp(-dt*8)*sin(dt*55) (vertical), while the mallet translates to the current bar with a half-step sinusoidal dip — no Math.random() in render (seeded once with mulberry32; the noise tink only runs in live strike()). CAPTURE: ?auto=1 is SILENT (no AudioContext at all) + window.__seek(t) deterministic visual. TUNE: LOOP (tempo), STEPS/SEQ (the melody), OFF (frame-0 offset, 0.31), the partial ratios/amplitudes and decay in strike(), ring/bounce constants in render(), and the master gain.",
   "summary_vi": "Đàn glockenspiel chơi được thật trên nền tối Cosmos, độc lập hoàn toàn, không thư viện/CDN/mẫu âm. Nó PHÁT ÂM THẬT qua Web Audio: bấm vào một trong 13 thanh kim loại lên dây hoặc nhấn A,W,S,E,D,F,T,G,Y,H,U,J,K để gõ một nốt kim loại trong trẻo tổng hợp từ sine cơ bản cộng các họa âm KHÔNG điều hòa (ở bội 2.76x, 5.40x, 8.93x như thanh kim loại thật) mỗi cái suy giảm mũ riêng, thêm một tiếng 'tink' nhiễu nhỏ khi vồ chạm, với tấn công 3ms và suy giảm ~0.8s, master gain ~0.2 nên không tách tiếng. Các thanh xếp thành hàng dài dần — dài/thấp bên trái, ngắn/cao bên phải — tô màu theo cao độ từ tím qua xanh vũ trụ đến xanh aurora, gắn trên chốt trong khung bóng, với một chiếc vồ vàng lơ lửng phía trên. Mỗi lần gõ, thanh trúng lóe trắng, phát sáng và nảy lên xuống. AudioContext chỉ tạo/resume khi có thao tác đầu tiên. Bản chụp là demo lặp IM LẶNG: một giai điệu seed 16 nốt tự chơi — các thanh lóe sáng và nảy theo trình tự với đuôi suy giảm, vồ nhún xuống về phía thanh hiện tại — là hàm thuần của u nên loop liền mạch. Frame 0 đang giữa giai điệu với một thanh vừa gõ.",
-  "notes": "Mở ra bấm phím A,W,S,E,D,F,T,G,Y,H,U,J,K hoặc bấm chuột vào thanh kim loại để nghe; render(u) chạy giai điệu seed (thanh lóe sáng+nảy, vồ nhún), demo im lặng loop liền mạch."
+  "notes": "Mở ra bấm phím A,W,S,E,D,F,T,G,Y,H,U,J,K hoặc bấm chuột vào thanh kim loại để nghe; render(u) chạy giai điệu seed (thanh lóe sáng+nảy, vồ nhún), demo im lặng loop liền mạch.",
+  "card_number": "AK-CDP-0000082",
+  "tier": "audio"
 }

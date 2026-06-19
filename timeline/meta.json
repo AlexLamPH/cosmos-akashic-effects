@@ -2,10 +2,26 @@
   "slug": "timeline",
   "title": "Cosmos Timeline — vertical activity timeline whose glowing spine draws down and event cards pop in one by one",
   "title_vi": "Cosmos Timeline — dòng thời gian hoạt động dọc, trục phát sáng vẽ xuống và các thẻ sự kiện hiện ra lần lượt",
-  "W": 600, "H": 560, "LOOP": 6600, "N": 83,
-  "tags": ["timeline", "activity", "component", "interactive", "css", "feed"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 6600,
+  "N": 83,
+  "tags": [
+    "timeline",
+    "activity",
+    "component",
+    "interactive",
+    "css",
+    "feed",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained vertical activity timeline on the Cosmos Phantom-dark theme: a glowing violet accent spine runs down the left with a comet head, and left-aligned event nodes (an icon dot plus a glassy card carrying title, timestamp and description) reveal sequentially as the spine draws past each one. Zero dependencies, pure HTML/CSS/vanilla JS. LIVE mode is genuinely interactive (hover any card to light its border and lift it; an idle loop plays the demo); AUTO mode plays a deterministic, seamlessly looping demo where the spine draws downward, each node pops in with a dot scale-overshoot and glow as the spine passes its centre, holds fully revealed, then resets back to empty. All captured motion is a pure function of u via render(u)/__seek so frames are exact regardless of capture timing.",
   "usage_notes": "RUN: double-click index.html. LIVE: hover any event card and its border lights violet with a soft lift; while idle the component auto-plays its draw/hold/reset demo loop. KEY TECHNIQUES: the spine is a fixed-position div whose height is set in px each frame from a single 'reach' value driving the draw; each node's dot centre is measured once into centres[] and the node reveals via v=ease((reach-(centre-14))/40) — a 40px pass window — which drives opacity, an X slide-in translate, and a dot scale with a sin overshoot pop plus a violet glow box-shadow that ramps up as it lights; the comet head is the spine's ::after dot riding the bottom edge; render(u) splits u into DRAW (reach 0->fullH via easeOutCubic) / HOLD / RESET (fullH->0 via smoothstep) with a +0.30 phase offset so frame 0 lands mid-draw with ~3 nodes already revealed (rich, never blank); geometry re-measures on resize. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (cycle speed), the DATA array (node count/content — spine length follows automatically), the 40px reveal window, slide distance ((1-v)*-22), the dot pop magnitude (0.35) and glow intensity, the phase split thresholds (0.55/0.80) and frame-0 offset (0.30).",
   "summary_vi": "Dòng thời gian hoạt động dọc hoàn chỉnh, tự chứa, theme Phantom-dark của Cosmos: trục nhấn tím phát sáng chạy dọc bên trái với đầu sao chổi, các node sự kiện canh trái (chấm icon + thẻ kính chứa tiêu đề, mốc giờ, mô tả) hiện ra lần lượt khi trục vẽ qua. Không phụ thuộc, thuần HTML/CSS/JS. LIVE tương tác thật (hover thẻ để sáng viền và nâng lên; loop chạy demo khi rảnh); AUTO chạy demo loop liền mạch deterministic: trục vẽ xuống, từng node bật vào với chấm phóng to vượt đà và phát sáng, giữ đầy đủ, rồi reset về trống. Mọi chuyển động là hàm thuần của u qua render(u)/__seek.",
-  "notes": "Chiều cao trục đặt theo px mỗi frame từ giá trị reach; mỗi node hiện qua v=ease((reach-(centre-14))/40) điều khiển opacity, translate trượt vào và chấm phóng to có pop sin cùng box-shadow phát sáng; render(u) chia DRAW/HOLD/RESET với offset +0.30 để frame 0 nằm giữa lúc vẽ với ~3 node đã hiện."
+  "notes": "Chiều cao trục đặt theo px mỗi frame từ giá trị reach; mỗi node hiện qua v=ease((reach-(centre-14))/40) điều khiển opacity, translate trượt vào và chấm phóng to có pop sin cùng box-shadow phát sáng; render(u) chia DRAW/HOLD/RESET với offset +0.30 để frame 0 nằm giữa lúc vẽ với ~3 node đã hiện.",
+  "card_number": "AK-CDP-000007A",
+  "tier": "ui"
 }

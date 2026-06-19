@@ -11,10 +11,16 @@
     "rgb-split",
     "datamosh",
     "scanline",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "The word COSMOS is drawn three times in offset cosmic, nebula and aurora channels to create an RGB-split chromatic-aberration look, composited additively into an offscreen buffer, then blitted back in horizontal slices each shifted by a deterministic per-slice jitter that intensifies on the beat. Occasional scanline tears copy a thin band shifted hard sideways, and a faint white core pass plus a scanline overlay keep the text readable. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: RGB-split = three fillText passes (cosmic/nebula/aurora) at opposite offsets in 'lighter' composite onto an offscreen buffer; split width scales with beat=0.5+0.5*sin(2PI*4*u) (integer harmonic so it loops); the buffer is re-drawn back in SLICES=14 horizontal bands, each offset by a seeded jitter table jit[floor(u*K)][slice]; scanline tear pulls a seeded thin band sideways from a tear table indexed the same way; a low-alpha white core pass and 3px scanline overlay preserve legibility. All randomness from mulberry32 at setup; no Math.random in frame, so frame(0)==frame(LOOP). CAPTURE: ?auto=1 + window.__seek(t). TUNE: WORD, K, SLICES, split base/gain, beat harmonic, tear probability/size, channel colors.",
   "summary_vi": "Chữ COSMOS được vẽ ba lần lệch nhau theo kênh cosmic, nebula, aurora tạo hiệu ứng tách màu RGB, gộp cộng vào buffer ẩn rồi vẽ lại theo các dải ngang bị dịch bởi jitter seeded mạnh hơn vào nhịp. Thỉnh thoảng có xé scanline và lớp lõi trắng mờ giữ chữ dễ đọc. Thuần Canvas 2D, không lib, chạy offline; tất định và loop liền.",
-  "notes": "Jitter và tear lấy mẫu bảng seeded theo floor(u*K), độ tách theo sin(2PI*4*u) nên frame(0)==frame(LOOP)."
+  "notes": "Jitter và tear lấy mẫu bảng seeded theo floor(u*K), độ tách theo sin(2PI*4*u) nên frame(0)==frame(LOOP).",
+  "card_number": "AK-CDP-0000028",
+  "tier": "canvas"
 }

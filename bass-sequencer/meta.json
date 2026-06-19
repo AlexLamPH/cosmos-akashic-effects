@@ -7,9 +7,26 @@
   "LOOP": 7680,
   "N": 96,
   "START": 2880,
-  "tags": ["bassline", "step-sequencer", "acid", "synth", "audio", "webaudio", "interactive", "sound", "canvas2d", "generative"],
+  "tags": [
+    "bassline",
+    "step-sequencer",
+    "acid",
+    "synth",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "canvas2d",
+    "generative",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A 16-step acid bassline sequencer that makes REAL sound via the Web Audio API: each active step fires a sawtooth oscillator through a resonant lowpass biquad with a per-step filter envelope (the acid 'wah'), plus per-step pitch, accent, and slide. A playhead sweeps the grid, steps light, and the cutoff glow pulses with the pattern. CUTOFF and RESO knobs shape the filter. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
   "usage_notes": "RUN: open index.html and press SPACE to start/stop the sequence to HEAR it (audio needs a user gesture). Click a step to toggle it on/off; drag vertically over the grid to set a step's note pitch (snapped to a minor-pentatonic scale). KEY TECHNIQUES (synthesis): a sawtooth oscillator per step through a lowpass biquad whose frequency is enveloped (fast attack to an accent-scaled peak, exponential decay) for the 303-style wah, Q from the RESO knob, a look-ahead scheduler clocks the 16 steps, master gain ~0.2 with exponential attack/release ramps (no clicks) and a compressor; pitches use 27.5*2^((note-21)/12). CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded acid riff plays silently with the playhead sweeping, steps lighting, and the cutoff glow pulsing, looping seamlessly (START offsets frame 0 to mid-sequence). TUNE: LOOP for tempo, the seeded pattern in the pat[] init, knobCut/knobRes defaults, STEPS for length.",
   "summary_vi": "Bộ trình tự bassline acid 16 bước phát ra âm thanh THẬT qua Web Audio API: mỗi bước bật kích một dao động răng cưa qua bộ lọc thông thấp cộng hưởng với bao hình bộ lọc từng bước (tiếng 'wah' acid), kèm cao độ, nhấn mạnh và trượt theo bước. Đầu đọc quét lưới, các bước sáng lên, quầng cutoff nhấp nháy theo mẫu. Tự chứa, không phụ thuộc, kèm bản demo hình lặp tất định và im lặng để chụp.",
-  "notes": "Mở ra rồi bấm phím cách để nghe bassline; nhấp vào các bước, kéo dọc để đổi cao độ nốt."
+  "notes": "Mở ra rồi bấm phím cách để nghe bassline; nhấp vào các bước, kéo dọc để đổi cao độ nốt.",
+  "card_number": "AK-CDP-000007S",
+  "tier": "audio"
 }

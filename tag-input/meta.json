@@ -2,10 +2,26 @@
   "slug": "tag-input",
   "title": "Cosmos Tag Input — a multi-select chips field that types, suggests, and pops in removable tags",
   "title_vi": "Cosmos Tag Input — ô chip đa chọn tự gõ, gợi ý và bật ra các thẻ có thể xóa",
-  "W": 600, "H": 560, "LOOP": 8000, "N": 100,
-  "tags": ["tag-input","chips","autocomplete","input","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "tag-input",
+    "chips",
+    "autocomplete",
+    "input",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished multi-select tag/chips input as a self-contained component: a glassy field where a blinking violet caret types a query, an autocomplete dropdown drops in with matching options (matched prefix bolded, active row highlighted with an ↵ hint), and picking an option pops a removable chip into the field — each chip a violet pill with a glowing dot, label, and × button. Chips wrap to new rows as the field fills, and one chip is removed with an × highlight and collapse. Zero dependencies, pure HTML/CSS/vanilla JS, runs offline. Interactive in live mode and loops a deterministic auto-demo for capture.",
   "usage_notes": "RUN: double-click index.html. LIVE: the field auto-plays the demo via requestAnimationFrame; the markup is real, copy-pasteable component structure (glass field, chip pills with dot + label + × button, autocomplete dropdown with icon tiles and a highlighted active row). KEY TECHNIQUES: a single render(u) function is the source of truth — it computes which chips are settled, the currently typed query (eased character count toward a target word), the dropdown open/stagger amount, the active suggestion index, the per-chip pop scale, and the caret blink purely from u, then writes inline width/opacity/transform; one loop is a sequence of picks (type query -> dropdown staggers in -> pick pops a chip in + dropdown collapses -> settle) repeated for several tags, then a final remove phase collapses the last chip; each chip pops from scale 0.6->1 with an eased cubic, the dropdown rows reveal across their own slices of the open progress, and the matched query prefix is bolded; a frame-0 OFF offset lands t=0 with 3 chips settled and the dropdown open mid-type so the thumbnail is rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: POOL options, PICKS order, LOOP speed, OFF offset, pickSpan/removeAt timings, accent (violet #8b5cff).",
   "summary_vi": "Một ô nhập tag/chip đa chọn thực sự chỉn chu dạng component tự chứa: ô kính nơi con trỏ tím nhấp nháy tự gõ truy vấn, dropdown gợi ý rơi xuống với các lựa chọn khớp (tô đậm phần trùng, dòng đang chọn được làm nổi), và chọn một mục sẽ bật ra một chip có thể xóa — mỗi chip là viên thuốc tím với chấm phát sáng, nhãn và nút ×. Chip xuống dòng khi ô đầy, rồi một chip bị xóa kèm hiệu ứng thu gọn. Không phụ thuộc, thuần HTML/CSS/JS, chạy offline; tương tác ở chế độ live và lặp auto-demo deterministic để quay.",
-  "notes": "render(u) tính chip nào đã hiện, query đang gõ, độ mở dropdown, chỉ số gợi ý và độ bật chip thuần từ u; offset OFF đưa frame 0 vào lúc có 3 chip và dropdown đang mở."
+  "notes": "render(u) tính chip nào đã hiện, query đang gõ, độ mở dropdown, chỉ số gợi ý và độ bật chip thuần từ u; offset OFF đưa frame 0 vào lúc có 3 chip và dropdown đang mở.",
+  "card_number": "AK-CDP-0000078",
+  "tier": "ui"
 }

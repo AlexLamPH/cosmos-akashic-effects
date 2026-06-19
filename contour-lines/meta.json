@@ -2,10 +2,26 @@
   "slug": "contour-lines",
   "title": "Cosmos Contour Lines — animated topographic iso-contours of a morphing noise field, glowing like a living map",
   "title_vi": "Cosmos Contour Lines — đường đồng mức địa hình động từ trường nhiễu biến đổi, phát sáng như bản đồ sống",
-  "W": 760, "H": 560, "LOOP": 8000, "N": 100,
-  "tags": ["contour","topographic","noise","map","isoline","canvas2d"],
+  "W": 760,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "contour",
+    "topographic",
+    "noise",
+    "map",
+    "isoline",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Animated topographic contour lines drawn from a seeded value-noise field. To loop seamlessly the field is sampled along a circular time orbit (noise(x*f+cos(2*pi*u)*A, y*f+sin(2*pi*u)*A)) so the terrain morphs and returns exactly. A coarse grid is marched cell-by-cell and short iso-segments are stroked wherever the field crosses each of several threshold levels, with bands coloured and breathing through Cosmos accents over additive 'lighter' glow. Pure Canvas 2D, zero dependencies, deterministic.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a seeded 256-entry value-noise lattice (mulberry32) is smoothstep-interpolated into a 2-octave field; the field is offset by a circular orbit (ox=cos(2*pi*u)*A, oy=sin(2*pi*u)*A) so sampling returns to its start and frame(0)===frame(LOOP); a coarse GRID is marched and, for each of LV threshold levels, edge sign-changes (c00 vs c10/c01 against the level) produce short iso-contour segments via linear edge interpolation; bands are coloured per level and breathe with sin(2*pi*u). CAPTURE: ?auto=1 + window.__seek(t). TUNE: GRID (contour resolution/perf), LV (number of bands), sc (noise frequency), A (orbit radius/morph amount).",
   "summary_vi": "Đường đồng mức địa hình động từ trường value-noise có seed. Để loop liền mạch, trường được lấy mẫu theo quỹ đạo thời gian tròn (cos/sin của 2*pi*u) nên địa hình biến đổi rồi trở về đúng vị trí. Lưới thô được march từng ô, vẽ đoạn iso ngắn nơi trường cắt qua các mức ngưỡng; các dải màu Cosmos thở nhẹ trên nền glow cộng dồn. Thuần Canvas 2D, không thư viện, tất định.",
-  "notes": "Đồng mức nhiễu: trường lấy mẫu theo quỹ đạo tròn theo u → loop; march lưới, nội suy cạnh tại mỗi mức ngưỡng để vẽ đoạn iso; dải màu thở."
+  "notes": "Đồng mức nhiễu: trường lấy mẫu theo quỹ đạo tròn theo u → loop; march lưới, nội suy cạnh tại mỗi mức ngưỡng để vẽ đoạn iso; dải màu thở.",
+  "card_number": "AK-CDP-000002T",
+  "tier": "canvas"
 }

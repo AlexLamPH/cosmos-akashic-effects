@@ -2,10 +2,26 @@
   "slug": "file-tree",
   "title": "Cosmos File Tree — a glassy file explorer with chevrons, icons, indent guides and a violet selection that walks the rows",
   "title_vi": "Cosmos File Tree — trình duyệt tệp kính với chevron, icon, đường thụt lề và vùng chọn tím chạy qua các hàng",
-  "W": 600, "H": 560, "LOOP": 7000, "N": 88,
-  "tags": ["file-tree","explorer","sidebar","tree-view","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "file-tree",
+    "explorer",
+    "sidebar",
+    "tree-view",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished file-explorer tree as a self-contained component: nested folders and files with rotating chevrons, colored file-type icons (js/css/svg/md), vertical indentation guides per nesting level, and a violet selection highlight with a glowing left accent bar. Folders expand and collapse by animating each row's height and opacity, so children reveal with a smooth stagger-and-fade, and a violet selection walks down the rows. Zero dependencies, pure HTML/CSS/vanilla JS, runs offline. Interactive in live mode and loops a deterministic auto-demo for capture.",
   "usage_notes": "RUN: double-click index.html. LIVE: the tree auto-plays the demo via requestAnimationFrame; the markup is real, copy-pasteable component structure (EXPLORER header, depth-padded rows with chevron + type icon + name, indent guide lines, selectable highlight). KEY TECHNIQUES: a single render(u) function is the source of truth — it holds an openAmt[] per animated folder and a fractional selection index into a WALK spine; every row's 'presence' is the product of its ancestor folders' open amounts so children fade and collapse in lockstep with their parent, and that presence drives each row's height/opacity/marginTop inline (rows literally shrink to 0px height to collapse, giving the smooth reflow); chevrons rotate by openAmt*90deg, and the .sel violet highlight is toggled on the row matching the rounded selection index — all set inline so the captured state is a pure function of u (no reliance on CSS-transition timing); a frame-0 OFF offset lands t=0 with the components folder expanded and the selection mid-walk so the thumbnail is rich. CAPTURE: ?auto=1 + window.__seek(t). TUNE: TREE node data, INDENT/ROW_H spacing, WALK selection path, LOOP speed, OFF offset, the phase boundaries in render(), accent (violet #8b5cff).",
   "summary_vi": "Một cây trình duyệt tệp thực sự chỉn chu dạng component tự chứa: thư mục và tệp lồng nhau với chevron xoay, icon theo loại tệp có màu (js/css/svg/md), đường thụt lề dọc theo từng cấp, và vùng chọn tím kèm thanh nhấn sáng bên trái. Thư mục mở/đóng bằng cách animate chiều cao và độ mờ từng hàng nên các con hiện ra với hiệu ứng so le mượt, và vùng chọn tím chạy xuống các hàng. Không phụ thuộc, thuần HTML/CSS/JS, chạy offline; tương tác ở chế độ live và lặp auto-demo deterministic để quay.",
-  "notes": "render(u) giữ độ mở mỗi thư mục và chỉ số chọn; 'presence' mỗi hàng là tích độ mở của các thư mục tổ tiên, điều khiển height/opacity inline để reflow mượt, chevron xoay theo độ mở."
+  "notes": "render(u) giữ độ mở mỗi thư mục và chỉ số chọn; 'presence' mỗi hàng là tích độ mở của các thư mục tổ tiên, điều khiển height/opacity inline để reflow mượt, chevron xoay theo độ mở.",
+  "card_number": "AK-CDP-0000075",
+  "tier": "ui"
 }

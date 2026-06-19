@@ -2,10 +2,26 @@
   "slug": "fractal-tree",
   "title": "Cosmos Fractal Tree — a recursive tree swaying in the wind with blossoming tips",
   "title_vi": "Cosmos Fractal Tree — cây phân nhánh đệ quy đung đưa trong gió, ngọn nở hoa sáng",
-  "W": 720, "H": 620, "LOOP": 6000, "N": 75,
-  "tags": ["fractal","tree","recursion","wind","blossom","canvas2d"],
+  "W": 720,
+  "H": 620,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "fractal",
+    "tree",
+    "recursion",
+    "wind",
+    "blossom",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A recursively branching fractal tree grown from the base each frame; every branch angle gains a small wind sway = SW*sin(2PI*u + depth) so different depths lag slightly and the whole canopy waves and settles back exactly at the loop point. Branch tips bloom as glowing accent dots that gently twinkle. Limb colour and thickness grade with depth, all drawn additively. The tree is recomputed every frame yet stays a pure function of time via a fixed seeded jitter table walked in deterministic order. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: branch() recurses to DEPTH, splitting each limb by +/-SPREAD and shrinking length by SHRINK; the wind term SW*sin(2PI*u + depth) is added to every branch angle so the canopy sways and, because the time frequency is integer (k=1), returns to its rest pose at u=1 -> frame(0)==frame(LOOP). Per-branch character comes from a pre-seeded mulberry32 jitter table (jit[]) walked via the JI cursor, reset to 0 each frame so the walk is identical every loop (pure fn of t). Tips render as halo+core+white-highlight blossoms with a gentle integer-frequency twinkle. Limb colour/thickness grade by depth, drawn with globalCompositeOperation='lighter'. CAPTURE: ?auto=1 + window.__seek(t). TUNE: DEPTH recursion depth, SPREAD branch angle, SHRINK length falloff, SW sway amplitude, AC palette.",
   "summary_vi": "Cây fractal phân nhánh đệ quy, dựng lại từ gốc mỗi frame; mỗi góc nhánh cộng thêm gió nhẹ = SW*sin(2PI*u + depth) nên các tầng lệch pha một chút khiến cả tán cây đung đưa rồi trở về đúng tư thế nghỉ tại điểm loop. Ngọn nhánh nở thành những chấm sáng accent lấp lánh dịu. Màu và độ dày nhánh đổi theo độ sâu, vẽ cộng dồn. Cây tính lại mỗi frame nhưng vẫn là hàm thuần của thời gian nhờ bảng jitter seed cố định duyệt theo thứ tự xác định. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Sway = SW*sin(2PI*u + depth) với tần số thời gian nguyên (k=1) nên tán cây về tư thế nghỉ tại u=1 → loop liền. JI reset=0 mỗi frame để duyệt bảng jitter giống hệt mỗi vòng."
+  "notes": "Sway = SW*sin(2PI*u + depth) với tần số thời gian nguyên (k=1) nên tán cây về tư thế nghỉ tại u=1 → loop liền. JI reset=0 mỗi frame để duyệt bảng jitter giống hệt mỗi vòng.",
+  "card_number": "AK-CDP-0000025",
+  "tier": "canvas"
 }

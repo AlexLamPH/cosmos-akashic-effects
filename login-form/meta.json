@@ -2,10 +2,26 @@
   "slug": "login-form",
   "title": "Cosmos Login Form — sign-in card with floating labels, gliding focus ring, password toggle and spinner→success button",
   "title_vi": "Cosmos Login Form — thẻ đăng nhập với nhãn nổi, viền focus lướt, nút hiện mật khẩu và nút spinner→thành công",
-  "W": 600, "H": 560, "LOOP": 7000, "N": 88,
-  "tags": ["login","form","input","authentication","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "login",
+    "form",
+    "input",
+    "authentication",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained sign-in form card on the Cosmos Phantom-dark theme: email + password fields with floating labels that rise and shrink on focus, an animated violet focus ring plus a gradient underline that glides from field to field, a show-password eye toggle, a primary 'Sign in' button that presses → spins a loader → morphs to green with a drawing success checkmark, and a divider with three social buttons. Every motion (label float, ring fade, underline grow, button width/colour, spinner, check) is computed from u. Pure HTML+CSS+vanilla JS DOM, zero dependencies, runs offline; live-interactive (click fields to focus, toggle the password eye, hover socials) plus a deterministic seamless looping auto-demo.",
   "usage_notes": "RUN: double-click index.html — it autoplays focus moving email→password, the password reveal, then submit → spinner → success → reset. LIVE: clicking a field lights its ring and floats its label, the eye icon really toggles the password text, social buttons lift on hover; an idle requestAnimationFrame loop drives the demo via render(u). KEY TECHNIQUES: every visual is a pure function of u via render(u) writing inline styles (no reliance on CSS-transition timing); setFocus(i,f) maps a focus amount to label translate+scale+tint, ring opacity, underline width and value reveal; a seven-phase timeline (email-focus / ring-glide / password-focus / reveal-toggle / press-spinner / success-check / reset) maps u to all states; the button colour channel-blends violet→aurora-green and the glow RGB, the spinner rotates spinT*1080deg, the check strokes via pathLength=1 + stroke-dashoffset. Frame 0 is offset (g=u+0.34) to land on the password field focused (label up, ring lit). CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP, the phase boundaries in render(), label float (18→7px), ring/underline strength, spin turns (spinT*1080), PW_SHOWN text.",
   "summary_vi": "Thẻ đăng nhập hoàn chỉnh trên nền Phantom tối của Cosmos: trường email + mật khẩu với nhãn nổi lên và thu nhỏ khi focus, viền focus tím cùng gạch chân gradient lướt giữa các trường, nút mắt hiện mật khẩu, nút 'Sign in' nhấn → quay loader → biến thành xanh với dấu tích vẽ dần, và dải phân cách với ba nút mạng xã hội. Mọi chuyển động tính từ u. Thuần HTML+CSS+JS DOM, không phụ thuộc, chạy offline; tương tác trực tiếp cùng auto-demo lặp deterministic liền mạch.",
-  "notes": "Mọi trạng thái là hàm thuần của u qua render(u) ghi inline style; setFocus(i,f) ánh xạ độ focus tới nhãn, viền, gạch chân và lộ giá trị, bảy pha ánh xạ u tới toàn bộ trạng thái, nút pha màu tím→xanh và dấu tích strokes qua pathLength nên loop liền tại u=1."
+  "notes": "Mọi trạng thái là hàm thuần của u qua render(u) ghi inline style; setFocus(i,f) ánh xạ độ focus tới nhãn, viền, gạch chân và lộ giá trị, bảy pha ánh xạ u tới toàn bộ trạng thái, nút pha màu tím→xanh và dấu tích strokes qua pathLength nên loop liền tại u=1.",
+  "card_number": "AK-CDP-000007F",
+  "tier": "ui"
 }

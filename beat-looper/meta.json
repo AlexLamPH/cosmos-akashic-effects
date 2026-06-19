@@ -7,9 +7,26 @@
   "LOOP": 8000,
   "N": 100,
   "START": 3600,
-  "tags": ["loop-station", "drum-machine", "groove", "synth", "audio", "webaudio", "interactive", "sound", "canvas2d", "generative"],
+  "tags": [
+    "loop-station",
+    "drum-machine",
+    "groove",
+    "synth",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "canvas2d",
+    "generative",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A 4-track live loop station that makes REAL sound via the Web Audio API: stacked drums, bass, chord, and melody lanes, each a synthesized 1-bar phrase you arm to layer into a building groove. Drums are synthesized kick (pitch-swept sine), snare and hat (filtered noise bursts); bass is a sawtooth through a lowpass; chords are triangle stabs; melody is a filtered square line. A bar playhead sweeps every lane, armed tracks play together, and per-track waveform lanes light as the playhead passes their hits. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
   "usage_notes": "RUN: open index.html and press SPACE to start the transport to HEAR it (audio needs a user gesture). Click any lane to arm or mute that track in/out of the groove while it plays. KEY TECHNIQUES (synthesis): kick = sine with an exponential pitch sweep 140->45Hz, snare/hat = generated noise buffers through band/high-pass filters, bass = sawtooth through an enveloped lowpass biquad, chord = stacked triangle voicings, melody = filtered square; a look-ahead scheduler clocks 16 steps per bar, all notes use exponential attack/release gain ramps (no clicks), master gain ~0.2 with a compressor, pitches from 27.5*2^((note-21)/12) on a minor-pentatonic scale. CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded arrangement fades the four tracks in one by one (drums, bass, chord, melody) then fades all out for a seamless reset; the playhead sweeps, active lanes pulse and their waveforms light. START offsets frame 0 to mid-bar with drums+bass+chord active. TUNE: LOOP for tempo, the seeded phrase[] init for the riffs, the trackGain() insertion times for the arrangement, STEPS for bar length.",
   "summary_vi": "Trạm lặp nhịp 4 track phát ra âm thanh THẬT qua Web Audio API: các làn trống, bass, hợp âm và giai điệu xếp chồng, mỗi làn là một câu nhạc 1 ô nhịp tổng hợp mà bạn kích hoạt để xếp lớp tạo thành một groove. Trống là kick/snare/hat tổng hợp, bass là răng cưa qua bộ lọc, hợp âm là tiếng triangle, giai điệu là sóng vuông lọc. Đầu đọc ô nhịp quét mọi làn, các track đã bật chơi cùng nhau, sóng từng làn sáng lên khi đầu đọc đi qua. Tự chứa, không phụ thuộc, kèm bản demo hình lặp tất định im lặng để chụp.",
-  "notes": "Mở ra rồi bấm phím cách để nghe groove; nhấp vào từng làn để bật/tắt track xếp lớp."
+  "notes": "Mở ra rồi bấm phím cách để nghe groove; nhấp vào từng làn để bật/tắt track xếp lớp.",
+  "card_number": "AK-CDP-000008E",
+  "tier": "audio"
 }

@@ -11,10 +11,16 @@
     "tron",
     "traces",
     "pulse",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A seeded circuit board of Manhattan-routed right-angle traces in violet and cosmic blue, with glowing nodes at every junction and bright nebula pulses streaming along each trace. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a mulberry32 seed builds ~46 traces of 2-5 right-angle segments on a 20x15 grid, collecting every endpoint into a node set; dim base traces are stroked once, then a bright nebula pulse (#ff5cc2) flows along each via setLineDash + lineDashOffset = -((u*sp+off) mod 1)*patternLen where sp is an integer so the offset matches at u=0 and u=1 (mod-1 seamless); glowing nodes use a radial gradient core twinkling on sin of u, with a sacred-gold center dot; everything drawn additively ('lighter'). CAPTURE: ?auto=1 + window.__seek(t). TUNE: trace count, grid GW/GH, segment count, dash size, pulse speed sp, node glow radius.",
   "summary_vi": "Bo mạch sinh ngẫu nhiên có seed gồm các đường mạch vuông góc định tuyến Manhattan màu tím và xanh vũ trụ, với các nút phát sáng tại mỗi giao điểm và xung sáng nebula chạy dọc từng đường. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Xung dùng setLineDash + lineDashOffset = -((u*sp+off) mod 1)*patt với sp nguyên nên offset bằng nhau ở u=0 và u=1 (loop liền); nút sáng dùng gradient xuyên tâm lấp lánh theo sin của u."
+  "notes": "Xung dùng setLineDash + lineDashOffset = -((u*sp+off) mod 1)*patt với sp nguyên nên offset bằng nhau ở u=0 và u=1 (loop liền); nút sáng dùng gradient xuyên tâm lấp lánh theo sin của u.",
+  "card_number": "AK-CDP-000002R",
+  "tier": "canvas"
 }

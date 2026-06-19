@@ -2,10 +2,26 @@
   "slug": "hexagon-grid",
   "title": "Cosmos Hexagon Grid — sci-fi honeycomb HUD pulsing in concentric travelling waves",
   "title_vi": "Cosmos Hexagon Grid — HUD tổ ong sci-fi nhấp nháy theo sóng đồng tâm lan truyền",
-  "W": 760, "H": 560, "LOOP": 6000, "N": 75,
-  "tags": ["hexagon","honeycomb","grid","pulse","hud","canvas2d"],
+  "W": 760,
+  "H": 560,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "hexagon",
+    "honeycomb",
+    "grid",
+    "pulse",
+    "hud",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A honeycomb of pointy-top hexagons forming a sci-fi HUD. Each hex brightness follows 0.5+0.5*sin(2*pi*u*k - dist_from_centre*freq), so concentric pulse waves travel outward from the centre and loop exactly. Two integer-k waves blend for richer motion; outlines and soft fills glow additively in Cosmos accents, with white hot cores on peak cells. Pure Canvas 2D, zero dependencies, deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: a honeycomb grid is built once with seeded jitter (mulberry32); each hex stores its normalized distance from screen centre; brightness = blend of 0.5+0.5*sin(2*pi*u*k - d*freq) for k=2 and k=3 so pulse rings travel outward and the loop closes (frame(0)===frame(LOOP)); brightness is squared to sharpen the glow falloff; soft fill + variable-width outline drawn with additive 'lighter', plus a white core arc on the brightest cells. CAPTURE: ?auto=1 + window.__seek(t). TUNE: R (hex size), freq (ring density), the k-factors (wave count/speed), brightness exponent, core threshold.",
   "summary_vi": "Tổ ong gồm các lục giác đỉnh nhọn tạo HUD sci-fi: độ sáng mỗi ô = 0.5+0.5*sin(2*pi*u*k - khoảng_cách_tâm*freq) nên sóng nhấp nháy lan ra đồng tâm và loop chính xác. Trộn hai sóng k nguyên, viền và nền phát sáng cộng dồn theo màu Cosmos. Thuần Canvas 2D, không thư viện, tất định, loop liền mạch.",
-  "notes": "Lưới lục giác: độ sáng = sin pha k nguyên theo khoảng cách tâm → sóng đồng tâm loop; viền + nền glow, ô đỉnh có lõi trắng."
+  "notes": "Lưới lục giác: độ sáng = sin pha k nguyên theo khoảng cách tâm → sóng đồng tâm loop; viền + nền glow, ô đỉnh có lõi trắng.",
+  "card_number": "AK-CDP-000002S",
+  "tier": "canvas"
 }

@@ -6,9 +6,22 @@
   "H": 480,
   "LOOP": 6400,
   "N": 80,
-  "tags": ["keyboard","shortcut","keycap","interactive","css","component"],
+  "tags": [
+    "keyboard",
+    "shortcut",
+    "keycap",
+    "interactive",
+    "css",
+    "component",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A self-contained, zero-dependency keyboard-shortcut cheat-sheet on the Cosmos Phantom-dark theme. Realistic 3D keycaps (⌘ K, Ctrl ⇧ P, …) sit in a glassy command-palette panel, each paired with its action label. Keys physically depress — translateY plus a collapsing drop-shadow — and glow violet when pressed. Live mode is interactive; auto mode plays a looping demo that presses each combo down together then pops it back, cycling through every shortcut.",
   "usage_notes": "RUN: open index.html for the live, interactive cheat-sheet; the keycaps idle-animate via requestAnimationFrame and respond with smooth CSS transitions. KEY TECHNIQUES: each keycap depth is driven by a CSS custom property --d that simultaneously animates transform:translateY and collapses the layered box-shadow (the 3D 'edge'), giving a real keypress feel; a separate --g drives the violet glow; the active row tints and outlines. A press envelope (ease-in down → hold → ease-out up → gap) is a pure function of u so motion is deterministic. CAPTURE: ?auto=1 + window.__seek(t). TUNE: edit SHORTCUTS for different combos/labels, LOOP for cycle speed, OFFSET for the frame-0 mid-press, and the press-phase thresholds (.28/.62/.82) for rhythm.",
   "summary_vi": "Bảng phím tắt độc lập, không phụ thuộc, trên nền Cosmos Phantom tối. Các phím 3D thực tế nhấn xuống và phát sáng tím khi được bấm, kèm nhãn hành động; chế độ live tương tác, chế độ auto lặp demo bấm từng tổ hợp.",
-  "notes": "Bảng phím tắt 3D với các phím nhấn xuống và phát sáng theo nhịp."
+  "notes": "Bảng phím tắt 3D với các phím nhấn xuống và phát sáng theo nhịp.",
+  "card_number": "AK-CDP-000007C",
+  "tier": "ui"
 }

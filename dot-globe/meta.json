@@ -12,10 +12,16 @@
     "3d",
     "dots",
     "wireframe",
-    "canvas2d"
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "A wireframe-style globe built from a latitude/longitude grid of glowing dots on a sphere, with two tilted orbiting arc rings of dots and a faint core glow. Built with pure Canvas 2D doing its own 3D rotation and perspective projection (scale=F/(F+z)), zero dependencies, runs fully offline; rendering is deterministic and the loop is seamless (frame(0)===frame(LOOP)).",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: spherical coords (X=R*cosLat*cosLon, Y=R*sinLat, Z=R*cosLat*sinLon) give the dot grid; everything rotates exactly 2*pi*u about Y with a constant tilt about X via a hand-written rotation; points project with scale=F/(F+z) so nearer dots are bigger and brighter and are drawn additively ('lighter') as radial-gradient glows; the two orbit rings are circles tilted into their own plane then run through the same camera, advancing at integer harmonics of u; a soft cosmic-blue core glow sits at centre. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LAT/LON (grid density), R (radius), F (focal length), tilt, ring tilt/harmonic.",
   "summary_vi": "Quả cầu kiểu wireframe dựng từ lưới chấm sáng theo kinh-vĩ tuyến, kèm hai vòng quỹ đạo chấm nghiêng và quầng sáng lõi mờ. Thuần Canvas 2D tự tính xoay 3D và phép chiếu phối cảnh (scale=F/(F+z)), không phụ thuộc thư viện, chạy offline; tất định và loop liền mạch.",
-  "notes": "Cầu chấm kinh-vĩ tuyến + 2 vòng quỹ đạo nghiêng; xoay 2*pi*u quanh Y kèm nghiêng cố định, chiếu F/(F+z), chấm gần to/sáng hơn, glow cộng dồn."
+  "notes": "Cầu chấm kinh-vĩ tuyến + 2 vòng quỹ đạo nghiêng; xoay 2*pi*u quanh Y kèm nghiêng cố định, chiếu F/(F+z), chấm gần to/sáng hơn, glow cộng dồn.",
+  "card_number": "AK-CDP-000002E",
+  "tier": "canvas"
 }

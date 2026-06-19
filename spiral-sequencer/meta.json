@@ -2,10 +2,30 @@
   "slug": "spiral-sequencer",
   "title": "Cosmos Spiral Sequencer — a rotating-arm spiral note sequencer that rings real pentatonic bells via Web Audio",
   "title_vi": "Cosmos Spiral Sequencer — bộ tuần tự nốt hình xoắn ốc với cánh tay quay, gõ chuông ngũ cung thật qua Web Audio",
-  "W": 640, "H": 560, "LOOP": 6400, "N": 80,
-  "tags": ["spiral-sequencer","sequencer","bells","pentatonic","spiral","audio","webaudio","interactive","sound","music"],
+  "W": 640,
+  "H": 560,
+  "LOOP": 6400,
+  "N": 80,
+  "tags": [
+    "spiral-sequencer",
+    "sequencer",
+    "bells",
+    "pentatonic",
+    "spiral",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "music",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A spiral note sequencer on the Cosmos Phantom-dark theme, fully self-contained with zero dependencies. Notes are arranged as nodes along a spiral and a rotating arm sweeps from the outer edge inward, triggering each active node it passes; the spiral and a central ring pulse with the beat. It MAKES REAL SOUND via the Web Audio API: a scheduler rings FM bells (a sine carrier ring-modulated by an inharmonic sine partial through a lowpass, with a fast click-free attack and a long bell decay) tuned to a major-pentatonic scale, through a master gain near 0.2 and a compressor so it stays musical and never peaks. Click a spiral node to toggle it on/off, or drag up and down to change the tempo. Because browsers block autoplay, the AudioContext is created and resumed only on the first click. For capture it ships a SILENT deterministic looping visual demo: a mulberry32-seeded pattern of active nodes plays itself — the arm rotates an integer number of turns per loop so it is perfectly seamless, and each passed node blooms with a glow and emits an expanding ring while the center pulses on the beat. render(u) is a pure function of u. Frame 0 sits mid-rotation with a node blooming.",
   "usage_notes": "RUN: open index.html and click a spiral node or anywhere to HEAR it ring (audio needs a user gesture to start). HOW TO PLAY: click a node to toggle whether it fires; click empty space to start the sequence playing; drag the mouse up or down to speed up or slow the tempo. KEY TECHNIQUES: synthesis is an FM/ring-mod bell — a sine carrier whose frequency is modulated by a second sine at an inharmonic 2.76 ratio through a biquad lowpass, with an exponential gain envelope (4ms attack, 1.4s decay) so each bell is smooth and click-free; pitch is base*2**(semitone/12) from C5 over a major-pentatonic scale; master gain 0.2 + DynamicsCompressor protect the ears; the scheduler advances one node per step (STEP_DUR = LOOP/NODES) using lookahead timing. render(u) maps u to a rotating arm (integer TURNS per LOOP for seamless looping) and a per-node bloom envelope keyed to each node's outer-to-inner trigger time — offset +0.085 so frame 0 is mid-rotation with a node blooming; no Math.random() in render. CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) deterministic visual. TUNE: LOOP (overall tempo), TURNS (arm speed), NODES/COILS (spiral density), the seeded node.on pattern, the inharmonic bell ratio, and the master gain.",
   "summary_vi": "Bộ tuần tự nốt hình xoắn ốc trên nền Phantom-dark của Cosmos, độc lập và không phụ thuộc thư viện. Các nốt nằm dọc theo đường xoắn, một cánh tay quay quét từ ngoài vào trong và kích từng nốt đang bật mà nó đi qua; vòng tròn trung tâm đập theo nhịp. Nó PHÁT ÂM THẬT qua Web Audio: bộ lập lịch gõ các chuông FM (sóng sine bị điều biến vòng bởi một thành phần inharmonic qua lowpass, vào nhanh không tách tiếng, tắt dần dài) theo thang ngũ cung trưởng, master gain ~0.2 cùng compressor. Bấm một nốt để bật/tắt, kéo lên xuống để đổi tốc độ. AudioContext chỉ tạo khi có thao tác đầu tiên. Bản chụp là demo lặp IM LẶNG: mẫu nốt seed tự chơi — cánh tay quay số vòng nguyên mỗi loop nên liền mạch, mỗi nốt được đi qua sẽ nở sáng và phát vòng tròn lan ra. Frame 0 ở giữa vòng quay với một nốt đang nở.",
-  "notes": "Mở ra bấm vào nốt trên xoắn ốc hoặc kéo chuột để nghe chuông ngũ cung; render(u) chạy mẫu seed (cánh tay quay + nốt nở/phát vòng), demo im lặng loop liền mạch."
+  "notes": "Mở ra bấm vào nốt trên xoắn ốc hoặc kéo chuột để nghe chuông ngũ cung; render(u) chạy mẫu seed (cánh tay quay + nốt nở/phát vòng), demo im lặng loop liền mạch.",
+  "card_number": "AK-CDP-000008A",
+  "tier": "audio"
 }

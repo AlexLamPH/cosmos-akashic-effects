@@ -2,10 +2,29 @@
   "slug": "ambient-generator",
   "title": "Cosmos Ambient Generator — generative drone pad that really plays",
   "title_vi": "Cosmos Ambient Generator — máy tạo nhạc nền ambient phát tiếng thật",
-  "W": 720, "H": 480, "LOOP": 8000, "N": 100,
-  "tags": ["ambient", "pad", "drone", "generative", "reverb", "audio", "webaudio", "interactive", "sound"],
+  "W": 720,
+  "H": 480,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "ambient",
+    "pad",
+    "drone",
+    "generative",
+    "reverb",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A self-contained generative ambient pad machine: layered detuned oscillator drones through slow filters with an LFO swell and a generated-impulse reverb evolve endlessly, while a slow nebula/aurora glow breathes with the chord changes. Zero deps; it PLAYS REAL SOUND via the Web Audio API on interaction, plus a silent deterministic looping visual demo for capture.",
   "usage_notes": "RUN: open index.html and CLICK to start — audio needs a user gesture; drag the mood controls (brightness/density) to shape the pad. KEY TECHNIQUES: stacked detuned oscillators → slow lowpass with an LFO-driven cutoff swell → convolver fed a synthesized impulse response, all under a low master gain with ramped envelopes; the nebula glow + drifting particles are driven by render(u) from the same seeded chord cycle. CAPTURE: ?auto=1 is SILENT and window.__seek(t) gives a deterministic seamless visual. TUNE: chord cycle, LFO rate, reverb length, palette.",
   "summary_vi": "Máy tạo nhạc nền ambient: nhiều lớp oscillator lệch tông qua filter chậm + reverb tự dựng, tiến hoá liên tục, kèm quầng sáng nebula 'thở' theo hợp âm. Không lib; mở ra bấm chuột là PHÁT TIẾNG thật bằng Web Audio, kèm demo hình câm deterministic để bắt GIF.",
-  "notes": "Phase 3 — mở ra bấm chuột để nghe pad ambient; auto=1 thì câm, chỉ chạy visual."
+  "notes": "Phase 3 — mở ra bấm chuột để nghe pad ambient; auto=1 thì câm, chỉ chạy visual.",
+  "card_number": "AK-CDP-0000080",
+  "tier": "audio"
 }

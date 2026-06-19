@@ -6,9 +6,27 @@
   "H": 520,
   "LOOP": 6500,
   "N": 81,
-  "tags": ["laser-harp", "synth", "sawtooth", "filter", "beams", "pentatonic", "audio", "webaudio", "interactive", "sound", "canvas2d"],
+  "tags": [
+    "laser-harp",
+    "synth",
+    "sawtooth",
+    "filter",
+    "beams",
+    "pentatonic",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A laser harp of eight vertical light beams tuned to an A minor-pentatonic scale. Break a beam by moving or clicking across it and it PLAYS REAL SOUND via the Web Audio API: each note is a sawtooth oscillator through a sweeping resonant lowpass filter, sustained for as long as the beam stays broken and released cleanly when you let go. The AudioContext starts on your first gesture; every voice runs through a master gain of ~0.2 and a compressor, with ramped attack/release so there are no clicks. Touched beams flicker, bloom with a travelling note-glow and light up their emitter nodes through a hazy backdrop. Fully self-contained, zero dependencies, runs offline. Ships with a silent, deterministic, seamlessly looping visual demo for capture: a seeded hand sweeps back and forth across the beams, breaking and blooming each as a pure function of time.",
   "usage_notes": "RUN: open index.html and move or click across the beams to PLAY — audio needs a user gesture, so the AudioContext is created on your first pointer-down/move. PLAY: hover or drag horizontally across the eight beams to break them and sound notes; the beam under your pointer sustains while held, so press-and-drag glides between pitches like a glissando. KEY TECHNIQUES: synthesis = subtractive synth voice — a sawtooth oscillator feeds a resonant lowpass BiquadFilter (Q~6) whose cutoff ramps from 400Hz up to ~6x the note over 0.25s for a bloom-open swell, held as a sustained voice with a 30ms attack and 120ms release so notes never click; tuning = A minor pentatonic (A3 up) so any sweep sounds musical; master gain ~0.2 plus a compressor protect the ears. CAPTURE: ?auto=1 is SILENT (no AudioContext) and window.__seek(t) sets the exact deterministic visual; in AUTO a ping-pong sweeping hand drives which beams are broken/bloomed as a pure function of u, looping seamlessly. TUNE: LOOP for sweep tempo, N beam count, SCALE/BASE for tuning, the filter cutoff/Q for timbre, handPos for the auto sweep path.",
   "summary_vi": "Một cây đàn hạc laser tám tia sáng dọc lên dây theo thang ngũ cung La thứ. Chắn một tia bằng cách di hoặc bấm chuột qua nó và nó phát ÂM THANH THẬT qua Web Audio API: mỗi nốt là dao động răng cưa qua bộ lọc thông thấp cộng hưởng quét, ngân giữ chừng nào tia còn bị chắn và tắt mượt khi buông. AudioContext khởi tạo từ thao tác đầu tiên, qua master gain ~0.2 và một compressor, lên/tắt vuốt nên không lụp bụp. Tia chạm vào nhấp nháy, nở quầng sáng nốt nhạc di chuyển và làm sáng các đầu phát qua nền sương mờ. Hoàn toàn độc lập, không phụ thuộc, chạy offline. Kèm demo hình ảnh tất định, im lặng, lặp liền mạch để chụp: một bàn tay quét qua lại các tia.",
-  "notes": "Mở ra rồi di/bấm chuột ngang qua các tia laser để nghe — giữ tia thì nốt ngân kéo dài."
+  "notes": "Mở ra rồi di/bấm chuột ngang qua các tia laser để nghe — giữ tia thì nốt ngân kéo dài.",
+  "card_number": "AK-CDP-000008D",
+  "tier": "audio"
 }

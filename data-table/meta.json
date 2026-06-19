@@ -2,10 +2,25 @@
   "slug": "data-table",
   "title": "Cosmos Data Table — glassy sortable table with sticky header, status pills, and checkbox row selection",
   "title_vi": "Cosmos Data Table — bảng dữ liệu kính mờ có cột sắp xếp, tiêu đề dính, nhãn trạng thái và chọn hàng bằng checkbox",
-  "W": 720, "H": 480, "LOOP": 8000, "N": 100,
-  "tags": ["data-table","table","sortable","interactive","css"],
+  "W": 720,
+  "H": 480,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "data-table",
+    "table",
+    "sortable",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely polished data-table UI component on the Cosmos Phantom-dark theme, self-contained with zero dependencies. A glassy panel holds a real table with a sticky uppercase header, sortable columns (clicking a header flips its sort arrow and highlights the column in violet while the rows re-order), zebra striping, a gliding cosmic-blue hover-row highlight, a colored status pill per row (Active / Pending / Paused), avatar initials, and a checkbox-select column with a violet row-selection tint and an accent edge. The looping auto-demo sweeps a hover highlight down the rows, 'clicks' the Tasks header so the arrow flips and rows re-sort descending, then selects the top two rows one by one before resetting back to a Name sort. Live mode is fully interactive: real clickable sort headers (including a select-all header checkbox), hover highlights, and per-row checkbox selection. All captured motion is a pure deterministic function of u so it loops seamlessly.",
   "usage_notes": "RUN: double-click index.html. LIVE: click any column header to sort (click again to reverse — the arrow flips and the column highlights); hover a row for the glide highlight; click a row checkbox to select it (violet tint + edge), or the header checkbox to select all. KEY TECHNIQUES: rows are built once and re-filled per render from a re-sorted index list (sortIndices computes the visual order from the active column + direction), so 'sorting' is a deterministic re-fill rather than DOM reordering; render(u) splits the loop into hover-sweep / header-click / select / reset sub-phases driving sortCol, sortDir, a Set of selected original-row indices, and the hovered visual index, all written as inline classes; status pills are colored via .p-active/.p-pending/.p-paused classes; a +0.30 frame-0 offset opens with the table sorted by Tasks, one row hovered and the top row selected for a rich thumbnail. No Math.random in render. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (cycle speed), the sub-phase boundaries, the ROWS data, the accent palette ACC, and the COLS definitions.",
   "summary_vi": "Một component bảng dữ liệu UI thực sự chỉn chu trên nền Phantom-dark của Cosmos, độc lập và không phụ thuộc thư viện. Bảng kính mờ có tiêu đề dính viết hoa, cột sắp xếp được (nhấp tiêu đề lật mũi tên và làm nổi cột màu tím trong khi các hàng sắp xếp lại), sọc ngựa vằn, làm nổi hàng khi hover màu xanh, nhãn trạng thái màu mỗi hàng (Active/Pending/Paused), chữ cái avatar và cột checkbox chọn hàng với nền tím và cạnh nhấn. Demo lặp quét hover xuống các hàng, 'nhấp' tiêu đề Tasks để lật mũi tên và sắp xếp giảm dần, rồi chọn hai hàng đầu trước khi đặt lại. Bản live tương tác đầy đủ và chuyển động chụp là hàm thuần của u nên loop liền mạch.",
-  "notes": "render(u) chia loop thành các pha quét hover/nhấp tiêu đề/chọn/đặt lại; sắp xếp là re-fill xác định từ danh sách chỉ số được sắp, không xáo trộn DOM, nên loop liền mạch."
+  "notes": "render(u) chia loop thành các pha quét hover/nhấp tiêu đề/chọn/đặt lại; sắp xếp là re-fill xác định từ danh sách chỉ số được sắp, không xáo trộn DOM, nên loop liền mạch.",
+  "card_number": "AK-CDP-000007G",
+  "tier": "ui"
 }

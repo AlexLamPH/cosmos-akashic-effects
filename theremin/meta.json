@@ -6,9 +6,25 @@
   "H": 480,
   "LOOP": 7000,
   "N": 88,
-  "tags": ["theremin", "audio", "webaudio", "interactive", "sound", "synth", "canvas2d", "generative", "glow"],
+  "tags": [
+    "theremin",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "synth",
+    "canvas2d",
+    "generative",
+    "glow",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A glowing theremin field that makes REAL sound via the Web Audio API: move the mouse and an oscillator-through-gain plays — X controls pitch (quantised to a minor-pentatonic scale so it always sounds musical), Y controls volume. A cursor halo, a live flowing waveform, a pitch/volume readout, and a vertical pitch ladder all track the tone. Click toggles the note on. Fully self-contained, zero deps, runs offline. Ships with a silent deterministic looping visual demo (a seeded hand glides across the field tracing a melody) for capture.",
   "usage_notes": "RUN: open index.html and MOVE THE MOUSE to HEAR it (audio needs a user gesture); click to toggle the tone on/off. Mouse X = pitch (left low, right high, snapped to scale), mouse Y = volume (top loud, bottom quiet). KEY TECHNIQUES: synthesis is a single sine OscillatorNode -> lowpass BiquadFilter -> per-note gain (VCA) -> master gain (0.2) -> compressor; pitch/volume/filter use setTargetAtTime ramps so there are no clicks; pitch quantises to a minor-pentatonic scale (freq = base * 2**(semi/12)). CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) drives a deterministic seeded hand-path melody that loops. TUNE: SEMIS/BASE for the scale, LOOP for demo speed, WP count for the auto melody, master.gain for loudness.",
   "summary_vi": "Một trường theremin phát sáng tạo ra âm thanh THẬT qua Web Audio API: di chuột để bộ dao động phát tiếng — trục X chỉnh cao độ (bám theo thang ngũ cung thứ nên luôn nghe êm tai), trục Y chỉnh âm lượng. Quầng sáng con trỏ, sóng âm chảy, bảng đọc cao độ/âm lượng và thang cao độ dọc đều bám theo. Tự chứa, không phụ thuộc, chạy ngoại tuyến; kèm demo hình lặp tất định không tiếng để chụp.",
-  "notes": "Mở ra rồi di chuột/bấm để nghe — trục X là cao độ, trục Y là âm lượng."
+  "notes": "Mở ra rồi di chuột/bấm để nghe — trục X là cao độ, trục Y là âm lượng.",
+  "card_number": "AK-CDP-000007M",
+  "tier": "audio"
 }

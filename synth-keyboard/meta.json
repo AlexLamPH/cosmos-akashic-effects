@@ -2,10 +2,29 @@
   "slug": "synth-keyboard",
   "title": "Cosmos Synth Keyboard — playable 2-octave piano/synth that makes real sound via Web Audio",
   "title_vi": "Cosmos Synth Keyboard — đàn phím synth 2 quãng tám chơi được, phát âm thật qua Web Audio",
-  "W": 752, "H": 320, "LOOP": 6000, "N": 75,
-  "tags": ["synth-keyboard","piano","synthesizer","keyboard","audio","webaudio","interactive","sound","music"],
+  "W": 752,
+  "H": 320,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "synth-keyboard",
+    "piano",
+    "synthesizer",
+    "keyboard",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "music",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely playable 2-octave piano/synth keyboard on the Cosmos Phantom-dark theme, fully self-contained with zero dependencies. It MAKES REAL SOUND via the Web Audio API: click a key or press the QWERTY rows (z,x,c... for white keys, s,d,g... and q,w,e... mapped across the range) to trigger oscillators (detuned saw + triangle) through a lowpass filter and an ADSR gain envelope, with a master gain near 0.22 and a compressor so it never clicks or peaks. Played keys depress and glow, and a small level meter reacts to the performance. Because browsers block autoplay, the AudioContext is created and resumed only on the first key press or click. For capture it ships a SILENT deterministic looping visual demo: a seeded pentatonic phrase plays itself — keys light and depress in sequence (with occasional black-key sparkles) while the meter bars are driven by a seeded sum-of-sines, all a pure function of u so it loops seamlessly. Frame 0 sits mid-phrase with two keys held down.",
   "usage_notes": "RUN: open index.html and click a key or press a key to HEAR it (audio needs a user gesture to start). HOW TO PLAY: white keys are z,x,c,v,b,n,m then q,w,e,r,t,y,u (low to high); black keys are s,d,g,h,j then 2,3,5,6,7; or click any key with the mouse. KEY TECHNIQUES: synthesis uses a detuned sawtooth+triangle oscillator pair through a biquad lowpass and an ADSR gain envelope (attack 12ms, decay to 0.55 sustain, exponential release via setTargetAtTime) so notes are smooth and click-free; pitch is base*2**(semitone/12) from C3 in a C-major layout; master gain 0.22 + DynamicsCompressor protect the ears. render(u) maps u to a 16-step seeded pentatonic phrase (offset +0.18 so frame 0 is mid-phrase with key overlap = 2 keys down) and writes .on classes plus meter bar heights from a mulberry32-seeded sum-of-sines — no Math.random() in render. CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) deterministic visual. TUNE: LOOP (tempo), the PENT/SEQ phrase, the +0.18 frame-0 offset, ADSR times in play(), and the master gain.",
   "summary_vi": "Đàn phím synth/piano 2 quãng tám chơi được thật trên nền Phantom-dark của Cosmos, độc lập và không phụ thuộc thư viện. Nó PHÁT ÂM THẬT qua Web Audio: bấm phím hoặc nhấn các hàng QWERTY (z,x,c... cho phím trắng, s,d,g... và q,w,e... cho dải còn lại) để kích các oscillator (saw lệch + triangle) qua bộ lọc lowpass và envelope ADSR, master gain ~0.22 cùng compressor nên không bị tách tiếng. Phím được chơi sẽ lún xuống và phát sáng, một thanh đo mức nhún theo. AudioContext chỉ tạo/resume khi có thao tác đầu tiên. Bản chụp là demo lặp IM LẶNG: một câu pentatonic seed tự chơi — phím sáng/lún theo trình tự, các cột meter chạy bằng tổng các sin — là hàm thuần của u nên loop liền mạch. Frame 0 ở giữa câu với 2 phím đang giữ.",
-  "notes": "Mở ra bấm phím hoặc nhấn z,x,c.../q,w,e... để nghe; render(u) chạy câu pentatonic seed (phím .on + meter tổng các sin), demo im lặng loop liền mạch."
+  "notes": "Mở ra bấm phím hoặc nhấn z,x,c.../q,w,e... để nghe; render(u) chạy câu pentatonic seed (phím .on + meter tổng các sin), demo im lặng loop liền mạch.",
+  "card_number": "AK-CDP-000007J",
+  "tier": "audio"
 }

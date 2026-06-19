@@ -2,10 +2,26 @@
   "slug": "newtons-cradle",
   "title": "Cosmos Newton's Cradle — an end ball swings out and the impulse passes through a still row",
   "title_vi": "Cosmos Newton's Cradle — quả cuối bật ra, xung lực truyền qua hàng bi đứng yên",
-  "W": 720, "H": 560, "LOOP": 4200, "N": 53,
-  "tags": ["cradle","pendulum","physics","momentum","glow","canvas2d"],
+  "W": 720,
+  "H": 560,
+  "LOOP": 4200,
+  "N": 53,
+  "tags": [
+    "cradle",
+    "pendulum",
+    "physics",
+    "momentum",
+    "glow",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A row of five glowing balls hangs from a top frame on twin strings; the left end ball lifts and falls, the three middle balls stay perfectly still as the impulse passes through them, then the right end ball answers by swinging out an equal amount — a clean periodic conservation-of-momentum cycle. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: swing angle ang(u) = -A*max(0,sin(2PI*u)) drives the left end on the first half of the loop and +A*max(0,sin(2PI*u)) the right end on the second half, so each end touches its rest point (angle 0) at u=0, 0.5 and 1 and the middle balls never move — giving frame(0)==frame(LOOP). Each ball is drawn additively ('lighter') as halo+core+specular highlight on twin strings beneath a top frame bar. CAPTURE: ?auto=1 + window.__seek(t). TUNE: N ball count, A amplitude, len string length, gap spacing, AC palette, LOOP period.",
   "summary_vi": "Hàng năm quả cầu phát sáng treo trên khung bằng dây đôi; quả bên trái nâng lên rồi rơi xuống, ba quả giữa đứng yên khi xung lực truyền qua, rồi quả bên phải đáp lại bằng cách bật ra một góc bằng đúng — chu kỳ bảo toàn động lượng tuần hoàn. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "ang(u) = ±A*max(0,sin(2PI*u)): nửa đầu loop quả trái, nửa sau quả phải; mọi quả về góc 0 tại u=0,0.5,1 nên loop liền mạch."
+  "notes": "ang(u) = ±A*max(0,sin(2PI*u)): nửa đầu loop quả trái, nửa sau quả phải; mọi quả về góc 0 tại u=0,0.5,1 nên loop liền mạch.",
+  "card_number": "AK-CDP-000002H",
+  "tier": "canvas"
 }

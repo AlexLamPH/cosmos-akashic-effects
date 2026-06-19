@@ -2,10 +2,26 @@
   "slug": "bubbles",
   "title": "Cosmos Bubbles — translucent bubbles rising with rim light",
   "title_vi": "Cosmos Bubbles — bong bóng trong suốt nổi lên với viền sáng",
-  "W": 720, "H": 560, "LOOP": 8000, "N": 100,
-  "tags": ["bubbles","rising","translucent","glow","ambient","canvas2d"],
+  "W": 720,
+  "H": 560,
+  "LOOP": 8000,
+  "N": 100,
+  "tags": [
+    "bubbles",
+    "rising",
+    "translucent",
+    "glow",
+    "ambient",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Translucent bubbles in Cosmos accent colours rise from the bottom, wobble side to side, and gently grow then fade near the top. Each is drawn as a soft inner radial gradient, a coloured rim ring, a curved rim-light arc, and a bright specular highlight dot. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: each bubble has a seeded base x, phase, colour, radius and wobble harmonic; progress p=((u*speed+phase) mod 1) drives vertical travel upward and a horizontal sine wobble on an integer harmonic, so it wraps seamlessly. Body = additive 'lighter' radial gradient; rim = stroked circle plus a partial white arc; highlight = small white radial dot offset to the upper-left. Fade in/out near the ends via a min() envelope. CAPTURE: ?auto=1 + window.__seek(t). TUNE: bubble count, radius/amp ranges, AC colours, LOOP.",
   "summary_vi": "Các bong bóng trong suốt tông Cosmos nổi lên từ đáy, đung đưa qua lại, lớn dần rồi mờ đi gần đỉnh. Mỗi bong bóng gồm gradient trong mềm, viền màu, cung sáng viền và chấm sáng phản chiếu. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Bong bóng: p=((u*sp+phase)mod1) → đi lên + đung đưa sine (hài integer) → loop; thân gradient additive, viền stroke + cung sáng, chấm specular. Fade hai đầu bằng min(). B-tier."
+  "notes": "Bong bóng: p=((u*sp+phase)mod1) → đi lên + đung đưa sine (hài integer) → loop; thân gradient additive, viền stroke + cung sáng, chấm specular. Fade hai đầu bằng min(). B-tier.",
+  "card_number": "AK-CDP-000002B",
+  "tier": "canvas"
 }

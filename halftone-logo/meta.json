@@ -6,9 +6,21 @@
   "H": 600,
   "LOOP": 9000,
   "N": 113,
-  "tags": ["halftone", "logo", "dots", "cosmos", "shimmer"],
+  "tags": [
+    "halftone",
+    "logo",
+    "dots",
+    "cosmos",
+    "shimmer",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "The Cosmos logo is sampled once into a 120px offscreen buffer, then rebuilt every frame as a halftone grid: each cell draws a dot whose radius scales with the source brightness and whose colour blends the logo pixel with a Cosmos accent. A per-cell sine shimmer and a travelling brightness wave keep it breathing on a seamless loop.",
   "usage_notes": "RUN: open index.html (loads ./cosmos-logo.png, samples it on load). KEY TECHNIQUES: offscreen brightness sampling, halftone dot grid (radius ∝ luminance), additive 'lighter' compositing, per-cell phase shimmer 1+0.15*sin(2πu+phase), travelling wave via sin(2π*2u). CAPTURE: ?auto=1 + window.__seek(t); __ready is set true only after the logo image loads and is sampled. TUNE: CELL (dot density), shimmer amplitude 0.15, radius factor 0.62, LOOP.",
   "summary_vi": "Logo Cosmos được lấy mẫu một lần vào bộ đệm 120px, rồi mỗi khung hình dựng lại thành lưới halftone: mỗi ô vẽ một chấm có bán kính tỉ lệ với độ sáng nguồn và màu pha giữa pixel logo với màu nhấn Cosmos. Hiệu ứng lung linh sin theo từng ô và một làn sóng độ sáng di chuyển giữ cho vòng lặp liền mạch.",
-  "notes": "Vòng lặp 9s liền mạch. __ready chỉ bật sau khi ảnh logo tải xong và được lấy mẫu, nếu không quá trình render sẽ hết giờ. Điều chỉnh CELL để đổi mật độ chấm; biên độ lung linh 0.15."
+  "notes": "Vòng lặp 9s liền mạch. __ready chỉ bật sau khi ảnh logo tải xong và được lấy mẫu, nếu không quá trình render sẽ hết giờ. Điều chỉnh CELL để đổi mật độ chấm; biên độ lung linh 0.15.",
+  "card_number": "AK-CDP-000002F",
+  "tier": "canvas"
 }

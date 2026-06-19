@@ -11,10 +11,16 @@
     "interference",
     "rings",
     "cosmos",
-    "hypnotic"
+    "hypnotic",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
   ],
   "summary": "Two fields of concentric rings are stamped from centres that orbit a tiny offset against each other; their overlap produces large, slowly migrating moiré bands. A counter-rotating pair of line gratings adds a second-order interference, and a warm radial pulse keeps the centre alive. Everything is driven by integer harmonics of u for a perfectly seamless loop.",
   "usage_notes": "RUN: open index.html (no assets, pure Canvas 2D). KEY TECHNIQUES: dual concentric-ring fields with orbiting centres (dx,dy = off*cos/sin 2πu), additive 'lighter' compositing of thin strokes, counter-rotating line gratings for second-order moiré, radial-gradient core pulse. CAPTURE: ?auto=1 + window.__seek(t). TUNE: ring spacing (11), centre offset 'off' (0.10*minDim), grating spacing/angle amplitude 0.10, LOOP.",
   "summary_vi": "Hai trường vòng tròn đồng tâm được vẽ từ hai tâm quay quanh một độ lệch nhỏ ngược nhau; vùng chồng lấp tạo ra các dải moiré lớn trôi chậm. Một cặp lưới đường thẳng quay ngược chiều thêm giao thoa bậc hai, và một xung tròn ấm giữ tâm sống động. Tất cả điều khiển bằng hài bậc nguyên của u để vòng lặp liền mạch tuyệt đối.",
-  "notes": "Vòng lặp 11s liền mạch, không cần tài nguyên ngoài. Tăng 'off' để dải moiré dịch xa hơn; giảm khoảng cách vòng để dải mịn hơn. Đường mảnh kết hợp chế độ 'lighter' trên nền tối."
+  "notes": "Vòng lặp 11s liền mạch, không cần tài nguyên ngoài. Tăng 'off' để dải moiré dịch xa hơn; giảm khoảng cách vòng để dải mịn hơn. Đường mảnh kết hợp chế độ 'lighter' trên nền tối.",
+  "card_number": "AK-CDP-000002G",
+  "tier": "canvas"
 }

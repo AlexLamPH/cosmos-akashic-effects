@@ -7,9 +7,26 @@
   "LOOP": 8000,
   "N": 100,
   "START": 2000,
-  "tags": ["gravity-harp", "bouncing-ball", "physics", "generative", "pentatonic", "audio", "webaudio", "interactive", "sound", "canvas2d"],
+  "tags": [
+    "gravity-harp",
+    "bouncing-ball",
+    "physics",
+    "generative",
+    "pentatonic",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A gravity harp that makes REAL sound via the Web Audio API: you drop balls that fall under gravity and bounce off horizontal string-lines, and every bounce plucks that string's note (a synthesized triangle+sine harp pluck with fast attack and ringing decay) on a minor-pentatonic scale, so the bouncing physics writes an evolving generative melody. Balls leave glowing trails; struck strings flash white and ring with a wobble. Drag to aim and gravity does the rest. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
   "usage_notes": "RUN: open index.html and click to drop a ball (drag to aim its horizontal launch) to HEAR it pluck the strings (audio needs a user gesture); gravity makes it bounce and keep plucking until it settles. KEY TECHNIQUES (synthesis): each pluck is a triangle oscillator plus a sine an octave up through a gain envelope with a ~6ms exponential attack and a ~1.1s ringing release (no clicks), string pitch = 220*2^(semitone/12) on a 2-octave minor-pentatonic scale, master gain ~0.22 with a compressor; ball bounce physics uses constant gravity with a 0.74 restitution. CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — seeded balls bounce as pure periodic functions of u (each bounce period an exact divisor of LOOP) so positions, trails, and string flashes loop seamlessly; START offsets frame 0 to mid-bounce with a string ringing. TUNE: G for gravity, the SCALE/BASE for tuning, the seeded balls[] for the AUTO shower, LOOP for speed.",
   "summary_vi": "Đàn hạc trọng lực phát ra âm thanh THẬT qua Web Audio API: bạn thả những quả bóng rơi theo trọng lực và nảy trên các dây ngang, mỗi lần nảy gảy nốt của dây đó theo thang ngũ cung, nên vật lý nảy bóng tạo nên một giai điệu sinh tạo biến đổi. Bóng để lại vệt sáng; dây bị gảy lóe trắng và ngân rung. Tự chứa, không phụ thuộc, kèm bản demo hình lặp tất định im lặng để chụp.",
-  "notes": "Mở ra rồi bấm chuột thả bóng (kéo để ngắm) để nghe bóng nảy gảy các dây đàn hạc."
+  "notes": "Mở ra rồi bấm chuột thả bóng (kéo để ngắm) để nghe bóng nảy gảy các dây đàn hạc.",
+  "card_number": "AK-CDP-0000088",
+  "tier": "audio"
 }

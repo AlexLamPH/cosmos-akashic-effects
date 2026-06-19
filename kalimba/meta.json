@@ -2,10 +2,29 @@
   "slug": "kalimba",
   "title": "Cosmos Kalimba — playable thumb piano that rings real warm bell-like notes via Web Audio",
   "title_vi": "Cosmos Kalimba — đàn kalimba (đàn ngón cái) chơi được, ngân tiếng chuông ấm thật qua Web Audio",
-  "W": 640, "H": 540, "LOOP": 6000, "N": 75,
-  "tags": ["kalimba","thumb-piano","mbira","instrument","bell","audio","webaudio","interactive","sound"],
+  "W": 640,
+  "H": 540,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "kalimba",
+    "thumb-piano",
+    "mbira",
+    "instrument",
+    "bell",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A genuinely playable kalimba (thumb piano) on the Cosmos dark theme, fully self-contained with zero dependencies, samples, or CDN. It MAKES REAL SOUND via the Web Audio API: click any metal tine or press A,S,D,F,G,H,J,K,L to PLUCK a warm bell-like note synthesized from a sine fundamental plus odd harmonics (3rd and 5th at decreasing amplitude) and a slightly detuned second sine for warmth, shaped by a gentle 8ms attack ramp and a medium exponential decay (~1.2s) through a master gain near 0.2 so it never clicks. The wooden glassy body has nine silver/gold tines mounted on a bridge in the classic alternating layout (longest/lowest tine in the CENTER, getting shorter and higher toward both edges, tuned to a C major pentatonic across two octaves) and a glowing soundhole. On each pluck the struck tine wobbles side-to-side and glows while a ring around the soundhole shimmers. Because browsers block autoplay, the AudioContext is created and resumed only on the first click or key press. For capture it ships a SILENT deterministic looping visual demo: a seeded gentle melody plays itself — tines vibrate and glow in sequence with decay tails so one or two are always shimmering, the soundhole pulses per note — all a pure function of u so it loops seamlessly. Frame 0 sits mid-vibration with a tine glowing and the soundhole mid-pulse.",
   "usage_notes": "RUN: open index.html and click a tine or press a key to HEAR it (audio needs a user gesture to start). HOW TO PLAY: keys A,S,D,F,G,H,J,K,L map to the nine notes low-to-high (the physical tines alternate center-out, so the lowest key is the longest CENTER tine); or click any tine. KEY TECHNIQUES: each note is freq=BASE*2**(semitone/12) from C4 in a C-major-pentatonic tuning (offsets 0,2,4,7,9,12,14,16,19); synthesis = a sine fundamental plus odd harmonics (3rd at 0.16, 5th at 0.07) plus a 1.004x-detuned sine, summed into one gain with setValueAtTime(0)->linearRampToValueAtTime attack (8ms) then exponentialRampToValueAtTime decay (~1.2s); master gain 0.2. render(u) maps u to a 12-step seeded melody: for each tine it finds the wrap-aware time since it was last struck, then wobble=exp(-dt*5.5)*sin(dt*70+phase) and glow=exp(-dt*3.0); the soundhole ring width/opacity follow the max glow — no Math.random() in render (seeded once with mulberry32). CAPTURE: ?auto=1 is SILENT (no AudioContext at all) + window.__seek(t) deterministic visual. TUNE: LOOP (tempo), STEPS/SEQ (the melody), OFF (frame-0 offset, 0.27), the harmonic amplitudes and decay times in pluck(), wobble/glow constants in render(), and the master gain.",
   "summary_vi": "Đàn kalimba (đàn ngón cái) chơi được thật trên nền tối Cosmos, độc lập hoàn toàn, không thư viện/CDN/mẫu âm. Nó PHÁT ÂM THẬT qua Web Audio: bấm vào lưỡi kim loại hoặc nhấn A,S,D,F,G,H,J,K,L để gảy một nốt chuông ấm tổng hợp từ sine cơ bản cộng các họa âm lẻ (bậc 3, bậc 5 biên độ giảm dần) và một sine lệch nhẹ cho ấm, với envelope tấn công mềm 8ms và suy giảm mũ vừa (~1.2s), master gain ~0.2 nên không tách tiếng. Thân gỗ bóng có chín lưỡi bạc/vàng gắn trên cầu theo bố cục so le cổ điển (lưỡi dài/thấp nhất ở GIỮA, ngắn dần và cao dần ra hai mép, lên dây theo ngũ cung Đô trưởng hai quãng tám) và một lỗ thoát âm phát sáng. Mỗi lần gảy, lưỡi rung qua lại và phát sáng còn vòng quanh lỗ thoát âm lung linh. AudioContext chỉ tạo/resume khi có thao tác đầu tiên. Bản chụp là demo lặp IM LẶNG: một giai điệu seed tự chơi — các lưỡi rung và sáng theo trình tự với đuôi suy giảm, lỗ thoát âm nhấp nháy theo từng nốt — là hàm thuần của u nên loop liền mạch. Frame 0 đang giữa nhịp rung.",
-  "notes": "Mở ra bấm phím A,S,D,F,G,H,J,K,L hoặc bấm chuột vào lưỡi đàn để nghe; render(u) chạy giai điệu seed (lưỡi rung+sáng, lỗ thoát âm nhấp nháy), demo im lặng loop liền mạch."
+  "notes": "Mở ra bấm phím A,S,D,F,G,H,J,K,L hoặc bấm chuột vào lưỡi đàn để nghe; render(u) chạy giai điệu seed (lưỡi rung+sáng, lỗ thoát âm nhấp nháy), demo im lặng loop liền mạch.",
+  "card_number": "AK-CDP-000007Z",
+  "tier": "audio"
 }

@@ -2,10 +2,26 @@
   "slug": "color-picker",
   "title": "Cosmos Color Picker — saturation/value square with a draggable ring, hue strip, and live HEX/RGB readout",
   "title_vi": "Cosmos Color Picker — ô bão hòa/độ sáng với vòng kéo được, thanh hue và đọc HEX/RGB trực tiếp",
-  "W": 600, "H": 560, "LOOP": 7000, "N": 88,
-  "tags": ["color-picker","picker","swatch","component","interactive","css"],
+  "W": 600,
+  "H": 560,
+  "LOOP": 7000,
+  "N": 88,
+  "tags": [
+    "color-picker",
+    "picker",
+    "swatch",
+    "component",
+    "interactive",
+    "css",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A polished, self-contained colour picker on the Cosmos Phantom-dark theme: a saturation/value square (hue-tinted background with white->transparent and transparent->black gradients) carries a draggable ring handle, a rainbow hue slider strip sits below with its own knob, and a live preview swatch shows the picked colour beside an updating HEX and rgb() readout. Zero dependencies, pure HTML/CSS/vanilla JS with a hand-written HSV->RGB conversion. LIVE mode is genuinely interactive (drag inside the SV square to set saturation/value, drag the hue strip to change hue; the swatch, hex and rgb update instantly); AUTO mode plays a deterministic, seamlessly looping demo that sweeps the hue through the full spectrum while the ring traces a smooth figure-eight path across the square, the preview swatch and hex value updating live every frame. All captured motion is a pure function of u via render(u)/__seek so frames are exact regardless of timing; frame 0 lands mid-sweep on a violet hue.",
   "usage_notes": "RUN: double-click index.html. LIVE: press and drag inside the saturation/value square to set the colour (left->right = saturation, bottom->top = brightness); drag the rainbow strip below to choose the hue; the ring handle, hue knob, preview swatch, HEX string and rgb() text all update in real time, and the picker holds your choice for a moment before resuming the demo loop. KEY TECHNIQUES: hsv2rgb() converts h(0..360)/s/v(0..1) to 0..255 channels; the SV square background is the pure hue (hsv(h,1,1)) layered under a left white gradient and a bottom black gradient so any (s,v) reads correctly; the ring is positioned at (s*W, (1-v)*H) and filled with the actual selected colour so it stays visible on any background; the hue knob x = (h/360)*width and is tinted with the hue; the swatch box-shadow glows in the selected colour; in the auto demo the hue sweeps continuously (offset so frame 0 = violet ~265deg) while s and v oscillate via sines at 1x and 2x for a looping figure-eight ring path. CAPTURE: ?auto=1 + window.__seek(t). TUNE: LOOP (sweep speed), the H0 frame-0 hue offset, the sine amplitudes/frequencies/phases that shape the ring path, the SV square height, and the swatch glow constants.",
   "summary_vi": "Bộ chọn màu hoàn chỉnh, tự chứa, theme Phantom-dark của Cosmos: ô bão hòa/độ sáng (nền nhuốm hue với gradient trắng->trong và trong->đen) mang một vòng kéo được, bên dưới là thanh hue cầu vồng có knob riêng, và một ô xem trước cùng đọc HEX và rgb() cập nhật trực tiếp. Không phụ thuộc, thuần HTML/CSS/JS với hàm HSV->RGB tự viết. LIVE tương tác thật (kéo trong ô SV đặt bão hòa/độ sáng, kéo thanh hue đổi màu; swatch, hex, rgb cập nhật tức thì); AUTO chạy demo loop liền mạch quét hue hết phổ trong khi vòng vẽ đường số tám trên ô, swatch và hex cập nhật mỗi frame. Mọi chuyển động là hàm thuần của u qua render(u)/__seek; frame 0 nằm giữa lúc quét ở hue tím.",
-  "notes": "hsv2rgb() đổi h/s/v sang RGB; nền ô SV là hue thuần phủ gradient trắng và đen; vòng ở (s*W,(1-v)*H) và tô bằng màu đã chọn để luôn thấy; demo quét hue liên tục (offset frame 0 = tím ~265deg) trong khi s,v dao động sin 1x/2x tạo đường số tám."
+  "notes": "hsv2rgb() đổi h/s/v sang RGB; nền ô SV là hue thuần phủ gradient trắng và đen; vòng ở (s*W,(1-v)*H) và tô bằng màu đã chọn để luôn thấy; demo quét hue liên tục (offset frame 0 = tím ~265deg) trong khi s,v dao động sin 1x/2x tạo đường số tám.",
+  "card_number": "AK-CDP-0000076",
+  "tier": "ui"
 }

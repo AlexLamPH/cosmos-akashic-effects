@@ -6,9 +6,23 @@
   "H": 540,
   "LOOP": 7000,
   "N": 88,
-  "tags": ["waves", "lines", "sine", "silk", "glow", "generative", "canvas2d"],
+  "tags": [
+    "waves",
+    "lines",
+    "sine",
+    "silk",
+    "glow",
+    "generative",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Many flowing horizontal sine lines drift like rippling silk or sound waves, each a thin bright stroke over an additive glow halo, in pure Canvas 2D with zero dependencies, fully offline, deterministic and seamless. Every line sums a few sines whose phases advance by 2*pi*u*k with integer k, so all motion returns exactly at u=1 (frame(0) equals frame(LOOP)); amplitude and Cosmos accent colour vary per line.",
   "usage_notes": "RUN: open index.html in any browser (animates via requestAnimationFrame). KEY TECHNIQUES: mulberry32-seeded per-line parameters, integer-harmonic sine phases for seamless looping, two-pass additive rendering (wide soft halo + thin bright core) under 'lighter' composite. CAPTURE: load with ?auto=1 then call window.__seek(t) per frame (t in ms, 0..LOOP). TUNE: NL (number of lines), LOOP, a1/a2/a3 (amplitudes), k1/k2/k3 (loop harmonics), f1/f2/f3 (spatial frequency), PAL (accent palette).",
   "summary_vi": "Nhiều đường sin ngang trôi mượt như lụa gợn hay sóng âm, mỗi đường là nét sáng mảnh trên quầng phát sáng cộng dồn, vẽ thuần Canvas 2D không phụ thuộc, chạy offline, tất định và lặp liền mạch. Mỗi đường cộng vài hàm sin có pha tăng theo 2*pi*u*k với k nguyên nên mọi chuyển động quay về đúng tại u=1.",
-  "notes": "Sóng lụa phát sáng lặp liền mạch, vẽ thuần Canvas 2D không phụ thuộc."
+  "notes": "Sóng lụa phát sáng lặp liền mạch, vẽ thuần Canvas 2D không phụ thuộc.",
+  "card_number": "AK-CDP-000001T",
+  "tier": "canvas"
 }

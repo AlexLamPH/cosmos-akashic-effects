@@ -2,10 +2,26 @@
   "slug": "cube-wave",
   "title": "Cosmos Cube Wave — an isometric city of light whose cube heights ripple in a travelling wave",
   "title_vi": "Cosmos Cube Wave — thành phố ánh sáng đẳng cự với chiều cao khối lập phương gợn sóng lan truyền",
-  "W": 720, "H": 600, "LOOP": 6000, "N": 75,
-  "tags": ["isometric","cubes","wave","3d","grid","canvas2d"],
+  "W": 720,
+  "H": 600,
+  "LOOP": 6000,
+  "N": 75,
+  "tags": [
+    "isometric",
+    "cubes",
+    "wave",
+    "3d",
+    "grid",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A 12x12 isometric grid of hand-projected 3D cubes pulses in a radial travelling wave: each cube's height is base + amp*sin(2*pi*u*k - dist*freq), so a ripple sweeps outward from the centre like a city of light bouncing. Each cube draws its two visible side faces (darker) plus a bright glowing top, painted strictly back-to-front by depth so overlaps are correct. Faces are accent-tinted from a seeded palette. Pure Canvas 2D with a by-hand isometric projection, no WebGL, zero deps, deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html (offline, no deps). KEY TECHNIQUES: iso(i,j,z) maps grid+height to screen via (i-j)*TW horizontally and (i+j)*TH-z vertically (pure hand isometric, no WebGL); each cube renders left/right side quads shaded 0.42/0.62 and a 1.15-bright top with shadow glow; cubes are looped by diagonal s=i+j and drawn back-to-front for correct overlap; height uses sin(TAU*u*k - dist*freq) with integer k so frame(0)===frame(LOOP); mulberry32 seeds per-cube accent tints once at setup. CAPTURE: ?auto=1 + window.__seek(t). TUNE: GRID size, TW/TH tile dims, base/amp/freq wave params, harmonic k, AC palette, LOOP.",
   "summary_vi": "Lưới đẳng cự 12x12 gồm các khối lập phương 3D chiếu thủ công đập theo sóng lan tỏa tròn: chiều cao mỗi khối là base + amp*sin(2*pi*u*k - dist*freq), nên gợn sóng tỏa ra từ tâm như thành phố ánh sáng nhảy nhót. Mỗi khối vẽ hai mặt bên thấy được (tối hơn) cùng mặt trên sáng rực, tô nghiêm ngặt từ sau ra trước theo độ sâu nên chồng lấp đúng. Mặt được nhuộm theo bảng màu nhấn gieo sẵn. Thuần Canvas 2D với phép chiếu đẳng cự thủ công, không WebGL, không thư viện, deterministic và loop liền.",
-  "notes": "iso(i,j,z) chiếu lưới+chiều cao ra màn hình bằng (i-j)*TW ngang và (i+j)*TH-z dọc, thủ công không WebGL; mỗi khối vẽ hai mặt bên tối (0.42/0.62) và mặt trên sáng có glow; lặp theo đường chéo s=i+j vẽ sau-ra-trước để chồng đúng; chiều cao sin(TAU*u*k - dist*freq) với k nguyên nên loop liền; gieo màu bằng mulberry32."
+  "notes": "iso(i,j,z) chiếu lưới+chiều cao ra màn hình bằng (i-j)*TW ngang và (i+j)*TH-z dọc, thủ công không WebGL; mỗi khối vẽ hai mặt bên tối (0.42/0.62) và mặt trên sáng có glow; lặp theo đường chéo s=i+j vẽ sau-ra-trước để chồng đúng; chiều cao sin(TAU*u*k - dist*freq) với k nguyên nên loop liền; gieo màu bằng mulberry32.",
+  "card_number": "AK-CDP-000002V",
+  "tier": "canvas"
 }

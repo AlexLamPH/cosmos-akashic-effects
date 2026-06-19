@@ -2,10 +2,26 @@
   "slug": "cosmic-snow",
   "title": "Cosmos Cosmic Snow — drifting glints with depth parallax",
   "title_vi": "Cosmos Cosmic Snow — đốm sáng rơi với chiều sâu thị sai",
-  "W": 720, "H": 560, "LOOP": 9000, "N": 113,
-  "tags": ["snow","glints","embers","parallax","depth","canvas2d"],
+  "W": 720,
+  "H": 560,
+  "LOOP": 9000,
+  "N": 113,
+  "tags": [
+    "snow",
+    "glints",
+    "embers",
+    "parallax",
+    "depth",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "Soft glints, snow and embers in Cosmos accent colours drift gently downward across three depth layers — far ones small, dim and slow, near ones big, bright and fast — building real parallax over the Phantom dark. Each glint twinkles and sways. Pure Canvas 2D, zero deps, runs offline; deterministic and seamless.",
   "usage_notes": "RUN: double-click index.html. KEY TECHNIQUES: three depth layers seeded with different size/brightness/speed scales (far=small/dim/slow, near=big/bright/fast) give parallax. Each glint has a seeded base x, phase, colour, sway harmonic and twinkle seed; progress p=((u*speed+phase) mod 1) drives downward travel and a horizontal sine sway on an integer harmonic, so it wraps seamlessly. Drawn as an additive 'lighter' radial halo plus a bright white core; twinkle modulates alpha via a sine of time. CAPTURE: ?auto=1 + window.__seek(t). TUNE: per-layer counts/scales in LAY, AC colours, LOOP.",
   "summary_vi": "Đốm sáng, tuyết và than hồng tông Cosmos rơi nhẹ qua ba lớp chiều sâu — lớp xa nhỏ/mờ/chậm, lớp gần to/sáng/nhanh — tạo thị sai thật trên nền Phantom tối. Mỗi đốm lấp lánh và đung đưa. Thuần Canvas 2D, không lib, chạy offline; deterministic & loop liền.",
-  "notes": "Tuyết vũ trụ: 3 lớp parallax (xa nhỏ/mờ/chậm, gần to/sáng/nhanh); p=((u*sp+phase)mod1) → rơi xuống + sway sine (hài integer) → loop; halo additive + lõi trắng, lấp lánh bằng sine theo thời gian. B-tier."
+  "notes": "Tuyết vũ trụ: 3 lớp parallax (xa nhỏ/mờ/chậm, gần to/sáng/nhanh); p=((u*sp+phase)mod1) → rơi xuống + sway sine (hài integer) → loop; halo additive + lõi trắng, lấp lánh bằng sine theo thời gian. B-tier.",
+  "card_number": "AK-CDP-000002C",
+  "tier": "canvas"
 }

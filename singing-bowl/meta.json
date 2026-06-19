@@ -2,10 +2,30 @@
   "slug": "singing-bowl",
   "title": "Cosmos Singing Bowl — a Tibetan bowl that rings a deep sustained tone when struck or sung",
   "title_vi": "Cosmos Singing Bowl — chuông xoay Tây Tạng ngân tiếng trầm khi gõ hoặc xoa vành",
-  "W": 520, "H": 488, "LOOP": 7000, "N": 62,
-  "tags": ["singing-bowl","gong","bowl","meditation","audio","webaudio","interactive","sound","drone","canvas2d"],
+  "W": 520,
+  "H": 488,
+  "LOOP": 7000,
+  "N": 62,
+  "tags": [
+    "singing-bowl",
+    "gong",
+    "bowl",
+    "meditation",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "drone",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "A Tibetan singing bowl / gong that MAKES REAL SOUND via the Web Audio API: a large glowing bowl that, when struck (click) or 'sung' (drag around the rim), rings a deep sustained tone built from a few detuned sine partials with slow beating shimmering overtones. Click the bowl to strike it with a long ringing decay; press-and-drag around the rim to drive a continuous singing drone whose loudness follows your circling speed. Concentric ripples radiate, a level halo breathes with the tone, and shimmer arcs rotate around the rim. Self-contained, zero dependencies, offline. Audio starts only on the first user gesture. A separate silent, deterministic, seamlessly-looping visual demo (seeded strike + rim-rub cycle) is provided for capture.",
   "usage_notes": "RUN: open index.html and CLICK the bowl to strike it, or PRESS-AND-DRAG in a circle around the rim to make it SING (audio needs a user gesture); any key also strikes it. KEY TECHNIQUES (synthesis): the strike sums inharmonic partials (1, 2.7, 5.4, 8.9 * BASE 146.8Hz), each as a PAIR of sines detuned a few cents in opposite directions so they beat slowly into a shimmer; a 10ms attack and a 5-7s exponential decay give the long ring; the rim-rub spins up a 3-partial sustained voice whose master gain is set via setTargetAtTime from the drag angular speed; everything runs through a master GainNode at 0.2 into a DynamicsCompressor. VISUALS: amp (live: decaying pulse; AUTO: scripted strike+rub envelope) drives ripple opacity, a radial halo, rotating overtone arcs, and the bowl's glow; mulberry32 seeds the loop so frame 0 is just after a strike with ripples expanding. CAPTURE: ?auto=1 is SILENT (no AudioContext) + window.__seek(t) is a deterministic looping visual. TUNE: BASE pitch, PART partials/detune, decay times in strike(), autoAmp() rub center/width.",
   "summary_vi": "Chuông xoay Tây Tạng / cồng PHÁT RA ÂM THANH THẬT qua Web Audio: một chiếc bát lớn phát sáng, khi gõ (bấm) hoặc 'xoa vành' (kéo quanh miệng) sẽ ngân tiếng trầm kéo dài gồm vài sin lệch tần với bội âm lung linh đập chậm. Bấm để gõ với đuôi ngân dài; nhấn giữ và kéo vòng quanh vành để tạo tiếng ngân liên tục theo tốc độ xoay. Gợn sóng đồng tâm lan ra, vầng hào quang phập phồng theo âm, các cung lung linh xoay quanh vành. Tự chứa, không phụ thuộc, offline. Âm thanh chỉ khởi động ở thao tác đầu tiên. Kèm bản hình ảnh im lặng tất định lặp liền mạch để chụp.",
-  "notes": "Mở ra rồi BẤM để gõ hoặc KÉO vòng quanh vành để chuông NGÂN (cần thao tác để bật âm); ?auto=1 là bản im lặng tất định để chụp GIF."
+  "notes": "Mở ra rồi BẤM để gõ hoặc KÉO vòng quanh vành để chuông NGÂN (cần thao tác để bật âm); ?auto=1 là bản im lặng tất định để chụp GIF.",
+  "card_number": "AK-CDP-000007V",
+  "tier": "audio"
 }

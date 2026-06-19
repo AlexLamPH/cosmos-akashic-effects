@@ -7,9 +7,27 @@
   "LOOP": 7680,
   "N": 96,
   "START": 2880,
-  "tags": ["step-808", "drum-machine", "808", "sub-bass", "trap", "step-sequencer", "audio", "webaudio", "interactive", "sound", "canvas2d"],
+  "tags": [
+    "step-808",
+    "drum-machine",
+    "808",
+    "sub-bass",
+    "trap",
+    "step-sequencer",
+    "audio",
+    "webaudio",
+    "interactive",
+    "sound",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
   "summary": "An 808-style drum + bass groovebox that makes REAL sound via the Web Audio API: a 16-step grid drives a synthesized 808 kick (a long sine with a pitch drop and a noise click), a noise+tone snare, filtered-noise hats, and a tunable sub-bass lane (an 808 sine bass with portamento glide between notes). A playhead sweeps the whole grid, hit cells flash, and the sub-bass note is drawn as a glowing pitch curve that slides between pitches. Self-contained, zero dependencies, runs offline, with a silent deterministic looping visual demo for capture.",
   "usage_notes": "RUN: open index.html and press SPACE to start/stop the groove to HEAR it (audio needs a user gesture). Click cells in the KICK/SNARE/HAT rows to toggle hits; click in the bass lane to toggle a note, drag vertically in the bass lane to set its pitch (snapped to a minor-pentatonic scale). KEY TECHNIQUES (synthesis): 808 kick = sine with an exponential pitch drop 150->45Hz plus a short noise click; snare = highpassed noise burst + triangle tone; hat = highpassed noise; sub-bass = a single persistent sine through a lowpass with per-step gain envelopes and exponential frequency ramps for glide; pitch = 27.5*2^((midi-21)/12), master gain ~0.2 with a compressor and ramped envelopes (no clicks); a look-ahead scheduler clocks the 16 steps. CAPTURE: ?auto=1 is SILENT + window.__seek(t) deterministic visual — a seeded trap groove plays silently with the playhead sweeping, kick/snare/hat cells flashing, and the 808 bass glow gliding between pitches, looping seamlessly; START offsets frame 0 to mid-groove. TUNE: LOOP for tempo, the seeded drums/bass pattern init, BASEMIDI for bass register, STEPS for length.",
   "summary_vi": "Hộp nhịp trống + bass kiểu 808 phát ra âm thanh THẬT qua Web Audio API: lưới 16 bước điều khiển kick 808 tổng hợp (sine dài có rớt cao độ và tiếng click), snare, hi-hat và một làn sub-bass chỉnh được (bass sine 808 trượt cao độ giữa các nốt). Đầu đọc quét toàn lưới, các ô gõ lóe sáng, và nốt sub-bass vẽ thành đường cong cao độ phát sáng trượt giữa các cao độ. Tự chứa, không phụ thuộc, kèm bản demo hình lặp tất định im lặng để chụp.",
-  "notes": "Mở ra rồi bấm phím cách để nghe groove 808; nhấp các ô trống, kéo dọc làn bass để chỉnh cao độ."
+  "notes": "Mở ra rồi bấm phím cách để nghe groove 808; nhấp các ô trống, kéo dọc làn bass để chỉnh cao độ.",
+  "card_number": "AK-CDP-0000089",
+  "tier": "audio"
 }
