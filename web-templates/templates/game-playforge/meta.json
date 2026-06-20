@@ -1,0 +1,23 @@
+{
+  "code": "CWT-001",
+  "slug": "game-playforge",
+  "title": "PLAYFORGE — Indie Game Studio",
+  "title_vi": "PLAYFORGE — Studio game indie",
+  "industry": "game",
+  "industries": ["game", "toys", "entertainment"],
+  "style": "Premium neon-arcade (dark)",
+  "tier": "flagship",
+  "tags": ["landing", "dark", "neon", "game", "studio", "white-label", "animated", "responsive"],
+  "palette": ["#08060f", "#8b5cff", "#ff49c7", "#2ee6ff", "#b6ff3a", "#ffb23a"],
+  "sections": ["nav", "hero", "trust-strip", "games-grid", "features", "trailer-showcase", "stats-counter", "testimonials", "waitlist-cta", "footer"],
+  "white_label": true,
+  "self_contained": true,
+  "responsive": true,
+  "a11y": "Semantic landmarks, focus-visible, prefers-reduced-motion, AA contrast on dark.",
+  "rebrand": "Edit :root tokens (--brand, --a-*, brand name) to recolor in seconds.",
+  "summary": "Premium dark neon-arcade landing for a game/toys studio: animated hero key-card, 6-game grid with hover, feature cards, trailer showcase, animated stat counters, testimonials, waitlist CTA.",
+  "summary_vi": "Landing tối phong cách neon-arcade cao cấp cho studio game/đồ chơi: hero key-card động, lưới 6 game có hover, thẻ tính năng, showcase trailer, số liệu chạy động, testimonial, CTA waitlist.",
+  "builder": "Ra",
+  "card_type": "effect",
+  "created": "2026-06-20"
+}

@@ -1,0 +1,18 @@
+{
+  "code": "CWT-004",
+  "slug": "light-axiom",
+  "title": "AXIOM — Architecture & Interiors",
+  "title_vi": "AXIOM — Kiến trúc & Nội thất",
+  "industry": "architecture",
+  "industries": ["architecture", "design", "interiors", "studio", "real-estate"],
+  "style": "Full-white editorial, serif display",
+  "tier": "flagship",
+  "tags": ["light", "white", "editorial", "serif", "minimal", "architecture", "scroll-reveal", "white-label", "responsive"],
+  "palette": ["#ffffff", "#14130f", "#b4603a", "#f6f5f2"],
+  "sections": ["nav", "hero-editorial", "manifesto", "stats", "projects", "services", "quote", "cta", "footer"],
+  "special": "Full-WHITE bold background · serif/sans editorial contrast · image hover-zoom + scroll-reveal + count-up.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Full-white editorial landing for an architecture / interiors studio: oversized serif hero, manifesto, project grid with hover-zoom imagery, services, pull-quote, contact.",
+  "summary_vi": "Landing nền trắng full cho studio kiến trúc/nội thất: hero serif khổ lớn, tuyên ngôn, lưới dự án ảnh hover-zoom, dịch vụ, trích dẫn, liên hệ.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}

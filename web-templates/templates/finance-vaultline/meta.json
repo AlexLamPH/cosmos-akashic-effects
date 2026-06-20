@@ -1,0 +1,23 @@
+{
+  "code": "CWT-003",
+  "slug": "finance-vaultline",
+  "title": "VAULTLINE — Invest with clarity",
+  "title_vi": "VAULTLINE — Đầu tư minh bạch",
+  "industry": "finance",
+  "industries": ["finance", "fintech", "investing", "trading", "portfolio"],
+  "style": "Premium fintech — navy + emerald + gold",
+  "tier": "flagship",
+  "tags": ["landing", "fintech", "dashboard", "chart", "portfolio", "trust", "pricing", "white-label", "responsive"],
+  "palette": ["#070d1a", "#10b981", "#f5c451", "#38bdf8", "#fb7185"],
+  "sections": ["nav", "hero", "portfolio-dashboard", "trust-strip", "features", "security", "stats-counter", "plans", "cta", "footer"],
+  "white_label": true,
+  "self_contained": true,
+  "responsive": true,
+  "a11y": "Semantic landmarks, focus-visible, prefers-reduced-motion, AA contrast; placeholder figures are not financial advice.",
+  "rebrand": "Edit :root tokens (--brand, --gold, name) to recolor.",
+  "summary": "Premium fintech landing for brand intro + portfolio/trading: hero with a live portfolio dashboard mock (balance, SVG area chart, holdings with up/down), trust strip, feature grid, security band, animated stats, fee plans, CTA, regulatory disclaimer.",
+  "summary_vi": "Landing fintech cao cấp cho giới thiệu thương hiệu + quản lý/giao dịch portfolio: hero có mock dashboard (số dư, biểu đồ vùng SVG, danh mục tăng/giảm), dải tin cậy, lưới tính năng, mảng bảo mật, số liệu động, bảng phí, CTA, dòng disclaimer.",
+  "builder": "Ra",
+  "card_type": "effect",
+  "created": "2026-06-20"
+}
