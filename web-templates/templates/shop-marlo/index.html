@@ -1,0 +1,199 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library  ·  CWT-008 "MARLO"
+  Industry: E-commerce / Fashion   ·   Style: Warm-neutral light, clean retail   ·   White-label
+  Special: product hover-zoom + quick-add reveal + live cart count. Self-contained · offline · rebrand via :root.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MARLO — Everyday essentials</title>
+<style>
+  :root{
+    --bg:#faf7f2; --bg2:#f1ece3; --ink:#1c1a17; --mut:#6f685d; --line:#e4ddd1;
+    --accent:#b5532b; --accent-d:#963f1d; --sage:#7d8b6a; --maxw:1200px;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{line-height:1.1;letter-spacing:-.01em}
+  .serif{font-family:var(--serif);font-weight:500}
+  .btn{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--sans);padding:13px 24px;border-radius:999px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;transition:background .2s,color .2s,transform .15s}
+  .btn:hover{background:var(--accent);border-color:var(--accent)}
+  .btn.ghost{background:transparent;color:var(--ink)}.btn.ghost:hover{background:var(--ink);color:#fff}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  .topbar{background:var(--ink);color:#fff;text-align:center;font-size:13px;padding:9px;letter-spacing:.02em}
+  .topbar b{color:#ffd9a8}
+  header{position:sticky;top:0;z-index:50;background:rgba(250,247,242,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;height:66px;gap:18px}
+  .logo{font-family:var(--serif);font-size:25px;letter-spacing:.06em}
+  .nav-links{display:flex;gap:24px;margin-left:30px}
+  .nav-links a{font-weight:600;font-size:14px;color:var(--mut)}.nav-links a:hover{color:var(--ink)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .iconbtn{background:none;border:0;cursor:pointer;font-size:19px;color:var(--ink);position:relative}
+  .cartcount{position:absolute;top:-8px;right:-10px;background:var(--accent);color:#fff;font:700 11px var(--sans);min-width:18px;height:18px;border-radius:999px;display:grid;place-items:center;padding:0 4px}
+  .burger{display:none;background:none;border:1px solid var(--line);border-radius:8px;width:40px;height:40px;cursor:pointer}
+
+  .hero{border-bottom:1px solid var(--line)}
+  .hero .hero-grid{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;min-height:460px}
+  .hero .copy{padding:70px 44px 70px 0;display:flex;flex-direction:column;justify-content:center}
+  .hero .eyebrow{font:600 12px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+  .hero h1{font-family:var(--serif);font-size:clamp(40px,6vw,72px);margin-bottom:18px}
+  .hero p{color:var(--mut);font-size:17px;max-width:36ch;margin-bottom:26px}
+  .hero .art{background:
+    radial-gradient(80% 80% at 70% 30%,#e9d4c2,transparent 60%),
+    linear-gradient(150deg,#d8c3ad,#cdb59c);min-height:440px;border-left:1px solid var(--line);position:relative}
+  .hero .art::after{content:"New season";position:absolute;left:24px;bottom:24px;background:var(--ink);color:#fff;font:600 12px var(--sans);letter-spacing:.04em;padding:7px 13px;border-radius:999px}
+
+  .cats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding:26px 22px;border-bottom:1px solid var(--line)}
+  .cats a{font:600 13.5px var(--sans);color:var(--mut);border:1px solid var(--line);padding:9px 18px;border-radius:999px;background:#fff}
+  .cats a:hover{color:var(--ink);border-color:var(--ink)}
+
+  .sec{padding:74px 0}
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:32px}
+  .sec-head h2{font-family:var(--serif);font-size:clamp(28px,4vw,42px)}
+  .sec-head a{color:var(--accent);font-weight:600;font-size:14px}
+
+  .products{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+  .prod{cursor:pointer}
+  .prod .ph{aspect-ratio:4/5;border-radius:14px;overflow:hidden;position:relative;border:1px solid var(--line)}
+  .prod .ph .img{height:100%;transition:transform .5s ease}
+  .prod:hover .ph .img{transform:scale(1.05)}
+  .pa{background:linear-gradient(150deg,#e7d6c4,#d3bca6)}.pb{background:linear-gradient(150deg,#cdd6c6,#b6c4a6)}
+  .pc{background:linear-gradient(150deg,#d8ccc0,#c2b2a3)}.pd{background:linear-gradient(150deg,#e3d2cf,#cdb4b0)}
+  .pe{background:linear-gradient(150deg,#d4c4b0,#bfa888)}.pf{background:linear-gradient(150deg,#c9c2bd,#aaa399)}
+  .pg{background:linear-gradient(150deg,#dfc9bb,#c7a98f)}.ph2{background:linear-gradient(150deg,#cdd2d6,#aeb6bc)}
+  .prod .fav{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.85);border-radius:50%;width:34px;height:34px;display:grid;place-items:center;font-size:15px}
+  .prod .add{position:absolute;left:10px;right:10px;bottom:10px;background:var(--ink);color:#fff;text-align:center;font:600 13px var(--sans);padding:11px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s}
+  .prod:hover .add{opacity:1;transform:none}
+  .prod .info{padding:12px 2px 0}
+  .prod h3{font-size:15px;font-weight:600}
+  .prod .row{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+  .prod .price{font-weight:700}.prod .price s{color:var(--mut);font-weight:400;margin-right:6px}
+  .prod .tag{font:600 11px var(--sans);text-transform:uppercase;letter-spacing:.05em;color:var(--sage)}
+
+  .promo{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .promo .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:60px 22px}
+  .promo .ph{aspect-ratio:16/10;border-radius:16px;background:linear-gradient(150deg,#d9c4b0,#c0a589);border:1px solid var(--line)}
+  .promo h2{font-family:var(--serif);font-size:clamp(28px,4vw,44px);margin-bottom:14px}
+  .promo p{color:var(--mut);margin-bottom:22px;max-width:38ch}
+
+  .perks{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:center}
+  .perk .ic{font-size:26px;margin-bottom:8px}.perk h3{font-size:15px;margin-bottom:4px}.perk p{color:var(--mut);font-size:13px}
+
+  .news{text-align:center;max-width:560px;margin:0 auto}
+  .news h2{font-family:var(--serif);font-size:clamp(26px,3.6vw,40px);margin-bottom:10px}
+  .news p{color:var(--mut);margin-bottom:22px}
+  .signup{display:flex;gap:10px;max-width:420px;margin:0 auto;flex-wrap:wrap;justify-content:center}
+  .signup input{flex:1;min-width:200px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:13px 16px;border-radius:999px;font:inherit}
+
+  footer{background:var(--ink);color:#cfc8bd;padding:50px 0 26px}
+  .fgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:28px}
+  .fcol h4{font:600 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#fff;margin-bottom:12px}
+  .fcol a{display:block;color:#cfc8bd;font-size:14px;padding:4px 0}.fcol a:hover{color:#fff}
+  .foot-bot{border-top:1px solid #3a352d;margin-top:32px;padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:13px;color:#9b948a}
+
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}.reveal.in{opacity:1;transform:none}
+  @media(max-width:880px){.hero .hero-grid{grid-template-columns:1fr}.hero .copy{padding:48px 0}.hero .art{min-height:300px;border-left:0;border-top:1px solid var(--line)}
+    .products{grid-template-columns:repeat(2,1fr)}.promo .wrap,.perks{grid-template-columns:1fr 1fr}.nav-links{display:none}.burger{display:block}
+    .nav-links.open{display:flex;position:absolute;top:66px;left:0;right:0;flex-direction:column;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 22px 16px}
+    .nav-links.open a{padding:12px 0}.promo .wrap{grid-template-columns:1fr}.sec{padding:54px 0}}
+  @media(max-width:560px){.products{grid-template-columns:repeat(2,1fr)}.perks{grid-template-columns:1fr 1fr}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div class="topbar">Free shipping over <b>$75</b> · 30-day returns · Use code <b>WELCOME10</b></div>
+<header><div class="wrap nav">
+  <a class="logo" href="#">MARLO</a>
+  <nav class="nav-links" id="menu"><a href="#shop">New in</a><a href="#shop">Women</a><a href="#shop">Men</a><a href="#shop">Home</a><a href="#shop">Sale</a></nav>
+  <div class="nav-right">
+    <button class="iconbtn" aria-label="Search">⌕</button>
+    <button class="iconbtn" id="cart" aria-label="Cart">🛍<span class="cartcount" id="cc">2</span></button>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+  </div>
+</div></header>
+
+<section class="hero"><div class="wrap hero-grid">
+  <div class="copy">
+    <div class="eyebrow">Autumn 2026</div>
+    <h1>Quietly good<br>everyday wear.</h1>
+    <p>Considered essentials in natural fabrics — made to last, made to layer.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap"><a href="#shop" class="btn">Shop new in</a><a href="#shop" class="btn ghost">The lookbook</a></div>
+  </div>
+  <div class="art"></div>
+</div></section>
+
+<nav class="cats">
+  <a href="#shop">Knitwear</a><a href="#shop">Outerwear</a><a href="#shop">Denim</a><a href="#shop">Tees</a><a href="#shop">Accessories</a><a href="#shop">Footwear</a>
+</nav>
+
+<section class="sec" id="shop"><div class="wrap">
+  <div class="sec-head"><h2 class="reveal">New arrivals</h2><a href="#" class="reveal">View all →</a></div>
+  <div class="products">
+    <article class="prod reveal"><div class="ph"><div class="img pa"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Knitwear</div><h3>Wool Crew Sweater</h3><div class="row"><span class="price">$128</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img pb"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Denim</div><h3>Relaxed Straight Jean</h3><div class="row"><span class="price">$98</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img pc"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Outerwear</div><h3>Cotton Field Jacket</h3><div class="row"><span class="price"><s>$210</s>$168</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img pd"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Tees</div><h3>Heavyweight Tee</h3><div class="row"><span class="price">$42</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img pe"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Knitwear</div><h3>Merino Cardigan</h3><div class="row"><span class="price">$145</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img pf"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Footwear</div><h3>Suede Chelsea Boot</h3><div class="row"><span class="price">$220</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img pg"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Accessories</div><h3>Leather Tote</h3><div class="row"><span class="price">$185</span></div></div></article>
+    <article class="prod reveal"><div class="ph"><div class="img ph2"></div><div class="fav">♡</div><div class="add">Quick add +</div></div><div class="info"><div class="tag">Outerwear</div><h3>Wool Overcoat</h3><div class="row"><span class="price">$290</span></div></div></article>
+  </div>
+</div></section>
+
+<section class="promo"><div class="wrap">
+  <div class="ph reveal"></div>
+  <div class="reveal">
+    <h2>The Layering Edit</h2>
+    <p>Twelve pieces that work together, season after season. Build a wardrobe that does more with less.</p>
+    <a href="#shop" class="btn">Shop the edit</a>
+  </div>
+</div></section>
+
+<section class="sec"><div class="wrap perks">
+  <div class="perk reveal"><div class="ic">🚚</div><h3>Free shipping</h3><p>On orders over $75</p></div>
+  <div class="perk reveal"><div class="ic">↩️</div><h3>Easy returns</h3><p>30 days, no questions</p></div>
+  <div class="perk reveal"><div class="ic">🌱</div><h3>Responsibly made</h3><p>Natural, traceable fabrics</p></div>
+  <div class="perk reveal"><div class="ic">🔒</div><h3>Secure checkout</h3><p>Encrypted payments</p></div>
+</div></section>
+
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--line)"><div class="wrap news reveal">
+  <h2>Get 10% off your first order</h2>
+  <p>Join the list for new arrivals, restocks, and the occasional good story.</p>
+  <form class="signup" onsubmit="event.preventDefault();this.querySelector('input').value='';this.querySelector('.btn').textContent='Welcome ✓'">
+    <input type="email" placeholder="you@email.com" aria-label="Email" required>
+    <button class="btn" type="submit">Subscribe</button>
+  </form>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div class="fcol"><div class="logo serif" style="color:#fff;font-size:24px;margin-bottom:10px">MARLO</div><p style="max-width:30ch;font-size:14px">Everyday essentials, quietly well made. Template by Cosmos AI Lab.</p></div>
+    <div class="fcol"><h4>Shop</h4><a href="#">New in</a><a href="#">Women</a><a href="#">Men</a><a href="#">Sale</a></div>
+    <div class="fcol"><h4>Help</h4><a href="#">Shipping</a><a href="#">Returns</a><a href="#">Size guide</a><a href="#">Contact</a></div>
+    <div class="fcol"><h4>About</h4><a href="#">Our story</a><a href="#">Sustainability</a><a href="#">Stores</a></div>
+  </div>
+  <div class="foot-bot"><span>© <span id="yr"></span> MARLO — placeholder content.</span><span>Privacy · Terms</span></div>
+</div></footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  var burger=document.getElementById('burger'),menu=document.getElementById('menu');
+  burger.addEventListener('click',function(){var o=menu.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  menu.addEventListener('click',function(e){if(e.target.tagName==='A')menu.classList.remove('open')});
+  // quick-add bumps cart count
+  var cc=document.getElementById('cc'),n=2;
+  document.querySelectorAll('.add').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();n++;cc.textContent=n;b.textContent='Added ✓';setTimeout(function(){b.textContent='Quick add +'},900)})});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+</script>
+</body>
+</html>

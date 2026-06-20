@@ -1,0 +1,18 @@
+{
+  "code": "CWT-008",
+  "slug": "shop-marlo",
+  "title": "MARLO — Everyday Essentials",
+  "title_vi": "MARLO — Thời trang thường ngày",
+  "industry": "ecommerce",
+  "industries": ["ecommerce", "fashion", "retail", "shop"],
+  "style": "Warm-neutral light retail",
+  "tier": "flagship",
+  "tags": ["ecommerce", "shop", "fashion", "light", "product-grid", "cart", "white-label", "responsive"],
+  "palette": ["#faf7f2", "#1c1a17", "#b5532b", "#7d8b6a"],
+  "sections": ["announcement-bar", "nav", "hero", "categories", "product-grid", "promo", "perks", "newsletter", "footer"],
+  "special": "E-commerce sáng sạch · product hover-zoom + quick-add reveal · cart count động · sticky announcement bar.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Warm light e-commerce/fashion storefront: announcement bar, split hero, category pills, 8-product grid with hover quick-add and live cart count, the-edit promo, trust perks, newsletter.",
+  "summary_vi": "Cửa hàng thời trang nền sáng: thanh thông báo, hero chia đôi, pill danh mục, lưới 8 sản phẩm hover quick-add + cart đếm động, promo bộ sưu tập, quyền lợi, newsletter.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
