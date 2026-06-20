@@ -1,0 +1,23 @@
+{
+  "code": "CWT-002",
+  "slug": "tech-neuracore",
+  "title": "NEURACORE — Ship AI features in minutes",
+  "title_vi": "NEURACORE — Tích hợp tính năng AI trong vài phút",
+  "industry": "tech",
+  "industries": ["tech", "ai", "saas", "developer-tools"],
+  "style": "Sleek dark, bento grid + glassmorphism",
+  "tier": "flagship",
+  "tags": ["landing", "dark", "ai", "saas", "bento", "api", "pricing", "white-label", "responsive"],
+  "palette": ["#070912", "#6366f1", "#22d3ee", "#a78bfa", "#34d399"],
+  "sections": ["nav", "hero", "api-mock", "logos", "bento-features", "how-steps", "stats-counter", "pricing", "cta", "footer"],
+  "white_label": true,
+  "self_contained": true,
+  "responsive": true,
+  "a11y": "Semantic landmarks, focus-visible, prefers-reduced-motion, AA contrast.",
+  "rebrand": "Edit :root tokens (--brand, --a-cyan, name) to recolor.",
+  "summary": "Sleek dark AI-startup landing: gradient hero with a live API request/response mock, logo strip, mixed-size bento feature grid with an inline sparkline, 3-step how-it-works, animated stats, 3-tier usage pricing, CTA.",
+  "summary_vi": "Landing AI-startup tối sang: hero gradient với mock API request/response, dải logo, bento feature đa kích cỡ có sparkline, 3 bước how-it-works, số liệu động, bảng giá 3 bậc, CTA.",
+  "builder": "Ra",
+  "card_type": "effect",
+  "created": "2026-06-20"
+}

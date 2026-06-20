@@ -1,0 +1,164 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library  ·  CWT-006 "CONCRETE"
+  Industry: Creative / design-dev studio   ·   Style: FULL-GRAY brutalist, monospace, hard borders   ·   White-label
+  Special: running marquee + hover-invert + skew reveal. Self-contained · offline · rebrand via :root.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CONCRETE — We make heavy things</title>
+<style>
+  :root{
+    --bg:#a6a59d; --ink:#0e0e0c; --paper:#c9c8c1; --accent:#ff4d00; --line:#0e0e0c;
+    --maxw:1240px;
+    --sans:"Arial Black","Helvetica Neue",system-ui,sans-serif;
+    --mono:"Courier New",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.5;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  ::selection{background:var(--accent);color:#fff}
+  h1,h2,h3{font-family:var(--sans);font-weight:900;line-height:.96;letter-spacing:-.02em;text-transform:uppercase}
+  .mono-label{font:700 12px var(--mono);letter-spacing:.1em;text-transform:uppercase}
+  .btn{display:inline-flex;align-items:center;gap:8px;font:700 14px var(--mono);text-transform:uppercase;letter-spacing:.05em;
+    padding:14px 26px;cursor:pointer;border:2px solid var(--ink);background:var(--ink);color:var(--bg);transition:background .15s,color .15s}
+  .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.inv{background:transparent;color:var(--ink)}.btn.inv:hover{background:var(--ink);color:var(--bg)}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+  header{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:2px solid var(--ink)}
+  .nav{display:flex;align-items:center;height:64px;gap:18px}
+  .logo{font-family:var(--sans);font-weight:900;font-size:22px;letter-spacing:-.03em;text-transform:uppercase}
+  .logo b{color:var(--accent)}
+  .nav-links{display:flex;gap:22px;margin-left:auto}
+  .nav-links a{font:700 13px var(--mono);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid transparent}
+  .nav-links a:hover{border-color:var(--accent)}
+  .burger{display:none;width:42px;height:42px;border:2px solid var(--ink);background:none;cursor:pointer;margin-left:auto;font-size:18px}
+
+  .hero{padding:54px 0 40px;border-bottom:2px solid var(--ink)}
+  .hero .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+  .hero h1{font-size:clamp(54px,15vw,200px)}
+  .hero h1 .o{color:var(--accent)}
+  .hero .sub{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;border-top:2px solid var(--ink);margin-top:18px;padding-top:18px}
+  .hero .sub p{max-width:40ch;font-size:14px}
+
+  /* marquee */
+  .marquee{border-bottom:2px solid var(--ink);background:var(--accent);color:#fff;overflow:hidden;white-space:nowrap}
+  .marquee .track{display:inline-block;padding:12px 0;animation:scroll 22s linear infinite}
+  .marquee b{font-family:var(--sans);font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:-.01em;padding:0 22px}
+  .marquee .dot{font-size:14px;vertical-align:middle}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+
+  .sec{padding:80px 0;border-bottom:2px solid var(--ink)}
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:36px}
+  .sec-head h2{font-size:clamp(30px,5vw,60px)}
+
+  .work{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--ink)}
+  .cell{border:2px solid var(--ink);margin:-2px 0 0 -2px;padding:26px;min-height:230px;display:flex;flex-direction:column;justify-content:space-between;
+    background:var(--bg);transition:background .15s,color .15s,transform .15s}
+  .cell:hover{background:var(--ink);color:var(--bg);transform:translateY(-2px)}
+  .cell:hover .accent{color:var(--accent)}
+  .cell .num{font:700 13px var(--mono)}
+  .cell h3{font-size:clamp(26px,3.4vw,40px);margin:14px 0 6px}
+  .cell .tag{font:700 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;opacity:.85}
+  .cell .arrow{align-self:flex-end;font-family:var(--sans);font-size:30px}
+
+  .services{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--ink)}
+  .svc{border-right:2px solid var(--ink);padding:24px;min-height:200px;display:flex;flex-direction:column;gap:10px}
+  .svc:last-child{border-right:none}
+  .svc .big{font-family:var(--sans);font-weight:900;font-size:46px;color:var(--accent)}
+  .svc h3{font-size:18px}.svc p{font-size:13px}
+
+  .statement{padding:90px 0;border-bottom:2px solid var(--ink)}
+  .statement p{font-family:var(--sans);font-weight:900;text-transform:uppercase;font-size:clamp(26px,5vw,64px);line-height:1.02;letter-spacing:-.02em}
+  .statement p .o{color:var(--accent)}
+
+  .contact{padding:80px 0;text-align:center}
+  .contact .mono-label{display:block;margin-bottom:16px}
+  .contact a.mail{font-family:var(--sans);font-weight:900;text-transform:uppercase;font-size:clamp(28px,6vw,84px);display:inline-block;
+    border-bottom:6px solid var(--ink);line-height:1.05}
+  .contact a.mail:hover{color:var(--accent);border-color:var(--accent)}
+
+  footer{border-top:2px solid var(--ink);background:var(--ink);color:var(--bg);padding:30px 0}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font:700 12px var(--mono);text-transform:uppercase;letter-spacing:.05em}
+  .foot a:hover{color:var(--accent)}
+
+  .reveal{opacity:0;transform:translateY(18px) skewY(1.5deg);transition:opacity .5s,transform .5s}.reveal.in{opacity:1;transform:none}
+  @media(max-width:820px){.work{grid-template-columns:1fr}.services{grid-template-columns:1fr 1fr}.nav-links{display:none}.burger{display:block}
+    .nav-links.open{display:flex;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--bg);border-bottom:2px solid var(--ink);padding:8px 22px 16px;gap:0}
+    .nav-links.open a{padding:12px 0;border-bottom:2px solid var(--ink)}}
+  @media(max-width:520px){.services{grid-template-columns:1fr}.svc{border-right:none;border-bottom:2px solid var(--ink)}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap nav">
+  <a class="logo" href="#">CONCRETE<b>■</b></a>
+  <nav class="nav-links" id="menu"><a href="#work">[Work]</a><a href="#services">[Services]</a><a href="#studio">[Studio]</a><a href="#contact">[Contact]</a></nav>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">▤</button>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <div class="top mono-label"><span>CREATIVE STUDIO © 2009—NOW</span><span>BERLIN / 52.52°N</span></div>
+  <h1>WE MAKE<br>HEAVY<br>THINGS<span class="o">.</span></h1>
+  <div class="sub">
+    <p>A design &amp; engineering studio building bold brands, raw interfaces, and motion that hits hard.</p>
+    <a href="#work" class="btn">See the work ↘</a>
+  </div>
+</div></section>
+
+<div class="marquee"><div class="track">
+  <b>DESIGN<span class="dot">◆</span></b><b>CODE<span class="dot">◆</span></b><b>MOTION<span class="dot">◆</span></b><b>BRAND<span class="dot">◆</span></b><b>TYPE<span class="dot">◆</span></b><b>3D<span class="dot">◆</span></b>
+  <b>DESIGN<span class="dot">◆</span></b><b>CODE<span class="dot">◆</span></b><b>MOTION<span class="dot">◆</span></b><b>BRAND<span class="dot">◆</span></b><b>TYPE<span class="dot">◆</span></b><b>3D<span class="dot">◆</span></b>
+</div></div>
+
+<section class="sec" id="work"><div class="wrap">
+  <div class="sec-head"><h2 class="reveal">Selected work</h2><span class="mono-label reveal">[ 04 PROJECTS ]</span></div>
+  <div class="work">
+    <article class="cell reveal"><div class="num accent">№01</div><div><h3>VOLT</h3><div class="tag">Brand · Web · Motion</div></div><div class="arrow">↗</div></article>
+    <article class="cell reveal"><div class="num accent">№02</div><div><h3>HARDWARE.OS</h3><div class="tag">Product · UI</div></div><div class="arrow">↗</div></article>
+    <article class="cell reveal"><div class="num accent">№03</div><div><h3>BRUT GALLERY</h3><div class="tag">Art direction · 3D</div></div><div class="arrow">↗</div></article>
+    <article class="cell reveal"><div class="num accent">№04</div><div><h3>NOISE FEST</h3><div class="tag">Identity · Campaign</div></div><div class="arrow">↗</div></article>
+  </div>
+</div></section>
+
+<section class="sec" id="services"><div class="wrap">
+  <div class="sec-head"><h2 class="reveal">What we do</h2><span class="mono-label reveal">[ FULL-STACK CREATIVE ]</span></div>
+  <div class="services reveal">
+    <div class="svc"><div class="big">01</div><h3>Brand</h3><p>Identity, naming, systems, guidelines.</p></div>
+    <div class="svc"><div class="big">02</div><h3>Web</h3><p>Design + build. Fast, weird, accessible.</p></div>
+    <div class="svc"><div class="big">03</div><h3>Motion</h3><p>Title sequences, loops, product film.</p></div>
+    <div class="svc"><div class="big">04</div><h3>3D</h3><p>Real-time scenes, product viz, type.</p></div>
+  </div>
+</div></section>
+
+<section class="statement" id="studio"><div class="wrap">
+  <p class="reveal">No templates<span class="o">.</span> No filler<span class="o">.</span> No safe choices<span class="o">.</span> Just work that <span class="o">refuses to be ignored.</span></p>
+</div></section>
+
+<section class="contact" id="contact"><div class="wrap">
+  <span class="mono-label reveal">[ START A PROJECT ]</span>
+  <a class="mail reveal" href="#">HELLO@CONCRETE.STUDIO</a>
+</div></section>
+
+<footer><div class="wrap foot">
+  <span>© <span id="yr"></span> CONCRETE STUDIO</span>
+  <span>TEMPLATE BY COSMOS AI LAB · PLACEHOLDER</span>
+  <span><a href="#">INSTAGRAM</a> / <a href="#">ARENA</a> / <a href="#">LINKEDIN</a></span>
+</div></footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  var burger=document.getElementById('burger'),menu=document.getElementById('menu');
+  burger.addEventListener('click',function(){var o=menu.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  menu.addEventListener('click',function(e){if(e.target.tagName==='A')menu.classList.remove('open')});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+</script>
+</body>
+</html>

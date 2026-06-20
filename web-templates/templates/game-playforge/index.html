@@ -1,0 +1,389 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library — FLAGSHIP
+  Industry: Game / Toys   ·   Style: Premium neon-arcade (dark)   ·   White-label
+  Self-contained: zero dependencies, zero build, runs offline.
+  REBRAND in 10 seconds → edit the :root tokens (brand color, accent, name).
+  All names, copy, numbers are fictional placeholders ("the vỏ"). Ruột = sau.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYFORGE — Indie Game Studio</title>
+<meta name="description" content="White-label game studio landing template — Cosmos AI Lab.">
+<style>
+  /* ---------- design tokens (rebrand here) ---------- */
+  :root{
+    --bg:#08060f; --bg2:#0d0a1a; --panel:#141026; --panel2:#1b1533;
+    --line:#2a2247; --ink:#f3f0ff; --mut:#a79fc8; --mut2:#7a7299;
+    --brand:#8b5cff;          /* primary — rebrand here */
+    --a-pink:#ff49c7; --a-cyan:#2ee6ff; --a-lime:#b6ff3a; --a-amber:#ffb23a;
+    --grad:linear-gradient(135deg,var(--brand),var(--a-pink) 55%,var(--a-amber));
+    --radius:18px; --maxw:1180px;
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    --shadow:0 24px 60px -20px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  section{position:relative}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--a-cyan)}
+  .eyebrow::before{content:"";width:22px;height:2px;background:var(--a-cyan);border-radius:2px}
+  h1,h2,h3{line-height:1.08;letter-spacing:-.02em;font-weight:800}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15px;
+    padding:13px 22px;border-radius:999px;cursor:pointer;border:1px solid transparent;
+    transition:transform .15s ease,box-shadow .25s ease,background .2s}
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn-primary{background:var(--grad);color:#140a23;box-shadow:0 10px 30px -8px rgba(139,92,255,.6)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 40px -10px rgba(255,73,199,.55)}
+  .btn-ghost{background:rgba(255,255,255,.04);color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{background:rgba(255,255,255,.09);border-color:var(--brand)}
+  :focus-visible{outline:2px solid var(--a-cyan);outline-offset:3px;border-radius:6px}
+
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+    background:rgba(8,6,15,.72);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:18px;height:68px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:var(--grad);
+    display:grid;place-items:center;color:#140a23;font-size:17px;box-shadow:0 6px 18px -6px rgba(139,92,255,.7)}
+  .nav-links{display:flex;gap:24px;margin-left:14px}
+  .nav-links a{color:var(--mut);font-weight:600;font-size:14.5px;transition:color .2s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .burger{display:none;background:none;border:1px solid var(--line);border-radius:10px;
+    width:42px;height:42px;cursor:pointer;color:var(--ink)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:78px 0 60px;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+  .hero h1{font-size:clamp(38px,6.4vw,72px);margin:18px 0}
+  .hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;
+    background-clip:text;color:transparent}
+  .hero p.lead{font-size:clamp(16px,2vw,19px);color:var(--mut);max-width:30ch}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin:30px 0 22px}
+  .platforms{display:flex;align-items:center;gap:18px;color:var(--mut2);font-size:13px;flex-wrap:wrap}
+  .platforms b{color:var(--mut);font-weight:700}
+  /* hero art: a stylized game key-card built purely in CSS */
+  .keycard{position:relative;aspect-ratio:4/5;border-radius:26px;padding:1px;background:var(--grad);
+    box-shadow:var(--shadow);transform:rotate(3deg);transition:transform .4s ease}
+  .keycard:hover{transform:rotate(0deg) translateY(-4px)}
+  .keycard-inner{height:100%;border-radius:25px;background:
+    radial-gradient(120% 90% at 80% 0%,rgba(255,73,199,.45),transparent 55%),
+    radial-gradient(120% 100% at 0% 100%,rgba(46,230,255,.4),transparent 55%),
+    linear-gradient(160deg,#1a1233,#0c0820);position:relative;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:flex-end;padding:24px}
+  .keycard-inner::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 38%,rgba(182,255,58,.9),rgba(139,92,255,.5) 30%,transparent 62%);
+    filter:blur(2px);opacity:.85}
+  .kc-orb{position:absolute;top:26%;left:50%;width:120px;height:120px;transform:translateX(-50%);
+    border-radius:50%;background:conic-gradient(from 0deg,var(--a-pink),var(--a-amber),var(--a-lime),var(--a-cyan),var(--brand),var(--a-pink));
+    filter:blur(2px) saturate(1.2);animation:spin 14s linear infinite}
+  .kc-meta{position:relative;z-index:2}
+  .kc-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:#140a23;background:var(--a-lime);padding:5px 10px;border-radius:7px}
+  .kc-title{font-size:26px;font-weight:800;margin-top:12px}
+  .kc-sub{color:var(--mut);font-size:13px}
+  @keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
+  .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;z-index:-1;pointer-events:none}
+  .blob.b1{width:420px;height:420px;background:#7c3aed;top:-120px;left:-100px}
+  .blob.b2{width:380px;height:380px;background:#ff49c7;bottom:-160px;right:-80px;opacity:.35}
+
+  /* ---------- marquee trust strip ---------- */
+  .trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2)}
+  .trust .wrap{display:flex;align-items:center;gap:30px;flex-wrap:wrap;padding:18px 22px;
+    color:var(--mut2);font-weight:700;font-size:14px;justify-content:center}
+  .trust span{opacity:.7}
+
+  /* ---------- section heading ---------- */
+  .sec{padding:84px 0}
+  .sec-head{max-width:640px;margin-bottom:42px}
+  .sec-head h2{font-size:clamp(28px,4vw,44px);margin:14px 0 12px}
+  .sec-head p{color:var(--mut);font-size:16.5px}
+
+  /* ---------- games grid ---------- */
+  .games{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .game{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel);
+    transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+  .game:hover{transform:translateY(-6px);border-color:var(--brand);box-shadow:var(--shadow)}
+  .game .cover{aspect-ratio:16/11;position:relative;display:grid;place-items:center}
+  .g1{background:linear-gradient(150deg,#3a1d6e,#0d0a1a),radial-gradient(circle at 70% 25%,#ff49c7,transparent 45%)}
+  .g2{background:linear-gradient(150deg,#0c3b4a,#0d0a1a),radial-gradient(circle at 30% 25%,#2ee6ff,transparent 45%)}
+  .g3{background:linear-gradient(150deg,#5a3a12,#0d0a1a),radial-gradient(circle at 60% 30%,#ffb23a,transparent 45%)}
+  .g4{background:linear-gradient(150deg,#1d5a2a,#0d0a1a),radial-gradient(circle at 40% 25%,#b6ff3a,transparent 45%)}
+  .g5{background:linear-gradient(150deg,#4a1230,#0d0a1a),radial-gradient(circle at 65% 30%,#ff5c8a,transparent 45%)}
+  .g6{background:linear-gradient(150deg,#231b52,#0d0a1a),radial-gradient(circle at 35% 25%,#8b5cff,transparent 45%)}
+  .game .cover .emoji{font-size:54px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+  .game .cover .play{position:absolute;inset:0;display:grid;place-items:center;opacity:0;
+    background:rgba(8,6,15,.4);transition:opacity .2s}
+  .game:hover .cover .play{opacity:1}
+  .play-ic{width:54px;height:54px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#140a23}
+  .game .body{padding:16px 18px 18px}
+  .game .gtag{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--a-cyan)}
+  .game h3{font-size:19px;margin:6px 0 8px}
+  .game .meta{display:flex;align-items:center;justify-content:space-between;color:var(--mut);font-size:13px}
+  .stars{color:var(--a-amber);letter-spacing:2px}
+
+  /* ---------- features ---------- */
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+  .feat .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;margin-bottom:14px;
+    background:rgba(139,92,255,.14);color:var(--brand)}
+  .feat h3{font-size:17px;margin-bottom:7px}
+  .feat p{color:var(--mut);font-size:14px}
+
+  /* ---------- showcase ---------- */
+  .showcase{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+  .screen{aspect-ratio:16/10;border-radius:var(--radius);border:1px solid var(--line);position:relative;
+    background:radial-gradient(120% 120% at 30% 10%,rgba(46,230,255,.35),transparent 50%),
+    radial-gradient(120% 120% at 90% 90%,rgba(255,73,199,.35),transparent 50%),linear-gradient(160deg,#171030,#0a0716);
+    overflow:hidden;display:grid;place-items:center;box-shadow:var(--shadow)}
+  .screen .bigplay{width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.1);
+    backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;
+    transition:transform .2s}
+  .screen .bigplay:hover{transform:scale(1.08)}
+  .checklist{list-style:none;margin-top:18px;display:grid;gap:14px}
+  .checklist li{display:flex;gap:12px;color:var(--mut);font-size:15px}
+  .checklist .tick{flex:0 0 22px;height:22px;border-radius:6px;background:rgba(182,255,58,.16);color:var(--a-lime);
+    display:grid;place-items:center;margin-top:2px}
+
+  /* ---------- stats ---------- */
+  .stats{background:linear-gradient(120deg,var(--panel2),var(--panel));border:1px solid var(--line);
+    border-radius:24px;padding:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+  .stat .n{font-size:clamp(30px,4vw,46px);font-weight:800;background:var(--grad);-webkit-background-clip:text;
+    background-clip:text;color:transparent}
+  .stat .l{color:var(--mut);font-size:13.5px;font-weight:600;margin-top:4px}
+
+  /* ---------- testimonials ---------- */
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .quote{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+  .quote p{font-size:15px;color:var(--ink);margin-bottom:18px}
+  .who{display:flex;align-items:center;gap:12px}
+  .ava{width:42px;height:42px;border-radius:50%;background:var(--grad)}
+  .who b{font-size:14px}.who span{display:block;color:var(--mut2);font-size:12.5px}
+
+  /* ---------- CTA ---------- */
+  .cta{margin:24px 0 0;border-radius:28px;padding:56px 40px;text-align:center;position:relative;overflow:hidden;
+    background:radial-gradient(120% 160% at 50% 0%,rgba(139,92,255,.5),transparent 60%),linear-gradient(160deg,#1a1138,#0b0818);
+    border:1px solid var(--line)}
+  .cta h2{font-size:clamp(28px,4vw,46px);margin-bottom:12px}
+  .cta p{color:var(--mut);max-width:48ch;margin:0 auto 26px}
+  .signup{display:flex;gap:10px;max-width:430px;margin:0 auto;flex-wrap:wrap;justify-content:center}
+  .signup input{flex:1;min-width:200px;background:rgba(0,0,0,.3);border:1px solid var(--line);color:var(--ink);
+    padding:13px 16px;border-radius:999px;font:inherit}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);background:var(--bg2);margin-top:84px;padding:54px 0 28px}
+  .fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:30px}
+  .fcol h4{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut2);margin-bottom:14px}
+  .fcol a{display:block;color:var(--mut);font-size:14px;padding:5px 0;transition:color .2s}
+  .fcol a:hover{color:var(--ink)}
+  .social{display:flex;gap:10px;margin-top:14px}
+  .social a{width:38px;height:38px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;color:var(--mut)}
+  .social a:hover{color:var(--ink);border-color:var(--brand)}
+  .foot-bot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--mut2);font-size:13px;
+    border-top:1px solid var(--line);margin-top:36px;padding-top:22px}
+
+  /* ---------- reveal anim ---------- */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:920px){
+    .hero-grid,.showcase{grid-template-columns:1fr}
+    .hero .keycard{max-width:340px;margin:0 auto}
+    .games,.quotes{grid-template-columns:repeat(2,1fr)}
+    .features{grid-template-columns:repeat(2,1fr)}
+    .stats{grid-template-columns:repeat(2,1fr);gap:28px}
+    .fgrid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:600px){
+    .nav-links{display:none}.burger{display:grid;place-items:center;margin-left:auto}
+    .nav-cta .btn-primary{display:none}
+    .nav-links.open{display:flex;position:absolute;top:68px;left:0;right:0;flex-direction:column;gap:0;
+      background:var(--bg2);border-bottom:1px solid var(--line);padding:8px 22px 18px}
+    .nav-links.open a{padding:12px 0;border-bottom:1px solid var(--line)}
+    .games,.quotes,.features,.fgrid{grid-template-columns:1fr}
+    .sec{padding:60px 0}.cta{padding:42px 22px}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#"><span class="mark">◆</span> PLAYFORGE</a>
+    <nav class="nav-links" id="menu">
+      <a href="#games">Games</a><a href="#features">Features</a>
+      <a href="#showcase">Showcase</a><a href="#studio">Studio</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="#cta" class="btn btn-primary">Play Free ▸</a>
+      <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="blob b1"></span><span class="blob b2"></span>
+  <div class="wrap hero-grid">
+    <div class="reveal in">
+      <span class="eyebrow">Season 2 · Now Live</span>
+      <h1>Build worlds.<br><em>Play without limits.</em></h1>
+      <p class="lead">An indie studio crafting bold, hand-made games for players who want something new.</p>
+      <div class="hero-cta">
+        <a href="#cta" class="btn btn-primary">▶ Play the demo</a>
+        <a href="#showcase" class="btn btn-ghost">◍ Watch trailer</a>
+      </div>
+      <div class="platforms">
+        <b>Available on</b><span>PC</span><span>PlayStation</span><span>Xbox</span><span>Switch</span><span>Mobile</span>
+      </div>
+    </div>
+    <div class="reveal in">
+      <div class="keycard">
+        <div class="keycard-inner">
+          <div class="kc-orb"></div>
+          <div class="kc-meta">
+            <span class="kc-tag">Featured</span>
+            <div class="kc-title">Neon Drifters</div>
+            <div class="kc-sub">Roguelike racer · 4.9★ · Co-op</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="trust"><div class="wrap">
+  <span>★ Editor's Choice</span><span>IGF Nominee 2025</span><span>4.9 on Steam</span><span>2.1M Wishlists</span><span>Featured by PlayHub</span>
+</div></div>
+
+<!-- GAMES -->
+<section class="sec" id="games"><div class="wrap">
+  <div class="sec-head reveal">
+    <span class="eyebrow">Our games</span>
+    <h2>Six worlds, one studio</h2>
+    <p>From frantic arcade racers to cozy builders — every title is hand-crafted and built to be played for years.</p>
+  </div>
+  <div class="games">
+    <article class="game reveal"><div class="cover g1"><span class="emoji">🏎️</span><div class="play"><span class="play-ic">▶</span></div></div>
+      <div class="body"><div class="gtag">Roguelike Racer</div><h3>Neon Drifters</h3><div class="meta"><span class="stars">★★★★★</span><span>Co-op · 2–4</span></div></div></article>
+    <article class="game reveal"><div class="cover g2"><span class="emoji">🌌</span><div class="play"><span class="play-ic">▶</span></div></div>
+      <div class="body"><div class="gtag">Space Sandbox</div><h3>Orbital Bloom</h3><div class="meta"><span class="stars">★★★★★</span><span>Solo · Open</span></div></div></article>
+    <article class="game reveal"><div class="cover g3"><span class="emoji">⚔️</span><div class="play"><span class="play-ic">▶</span></div></div>
+      <div class="body"><div class="gtag">Action RPG</div><h3>Ember Vale</h3><div class="meta"><span class="stars">★★★★☆</span><span>Story · 40h</span></div></div></article>
+    <article class="game reveal"><div class="cover g4"><span class="emoji">🧩</span><div class="play"><span class="play-ic">▶</span></div></div>
+      <div class="body"><div class="gtag">Puzzle</div><h3>Loop Garden</h3><div class="meta"><span class="stars">★★★★★</span><span>Relaxing</span></div></div></article>
+    <article class="game reveal"><div class="cover g5"><span class="emoji">🎯</span><div class="play"><span class="play-ic">▶</span></div></div>
+      <div class="body"><div class="gtag">Party</div><h3>Splat Party</h3><div class="meta"><span class="stars">★★★★★</span><span>Up to 8</span></div></div></article>
+    <article class="game reveal"><div class="cover g6"><span class="emoji">🏰</span><div class="play"><span class="play-ic">▶</span></div></div>
+      <div class="body"><div class="gtag">City Builder</div><h3>Tiny Kingdoms</h3><div class="meta"><span class="stars">★★★★☆</span><span>Sandbox</span></div></div></article>
+  </div>
+</div></section>
+
+<!-- FEATURES -->
+<section class="sec" id="features" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
+  <div class="sec-head reveal"><span class="eyebrow">Why players stay</span><h2>Designed to be loved</h2></div>
+  <div class="features">
+    <div class="feat reveal"><div class="ic">🎮</div><h3>Pixel-perfect feel</h3><p>Tight, responsive controls tuned over thousands of playtest hours.</p></div>
+    <div class="feat reveal"><div class="ic">🌐</div><h3>Cross-play</h3><p>One account, every device. Jump in with friends on any platform.</p></div>
+    <div class="feat reveal"><div class="ic">🛠️</div><h3>Mod-friendly</h3><p>Open tools and a creator marketplace so the community can build too.</p></div>
+    <div class="feat reveal"><div class="ic">💜</div><h3>No pay-to-win</h3><p>Fair monetization. Cosmetics only — the playing field stays level.</p></div>
+  </div>
+</div></section>
+
+<!-- SHOWCASE -->
+<section class="sec" id="showcase"><div class="wrap showcase">
+  <div class="screen reveal"><div class="bigplay" role="button" tabindex="0" aria-label="Play trailer">▶</div></div>
+  <div class="reveal">
+    <span class="eyebrow">Inside the game</span>
+    <h2 style="font-size:clamp(26px,3.4vw,40px);margin:14px 0">A trailer worth the wait</h2>
+    <ul class="checklist">
+      <li><span class="tick">✓</span> Hand-painted worlds with dynamic day/night and weather.</li>
+      <li><span class="tick">✓</span> Original soundtrack scored by an award-winning composer.</li>
+      <li><span class="tick">✓</span> Seasonal content drops — new modes every few weeks.</li>
+      <li><span class="tick">✓</span> 60fps on every supported platform.</li>
+    </ul>
+    <a href="#cta" class="btn btn-primary" style="margin-top:26px">Wishlist now</a>
+  </div>
+</div></section>
+
+<!-- STATS -->
+<section class="sec" style="padding-top:0"><div class="wrap">
+  <div class="stats reveal">
+    <div class="stat"><div class="n"><span data-count="12">0</span>M+</div><div class="l">Players worldwide</div></div>
+    <div class="stat"><div class="n"><span data-count="40">0</span>M+</div><div class="l">Downloads</div></div>
+    <div class="stat"><div class="n"><span data-count="4.9" data-dec="1">0</span>★</div><div class="l">Average rating</div></div>
+    <div class="stat"><div class="n"><span data-count="15">0</span></div><div class="l">Awards won</div></div>
+  </div>
+</div></section>
+
+<!-- TESTIMONIALS -->
+<section class="sec" id="studio" style="background:var(--bg2);border-top:1px solid var(--line)"><div class="wrap">
+  <div class="sec-head reveal"><span class="eyebrow">Word of mouth</span><h2>Players say it best</h2></div>
+  <div class="quotes">
+    <div class="quote reveal"><p>“The best couch co-op we've had in years. We lost a whole weekend to Splat Party.”</p><div class="who"><span class="ava"></span><div><b>Jordan R.</b><span>Verified player</span></div></div></div>
+    <div class="quote reveal"><p>“Neon Drifters nails that one-more-run feeling. Gorgeous, fast, and fair.”</p><div class="who"><span class="ava"></span><div><b>Mai L.</b><span>Community mod</span></div></div></div>
+    <div class="quote reveal"><p>“A studio that clearly loves games. Every update makes it better.”</p><div class="who"><span class="ava"></span><div><b>Dev W.</b><span>Press · PlayHub</span></div></div></div>
+  </div>
+</div></section>
+
+<!-- CTA -->
+<section class="sec" id="cta"><div class="wrap">
+  <div class="cta reveal">
+    <h2>Join 2 million players</h2>
+    <p>Drop your email to get the free demo, beta invites, and seasonal news. No spam — just games.</p>
+    <form class="signup" onsubmit="event.preventDefault();this.querySelector('input').value='';this.querySelector('.btn').textContent='Thanks! ✓'">
+      <input type="email" placeholder="you@email.com" aria-label="Email" required>
+      <button class="btn btn-primary" type="submit">Get the demo</button>
+    </form>
+  </div>
+</div></section>
+
+<!-- FOOTER -->
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div class="fcol">
+      <a class="logo" href="#" style="margin-bottom:12px"><span class="mark">◆</span> PLAYFORGE</a>
+      <p style="color:var(--mut);font-size:14px;max-width:34ch">An independent game studio building worlds worth getting lost in.</p>
+      <div class="social">
+        <a href="#" aria-label="X">𝕏</a><a href="#" aria-label="Discord">◓</a><a href="#" aria-label="YouTube">▶</a><a href="#" aria-label="Twitch">◈</a>
+      </div>
+    </div>
+    <div class="fcol"><h4>Games</h4><a href="#">Neon Drifters</a><a href="#">Orbital Bloom</a><a href="#">Ember Vale</a><a href="#">All titles</a></div>
+    <div class="fcol"><h4>Studio</h4><a href="#">About us</a><a href="#">Careers</a><a href="#">Press kit</a><a href="#">Contact</a></div>
+    <div class="fcol"><h4>Support</h4><a href="#">Help center</a><a href="#">Community</a><a href="#">Status</a><a href="#">Bug report</a></div>
+  </div>
+  <div class="foot-bot">
+    <span>© <span id="yr"></span> PLAYFORGE Studio — template by Cosmos AI Lab. Placeholder content.</span>
+    <span>Privacy · Terms · Cookies</span>
+  </div>
+</div></footer>
+
+<script>
+  // year
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  // mobile menu
+  var burger=document.getElementById('burger'),menu=document.getElementById('menu');
+  burger.addEventListener('click',function(){var o=menu.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  menu.addEventListener('click',function(e){if(e.target.tagName==='A')menu.classList.remove('open')});
+  // scroll reveal
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){if(!el.classList.contains('in'))io.observe(el)});
+  // animated counters
+  function animate(el){var t=parseFloat(el.dataset.count),dec=+el.dataset.dec||0,s=0,d=1400,t0=null;
+    function step(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/d,1);var v=(t*(0.5-Math.cos(p*Math.PI)/2));
+      el.textContent=dec?v.toFixed(dec):Math.round(v);if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+  var co=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){animate(e.target);co.unobserve(e.target)}})},{threshold:.5});
+  document.querySelectorAll('[data-count]').forEach(function(el){co.observe(el)});
+</script>
+</body>
+</html>

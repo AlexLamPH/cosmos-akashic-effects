@@ -1,0 +1,18 @@
+{
+  "code": "CWT-005",
+  "slug": "dark-eclipse",
+  "title": "ECLIPSE — Luxury Timepieces",
+  "title_vi": "ECLIPSE — Đồng hồ xa xỉ",
+  "industry": "luxury",
+  "industries": ["luxury", "product", "ecommerce", "watches", "fashion"],
+  "style": "Full-black OLED cinematic",
+  "tier": "flagship",
+  "tags": ["dark", "black", "luxury", "scroll-zoom", "3d", "cinematic", "product", "white-label", "responsive"],
+  "palette": ["#000000", "#caa45a", "#e7c986", "#f4f1ea"],
+  "sections": ["nav", "scroll-zoom-hero", "craft-showcase", "specs", "collection", "cta", "footer"],
+  "special": "Full-BLACK background · SCROLL-ZOOM 3D portal hero (zoom-through on scroll) · cinematic reveal · reduced-motion safe.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Full-black cinematic luxury-product landing: a portal that zooms toward the viewer on scroll and opens to reveal the product, then craft showcase, spec counters, collection, reserve CTA.",
+  "summary_vi": "Landing sản phẩm xa xỉ nền đen full: cổng portal phóng to về phía người xem khi cuộn rồi mở ra lộ sản phẩm, sau đó showcase chế tác, số liệu, bộ sưu tập, CTA đặt trước.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}

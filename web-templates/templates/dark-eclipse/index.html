@@ -1,0 +1,213 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library  ·  CWT-005 "ECLIPSE"
+  Industry: Luxury product (timepieces / audio)   ·   Style: FULL-BLACK (OLED) cinematic   ·   White-label
+  Special: SCROLL-ZOOM 3D — a portal that zooms toward you as you scroll, revealing the product.
+  Self-contained · offline · respects prefers-reduced-motion · rebrand via :root.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ECLIPSE — The new standard of black</title>
+<style>
+  :root{
+    --bg:#000000; --ink:#f4f1ea; --mut:#8e8a80; --line:#1c1a17;
+    --gold:#caa45a; --gold2:#e7c986; --maxw:1140px;
+    --serif:"Hoefler Text",Georgia,"Times New Roman",serif;
+    --sans:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px}
+  .eyebrow{font:600 12px var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.06;letter-spacing:-.01em}
+  .btn{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--sans);letter-spacing:.04em;padding:14px 28px;cursor:pointer;
+    border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:999px;transition:background .25s,color .25s,transform .15s}
+  .btn:hover{background:var(--gold);color:#0a0805;transform:translateY(-2px)}
+  .btn.solid{background:var(--gold);color:#0a0805}.btn.solid:hover{background:var(--gold2)}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+  header{position:fixed;top:0;left:0;right:0;z-index:60;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.solid{background:rgba(0,0,0,.7);backdrop-filter:blur(12px);border-color:var(--line)}
+  .nav{display:flex;align-items:center;height:72px;gap:22px}
+  .logo{font-family:var(--serif);font-size:23px;letter-spacing:.16em}
+  .nav-links{display:flex;gap:28px;margin-left:auto}
+  .nav-links a{font:600 13px var(--sans);letter-spacing:.06em;color:var(--mut)}.nav-links a:hover{color:var(--ink)}
+  .nav .btn{margin-left:6px;padding:10px 20px}
+  .burger{display:none;width:42px;height:42px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer;margin-left:auto}
+
+  /* ---- SCROLL-ZOOM stage ---- */
+  .stage{height:280vh;position:relative}
+  .sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:grid;place-items:center;perspective:1100px}
+  .stars{position:absolute;inset:0;background:
+    radial-gradient(1.5px 1.5px at 20% 30%,#fff6,transparent),radial-gradient(1.5px 1.5px at 70% 60%,#fff5,transparent),
+    radial-gradient(1px 1px at 40% 80%,#fff4,transparent),radial-gradient(1.5px 1.5px at 85% 25%,#fff5,transparent),
+    radial-gradient(1px 1px at 55% 15%,#fff4,transparent),radial-gradient(1px 1px at 12% 70%,#fff4,transparent);opacity:.7}
+  .eclipse{width:min(60vw,440px);aspect-ratio:1;border-radius:50%;will-change:transform,opacity;transform-origin:center;
+    background:radial-gradient(circle at 50% 50%,#000 38%,transparent 39%),
+      conic-gradient(from 220deg,var(--gold2),var(--gold) 20%,#5b4a26 50%,var(--gold) 80%,var(--gold2));
+    box-shadow:0 0 120px 10px rgba(202,164,90,.35),inset 0 0 60px rgba(0,0,0,.8);position:relative}
+  .eclipse::after{content:"";position:absolute;inset:14%;border-radius:50%;border:1px solid rgba(231,201,134,.35)}
+  .hero-words{position:absolute;text-align:center;z-index:3;will-change:opacity;padding:0 24px}
+  .hero-words .eyebrow{display:block;margin-bottom:18px}
+  .hero-words h1{font-size:clamp(40px,8vw,92px)}
+  .hero-words p{color:var(--mut);margin-top:16px;font-size:16px;letter-spacing:.02em}
+  .scrollcue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);color:var(--mut);font:600 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;z-index:3}
+  .emerge{position:absolute;z-index:4;text-align:center;opacity:0;will-change:opacity;padding:0 24px;pointer-events:none}
+  .emerge h2{font-size:clamp(30px,5vw,62px)}
+  .emerge p{color:var(--mut);max-width:40ch;margin:14px auto 0}
+
+  .sec{padding:110px 0;position:relative;z-index:2;background:#000}
+  .sec-head{text-align:center;max-width:620px;margin:0 auto 56px}
+  .sec-head h2{font-size:clamp(28px,4vw,46px);margin:14px 0 12px}.sec-head p{color:var(--mut)}
+
+  .specs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+  .spec{background:#000;padding:40px 28px;text-align:center}
+  .spec .n{font-family:var(--serif);font-size:clamp(34px,5vw,56px);color:var(--gold2)}
+  .spec .l{color:var(--mut);font-size:13px;letter-spacing:.06em;margin-top:8px}
+
+  .showcase{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+  .disc{aspect-ratio:1;border-radius:50%;justify-self:center;width:min(70%,360px);
+    background:radial-gradient(circle at 38% 32%,#2a2419,#000 70%);border:1px solid var(--line);
+    box-shadow:0 40px 90px -30px rgba(202,164,90,.4),inset 0 0 80px rgba(202,164,90,.12);position:relative}
+  .disc::after{content:"";position:absolute;inset:30%;border-radius:50%;border:1px solid rgba(231,201,134,.3)}
+  .showcase h2{font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+  .showcase p{color:var(--mut);margin-bottom:14px}
+  .pillrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .pillrow span{border:1px solid var(--line);color:var(--mut);font:600 12px var(--sans);padding:7px 13px;border-radius:999px}
+
+  .cta{text-align:center;padding:130px 0}
+  .cta h2{font-size:clamp(34px,6vw,80px);margin-bottom:20px}
+  .cta p{color:var(--mut);max-width:46ch;margin:0 auto 30px}
+
+  footer{border-top:1px solid var(--line);padding:50px 0 28px}
+  .fgrid{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+  .fcol h4{font:600 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+  .fcol a{display:block;color:var(--ink);font-size:14px;padding:4px 0;opacity:.8}.fcol a:hover{color:var(--gold)}
+  .foot-bot{color:var(--mut);font-size:13px;border-top:1px solid var(--line);margin-top:34px;padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s,transform .8s}.reveal.in{opacity:1;transform:none}
+  @media(max-width:820px){.specs{grid-template-columns:1fr}.showcase{grid-template-columns:1fr}.nav-links{display:none}.burger{display:block}
+    .nav-links.open{display:flex;position:absolute;top:72px;left:0;right:0;flex-direction:column;background:#000;border-bottom:1px solid var(--line);padding:10px 26px 18px}
+    .nav-links.open a{padding:12px 0}.nav .btn{display:none}}
+  @media(prefers-reduced-motion:reduce){.stage{height:auto}.sticky{position:relative;height:auto;padding:140px 0}
+    .eclipse{transform:none!important;opacity:1!important}.hero-words{position:relative;opacity:1!important;margin-top:40px}.emerge{display:none}.scrollcue{display:none}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header id="hdr"><div class="wrap nav">
+  <a class="logo" href="#">ECLIPSE</a>
+  <nav class="nav-links" id="menu"><a href="#craft">Craft</a><a href="#specs">Specs</a><a href="#collection">Collection</a></nav>
+  <a href="#cta" class="btn">Reserve</a>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+</div></header>
+
+<!-- SCROLL-ZOOM HERO -->
+<section class="stage" id="stage">
+  <div class="sticky">
+    <div class="stars" id="stars"></div>
+    <div class="eclipse" id="eclipse"></div>
+    <div class="hero-words" id="words">
+      <span class="eyebrow">Series 01 · Obsidian</span>
+      <h1>The new<br>standard of black.</h1>
+      <p>Scroll to enter.</p>
+    </div>
+    <div class="emerge" id="emerge">
+      <span class="eyebrow">Crafted in darkness</span>
+      <h2>ECLIPSE Obsidian</h2>
+      <p>A sculpted timepiece machined from a single block — finished to vanish into shadow.</p>
+    </div>
+    <div class="scrollcue" id="cue">Scroll ↓</div>
+  </div>
+</section>
+
+<section class="sec" id="craft"><div class="wrap">
+  <div class="sec-head reveal"><span class="eyebrow">Obsessive craft</span><h2>Built from one piece of night</h2><p>Every ECLIPSE is milled, hand-finished, and tested over 200 hours before it earns its name.</p></div>
+  <div class="showcase">
+    <div class="disc reveal"></div>
+    <div class="reveal">
+      <span class="eyebrow">The movement</span>
+      <h2>72 hours, in silence.</h2>
+      <p>An in-house automatic movement with a 72-hour reserve, visible through a smoked sapphire back.</p>
+      <p>Anti-magnetic, water resistant to 100m, and quieter than a whisper.</p>
+      <div class="pillrow"><span>In-house caliber</span><span>Sapphire crystal</span><span>Grade-5 titanium</span><span>100m</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="specs" style="border-top:1px solid var(--line)"><div class="wrap">
+  <div class="sec-head reveal"><span class="eyebrow">By the numbers</span><h2>Engineered to disappear</h2></div>
+  <div class="specs reveal">
+    <div class="spec"><div class="n"><span data-count="72">0</span>h</div><div class="l">Power reserve</div></div>
+    <div class="spec"><div class="n"><span data-count="38">0</span>g</div><div class="l">Titanium case</div></div>
+    <div class="spec"><div class="n"><span data-count="200">0</span></div><div class="l">Hours of finishing</div></div>
+  </div>
+</div></section>
+
+<section class="sec" id="collection"><div class="wrap">
+  <div class="sec-head reveal"><span class="eyebrow">The collection</span><h2>Three shades of midnight</h2></div>
+  <div class="specs reveal" style="background:var(--line)">
+    <div class="spec" style="padding:64px 28px"><div class="disc" style="width:140px;margin:0 auto 18px"></div><h3 style="font-size:22px">Obsidian</h3><div class="l" style="color:var(--gold)">$4,200</div></div>
+    <div class="spec" style="padding:64px 28px"><div class="disc" style="width:140px;margin:0 auto 18px;background:radial-gradient(circle at 38% 32%,#27201a,#000 70%)"></div><h3 style="font-size:22px">Ember</h3><div class="l" style="color:var(--gold)">$4,600</div></div>
+    <div class="spec" style="padding:64px 28px"><div class="disc" style="width:140px;margin:0 auto 18px;background:radial-gradient(circle at 38% 32%,#1a2227,#000 70%)"></div><h3 style="font-size:22px">Glacier</h3><div class="l" style="color:var(--gold)">$4,800</div></div>
+  </div>
+</div></section>
+
+<section class="cta" id="cta"><div class="wrap">
+  <span class="eyebrow reveal">Limited release</span>
+  <h2 class="reveal">Own the dark.</h2>
+  <p class="reveal">Only 500 pieces in the first series. Reserve yours with a fully refundable deposit.</p>
+  <a href="#" class="btn solid reveal">Reserve ECLIPSE →</a>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div class="fcol"><div class="logo" style="margin-bottom:10px">ECLIPSE</div><p style="color:var(--mut);font-size:14px;max-width:30ch">Timepieces engineered to disappear. Template by Cosmos AI Lab.</p></div>
+    <div class="fcol"><h4>Collection</h4><a href="#">Obsidian</a><a href="#">Ember</a><a href="#">Glacier</a></div>
+    <div class="fcol"><h4>Maison</h4><a href="#">Craft</a><a href="#">Boutiques</a><a href="#">Service</a></div>
+    <div class="fcol"><h4>Contact</h4><a href="#">Concierge</a><a href="#">Press</a></div>
+  </div>
+  <div class="foot-bot"><span>© <span id="yr"></span> ECLIPSE — placeholder content.</span><span>Privacy · Terms</span></div>
+</div></footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  var burger=document.getElementById('burger'),menu=document.getElementById('menu');
+  burger.addEventListener('click',function(){var o=menu.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  menu.addEventListener('click',function(e){if(e.target.tagName==='A')menu.classList.remove('open')});
+  // sticky header tint
+  var hdr=document.getElementById('hdr');
+  // scroll-zoom
+  var stage=document.getElementById('stage'),ecl=document.getElementById('eclipse'),words=document.getElementById('words'),
+      emerge=document.getElementById('emerge'),cue=document.getElementById('cue'),stars=document.getElementById('stars');
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  var ticking=false;
+  function frame(){
+    ticking=false;
+    hdr.classList.toggle('solid',window.scrollY>40);
+    if(reduce)return;
+    var r=stage.getBoundingClientRect();
+    var total=stage.offsetHeight-window.innerHeight;
+    var p=clamp(-r.top/total,0,1);
+    ecl.style.transform='scale('+(1+p*7).toFixed(3)+')';
+    ecl.style.opacity=(p<.82?1:clamp(1-(p-.82)/.18,0,1)).toFixed(3);
+    words.style.opacity=clamp(1-p*1.5,0,1).toFixed(3);
+    if(stars)stars.style.transform='scale('+(1+p*.6).toFixed(3)+')';
+    emerge.style.opacity=clamp((p-.62)/.3,0,1).toFixed(3);
+    cue.style.opacity=clamp(1-p*4,0,1).toFixed(3);
+  }
+  function onScroll(){if(!ticking){ticking=true;requestAnimationFrame(frame)}}
+  addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);frame();
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+  function anim(el){var t=parseFloat(el.dataset.count),d=1500,t0=null;function step(ts){if(!t0)t0=ts;var q=Math.min((ts-t0)/d,1),v=t*(0.5-Math.cos(q*Math.PI)/2);el.textContent=Math.round(v);if(q<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+  var co=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){anim(e.target);co.unobserve(e.target)}})},{threshold:.6});
+  document.querySelectorAll('[data-count]').forEach(function(el){co.observe(el)});
+</script>
+</body>
+</html>

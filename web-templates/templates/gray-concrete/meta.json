@@ -1,0 +1,18 @@
+{
+  "code": "CWT-006",
+  "slug": "gray-concrete",
+  "title": "CONCRETE — Creative Studio",
+  "title_vi": "CONCRETE — Studio sáng tạo",
+  "industry": "creative",
+  "industries": ["creative", "agency", "studio", "portfolio", "design"],
+  "style": "Full-gray brutalist, monospace",
+  "tier": "flagship",
+  "tags": ["gray", "brutalist", "monospace", "marquee", "hover-invert", "bold", "white-label", "responsive"],
+  "palette": ["#a6a59d", "#0e0e0c", "#ff4d00"],
+  "sections": ["nav", "hero-brutalist", "marquee", "work-grid", "services", "statement", "contact", "footer"],
+  "special": "Full-GRAY brutalist background · running marquee · hover-invert cells · skew reveal · monospace + Arial-Black.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Full-gray brutalist studio portfolio: massive uppercase hero, running marquee ticker, bordered work grid that inverts on hover, numbered services, statement, oversized email contact.",
+  "summary_vi": "Portfolio studio brutalist nền xám full: hero chữ hoa khổng lồ, marquee chạy, lưới dự án viền dày đảo màu khi hover, dịch vụ đánh số, tuyên ngôn, email liên hệ cỡ đại.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
