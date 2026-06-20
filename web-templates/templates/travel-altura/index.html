@@ -1,0 +1,196 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library  ·  CWT-009 "ALTURA"
+  Industry: Travel / Destination   ·   Style: Cinematic dusk, layered scene   ·   White-label
+  Special: multi-layer PARALLAX hero (sky / sun / mountain ridges scroll at different depths) + reveal.
+  Self-contained · offline · reduced-motion safe · rebrand via :root.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ALTURA — Mountain escapes</title>
+<style>
+  :root{
+    --bg:#0c1120; --ink:#f3f1ec; --mut:#a9b2c7; --line:#23304d;
+    --sun:#ffb27a; --coral:#ff7a8a; --teal:#5fd0c5; --maxw:1160px;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.08;letter-spacing:-.01em}
+  .btn{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--sans);padding:14px 26px;border-radius:999px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#0c1120;transition:transform .15s,background .2s,color .2s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.ghost{background:transparent;color:var(--ink)}.btn.ghost:hover{background:rgba(255,255,255,.1)}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+
+  header{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.solid{background:rgba(12,17,32,.78);backdrop-filter:blur(12px);border-color:var(--line)}
+  .nav{display:flex;align-items:center;height:70px;gap:20px}
+  .logo{font-family:var(--serif);font-size:23px;letter-spacing:.06em}
+  .nav-links{display:flex;gap:26px;margin-left:auto}
+  .nav-links a{font-weight:600;font-size:14px;color:#dfe3ee}.nav-links a:hover{color:#fff}
+  .nav .btn{margin-left:6px;padding:10px 20px}
+  .burger{display:none;width:42px;height:42px;border:1px solid #ffffff33;background:none;color:#fff;cursor:pointer;margin-left:auto}
+
+  /* PARALLAX HERO */
+  .phero{height:100vh;min-height:560px;position:relative;overflow:hidden}
+  .sky{position:absolute;inset:0;background:linear-gradient(180deg,#161d3a 0%,#3a2c54 38%,#7c3f63 62%,#c5586a 82%,#ff8f6b 100%)}
+  .sun{position:absolute;left:50%;top:34%;width:200px;height:200px;margin-left:-100px;border-radius:50%;
+    background:radial-gradient(circle,#ffd9a0,#ff9d5c 60%,transparent 72%);will-change:transform;filter:saturate(1.1)}
+  .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.7}
+  .ridge{position:absolute;left:-5%;width:110%;bottom:0;will-change:transform}
+  .ridge.far{height:46%;background:#3b2f57;clip-path:polygon(0 100%,0 55%,14% 32%,26% 52%,40% 22%,55% 48%,70% 26%,84% 50%,100% 34%,100% 100%);opacity:.9}
+  .ridge.mid{height:38%;background:#28203f;clip-path:polygon(0 100%,0 62%,12% 40%,24% 60%,38% 34%,52% 58%,66% 38%,80% 60%,92% 42%,100% 56%,100% 100%)}
+  .ridge.near{height:30%;background:#140f24;clip-path:polygon(0 100%,0 70%,10% 52%,22% 72%,36% 46%,50% 70%,64% 50%,78% 72%,90% 56%,100% 68%,100% 100%)}
+  .phero .content{position:absolute;left:0;right:0;top:46%;transform:translateY(-50%);text-align:center;z-index:5;will-change:transform;padding:0 22px}
+  .phero .kicker{font:600 12px var(--sans);letter-spacing:.24em;text-transform:uppercase;color:#ffe0c2}
+  .phero h1{font-size:clamp(46px,9vw,108px);margin:16px 0;text-shadow:0 6px 40px rgba(0,0,0,.4)}
+  .phero p{color:#f2e9e4;font-size:clamp(15px,2vw,19px);max-width:40ch;margin:0 auto 26px}
+  .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:6;color:#ffffffcc;font:600 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;animation:bob 2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translate(-50%,8px)}}
+
+  .sec{padding:96px 0}
+  .intro{text-align:center;max-width:30ch;margin:0 auto}
+  .intro h2{font-size:clamp(28px,4.4vw,48px)}
+  .intro p{color:var(--mut);font-size:17px;margin-top:16px;max-width:46ch;margin-left:auto;margin-right:auto}
+
+  .dests{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .dest{border-radius:18px;overflow:hidden;border:1px solid var(--line);position:relative;aspect-ratio:3/4;cursor:pointer}
+  .dest .img{position:absolute;inset:0;transition:transform .8s ease}
+  .dest:hover .img{transform:scale(1.07)}
+  .d1{background:linear-gradient(180deg,#3a4a6b,#7a5b6e)}.d2{background:linear-gradient(180deg,#2f5d5a,#9aa05c)}
+  .d3{background:linear-gradient(180deg,#5b3f6b,#c5727a)}.d4{background:linear-gradient(180deg,#374a63,#6d8a9c)}
+  .d5{background:linear-gradient(180deg,#5c4a3a,#b08a5e)}.d6{background:linear-gradient(180deg,#2e3f57,#5e7e86)}
+  .dest .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(8,10,20,.8))}
+  .dest .cap{position:absolute;left:18px;right:18px;bottom:18px;z-index:2}
+  .dest .cap .c{font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.08em;color:var(--teal)}
+  .dest h3{font-size:24px;margin-top:4px}
+  .dest .cap .m{color:#cdd3e0;font-size:13px;margin-top:4px}
+
+  .exp{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .e{border:1px solid var(--line);border-radius:16px;padding:24px;background:#111830}
+  .e .ic{font-size:26px;margin-bottom:10px}.e h3{font-size:18px;margin-bottom:6px;font-family:var(--sans);font-weight:700}.e p{color:var(--mut);font-size:14px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:48px 0}
+  .stat .n{font-family:var(--serif);font-size:clamp(34px,5vw,54px);color:var(--sun)}
+  .stat .l{color:var(--mut);font-size:13px;margin-top:4px}
+
+  .cta{position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--line);padding:80px 30px;text-align:center;
+    background:linear-gradient(160deg,#241a3a,#10182e)}
+  .cta h2{font-size:clamp(30px,5vw,56px);margin-bottom:14px}
+  .cta p{color:var(--mut);max-width:44ch;margin:0 auto 26px}
+
+  footer{border-top:1px solid var(--line);padding:50px 0 26px;margin-top:90px}
+  .fgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:26px}
+  .fcol h4{font:600 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+  .fcol a{display:block;color:var(--ink);font-size:14px;padding:4px 0;opacity:.85}.fcol a:hover{color:var(--teal)}
+  .foot-bot{color:var(--mut);font-size:13px;border-top:1px solid var(--line);margin-top:32px;padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
+  @media(max-width:860px){.dests{grid-template-columns:repeat(2,1fr)}.exp{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr);gap:30px}.nav-links{display:none}.burger{display:block}
+    .nav-links.open{display:flex;position:absolute;top:70px;left:0;right:0;flex-direction:column;background:rgba(12,17,32,.96);border-bottom:1px solid var(--line);padding:10px 22px 18px}
+    .nav-links.open a{padding:12px 0}.nav .btn{display:none}.sec{padding:64px 0}}
+  @media(max-width:520px){.dests{grid-template-columns:1fr}.exp{grid-template-columns:1fr 1fr}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}.sun,.ridge,.content{transform:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header id="hdr"><div class="wrap nav">
+  <a class="logo" href="#">ALTURA</a>
+  <nav class="nav-links" id="menu"><a href="#dest">Destinations</a><a href="#exp">Experiences</a><a href="#book">Book</a></nav>
+  <a href="#book" class="btn">Plan a trip</a>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+</div></header>
+
+<!-- PARALLAX HERO -->
+<section class="phero" id="phero">
+  <div class="sky"></div>
+  <div class="sun" data-speed="0.15" id="sun"></div>
+  <div class="ridge far" data-speed="0.30"></div>
+  <div class="ridge mid" data-speed="0.55"></div>
+  <div class="ridge near" data-speed="0.85"></div>
+  <div class="content" data-speed="-0.25">
+    <div class="kicker">Above the clouds · Est. 1998</div>
+    <h1>Find your altitude.</h1>
+    <p>Hand-built mountain lodges and guided escapes for people who'd rather climb than scroll.</p>
+    <div style="display:flex;gap:13px;justify-content:center;flex-wrap:wrap"><a href="#dest" class="btn">Explore destinations</a><a href="#exp" class="btn ghost">Our experiences</a></div>
+  </div>
+  <div class="scrollcue">Scroll ↓</div>
+</section>
+
+<section class="sec"><div class="wrap">
+  <div class="intro reveal"><h2>Wild places, gently done.</h2><p>Six lodges across the world's most beautiful ranges — low impact, high comfort, and a guide who knows every trail.</p></div>
+</div></section>
+
+<section class="sec" id="dest" style="padding-top:0"><div class="wrap">
+  <div class="dests">
+    <article class="dest reveal"><div class="img d1"></div><div class="grad"></div><div class="cap"><div class="c">Alps</div><h3>Verbier Ridge</h3><div class="m">From $320 / night</div></div></article>
+    <article class="dest reveal"><div class="img d2"></div><div class="grad"></div><div class="cap"><div class="c">Patagonia</div><h3>Torre Base Camp</h3><div class="m">From $280 / night</div></div></article>
+    <article class="dest reveal"><div class="img d3"></div><div class="grad"></div><div class="cap"><div class="c">Dolomites</div><h3>Rosa Hut</h3><div class="m">From $240 / night</div></div></article>
+    <article class="dest reveal"><div class="img d4"></div><div class="grad"></div><div class="cap"><div class="c">Himalaya</div><h3>Annapurna Lodge</h3><div class="m">From $190 / night</div></div></article>
+    <article class="dest reveal"><div class="img d5"></div><div class="grad"></div><div class="cap"><div class="c">Atlas</div><h3>Toubkal Refuge</h3><div class="m">From $160 / night</div></div></article>
+    <article class="dest reveal"><div class="img d6"></div><div class="grad"></div><div class="cap"><div class="c">Andes</div><h3>Sky Mirror</h3><div class="m">From $300 / night</div></div></article>
+  </div>
+</div></section>
+
+<section class="sec" id="exp"><div class="wrap">
+  <div class="intro reveal" style="max-width:none;margin-bottom:40px"><h2>Experiences</h2></div>
+  <div class="exp">
+    <div class="e reveal"><div class="ic">🥾</div><h3>Guided treks</h3><p>From half-day strolls to multi-day summits with certified guides.</p></div>
+    <div class="e reveal"><div class="ic">🪂</div><h3>Air &amp; descent</h3><p>Paragliding, via ferrata, and heli-drops to untouched ridges.</p></div>
+    <div class="e reveal"><div class="ic">♨️</div><h3>Rest &amp; spa</h3><p>Hot springs, saunas, and slow mornings with a view.</p></div>
+    <div class="e reveal"><div class="ic">🍲</div><h3>Mountain table</h3><p>Local kitchens, foraged menus, and long shared dinners.</p></div>
+  </div>
+</div></section>
+
+<section class="sec" style="padding:0"><div class="wrap"><div class="stats reveal">
+  <div class="stat"><div class="n"><span data-count="6">0</span></div><div class="l">Lodges</div></div>
+  <div class="stat"><div class="n"><span data-count="120">0</span>+</div><div class="l">Guided routes</div></div>
+  <div class="stat"><div class="n"><span data-count="28">0</span>k</div><div class="l">Happy guests</div></div>
+  <div class="stat"><div class="n"><span data-count="4.9" data-dec="1">0</span>★</div><div class="l">Avg rating</div></div>
+</div></div></section>
+
+<section class="sec" id="book"><div class="wrap"><div class="cta reveal">
+  <h2>Your next altitude awaits.</h2>
+  <p>Tell us where you dream of waking up. We'll plan the rest — flights, guide, and the perfect window of weather.</p>
+  <a href="#" class="btn">Plan my escape →</a>
+</div></div></section>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div class="fcol"><div class="logo" style="margin-bottom:10px">ALTURA</div><p style="color:var(--mut);font-size:14px;max-width:30ch">Mountain escapes, gently done. Template by Cosmos AI Lab.</p></div>
+    <div class="fcol"><h4>Travel</h4><a href="#">Destinations</a><a href="#">Experiences</a><a href="#">Seasons</a><a href="#">Journal</a></div>
+    <div class="fcol"><h4>About</h4><a href="#">Our story</a><a href="#">Guides</a><a href="#">Sustainability</a></div>
+    <div class="fcol"><h4>Plan</h4><a href="#">Booking</a><a href="#">FAQ</a><a href="#">Contact</a></div>
+  </div>
+  <div class="foot-bot"><span>© <span id="yr"></span> ALTURA — placeholder content.</span><span>Privacy · Terms</span></div>
+</div></footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  var burger=document.getElementById('burger'),menu=document.getElementById('menu'),hdr=document.getElementById('hdr');
+  burger.addEventListener('click',function(){var o=menu.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  menu.addEventListener('click',function(e){if(e.target.tagName==='A')menu.classList.remove('open')});
+  // stars in sky
+  var sky=document.querySelector('.sky'),frag=document.createDocumentFragment();
+  for(var i=0;i<40;i++){var s=document.createElement('span');s.className='star';s.style.left=(Math.random()*100)+'%';s.style.top=(Math.random()*45)+'%';s.style.opacity=(0.2+Math.random()*0.6);frag.appendChild(s)}
+  sky.appendChild(frag);
+  // parallax
+  var phero=document.getElementById('phero'),pl=[].slice.call(phero.querySelectorAll('[data-speed]'));
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches,tick=false;
+  function px(){tick=false;hdr.classList.toggle('solid',window.scrollY>40);if(reduce)return;var y=window.scrollY;pl.forEach(function(l){var s=parseFloat(l.dataset.speed)||0;l.style.transform='translateY('+(y*s)+'px)'})}
+  addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(px)}},{passive:true});px();
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+  function anim(el){var t=parseFloat(el.dataset.count),dec=+el.dataset.dec||0,d=1500,t0=null;function step(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/d,1),v=t*(0.5-Math.cos(p*Math.PI)/2);el.textContent=dec?v.toFixed(dec):Math.round(v);if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+  var co=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){anim(e.target);co.unobserve(e.target)}})},{threshold:.6});
+  document.querySelectorAll('[data-count]').forEach(function(el){co.observe(el)});
+</script>
+</body>
+</html>

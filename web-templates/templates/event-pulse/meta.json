@@ -1,0 +1,18 @@
+{
+  "code": "CWT-007",
+  "slug": "event-pulse",
+  "title": "PULSE — Music Festival",
+  "title_vi": "PULSE — Lễ hội âm nhạc",
+  "industry": "event",
+  "industries": ["event", "music", "festival", "entertainment"],
+  "style": "High-contrast duotone (magenta × cyan)",
+  "tier": "flagship",
+  "tags": ["event", "festival", "duotone", "contrast", "parallax", "bold", "marquee", "white-label", "responsive"],
+  "palette": ["#0a0410", "#ff2e7e", "#13e0e0", "#ffe14d"],
+  "sections": ["nav", "parallax-hero", "marquee", "lineup", "info", "tickets", "footer"],
+  "special": "Bộ màu TƯƠNG PHẢN mạnh (magenta × cyan) · parallax blobs khi cuộn · marquee chạy · hover nghiêng.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "High-contrast duotone festival landing: full-bleed parallax hero, scrolling marquee, lineup grid with featured headliners, festival info, 3-tier ticket cards.",
+  "summary_vi": "Landing lễ hội duotone tương phản: hero parallax tràn viền, marquee chạy, lưới lineup có headliner, thông tin sự kiện, 3 hạng vé.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}

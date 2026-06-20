@@ -1,0 +1,18 @@
+{
+  "code": "CWT-009",
+  "slug": "travel-altura",
+  "title": "ALTURA — Mountain Escapes",
+  "title_vi": "ALTURA — Du lịch núi",
+  "industry": "travel",
+  "industries": ["travel", "hospitality", "tourism", "destination"],
+  "style": "Cinematic dusk, layered scene",
+  "tier": "flagship",
+  "tags": ["travel", "parallax", "cinematic", "scroll", "destination", "hospitality", "white-label", "responsive"],
+  "palette": ["#0c1120", "#ffb27a", "#ff7a8a", "#5fd0c5"],
+  "sections": ["nav", "parallax-hero", "intro", "destinations", "experiences", "stats", "booking-cta", "footer"],
+  "special": "PARALLAX nhiều lớp — trời / mặt trời / 3 dãy núi cuộn lệch tốc độ tạo chiều sâu 3D · reveal · reduced-motion safe.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Cinematic travel landing with a multi-layer parallax mountain hero (sky, sun, three ridges scrolling at different depths), destination grid, experiences, animated stats, booking CTA.",
+  "summary_vi": "Landing du lịch điện ảnh với hero parallax núi nhiều lớp (trời, mặt trời, 3 dãy núi cuộn lệch tốc độ), lưới điểm đến, trải nghiệm, số liệu động, CTA đặt chỗ.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}

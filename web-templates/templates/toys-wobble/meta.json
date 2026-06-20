@@ -1,0 +1,18 @@
+{
+  "code": "CWT-010",
+  "slug": "toys-wobble",
+  "title": "WOBBLE — Kids Toys",
+  "title_vi": "WOBBLE — Đồ chơi trẻ em",
+  "industry": "toys",
+  "industries": ["toys", "kids", "ecommerce", "family"],
+  "style": "Bright & playful, rounded, primary colors",
+  "tier": "flagship",
+  "tags": ["toys", "kids", "bright", "playful", "rounded", "bouncy", "ecommerce", "white-label", "responsive"],
+  "palette": ["#fff7e6", "#ff5a5f", "#3a86ff", "#ffbe0b", "#06d6a0"],
+  "sections": ["nav", "hero", "product-grid", "age-filter", "why-us", "stats", "club-cta", "footer"],
+  "special": "Nền SÁNG vui (bù cho Game tối) · khối bo tròn + hard shadow · hover nảy/wobble · hình khối float.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Bright, playful kids-toy store: bouncy rounded UI with hard shadows, floating shapes, hero toy cluster, best-seller grid, shop-by-age pills, parent trust cards, club CTA.",
+  "summary_vi": "Cửa hàng đồ chơi sáng vui: UI bo tròn nảy + shadow cứng, hình khối float, cụm đồ chơi hero, lưới best-seller, pill chọn theo tuổi, thẻ tin cậy phụ huynh, CTA câu lạc bộ.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
