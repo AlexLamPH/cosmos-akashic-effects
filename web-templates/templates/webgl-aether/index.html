@@ -1,0 +1,194 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library  ·  CWT-013 "AETHER"  (WEBGL)
+  Industry: Creative-tech / product launch   ·   Style: Living WebGL gradient, glass UI   ·   White-label
+  Special: full-page animated WebGL fragment shader (domain-warped aurora) that reacts to SCROLL —
+  hue/flow shift as you scroll. Runs on mobile GPU. CSS-gradient fallback if WebGL unavailable.
+  Self-contained · offline · prefers-reduced-motion safe · rebrand via :root / palette() in shader.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AETHER — Living interfaces</title>
+<style>
+  :root{ --ink:#f4f3ff; --mut:#b9b7d8; --line:rgba(255,255,255,.14); --glass:rgba(255,255,255,.06);
+    --accent:#c08cff; --maxw:1140px; --sans:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+    --serif:"Hoefler Text",Georgia,serif; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{color:var(--ink);font-family:var(--sans);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+    background:#0a0820} /* fallback bg */
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-weight:800;line-height:1.04;letter-spacing:-.025em}
+  /* WebGL canvas + readability overlay (both fixed, full-page) */
+  #gl{position:fixed;inset:0;z-index:-2;width:100%;height:100%;display:block;
+    background:linear-gradient(135deg,#1a1240,#2a1a6e 40%,#7b3fa0 70%,#c86b9a)} /* fallback gradient */
+  .veil{position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(8,6,24,.15) 0%,rgba(8,6,24,.35) 42%,rgba(8,6,24,.72) 100%)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font:700 15px var(--sans);padding:14px 26px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--ink);background:var(--ink);color:#15102e;transition:transform .15s,box-shadow .25s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px -14px rgba(192,140,255,.6)}
+  .btn.ghost{background:var(--glass);color:var(--ink);border-color:var(--line);backdrop-filter:blur(8px)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  header{position:fixed;top:0;left:0;right:0;z-index:60;border-bottom:1px solid transparent;transition:background .3s,border-color .3s}
+  header.solid{background:rgba(10,8,32,.5);backdrop-filter:blur(14px);border-color:var(--line)}
+  .nav{display:flex;align-items:center;height:70px;gap:20px}
+  .logo{font-weight:900;font-size:21px;letter-spacing:-.02em}
+  .nav-links{display:flex;gap:24px;margin-left:auto}
+  .nav-links a{font-weight:600;font-size:14px;color:var(--mut)}.nav-links a:hover{color:var(--ink)}
+  .nav .btn{margin-left:6px;padding:10px 20px}
+  .burger{display:none;width:42px;height:42px;border:1px solid var(--line);background:var(--glass);color:var(--ink);cursor:pointer;margin-left:auto;border-radius:10px}
+
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 0 60px}
+  .hero .pill{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font:600 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:var(--glass);border:1px solid var(--line);padding:7px 14px;border-radius:999px;backdrop-filter:blur(8px);margin-bottom:26px}
+  .hero .pill .d{width:7px;height:7px;border-radius:50%;background:#7CFFCB;box-shadow:0 0 10px #7CFFCB}
+  .hero h1{font-size:clamp(48px,9vw,118px);max-width:14ch;text-shadow:0 10px 60px rgba(0,0,0,.3)}
+  .hero p{font-size:clamp(16px,2vw,20px);color:#e7e5ff;max-width:46ch;margin:24px 0 0;opacity:.92}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+
+  .sec{padding:90px 0;position:relative}
+  .glass{background:var(--glass);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(14px)}
+  .sec-head{max-width:620px;margin:0 auto 44px;text-align:center}
+  .sec-head h2{font-size:clamp(30px,4.4vw,52px);margin-bottom:12px}.sec-head p{color:var(--mut)}
+
+  .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .f{padding:28px}
+  .f .ic{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;font-size:22px;margin-bottom:14px;background:rgba(192,140,255,.18);color:#e3c9ff}
+  .f h3{font-size:19px;margin-bottom:8px}.f p{color:var(--mut);font-size:14.5px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:center;padding:40px}
+  .stat .n{font-size:clamp(30px,4vw,46px);font-weight:800;background:linear-gradient(120deg,#fff,#c08cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .l{color:var(--mut);font-size:13px;margin-top:4px}
+
+  .cta{text-align:center;padding:120px 0}
+  .cta h2{font-size:clamp(34px,6vw,80px);margin-bottom:18px}
+  .cta p{color:var(--mut);max-width:44ch;margin:0 auto 28px}
+
+  footer{padding:48px 0 28px;border-top:1px solid var(--line)}
+  .fgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px}
+  .fcol h4{font:700 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+  .fcol a{display:block;font-size:14px;padding:4px 0;color:#d9d7f2}.fcol a:hover{color:#fff}
+  .foot-bot{color:var(--mut);font-size:13px;border-top:1px solid var(--line);margin-top:30px;padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
+  @media(max-width:860px){.feat{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr);gap:28px}.nav-links{display:none}.burger{display:block}
+    .nav-links.open{display:flex;position:absolute;top:70px;left:0;right:0;flex-direction:column;background:rgba(10,8,32,.92);border-bottom:1px solid var(--line);padding:10px 24px 18px}
+    .nav-links.open a{padding:12px 0}.nav .btn{display:none}.sec{padding:64px 0}}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas><div class="veil"></div>
+
+<header id="hdr"><div class="wrap nav">
+  <a class="logo" href="#">✺ AETHER</a>
+  <nav class="nav-links" id="menu"><a href="#features">Platform</a><a href="#stats">Scale</a><a href="#cta">Start</a></nav>
+  <a href="#cta" class="btn">Get early access</a>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <span class="pill"><span class="d"></span> Now in private beta</span>
+  <h1>Interfaces that feel alive.</h1>
+  <p>AETHER turns static products into living, responsive experiences — real-time visuals, motion, and AI, in one runtime.</p>
+  <div class="hero-cta"><a href="#cta" class="btn">Request access</a><a href="#features" class="btn ghost">See the platform ↓</a></div>
+</div></section>
+
+<section class="sec" id="features"><div class="wrap">
+  <div class="sec-head reveal"><h2>One runtime, endless surfaces</h2><p>Ship living interfaces to web, mobile, and signage without rebuilding for each.</p></div>
+  <div class="feat">
+    <div class="f glass reveal"><div class="ic">◐</div><h3>Real-time visuals</h3><p>GPU-accelerated shaders and scenes that run at 60fps on any device.</p></div>
+    <div class="f glass reveal"><div class="ic">✦</div><h3>Reactive motion</h3><p>Scroll, pointer, audio, and data drive your interface — no timeline babysitting.</p></div>
+    <div class="f glass reveal"><div class="ic">❍</div><h3>AI-native</h3><p>Generate, adapt, and personalize surfaces from a single prompt or signal.</p></div>
+  </div>
+</div></section>
+
+<section class="sec" id="stats"><div class="wrap">
+  <div class="stats glass reveal">
+    <div class="stat"><div class="n"><span data-count="60">0</span>fps</div><div class="l">On mobile GPUs</div></div>
+    <div class="stat"><div class="n"><span data-count="8">0</span>ms</div><div class="l">Frame budget</div></div>
+    <div class="stat"><div class="n"><span data-count="40">0</span>+</div><div class="l">Surface targets</div></div>
+    <div class="stat"><div class="n"><span data-count="1">0</span></div><div class="l">Runtime</div></div>
+  </div>
+</div></section>
+
+<section class="cta" id="cta"><div class="wrap">
+  <span class="pill" style="margin:0 auto 18px"><span class="d"></span> Limited beta seats</span>
+  <h2>Build something alive.</h2>
+  <p>Join the creative teams shipping living interfaces with AETHER.</p>
+  <a href="#" class="btn">Request early access →</a>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div class="fcol"><div class="logo" style="margin-bottom:10px">✺ AETHER</div><p style="color:var(--mut);font-size:14px;max-width:30ch">Living interfaces runtime. Template by Cosmos AI Lab.</p></div>
+    <div class="fcol"><h4>Product</h4><a href="#">Platform</a><a href="#">Docs</a><a href="#">Pricing</a></div>
+    <div class="fcol"><h4>Company</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Careers</a></div>
+    <div class="fcol"><h4>Connect</h4><a href="#">X</a><a href="#">Discord</a><a href="#">GitHub</a></div>
+  </div>
+  <div class="foot-bot"><span>© <span id="yr"></span> AETHER — placeholder content.</span><span>Privacy · Terms</span></div>
+</div></footer>
+
+<script>
+(function(){
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  var burger=document.getElementById('burger'),menu=document.getElementById('menu'),hdr=document.getElementById('hdr');
+  burger.addEventListener('click',function(){var o=menu.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  menu.addEventListener('click',function(e){if(e.target.tagName==='A')menu.classList.remove('open')});
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  // reveal + counters
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.18});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+  function anim(el){var t=parseFloat(el.dataset.count),d=1400,t0=null;function s(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/d,1);el.textContent=Math.round(t*(0.5-Math.cos(p*Math.PI)/2));if(p<1)requestAnimationFrame(s)}requestAnimationFrame(s)}
+  var co=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){anim(e.target);co.unobserve(e.target)}})},{threshold:.6});
+  document.querySelectorAll('[data-count]').forEach(function(el){co.observe(el)});
+
+  // header tint + scroll value
+  var scroll=0,tick=false;
+  function onScroll(){if(!tick){tick=true;requestAnimationFrame(function(){tick=false;var st=window.scrollY||0;hdr.classList.toggle('solid',st>40);var h=document.documentElement.scrollHeight-innerHeight;scroll=h>0?st/h:0})}}
+  addEventListener('scroll',onScroll,{passive:true});
+
+  // ---------- WebGL living shader ----------
+  var cv=document.getElementById('gl');
+  var gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');
+  if(!gl){return;} // CSS gradient fallback stays
+  var vs='attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}';
+  var fs=[
+    'precision highp float;',
+    'uniform float u_time;uniform vec2 u_res;uniform float u_scroll;',
+    'vec3 pal(float t){vec3 a=vec3(0.09,0.07,0.22);vec3 b=vec3(0.16,0.36,0.85);vec3 c=vec3(0.55,0.28,0.92);vec3 d=vec3(0.96,0.45,0.66);',
+    ' float x=fract(t);if(x<0.34)return mix(a,b,x/0.34);if(x<0.67)return mix(b,c,(x-0.34)/0.33);return mix(c,d,(x-0.67)/0.33);}',
+    'void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=uv*2.0-1.0;p.x*=u_res.x/u_res.y;',
+    ' float t=u_time*0.07;float w=0.0;',
+    ' w+=sin(p.x*2.0+t*1.3);w+=sin(p.y*2.6-t*1.1+w*0.5);w+=sin((p.x+p.y)*1.7+t*0.9);w+=sin(length(p)*3.0-t*1.4);',
+    ' float v=0.5+0.5*sin(w*1.1+t+u_scroll*3.1416);',
+    ' vec3 col=pal(v*0.8+u_scroll*0.35+t*0.04);',
+    ' float vig=1.0-0.35*dot(p,p);col*=clamp(vig,0.35,1.0);',
+    ' col+=0.04*sin(uv.yx*vec2(700.0,500.0));', // subtle grain-ish
+    ' gl_FragColor=vec4(col,1.0);}'
+  ].join('\n');
+  function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return gl.getShaderParameter(s,gl.COMPILE_STATUS)?s:null;}
+  var v=sh(gl.VERTEX_SHADER,vs),f=sh(gl.FRAGMENT_SHADER,fs);
+  if(!v||!f){return;}
+  var pr=gl.createProgram();gl.attachShader(pr,v);gl.attachShader(pr,f);gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){return;}
+  gl.useProgram(pr);
+  var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  var loc=gl.getAttribLocation(pr,'a');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  var uT=gl.getUniformLocation(pr,'u_time'),uR=gl.getUniformLocation(pr,'u_res'),uS=gl.getUniformLocation(pr,'u_scroll');
+  function resize(){var dpr=Math.min(devicePixelRatio||1,1.5);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;gl.viewport(0,0,cv.width,cv.height);}
+  addEventListener('resize',resize);resize();
+  var start=performance.now(),sm=0;
+  function render(now){var time=reduce?6000:(now-start);sm+=(scroll-sm)*0.06;
+    gl.uniform1f(uT,time*0.001);gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uS,sm);
+    gl.drawArrays(gl.TRIANGLES,0,3);if(!reduce)requestAnimationFrame(render);}
+  requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

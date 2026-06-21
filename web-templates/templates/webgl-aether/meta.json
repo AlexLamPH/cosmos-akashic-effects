@@ -1,0 +1,18 @@
+{
+  "code": "CWT-013",
+  "slug": "webgl-aether",
+  "title": "AETHER — Living Interfaces",
+  "title_vi": "AETHER — Giao diện sống (WebGL)",
+  "industry": "tech",
+  "industries": ["tech", "saas", "creative-tech", "product"],
+  "style": "Living WebGL gradient, glass UI",
+  "tier": "showcase",
+  "tags": ["tech", "webgl", "shader", "glsl", "scroll-reactive", "glassmorphism", "mobile-wow", "white-label", "responsive"],
+  "palette": ["#0a0820", "#c08cff", "#2a1a6e", "#c86b9a"],
+  "sections": ["webgl-background", "nav", "hero", "features-glass", "stats", "cta", "footer"],
+  "special": "WEBGL: a full-page animated fragment shader (domain-warped aurora) running on the GPU, REACTING TO SCROLL (hue/flow shift as you scroll). Runs on mobile GPUs; falls back to a CSS gradient if WebGL is unavailable; freezes one frame under prefers-reduced-motion.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Creative-tech product launch with a living WebGL aurora background that flows continuously and shifts as you scroll, glassmorphism content cards over it, feature grid, animated stats, early-access CTA.",
+  "summary_vi": "Trang ra mắt sản phẩm creative-tech với nền WebGL aurora sống động chảy liên tục và đổi theo scroll, thẻ nội dung glassmorphism phủ lên, lưới tính năng, số liệu động, CTA early-access.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
