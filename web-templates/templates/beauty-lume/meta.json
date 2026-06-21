@@ -1,0 +1,18 @@
+{
+  "code": "CWT-012",
+  "slug": "beauty-lume",
+  "title": "LUMÉ — Skincare",
+  "title_vi": "LUMÉ — Mỹ phẩm skincare",
+  "industry": "beauty",
+  "industries": ["beauty", "skincare", "cosmetics", "ecommerce"],
+  "style": "Soft premium, scroll-driven product story",
+  "tier": "showcase",
+  "tags": ["beauty", "skincare", "scroll-story", "scroll-driven", "pinned", "product", "mobile-wow", "white-label", "responsive"],
+  "palette": ["#f3ece2", "#c98a8f", "#8aa07f", "#caa45a"],
+  "sections": ["nav", "intro", "scroll-story", "collection", "benefits", "reviews", "cta", "footer"],
+  "special": "SCROLL-STORY (wow on mobile, no mouse needed): a pinned bottle scales + rotates, its liquid fills, the background morphs color, and 3 text panels cross-fade — all driven by scroll progress. Degrades to a static stacked layout under prefers-reduced-motion.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Premium skincare landing built around a scroll-told product story: scroll a pinned serum bottle through hydration → glow → clean while the liquid rises and the scene shifts color, then collection, benefits, reviews, CTA.",
+  "summary_vi": "Landing skincare cao cấp xoay quanh một câu chuyện sản phẩm kể bằng scroll: cuộn chai serum pinned qua hydration → glow → clean, dung dịch dâng và nền đổi màu, sau đó bộ sưu tập, lợi ích, review, CTA.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
