@@ -168,7 +168,7 @@
     ' float v=0.5+0.5*sin(w*1.1+t+u_scroll*3.1416);',
     ' vec3 col=pal(v*0.8+u_scroll*0.35+t*0.04);',
     ' float vig=1.0-0.35*dot(p,p);col*=clamp(vig,0.35,1.0);',
-    ' col+=0.04*sin(uv.yx*vec2(700.0,500.0));', // subtle grain-ish
+    ' col+=vec3(0.03*sin(uv.x*600.0)*sin(uv.y*480.0));', // subtle grain (vec3, fixed)
     ' gl_FragColor=vec4(col,1.0);}'
   ].join('\n');
   function sh(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return gl.getShaderParameter(s,gl.COMPILE_STATUS)?s:null;}
