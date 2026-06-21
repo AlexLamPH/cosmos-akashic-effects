@@ -1,0 +1,18 @@
+{
+  "code": "CWT-011",
+  "slug": "agency-lumen",
+  "title": "LUMEN — Design & Motion Studio",
+  "title_vi": "LUMEN — Studio thiết kế & chuyển động",
+  "industry": "creative",
+  "industries": ["creative", "agency", "studio", "design", "motion"],
+  "style": "Warm editorial, motion-forward (EFFECT SHOWCASE)",
+  "tier": "showcase",
+  "tags": ["creative", "agency", "custom-cursor", "magnetic", "split-text", "horizontal-scroll", "pinned", "tilt-3d", "marquee", "showcase", "white-label", "responsive"],
+  "palette": ["#f4efe6", "#17140f", "#ff5b39", "#2b59ff", "#7b5cff"],
+  "sections": ["progress-bar", "custom-cursor", "nav", "hero-split-text", "marquee", "horizontal-pinned-gallery", "statement", "tilt-services", "scale-media", "cta", "footer"],
+  "special": "EFFECT SHOWCASE: custom cursor + magnetic buttons + split-text reveal + scroll-PINNED horizontal gallery + 3D tilt cards + scroll progress bar + scale-on-scroll. All vanilla/self-contained; degrades safely on touch + prefers-reduced-motion (gallery becomes a native swipe carousel).",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Motion-forward creative-studio showcase combining seven signature interactions: a custom cursor with magnetic buttons, split-text hero reveal, a scroll-pinned horizontal work gallery, 3D tilt service cards, a scroll progress bar, running marquee, and scale-on-scroll media.",
+  "summary_vi": "Showcase studio sáng tạo nặng chuyển động, gom 7 tương tác đặc trưng: custom cursor + nút magnetic, hero split-text, gallery cuộn-ngang pinned theo scroll, thẻ dịch vụ tilt 3D, progress bar, marquee, media scale theo scroll.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
