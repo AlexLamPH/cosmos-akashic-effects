@@ -21,6 +21,7 @@ for meta_path in sorted(glob.glob(os.path.join(TPL, "*", "meta.json"))):
     if not os.path.exists(html_path):
         continue
     m = json.load(open(meta_path, encoding="utf-8"))
+    slug = os.path.basename(d)
     html = open(html_path, encoding="utf-8").read()
     html, n = re.subn(r'(<head[^>]*>)', lambda mm: mm.group(1) + SHIM, html, count=1, flags=re.I)
     if n == 0:
@@ -30,7 +31,7 @@ for meta_path in sorted(glob.glob(os.path.join(TPL, "*", "meta.json"))):
         "code": m.get("code", "CWT-???"), "title": m.get("title", m.get("slug", "")),
         "title_vi": m.get("title_vi", ""), "industry": m.get("industry", "other"),
         "style": m.get("style", ""), "special": m.get("special", ""),
-        "tags": m.get("tags", []), "b": b64,
+        "tags": m.get("tags", []), "b": b64, "path": "templates/" + slug + "/index.html",
     })
 items.sort(key=lambda x: x["code"])
 industries = sorted(set(i["industry"] for i in items))
@@ -92,7 +93,7 @@ SHELL = """<!doctype html>
   <div class="mbar"><span class="code" id="mcode"></span><h3 id="mtitle"></h3><span class="sp"></span>
     <div class="seg" id="seg"><button data-m="mobile" class="on">📱 Mobile</button><button data-m="desktop">🖥 Desktop</button></div>
     <button id="mclose">✕</button></div>
-  <div class="stagebox"><div class="viewport mobile" id="viewport"><iframe id="mframe" sandbox="allow-scripts allow-popups allow-modals" referrerpolicy="no-referrer"></iframe></div></div>
+  <div class="stagebox"><div class="viewport mobile" id="viewport"><iframe id="mframe" sandbox="allow-scripts allow-same-origin allow-popups allow-modals" referrerpolicy="no-referrer"></iframe></div></div>
 </div>
 <script>
  var DATA=__DATA__, INDS=__INDS__;
@@ -119,7 +120,7 @@ SHELL = """<!doctype html>
  // modal
  function setMode(m){viewport.className='viewport '+m;seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.m===m)})}
  seg.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){setMode(b.dataset.m)})});
- function openModal(d){mcode.textContent=d.code;mtitle.textContent=d.title;setMode('mobile');mframe.src=url(d.b);modal.classList.add('open');document.body.style.overflow='hidden'}
+ function openModal(d){mcode.textContent=d.code;mtitle.textContent=d.title;setMode('mobile');mframe.src=d.path;modal.classList.add('open');document.body.style.overflow='hidden'}
  function closeModal(){modal.classList.remove('open');mframe.src='about:blank';document.body.style.overflow=''}
  document.getElementById('mclose').addEventListener('click',closeModal);
  addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});

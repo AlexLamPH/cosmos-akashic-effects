@@ -1,0 +1,18 @@
+{
+  "code": "CWT-016",
+  "slug": "coffee-roast",
+  "title": "ROAST — From Bean to Cup",
+  "title_vi": "ROAST — Từ hạt đến ly",
+  "industry": "food",
+  "industries": ["food", "coffee", "fnb", "ecommerce", "brand-story"],
+  "style": "Warm cinematic, scroll-told",
+  "tier": "showcase",
+  "tags": ["food", "coffee", "horizontal-story", "horizontal-scroll", "scroll-driven", "storytelling", "white-label", "responsive"],
+  "palette": ["#1a120c", "#e08a3c", "#5a7a3a", "#f3e7d3"],
+  "sections": ["nav", "intro", "horizontal-story-5-chapters", "shop", "footer"],
+  "special": "HORIZONTAL STORY: vertical scroll drives a pinned horizontal track through 5 cinematic chapters (origin → harvest → roast → brew → cup), with a progress rail + chapter dots. Stays scroll-driven on mobile (touch). Reduced-motion → vertical stack.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "A single-origin coffee brand story told as a horizontal scroll journey: vertical scrolling slides five full-screen chapters sideways from hillside to cup, then a shop section.",
+  "summary_vi": "Câu chuyện thương hiệu cà phê single-origin kể bằng cuộn ngang: cuộn dọc làm năm chương toàn màn hình trôi ngang từ đồi đến ly, rồi khu mua hàng.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}

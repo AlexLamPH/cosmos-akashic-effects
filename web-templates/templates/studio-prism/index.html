@@ -1,0 +1,157 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · Web Template Library  ·  CWT-014 "PRISM"  (PAGE-TRANSITION)
+  Industry: Creative studio / portfolio   ·   Style: Editorial, view-based   ·   White-label
+  Special: PAGE-TRANSITION — nav switches between full-screen "views" with a staggered colored
+  curtain wipe (intro reveal on load + wipe between pages). Works on tap (mobile-friendly).
+  Self-contained · offline · prefers-reduced-motion safe · rebrand via :root.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PRISM — Creative studio</title>
+<style>
+  :root{ --bg:#0e0e12; --ink:#f3f1ea; --mut:#9a978d; --line:#26262e;
+    --c1:#ff5b39; --c2:#2b59ff; --c3:#b6e34a; --c4:#c08cff; --maxw:1100px;
+    --serif:"Hoefler Text",Georgia,serif; --sans:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;overflow:hidden;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px;width:100%}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.0;letter-spacing:-.01em}
+  .btn{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--sans);padding:13px 24px;border-radius:999px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--bg);transition:transform .15s}
+  .btn:hover{transform:translateY(-2px)}
+  :focus-visible{outline:2px solid var(--c1);outline-offset:3px}
+
+  header{position:fixed;top:0;left:0;right:0;z-index:70}
+  .nav{display:flex;align-items:center;height:74px;gap:20px}
+  .logo{font-family:var(--serif);font-size:24px;letter-spacing:.04em}
+  .nav-links{display:flex;gap:8px;margin-left:auto}
+  .nav-links button{background:none;border:0;color:var(--mut);font:600 14px var(--sans);cursor:pointer;padding:8px 14px;border-radius:999px;transition:color .2s,background .2s}
+  .nav-links button:hover{color:var(--ink)}
+  .nav-links button.on{color:var(--ink);background:#ffffff14}
+  .burger{display:none}
+
+  /* views */
+  .views{position:fixed;inset:0;top:74px}
+  .view{position:absolute;inset:0;display:flex;align-items:center;opacity:0;visibility:hidden;transform:translateY(18px);
+    transition:opacity .5s .15s,transform .5s .15s,visibility 0s .65s;overflow-y:auto;padding:40px 0}
+  .view.active{opacity:1;visibility:visible;transform:none;transition:opacity .6s .55s,transform .6s .55s}
+  .eyebrow{font:600 12px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--c1)}
+
+  /* home */
+  .home h1{font-size:clamp(50px,11vw,150px);margin:18px 0}
+  .home .row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .home p{color:var(--mut);max-width:34ch;font-size:18px}
+
+  /* work */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:100%}
+  .card{aspect-ratio:16/10;border-radius:16px;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .k1{background:linear-gradient(150deg,#ff5b39,#ffb27a)}
+  .k2{background:linear-gradient(150deg,#2b59ff,#7bd0ff)}.k3{background:linear-gradient(150deg,#b6e34a,#6aa83a)}.k4{background:linear-gradient(150deg,#c08cff,#7b5cff)}
+  .card .cap{position:absolute;left:18px;bottom:16px;color:#fff;z-index:2}
+  .card .cap b{font-size:20px;font-family:var(--serif);font-weight:500}.card .cap span{display:block;font-size:12px;opacity:.85}
+
+  /* about */
+  .about .lead{font-family:var(--serif);font-size:clamp(24px,3.6vw,40px);line-height:1.25;max-width:22ch}
+  .about .cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px}
+  .about p{color:var(--mut)}
+
+  /* contact */
+  .contact h2{font-size:clamp(40px,8vw,110px)}
+  .contact a.mail{border-bottom:3px solid var(--ink)}.contact a.mail:hover{color:var(--c1);border-color:var(--c1)}
+
+  /* CURTAIN */
+  .curtain{position:fixed;inset:0;z-index:80;display:flex;pointer-events:none}
+  .curtain .p{flex:1;transform:translateY(-101%)}
+  .curtain .p:nth-child(1){background:var(--c1)}.curtain .p:nth-child(2){background:var(--c2)}.curtain .p:nth-child(3){background:var(--c3)}.curtain .p:nth-child(4){background:var(--c4)}
+  .curtain.cover .p{transform:translateY(0);transition:transform .42s cubic-bezier(.7,0,.3,1)}
+  .curtain.exit .p{transform:translateY(101%);transition:transform .42s cubic-bezier(.7,0,.3,1)}
+  .curtain .p:nth-child(2){transition-delay:.06s!important}.curtain .p:nth-child(3){transition-delay:.12s!important}.curtain .p:nth-child(4){transition-delay:.18s!important}
+
+  @media(max-width:760px){.grid,.about .cols{grid-template-columns:1fr}.nav-links{gap:2px}.nav-links button{padding:8px 9px;font-size:13px}}
+  @media(prefers-reduced-motion:reduce){.view{transition:opacity .2s}.curtain{display:none}}
+</style>
+</head>
+<body>
+
+<div class="curtain" id="curtain"><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span></div>
+
+<header><div class="wrap nav">
+  <a class="logo" href="#" data-view="home">PRISM</a>
+  <nav class="nav-links" id="nav">
+    <button data-view="home" class="on">Home</button>
+    <button data-view="work">Work</button>
+    <button data-view="about">About</button>
+    <button data-view="contact">Contact</button>
+  </nav>
+</div></header>
+
+<div class="views">
+  <section class="view home active" id="v-home"><div class="wrap">
+    <span class="eyebrow">Independent creative studio</span>
+    <h1>We design<br>with intent.</h1>
+    <div class="row">
+      <p>Brand, web, and motion for companies who want to be remembered — not just seen.</p>
+      <button class="btn" data-view="work">See our work →</button>
+    </div>
+  </div></section>
+
+  <section class="view work" id="v-work"><div class="wrap">
+    <span class="eyebrow">Selected work · 2023—25</span>
+    <h2 style="font-size:clamp(28px,5vw,52px);margin:12px 0 26px">Recent projects</h2>
+    <div class="grid">
+      <div class="card"><div class="k1"></div><div class="cap"><b>Solar Bloom</b><span>Brand · Web</span></div></div>
+      <div class="card"><div class="k2"></div><div class="cap"><b>Driftly</b><span>Product · Motion</span></div></div>
+      <div class="card"><div class="k3"></div><div class="cap"><b>Field Notes</b><span>Identity</span></div></div>
+      <div class="card"><div class="k4"></div><div class="cap"><b>Monolith</b><span>3D · Campaign</span></div></div>
+    </div>
+  </div></section>
+
+  <section class="view about" id="v-about"><div class="wrap">
+    <span class="eyebrow">Studio</span>
+    <p class="lead">A small team of designers, engineers, and one very opinionated cat.</p>
+    <div class="cols">
+      <p>Founded in 2018, PRISM is a creative studio working across brand, digital, and motion. We keep teams small and senior — the people you meet are the people who do the work.</p>
+      <p>We've partnered with startups and household names alike, always with the same goal: make something that earns attention honestly.</p>
+    </div>
+  </div></section>
+
+  <section class="view contact" id="v-contact"><div class="wrap">
+    <span class="eyebrow">Let's talk</span>
+    <h2 style="margin:14px 0 22px">Start a<br>project.</h2>
+    <a class="mail" style="font-family:var(--serif);font-size:clamp(22px,4vw,40px)" href="#">hello@prism.studio</a>
+  </div></section>
+</div>
+
+<script>
+(function(){
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var curtain=document.getElementById('curtain'),views=document.querySelectorAll('.view'),btns=document.querySelectorAll('[data-view]');
+  var current='home',busy=false;
+  function setActive(name){
+    views.forEach(function(v){v.classList.toggle('active',v.id==='v-'+name)});
+    document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.view===name)});
+    current=name;
+  }
+  function go(name){
+    if(name===current||busy)return;
+    if(reduce){setActive(name);return;}
+    busy=true;
+    curtain.classList.remove('exit');curtain.classList.add('cover');      // cover (top -> down)
+    setTimeout(function(){ setActive(name);                                 // swap behind curtain
+      curtain.classList.remove('cover');curtain.classList.add('exit');     // reveal (down -> out)
+      setTimeout(function(){curtain.classList.remove('exit');curtain.querySelectorAll('.p').forEach(function(p){p.style.transform=''});busy=false;},560);
+    },520);
+  }
+  btns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();go(b.dataset.view)})});
+  // intro reveal
+  if(!reduce){curtain.classList.add('cover');requestAnimationFrame(function(){requestAnimationFrame(function(){
+    setTimeout(function(){curtain.classList.remove('cover');curtain.classList.add('exit');
+      setTimeout(function(){curtain.classList.remove('exit');curtain.querySelectorAll('.p').forEach(function(p){p.style.transform=''});},560);},180);
+  })});}
+})();
+</script>
+</body>
+</html>

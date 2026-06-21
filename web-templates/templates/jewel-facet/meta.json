@@ -1,0 +1,20 @@
+{
+  "code": "CWT-015",
+  "slug": "jewel-facet",
+  "title": "FACET — Fine Jewelry",
+  "title_vi": "FACET — Trang sức cao cấp",
+  "industry": "luxury",
+  "industries": ["luxury", "jewelry", "ecommerce", "product"],
+  "style": "Dark elegant, real 3D",
+  "tier": "showcase",
+  "tags": ["luxury", "jewelry", "3d-model", "model-viewer", "rotate-on-scroll", "glb", "white-label", "responsive"],
+  "palette": ["#0c0b10", "#d8b46a", "#9b7bff", "#131119"],
+  "sections": ["nav", "3d-gem-scroll-story", "collection", "craft", "cta", "footer"],
+  "special": "REAL 3D MODEL on scroll: a self-generated faceted gem (model.glb, made in pure Python) rendered with <model-viewer> that ROTATES + tilts as you scroll (drag to spin too). model-viewer is the one external lib here; GLB ships in-folder; CSS glow fallback if blocked. Reduced-motion safe.",
+  "white_label": true, "self_contained": false,
+  "deps": ["@google/model-viewer (CDN)", "model.glb (local)"],
+  "responsive": true,
+  "summary": "Dark luxury jewelry landing built around a real 3D gem that turns as you scroll through the cut / sourcing / bespoke story, then a collection grid, craft stats, and a booking CTA.",
+  "summary_vi": "Landing trang sức tối sang xoay quanh một viên ngọc 3D thật xoay khi cuộn qua câu chuyện về vết cắt / nguồn gốc / đặt riêng, sau đó lưới bộ sưu tập, số liệu chế tác, CTA đặt hẹn.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
