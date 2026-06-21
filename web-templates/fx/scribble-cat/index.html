@@ -1,0 +1,317 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · FX — "Scribble Cat"  (Ra, from Alex's reference IMG_3847 / Goro Fujita style)
+  A charcoal-scribble cat that DRAWS ITSELF stroke by stroke, with big googly eyes that
+  follow your cursor / finger, sitting on a hand-painted (procedural) grass field.
+  Tap / click anywhere = re-scribble. Self-contained Canvas 2D · offline · touch + reduced-motion aware.
+
+  NOTE: this recreates the *scribble art style as a live effect* — not an AI-generated raster painting.
+  Swap the cat for another character by editing buildCat(); tune feel via CFG below.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scribble Cat</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#3a5a27;
+    font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+  canvas{display:block;width:100vw;height:100dvh;touch-action:none;cursor:pointer}
+  .title{position:fixed;top:max(26px,env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:2;pointer-events:none;
+    font:600 13px/1 "Segoe UI",system-ui,sans-serif;letter-spacing:.42em;text-transform:uppercase;color:#fff;opacity:0;
+    transition:opacity 1.4s ease .3s;text-shadow:0 2px 18px rgba(0,0,0,.55)}
+  .title.show{opacity:.82}
+  .hint{position:fixed;left:0;right:0;bottom:max(26px,env(safe-area-inset-bottom));text-align:center;z-index:2;pointer-events:none;
+    font:500 11px/1.4 "Segoe UI",system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#fff;opacity:0;
+    transition:opacity 1.2s ease;text-shadow:0 2px 14px rgba(0,0,0,.55)}
+  .hint.show{opacity:.6}
+  @media(prefers-reduced-motion:reduce){.hint{display:none}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="title" id="title">Scribble Cat</div>
+<div class="hint" id="hint">move to meet its eyes · tap to re-draw</div>
+<script>
+(function(){
+  "use strict";
+  var reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d',{alpha:false});
+
+  // ---------- tunable feel ----------
+  var CFG = {
+    catScale:   0.58,   // cat size relative to min(W,H)
+    drawSecs:   2.2,    // how long the self-draw takes
+    pupilFollow:0.22,   // how strongly pupils chase the pointer (0..1-ish)
+    pupilMax:   0.052,  // max pupil travel (× S)
+    breathAmp:  0.006,  // breathing bob (× S)
+    breathMs:   3600,   // breathing period
+    blinkMin:   3200, blinkMax:6800, blinkMs:130
+  };
+
+  // ---------- offscreen layers ----------
+  var bg = document.createElement('canvas'), bgx = bg.getContext('2d');     // painted grass (static)
+  var cat = document.createElement('canvas'), catx = cat.getContext('2d');  // the scribble cat (built over time)
+
+  var W,H,DPR,S,cx,cy;
+  var STROKES=[], pupilGate=0, eyeL, eyeR, eyeR_, draw, t0=0;
+  var pointer={x:0,y:0,have:false};
+  var nextBlink=0, blinkTo=0;
+
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function P(ox,oy){return {x:cx+ox*S, y:cy+oy*S};}
+
+  // ===== scribble primitives =====================================================
+  // a continuous tangled "scribble" that wanders, kept inside an ellipse
+  function scribbleWalk(ocx,ocy,rx,ry,steps,stepFrac){
+    var pts=[], a=rnd(0,6.28), x=cx+ocx*S, y=cy+ocy*S;
+    var RX=rx*S, RY=ry*S, len=((RX+RY)/2)*stepFrac;
+    pts.push({x:x,y:y});
+    for(var i=0;i<steps;i++){
+      a += rnd(-0.62,0.62);
+      var nx=(x-(cx+ocx*S))/RX, ny=(y-(cy+ocy*S))/RY, d=Math.sqrt(nx*nx+ny*ny);
+      if(d>0.86){ a = Math.atan2((cy+ocy*S)-y,(cx+ocx*S)-x) + rnd(-0.5,0.5); } // steer back inside
+      x += Math.cos(a)*len; y += Math.sin(a)*len;
+      pts.push({x:x,y:y});
+    }
+    return pts;
+  }
+  // a single slightly wobbly line A->B
+  function roughLine(ox1,oy1,ox2,oy2,segs,wob){
+    var a=P(ox1,oy1), b=P(ox2,oy2), pts=[], dx=b.x-a.x, dy=b.y-a.y,
+        L=Math.hypot(dx,dy), px=-dy/L, py=dx/L; // perpendicular
+    for(var i=0;i<=segs;i++){
+      var f=i/segs, w=(i===0||i===segs)?0:rnd(-wob,wob)*S;
+      pts.push({x:a.x+dx*f+px*w, y:a.y+dy*f+py*w});
+    }
+    return pts;
+  }
+  // fill a triangle (3 local pts) with short scribble strokes
+  function scribbleTri(p,n,col,w,al){
+    function inside(P0){ // barycentric test
+      var d=(p[1].y-p[2].y)*(p[0].x-p[2].x)+(p[2].x-p[1].x)*(p[0].y-p[2].y);
+      var a=((p[1].y-p[2].y)*(P0.x-p[2].x)+(p[2].x-p[1].x)*(P0.y-p[2].y))/d;
+      var b=((p[2].y-p[0].y)*(P0.x-p[2].x)+(p[0].x-p[2].x)*(P0.y-p[2].y))/d;
+      return a>=0&&b>=0&&(a+b)<=1;
+    }
+    var minx=Math.min(p[0].x,p[1].x,p[2].x), maxx=Math.max(p[0].x,p[1].x,p[2].x),
+        miny=Math.min(p[0].y,p[1].y,p[2].y), maxy=Math.max(p[0].y,p[1].y,p[2].y);
+    for(var i=0;i<n;i++){
+      var ax=rnd(minx,maxx), ay=rnd(miny,maxy);
+      var ang=rnd(0,6.28), ln=rnd(0.02,0.06)*S;
+      var bx=ax+Math.cos(ang)*ln, by=ay+Math.sin(ang)*ln;
+      if(inside({x:ax,y:ay})) push([{x:ax,y:ay},{x:bx,y:by}],col,w,al);
+    }
+  }
+  function push(pts,col,w,al){ STROKES.push({pts:pts,col:col,w:w,al:al}); }
+
+  // ===== build the cat (ordered for a natural self-draw) =========================
+  function buildCat(){
+    STROKES=[];
+    var INK='rgba(20,18,24,1)';
+
+    // 1) EARS — outline + dark fill + muted inner ear
+    var earL=[P(-0.225,-0.40), P(-0.32,-0.15), P(-0.085,-0.205)];
+    var earR=[P( 0.225,-0.40), P( 0.32,-0.15), P( 0.085,-0.205)];
+    push(roughLine(-0.225,-0.40,-0.32,-0.15,5,0.012),INK,2.2*DPR,0.85);
+    push(roughLine(-0.225,-0.40,-0.085,-0.205,5,0.012),INK,2.2*DPR,0.85);
+    push(roughLine( 0.225,-0.40, 0.32,-0.15,5,0.012),INK,2.2*DPR,0.85);
+    push(roughLine( 0.225,-0.40, 0.085,-0.205,5,0.012),INK,2.2*DPR,0.85);
+    scribbleTri(earL,46,INK,1.9*DPR,0.5);
+    scribbleTri(earR,46,INK,1.9*DPR,0.5);
+    var inL=[P(-0.205,-0.345),P(-0.255,-0.185),P(-0.125,-0.215)];
+    var inR=[P( 0.205,-0.345),P( 0.255,-0.185),P( 0.125,-0.215)];
+    scribbleTri(inL,22,'rgba(150,98,98,0.62)',2.2*DPR,0.6);
+    scribbleTri(inR,22,'rgba(150,98,98,0.62)',2.2*DPR,0.6);
+
+    // 2) BODY — a few continuous tangled scribbles = the black mass
+    push(scribbleWalk(0,0.05,0.30,0.345,470,0.085),INK,2.3*DPR,0.5);
+    push(scribbleWalk(0,0.04,0.27,0.31,360,0.095),INK,2.0*DPR,0.45);
+    push(scribbleWalk(0,0.17,0.275,0.20,260,0.10),INK,2.1*DPR,0.5);   // wider lower body
+    push(scribbleWalk(-0.02,0.0,0.20,0.24,220,0.11),INK,1.8*DPR,0.4); // inner density
+
+    // 3) white belly swirl (lower-left, like the reference)
+    push(scribbleWalk(-0.10,0.17,0.115,0.135,150,0.12),'rgba(236,242,232,0.78)',2.6*DPR,0.7);
+    push(scribbleWalk(-0.10,0.17,0.075,0.09,90,0.14),'rgba(236,242,232,0.78)',2.4*DPR,0.7);
+
+    // 4) legs / paws splayed at the bottom
+    push(roughLine(-0.10,0.33,-0.205,0.45,5,0.02),INK,2.6*DPR,0.7);
+    push(roughLine( 0.10,0.33, 0.205,0.45,5,0.02),INK,2.6*DPR,0.7);
+    push(roughLine(-0.02,0.36, 0.02,0.47,4,0.02),INK,2.4*DPR,0.6);
+    push(scribbleWalk(-0.205,0.45,0.05,0.035,40,0.2),INK,2.2*DPR,0.6); // paw
+    push(scribbleWalk( 0.205,0.45,0.05,0.035,40,0.2),INK,2.2*DPR,0.6);
+
+    // 5) a curl of tail to the lower right
+    push(roughLine(0.27,0.20,0.40,0.28,6,0.03),INK,2.4*DPR,0.6);
+    push(scribbleWalk(0.40,0.30,0.06,0.06,60,0.18),INK,2.0*DPR,0.55);
+
+    // 6) EYES — big white scribble discs + sketchy outline  (pupils drawn live)
+    eyeL=P(-0.125,-0.055); eyeR=P(0.125,-0.055); eyeR_=0.105*S;
+    push(scribbleWalk(-0.125,-0.055,0.092,0.092,130,0.12),'rgba(242,246,238,0.82)',2.7*DPR,0.7);
+    push(scribbleWalk(-0.125,-0.055,0.06,0.06,70,0.15),'rgba(242,246,238,0.82)',2.5*DPR,0.7);
+    push(scribbleWalk( 0.125,-0.055,0.092,0.092,130,0.12),'rgba(242,246,238,0.82)',2.7*DPR,0.7);
+    push(scribbleWalk( 0.125,-0.055,0.06,0.06,70,0.15),'rgba(242,246,238,0.82)',2.5*DPR,0.7);
+    // sketchy eye rings (a couple of loose loops)
+    eyeRing(-0.125,-0.055,0.10); eyeRing(0.125,-0.055,0.10);
+    pupilGate = STROKES.length; // pupils appear once self-draw reaches here
+
+    // 7) nose + a few whiskers
+    push([P(-0.022,0.01),P(0.022,0.01),P(0,0.045),P(-0.022,0.01)],'rgba(40,24,30,0.9)',2.4*DPR,0.85);
+    for(var s=-1;s<=1;s+=2){
+      push(roughLine(0.03*s,0.03,0.26*s,-0.01,3,0.012),'rgba(30,28,34,0.5)',1.2*DPR,0.5);
+      push(roughLine(0.03*s,0.05,0.26*s,0.06,3,0.012),'rgba(30,28,34,0.5)',1.2*DPR,0.5);
+    }
+
+    // 8) stray "fur" hairs radiating from the body — drawn last for a fuzzy edge
+    for(var i=0;i<58;i++){
+      var a=rnd(0,6.28), rr=rnd(0.27,0.345);
+      var ox=Math.cos(a)*rr*0.95, oy=0.05+Math.sin(a)*rr;
+      var ln=rnd(0.025,0.07);
+      push(roughLine(ox,oy, ox+Math.cos(a)*ln, oy+Math.sin(a)*ln,2,0.01),'rgba(16,15,20,0.85)',1.3*DPR,0.8);
+    }
+
+    // self-draw bookkeeping
+    var totalSeg=0; for(var k=0;k<STROKES.length;k++) totalSeg+=STROKES[k].pts.length-1;
+    draw={si:0,pi:0,done:false, speed:Math.max(7, Math.ceil(totalSeg/(CFG.drawSecs*60)))};
+    catx.clearRect(0,0,W,H);
+  }
+  function eyeRing(ox,oy,r){
+    var pts=[], c=P(ox,oy), R=r*S;
+    for(var i=0;i<=26;i++){ var a=i/26*6.6; var rr=R*(1+rnd(-0.05,0.05)); pts.push({x:c.x+Math.cos(a)*rr,y:c.y+Math.sin(a)*rr}); }
+    push(pts,'rgba(14,13,17,0.8)',1.6*DPR,0.8);
+  }
+
+  // ===== painted grass background (drawn once) ====================================
+  function paintGrass(){
+    var g=bgx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#557e35'); g.addColorStop(0.5,'#4d7a31'); g.addColorStop(1,'#385823');
+    bgx.fillStyle=g; bgx.fillRect(0,0,W,H);
+    var greens=['#3c6428','#4a7a30','#5f9440','#6fa84a','#356024','#7fb255','#2f5524'];
+    var n=Math.floor(W*H/(900/DPR/DPR)); n=Math.min(n,4200);
+    for(var i=0;i<n;i++){
+      var x=Math.random()*W, y=Math.random()*H;
+      var ln=rnd(5,20)*DPR, ang=rnd(-0.9,0.9)+ (Math.random()<0.5?1.57:0); // many blade-ish, some across
+      bgx.strokeStyle=greens[(Math.random()*greens.length)|0];
+      bgx.globalAlpha=rnd(0.10,0.34); bgx.lineWidth=rnd(1.4,3.2)*DPR; bgx.lineCap='round';
+      bgx.beginPath();
+      var mx=x+Math.cos(ang)*ln*0.5, my=y+Math.sin(ang)*ln*0.5;
+      bgx.moveTo(x-Math.cos(ang)*ln*0.5,y-Math.sin(ang)*ln*0.5);
+      bgx.quadraticCurveTo(mx+rnd(-3,3)*DPR,my+rnd(-3,3)*DPR, x+Math.cos(ang)*ln*0.5,y+Math.sin(ang)*ln*0.5);
+      bgx.stroke();
+    }
+    // brown flecks
+    bgx.globalAlpha=1;
+    for(var b=0;b<Math.min(260,n/14);b++){
+      bgx.fillStyle=Math.random()<0.5?'#5a4326':'#6b4f2e';
+      bgx.globalAlpha=rnd(0.2,0.5);
+      bgx.beginPath(); bgx.arc(Math.random()*W,Math.random()*H,rnd(0.8,2.4)*DPR,0,6.3); bgx.fill();
+    }
+    // a few yellow doodle squiggles (like the reference)
+    var yel=['#cdd14e','#dad95c','#e6e06a'];
+    for(var q=0;q<9;q++){
+      var sx=rnd(0.08,0.92)*W, sy=rnd(0.1,0.9)*H, sc=rnd(10,26)*DPR;
+      bgx.strokeStyle=yel[(Math.random()*3)|0]; bgx.globalAlpha=rnd(0.45,0.8);
+      bgx.lineWidth=rnd(1.6,2.6)*DPR; bgx.lineCap='round'; bgx.beginPath();
+      for(var s2=0;s2<=10;s2++){ var a2=s2/10*6.28*rnd(0.8,1.4); var rr=sc*(s2/10);
+        var px=sx+Math.cos(a2)*rr*0.6, py=sy+Math.sin(a2)*rr; if(s2===0)bgx.moveTo(px,py); else bgx.lineTo(px,py); }
+      bgx.stroke();
+    }
+    bgx.globalAlpha=1;
+    // soft shadow under the cat (grounding)
+    var shy=cy+0.36*S, sh=bgx.createRadialGradient(cx,shy,0,cx,shy,0.34*S);
+    sh.addColorStop(0,'rgba(0,0,0,0.34)'); sh.addColorStop(1,'rgba(0,0,0,0)');
+    bgx.fillStyle=sh; bgx.beginPath(); bgx.ellipse(cx,shy,0.30*S,0.10*S,0,0,6.3); bgx.fill();
+    // gentle vignette
+    var vg=bgx.createRadialGradient(cx,cy,S*0.4,cx,cy,Math.max(W,H)*0.75);
+    vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.28)');
+    bgx.fillStyle=vg; bgx.fillRect(0,0,W,H);
+  }
+
+  // ===== setup / resize ===========================================================
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=cv.width=bg.width=cat.width=Math.floor(innerWidth*DPR);
+    H=cv.height=bg.height=cat.height=Math.floor(innerHeight*DPR);
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    S=Math.min(W,H)*CFG.catScale; cx=W*0.5; cy=H*0.52;
+    pointer.x=cx; pointer.y=cy-0.22*S;              // look forward before any input
+    paintGrass(); buildCat(); t0=performance.now();
+    nextBlink=t0+rnd(CFG.blinkMin,CFG.blinkMax);
+    if(reduce){ while(!draw.done) advanceDraw(); } // draw instantly for reduced-motion
+  }
+
+  // ===== self-draw advance (charcoal segments onto cat layer) =====================
+  function drawSeg(a,b,col,w,al){
+    catx.strokeStyle=col; catx.globalAlpha=al; catx.lineWidth=w*rnd(0.82,1.18);
+    catx.lineCap='round'; catx.lineJoin='round';
+    catx.beginPath(); catx.moveTo(a.x,a.y); catx.lineTo(b.x,b.y); catx.stroke();
+  }
+  function advanceDraw(){
+    for(var k=0;k<draw.speed;k++){
+      if(draw.si>=STROKES.length){ draw.done=true; break; }
+      var s=STROKES[draw.si];
+      if(draw.pi>=s.pts.length-1){ draw.si++; draw.pi=0; continue; }
+      drawSeg(s.pts[draw.pi], s.pts[draw.pi+1], s.col, s.w, s.al);
+      draw.pi++;
+    }
+    catx.globalAlpha=1;
+  }
+
+  // ===== live eyes ================================================================
+  function drawEyes(by,now){
+    var blinking = now < blinkTo;
+    var eyes=[eyeL,eyeR];
+    for(var i=0;i<2;i++){
+      var e=eyes[i], ey=e.y+by;
+      if(blinking){ // closed: a dark down-curved lash
+        ctx.strokeStyle='rgba(18,16,22,0.92)'; ctx.lineWidth=3*DPR; ctx.lineCap='round';
+        ctx.beginPath();
+        ctx.moveTo(e.x-eyeR_*0.7,ey);
+        ctx.quadraticCurveTo(e.x,ey+eyeR_*0.55, e.x+eyeR_*0.7,ey);
+        ctx.stroke();
+        continue;
+      }
+      var dx=pointer.x-e.x, dy=pointer.y-ey, d=Math.hypot(dx,dy)||1;
+      var off=Math.min(CFG.pupilMax*S, d*CFG.pupilFollow);
+      var px=e.x+dx/d*off, py=ey+dy/d*off;
+      // pupil
+      ctx.fillStyle='#0b0a0d'; ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.arc(px,py,eyeR_*0.40,0,6.3); ctx.fill();
+      // catch-light
+      ctx.fillStyle='rgba(255,255,255,0.92)';
+      ctx.beginPath(); ctx.arc(px-eyeR_*0.13,py-eyeR_*0.15,eyeR_*0.10,0,6.3); ctx.fill();
+    }
+  }
+
+  // ===== main loop ================================================================
+  function frame(now){
+    if(!reduce) advanceDraw();
+    var by = reduce?0:Math.sin((now)/CFG.breathMs*6.283)*CFG.breathAmp*S;
+    ctx.globalAlpha=1; ctx.drawImage(bg,0,0); ctx.drawImage(cat,0,by);
+    if(draw.si>=pupilGate || draw.done){
+      if(!reduce && now>nextBlink){ blinkTo=now+CFG.blinkMs; nextBlink=now+rnd(CFG.blinkMin,CFG.blinkMax); }
+      drawEyes(by,now);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ===== input ====================================================================
+  function setPointer(x,y){ pointer.x=x*DPR; pointer.y=y*DPR; pointer.have=true; hideHint(); }
+  function redraw(){ buildCat(); t0=performance.now(); }
+  cv.addEventListener('pointermove',function(e){ setPointer(e.clientX,e.clientY); });
+  cv.addEventListener('pointerdown',function(e){ setPointer(e.clientX,e.clientY); redraw(); });
+
+  var hint=document.getElementById('hint'), title=document.getElementById('title'), hinted=false;
+  setTimeout(function(){title.classList.add('show');},300);
+  setTimeout(function(){ if(!pointer.have) hint.classList.add('show'); },1800);
+  function hideHint(){ if(!hinted){hinted=true; hint.classList.remove('show'); setTimeout(function(){title.style.opacity='0.45';},2600);} }
+
+  // ===== go =======================================================================
+  var rt;
+  addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(resize,180); });
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
