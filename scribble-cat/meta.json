@@ -1,0 +1,24 @@
+{
+  "slug": "scribble-cat",
+  "card_number": "AK-CDP-00000BW",
+  "tier": "showcase",
+  "title": "Cosmos Scribble Cat — a charcoal-scribble cat that draws itself, with googly eyes that follow your cursor, on painted grass",
+  "title_vi": "Cosmos Scribble Cat — mèo vẽ nguệch ngoạc tự vẽ, mắt nhìn theo con trỏ, trên nền cỏ vẽ tay",
+  "tags": [
+    "scribble",
+    "hand-drawn",
+    "self-drawing",
+    "canvas2d",
+    "googly-eyes",
+    "interactive",
+    "painted-grass",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A loose charcoal-scribble cat draws itself stroke by stroke (tangled random-walk strokes + fuzzy stray-hair edge), with big white scribble eyes whose pupils track the pointer, sitting on a procedurally painted grass field. Tap to re-scribble. Self-contained Canvas 2D, offline, reduced-motion aware.",
+  "usage_notes": "RUN: open index.html (no deps). TECHNIQUES: body = a few continuous random-walk scribbles bounded to an ellipse; fuzzy edge = short radiating hair strokes; eyes = white scribble discs with live pupils; bg = layered gradients + brush dabs + yellow doodles + soft shadow; self-draw = incremental segment reveal. INTERACTION: move = eyes follow; tap/click = re-draw. CUSTOMISE: swap the character in buildCat(); tune size/draw-speed/pupil-follow/colors via the CFG block.",
+  "summary_vi": "Một chú mèo vẽ bằng nét than nguệch ngoạc tự vẽ chính mình từng nét, mắt to nhìn theo con trỏ/ngón tay, ngồi trên nền cỏ vẽ procedural. Chạm để vẽ lại. Canvas 2D tự chứa, offline.",
+  "notes": "Reference-recreation (Ra) from Alex's IMG_3847 (Goro Fujita scribble style). Lives in repo cosmos-akashic-effects/web-templates/fx/scribble-cat/."
+}

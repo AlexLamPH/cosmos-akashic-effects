@@ -1,0 +1,279 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · FX — "Glitch Poster"  (Ra, from Alex's reference IMG_4689 — 故障艺术 / glitch art + cyberpunk)
+  A live glitch-art treatment: RGB channel split (chromatic aberration), horizontal slice displacement,
+  scanlines, datamosh blocks, VHS roll. Ships with a procedural cyberpunk poster — OR drop / upload
+  YOUR OWN image (e.g. an AI-generated character) and it glitches that. Save the frame as PNG.
+  Self-contained Canvas 2D · offline · touch + reduced-motion aware.
+
+  NOTE: this is the glitch *effect* in code — it does not generate the raster artwork itself.
+  Feed it a subject image; the effect adds the glitch/cyberpunk treatment live.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glitch Poster</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#08080c;
+    font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;color:#eaf2ff}
+  canvas{display:block;width:100vw;height:100dvh;touch-action:none}
+  .ui{position:fixed;z-index:3;display:flex;gap:8px}
+  .ui.tr{top:max(16px,env(safe-area-inset-top));right:16px}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:11px;cursor:pointer;
+    font:600 12px/1 "Segoe UI",system-ui,sans-serif;letter-spacing:.04em;color:#dfe9ff;
+    background:rgba(20,26,44,.62);border:1px solid rgba(130,170,255,.28);backdrop-filter:blur(9px);
+    -webkit-backdrop-filter:blur(9px);transition:.18s;user-select:none}
+  .btn:hover{background:rgba(40,52,86,.8);border-color:rgba(150,200,255,.55);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .title{position:fixed;top:max(18px,env(safe-area-inset-top));left:18px;z-index:2;pointer-events:none;
+    font:700 12px/1 "Segoe UI",system-ui,sans-serif;letter-spacing:.4em;text-transform:uppercase;
+    color:#bcd0ff;opacity:.0;transition:opacity 1.2s ease .3s;text-shadow:0 0 18px rgba(90,150,255,.5)}
+  .title.show{opacity:.9}
+  .hint{position:fixed;left:0;right:0;bottom:max(20px,env(safe-area-inset-bottom));text-align:center;z-index:2;
+    pointer-events:none;font:500 11px/1.5 "Segoe UI",system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;
+    color:#aebfe6;opacity:0;transition:opacity 1s ease}
+  .hint.show{opacity:.6}
+  .drop{position:fixed;inset:0;z-index:4;display:none;align-items:center;justify-content:center;
+    background:rgba(8,12,28,.74);backdrop-filter:blur(4px);font:700 18px/1 system-ui;letter-spacing:.1em;color:#cfe0ff;
+    border:3px dashed rgba(140,180,255,.6)}
+  .drop.on{display:flex}
+  @media(prefers-reduced-motion:reduce){.hint{display:none}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="title" id="title">Glitch Poster</div>
+<div class="ui tr">
+  <label class="btn" title="Use your own image">▲ Image<input id="file" type="file" accept="image/*" hidden></label>
+  <div class="btn" id="shot">↻ Glitch</div>
+  <div class="btn" id="save">▼ Save</div>
+</div>
+<div class="hint" id="hint">move / tap to glitch · drop an image to use your own</div>
+<div class="drop" id="drop">Drop image to glitch</div>
+<script>
+(function(){
+  "use strict";
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv=document.getElementById('c'), ctx=cv.getContext('2d',{alpha:false});
+  var W,H,DPR,PW,PH,px,py,userImg=null;
+
+  // offscreen layers
+  function oc(){return document.createElement('canvas');}
+  var subj=oc(), subjx=subj.getContext('2d');                 // clean poster
+  var chR=oc(),chG=oc(),chB=oc(), chRx,chGx,chBx;             // channel-isolated copies
+  var pose=oc(), posex=pose.getContext('2d');                 // chromatic-split frame
+  var scanPat=null;
+
+  var CFG={ aspect:0.8, chromaMax:7, sliceMax:0.15, scan:0.16 }; // poster w/h, glitch knobs
+  function rnd(a,b){return a+Math.random()*(b-a);}
+
+  // ---------------- procedural cyberpunk poster (default subject) ----------------
+  function cloud(c,cx,cy,s,al){
+    for(var i=0;i<7;i++){ var a=rnd(0,6.28),d=rnd(0,s),r=rnd(s*0.4,s*0.9);
+      var gx=c.createRadialGradient(cx+Math.cos(a)*d,cy+Math.sin(a)*d*0.5,0, cx+Math.cos(a)*d,cy+Math.sin(a)*d*0.5,r);
+      gx.addColorStop(0,'rgba(244,248,255,'+al+')'); gx.addColorStop(1,'rgba(244,248,255,0)');
+      c.fillStyle=gx; c.beginPath(); c.ellipse(cx+Math.cos(a)*d,cy+Math.sin(a)*d*0.5,r,r*0.62,0,0,6.3); c.fill(); }
+  }
+  function drawProcedural(){
+    var c=subjx;
+    // sky
+    var sky=c.createLinearGradient(0,0,0,PH);
+    sky.addColorStop(0,'#0a0f2e'); sky.addColorStop(.42,'#241f43');
+    sky.addColorStop(.72,'#5a2553'); sky.addColorStop(1,'#8a3a4e');
+    c.fillStyle=sky; c.fillRect(0,0,PW,PH);
+    // moon glow
+    var glow=c.createRadialGradient(PW*0.62,PH*0.26,0,PW*0.62,PH*0.26,PH*0.42);
+    glow.addColorStop(0,'rgba(150,210,255,.55)'); glow.addColorStop(1,'rgba(150,210,255,0)');
+    c.fillStyle=glow; c.fillRect(0,0,PW,PH);
+    c.fillStyle='rgba(240,248,255,.95)'; c.beginPath(); c.arc(PW*0.62,PH*0.24,PH*0.05,0,6.3); c.fill();
+    // stars
+    for(var s=0;s<70;s++){ c.globalAlpha=rnd(.2,.8); c.fillStyle='#dfeaff';
+      c.fillRect(rnd(0,PW),rnd(0,PH*0.5),rnd(1,2.2)*DPR,rnd(1,2.2)*DPR); }
+    c.globalAlpha=1;
+    // mid clouds
+    cloud(c,PW*0.3,PH*0.42,PH*0.06,.5); cloud(c,PW*0.78,PH*0.5,PH*0.07,.45);
+    // city — two depth layers
+    function city(baseY,maxH,col,win){ var x=0; c.fillStyle=col;
+      while(x<PW){ var bw=rnd(PW*0.04,PW*0.11), bh=rnd(maxH*0.4,maxH);
+        c.fillRect(x,baseY-bh,bw,bh+PH);
+        if(win){ for(var w2=0;w2<6;w2++){ if(Math.random()<.5) continue;
+          c.fillStyle=Math.random()<.5?'rgba(120,220,255,.8)':'rgba(255,200,120,.75)';
+          c.fillRect(x+rnd(3,bw-6),baseY-bh+rnd(4,bh-6),2.4*DPR,2.4*DPR); c.fillStyle=col; } }
+        x+=bw+rnd(2,8); } }
+    city(PH*0.74,PH*0.20,'#1b2238',false);
+    city(PH*0.80,PH*0.30,'#0b0f1e',true);
+    // lower clouds (foreground, like the reference)
+    cloud(c,PW*0.22,PH*0.86,PH*0.10,.7); cloud(c,PW*0.7,PH*0.9,PH*0.11,.72); cloud(c,PW*0.45,PH*0.95,PH*0.09,.6);
+    // ---- subject silhouette: a luminous figure with flowing hair ----
+    var cxp=PW*0.5, hy=PH*0.34, hr=PW*0.11;
+    var grd=c.createLinearGradient(0,hy-hr,0,PH*0.78);
+    grd.addColorStop(0,'#eef4fb'); grd.addColorStop(.4,'#a9e0ec'); grd.addColorStop(.8,'#5f93d6'); grd.addColorStop(1,'rgba(60,90,150,.2)');
+    // hair (behind), flowing both sides
+    c.fillStyle=grd; c.beginPath();
+    c.moveTo(cxp-hr*1.5,hy);
+    c.bezierCurveTo(cxp-hr*2.4,hy+PH*0.18, cxp-hr*2.0,hy+PH*0.34, cxp-hr*1.1,PH*0.78);
+    c.lineTo(cxp+hr*1.1,PH*0.78);
+    c.bezierCurveTo(cxp+hr*2.0,hy+PH*0.34, cxp+hr*2.4,hy+PH*0.18, cxp+hr*1.5,hy);
+    c.closePath(); c.globalAlpha=.92; c.fill(); c.globalAlpha=1;
+    // shoulders/bust
+    c.beginPath(); c.moveTo(cxp-hr*0.55,hy+hr*0.7);
+    c.bezierCurveTo(cxp-hr*2.0,PH*0.6, cxp-hr*1.9,PH*0.78, cxp-hr*1.9,PH*0.8);
+    c.lineTo(cxp+hr*1.9,PH*0.8);
+    c.bezierCurveTo(cxp+hr*1.9,PH*0.78, cxp+hr*2.0,PH*0.6, cxp+hr*0.55,hy+hr*0.7);
+    c.closePath(); c.fill();
+    // head
+    c.beginPath(); c.ellipse(cxp,hy,hr,hr*1.16,0,0,6.3); c.fill();
+    // rim lights (baked colour fringe → reads great under glitch)
+    c.lineWidth=2.4*DPR; c.lineJoin='round';
+    c.strokeStyle='rgba(120,235,255,.85)'; c.beginPath();
+    c.moveTo(cxp-hr*0.95,hy-hr*0.2); c.bezierCurveTo(cxp-hr*1.4,hy+PH*0.2,cxp-hr*1.2,PH*0.5,cxp-hr*1.0,PH*0.74); c.stroke();
+    c.strokeStyle='rgba(255,110,200,.8)'; c.beginPath();
+    c.moveTo(cxp+hr*0.95,hy-hr*0.2); c.bezierCurveTo(cxp+hr*1.4,hy+PH*0.2,cxp+hr*1.2,PH*0.5,cxp+hr*1.0,PH*0.74); c.stroke();
+    // hair strands
+    c.strokeStyle='rgba(255,255,255,.5)'; c.lineWidth=1.3*DPR;
+    for(var k=0;k<10;k++){ var sx=cxp+rnd(-hr*1.3,hr*1.3); c.beginPath(); c.moveTo(sx,hy+rnd(0,hr));
+      c.quadraticCurveTo(sx+rnd(-30,30),PH*0.5, sx+rnd(-40,40),PH*0.76); c.stroke(); }
+    // typography + UI marks (white-label)
+    c.fillStyle='rgba(225,238,255,.92)';
+    c.font='700 '+(11*DPR)+'px "Segoe UI",system-ui,sans-serif';
+    c.fillText('C O S M O S   A I   L A B', 22*DPR, 30*DPR);
+    c.font='800 '+(46*DPR)+'px "Segoe UI",system-ui,sans-serif';
+    c.fillText('GLITCH', 20*DPR, PH-26*DPR);
+    c.font='600 '+(10*DPR)+'px ui-monospace,Menlo,monospace'; c.fillStyle='rgba(150,210,255,.85)';
+    c.fillText('SYS::0xC0SM0S / NO.017', 22*DPR, PH-12*DPR);
+    // corner brackets
+    c.strokeStyle='rgba(180,210,255,.5)'; c.lineWidth=1.5*DPR; var m=16*DPR,L=22*DPR;
+    [[m,m,1,1],[PW-m,m,-1,1],[m,PH-m,1,-1],[PW-m,PH-m,-1,-1]].forEach(function(q){
+      c.beginPath(); c.moveTo(q[0]+q[2]*L,q[1]); c.lineTo(q[0],q[1]); c.lineTo(q[0],q[1]+q[3]*L); c.stroke(); });
+  }
+  function drawUserImage(){
+    var c=subjx, iw=userImg.naturalWidth, ih=userImg.naturalHeight;
+    var s=Math.max(PW/iw,PH/ih), dw=iw*s, dh=ih*s;           // cover-fit
+    c.fillStyle='#000'; c.fillRect(0,0,PW,PH);
+    c.drawImage(userImg,(PW-dw)/2,(PH-dh)/2,dw,dh);
+  }
+  function renderSubject(){ subjx.clearRect(0,0,PW,PH); if(userImg) drawUserImage(); else drawProcedural(); splitChannels(); }
+
+  // isolate R / G / B channels into separate canvases (for chromatic aberration)
+  function splitChannels(){
+    var specs=[[chR,'#ff0000'],[chG,'#00ff00'],[chB,'#0000ff']];
+    specs.forEach(function(sp){ var cc=sp[0], x=cc.getContext('2d');
+      cc.width=PW; cc.height=PH; x.clearRect(0,0,PW,PH);
+      x.globalCompositeOperation='source-over'; x.drawImage(subj,0,0);
+      x.globalCompositeOperation='multiply'; x.fillStyle=sp[1]; x.fillRect(0,0,PW,PH);
+      x.globalCompositeOperation='source-over'; });
+    chRx=chR.getContext('2d'); chGx=chG.getContext('2d'); chBx=chB.getContext('2d');
+  }
+
+  // ---------------- glitch render ----------------
+  function buildPose(g,now){
+    var ch=(1.2+g*CFG.chromaMax)*DPR, jit=Math.sin(now*0.02)*g*2*DPR;
+    posex.globalCompositeOperation='source-over'; posex.fillStyle='#000'; posex.fillRect(0,0,PW,PH);
+    posex.globalCompositeOperation='lighter';
+    posex.drawImage(chR, ch+jit, -ch*0.4);
+    posex.drawImage(chG, 0, 0);
+    posex.drawImage(chB, -ch-jit, ch*0.4);
+    posex.globalCompositeOperation='source-over';
+  }
+  function frame(now){
+    var g=intensity(now);
+    buildPose(g,now);
+    // backdrop
+    ctx.fillStyle='#08080c'; ctx.fillRect(0,0,W,H);
+    // soft poster shadow
+    ctx.save(); ctx.shadowColor='rgba(70,120,255,'+(0.25+g*0.4)+')'; ctx.shadowBlur=40*DPR;
+    ctx.fillStyle='#000'; ctx.fillRect(px,py,PW,PH); ctx.restore();
+    // base poster
+    ctx.drawImage(pose,px,py);
+    // horizontal slice displacement
+    var nb=Math.floor(g*g*18);
+    for(var i=0;i<nb;i++){
+      var bh=rnd(6,42)*DPR, by=rnd(0,PH-bh);
+      var dx=(rnd(-1,1))*g*PW*CFG.sliceMax*(Math.random()<0.18?2.4:1);
+      ctx.drawImage(pose,0,by,PW,bh, px+dx,py+by,PW,bh);
+      if(Math.random()<0.3){ ctx.globalAlpha=rnd(.08,.22);
+        ctx.fillStyle=Math.random()<.5?'#16d6ff':'#ff2bb0'; ctx.fillRect(px,py+by,PW,bh); ctx.globalAlpha=1; }
+    }
+    // datamosh block
+    if(Math.random()<g*0.4){ var bw=rnd(PW*0.1,PW*0.4),bh2=rnd(PH*0.04,PH*0.16),sx=rnd(0,PW-bw),sy=rnd(0,PH-bh2);
+      ctx.drawImage(pose,sx,sy,bw,bh2, px+rnd(-1,1)*g*PW*0.2, py+sy, bw,bh2); }
+    // VHS roll line
+    var ry=( (now*0.12)%(PH+80) )-40;
+    ctx.globalAlpha=0.10+g*0.12; ctx.fillStyle='#dff0ff'; ctx.fillRect(px,py+ry,PW,3*DPR); ctx.globalAlpha=1;
+    if(g>0.4){ ctx.drawImage(pose,0,Math.max(0,ry),PW,8*DPR, px+rnd(-6,6)*DPR,py+Math.max(0,ry),PW,8*DPR); }
+    // scanlines
+    if(scanPat){ ctx.save(); ctx.translate(px,py); ctx.fillStyle=scanPat; ctx.globalAlpha=CFG.scan; ctx.fillRect(0,0,PW,PH); ctx.restore(); ctx.globalAlpha=1; }
+    // noise specks on burst
+    if(g>0.45){ for(var n=0;n<g*70;n++){ ctx.fillStyle=Math.random()<.5?'rgba(255,255,255,.7)':'rgba(20,200,255,.6)';
+      ctx.fillRect(px+rnd(0,PW),py+rnd(0,PH),rnd(1,3)*DPR,rnd(1,2)*DPR); } }
+    // frame border
+    ctx.strokeStyle='rgba(150,190,255,.22)'; ctx.lineWidth=1*DPR; ctx.strokeRect(px+.5,py+.5,PW-1,PH-1);
+    requestAnimationFrame(frame);
+  }
+
+  // ---------------- intensity envelope ----------------
+  var base=0.10, energy=0, burstUntil=0, burstG=0, nextBurst=1200;
+  function intensity(now){
+    var g=base;
+    if(now<burstUntil) g=Math.max(g,burstG);
+    else if(now>nextBurst){ burstG=rnd(0.55,1.0); burstUntil=now+rnd(90,300); nextBurst=now+rnd(700,2600); }
+    energy*=0.9; g=Math.min(1,g+energy);
+    return g;
+  }
+
+  // ---------------- setup / resize ----------------
+  function buildScan(){ var t=oc(); t.width=1; t.height=Math.max(2,Math.round(3*DPR));
+    var x=t.getContext('2d'); x.fillStyle='rgba(0,0,0,1)'; x.fillRect(0,0,1,Math.round(1*DPR));
+    scanPat=ctx.createPattern(t,'repeat'); }
+  function layout(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=cv.width=Math.floor(innerWidth*DPR); H=cv.height=Math.floor(innerHeight*DPR);
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+    PH=Math.min(H*0.86, (W*0.94)/CFG.aspect); PW=PH*CFG.aspect;
+    if(PW>W*0.94){ PW=W*0.94; PH=PW/CFG.aspect; }
+    px=Math.round((W-PW)/2); py=Math.round((H-PH)/2); PW=Math.round(PW); PH=Math.round(PH);
+    subj.width=PW; subj.height=PH; pose.width=PW; pose.height=PH;
+    buildScan(); renderSubject();
+  }
+
+  // ---------------- input ----------------
+  function addEnergy(v){ energy=Math.min(0.85,energy+v); }
+  var lx=0,ly=0,have=false;
+  cv.addEventListener('pointermove',function(e){ var x=e.clientX*DPR,y=e.clientY*DPR;
+    if(have){ addEnergy(Math.min(0.4,Math.hypot(x-lx,y-ly)*0.0016)); } lx=x;ly=y;have=true; hideHint(); });
+  cv.addEventListener('pointerdown',function(e){ burstG=1; burstUntil=performance.now()+360; addEnergy(0.6); hideHint(); });
+  document.getElementById('shot').addEventListener('click',function(){ burstG=1; burstUntil=performance.now()+420; addEnergy(0.7); });
+
+  // file / drop
+  function loadFile(f){ if(!f||!/^image\//.test(f.type))return; var img=new Image();
+    img.onload=function(){ userImg=img; renderSubject(); burstG=1; burstUntil=performance.now()+500; };
+    img.src=URL.createObjectURL(f); }
+  document.getElementById('file').addEventListener('change',function(e){ loadFile(e.target.files[0]); });
+  var drop=document.getElementById('drop'), dc=0;
+  addEventListener('dragenter',function(e){ e.preventDefault(); dc++; drop.classList.add('on'); });
+  addEventListener('dragover',function(e){ e.preventDefault(); });
+  addEventListener('dragleave',function(e){ e.preventDefault(); if(--dc<=0) drop.classList.remove('on'); });
+  addEventListener('drop',function(e){ e.preventDefault(); dc=0; drop.classList.remove('on');
+    if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+  // save current frame (poster region)
+  document.getElementById('save').addEventListener('click',function(){
+    var out=oc(); out.width=PW; out.height=PH; out.getContext('2d').drawImage(cv,px,py,PW,PH,0,0,PW,PH);
+    var a=document.createElement('a'); a.download='cosmos-glitch-poster.png'; a.href=out.toDataURL('image/png'); a.click(); });
+
+  // ---------------- hints / go ----------------
+  var hint=document.getElementById('hint'), title=document.getElementById('title'), hid=false;
+  setTimeout(function(){title.classList.add('show');},300);
+  setTimeout(function(){ if(!have) hint.classList.add('show'); },1500);
+  function hideHint(){ if(!hid){hid=true; hint.classList.remove('show'); setTimeout(function(){title.style.opacity='0.45';},2400);} }
+
+  var rt; addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(layout,180); });
+  layout();
+  if(reduce){ buildPose(0.8,0); ctx.fillStyle='#08080c'; ctx.fillRect(0,0,W,H); ctx.drawImage(pose,px,py);
+    if(scanPat){ ctx.save(); ctx.translate(px,py); ctx.fillStyle=scanPat; ctx.globalAlpha=CFG.scan; ctx.fillRect(0,0,PW,PH); ctx.restore(); } }
+  else requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

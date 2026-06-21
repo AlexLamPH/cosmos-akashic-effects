@@ -1,0 +1,24 @@
+{
+  "slug": "circular-gallery",
+  "card_number": "AK-CDP-00000C0",
+  "tier": "showcase",
+  "title": "Cosmos Circular Gallery — an animated radial photo wheel (drag to spin, tap to focus)",
+  "title_vi": "Cosmos Circular Gallery — vòng ảnh xoay kiểu cánh hoa, tâm hiện tấm trên đỉnh",
+  "tags": [
+    "circular-gallery",
+    "radial",
+    "photo-wheel",
+    "css-3d",
+    "rotate",
+    "drag",
+    "interactive",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "An animated circular gallery: a ring of photo cards fanned like petals around a center, slowly rotating; the card nearest the top is shown big in the center circle with a caption. Hover (desktop) or drag to spin the wheel; click / tap a card to ease it to the top and focus. CSS radial layout + JS for spin/drag/focus, 12 procedural 'landscape' destinations (white-label). Offline, reduced-motion aware.",
+  "usage_notes": "RUN: open index.html. TECHNIQUES: each slot rotate(θ) translateY(-R) around the ring center; ring rotates via rAF; nearest-to-top detection drives the center image; angular drag (atan2 around center); shortest-path focus spin. INTERACTION: idle=auto-rotate; hover=preview+pause; drag=spin; tap card=focus. TUNE: PAL (palettes/count), radius, spin vel.",
+  "summary_vi": "Thư viện ảnh tròn động: vòng thẻ ảnh xếp cánh hoa quanh tâm, xoay chậm; tấm gần đỉnh hiện to ở vòng tâm kèm tên. Rê chuột hoặc kéo để xoay; bấm/chạm 1 tấm để đưa lên đỉnh + focus. Bố cục radial CSS + JS. 12 'phong cảnh' procedural (white-label). Offline.",
+  "notes": "Reference-recreation (Ra) from Alex's IMG_4491 (animated circular gallery). repo cosmos-akashic-effects/web-templates/fx/circular-gallery/."
+}

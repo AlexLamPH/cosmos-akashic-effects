@@ -1,0 +1,25 @@
+{
+  "slug": "glowing-birds",
+  "card_number": "AK-CDP-00000BX",
+  "tier": "showcase",
+  "title": "Cosmos Glowing Birds — a luminous flock that drifts and chases your cursor through the dark",
+  "title_vi": "Cosmos Glowing Birds — đàn chim phát sáng trôi và đuổi theo con trỏ trong bóng tối",
+  "tags": [
+    "boids",
+    "flocking",
+    "particles",
+    "glow",
+    "additive-blend",
+    "motion-trails",
+    "canvas2d",
+    "interactive",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A flock of luminous birds drifts, wanders and chases your cursor / finger through the dark, leaving soft light-trails. Boids-style motion (damping + random wander + pull toward the pointer), additive white-core→magenta glow on pure black; bird count scales to the screen. Self-contained Canvas 2D, offline, reduced-motion aware.",
+  "usage_notes": "RUN: open index.html (no deps). TECHNIQUES: pre-rendered radial glow sprite drawn additively ('lighter'); per-bird random wander retargeting; pull toward pointer scaled by depth; motion trails via translucent black fill each frame; chevron wings rotated to heading. INTERACTION: move/touch to gather the flock. TUNE: N (count), pull, damping.",
+  "summary_vi": "Đàn chim phát sáng trôi, lượn và đuổi theo con trỏ/ngón tay trong bóng tối, để lại vệt sáng mềm. Chuyển động kiểu boids, quầng sáng additive lõi trắng→hồng trên nền đen. Số chim tự co giãn theo màn hình. Canvas 2D tự chứa, offline.",
+  "notes": "Reference-recreation (Ra) from Alex's video reference. repo cosmos-akashic-effects/web-templates/fx/glowing-birds/."
+}

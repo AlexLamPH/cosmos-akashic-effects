@@ -1,0 +1,26 @@
+{
+  "slug": "glitch-poster",
+  "card_number": "AK-CDP-00000BZ",
+  "tier": "showcase",
+  "title": "Cosmos Glitch Poster — live glitch-art (故障艺术) treatment + drop-your-own-image",
+  "title_vi": "Cosmos Glitch Poster — xử lý glitch-art trực tiếp (tách màu RGB, xé lát, scanline) + thả ảnh của bạn",
+  "tags": [
+    "glitch",
+    "故障艺术",
+    "rgb-split",
+    "chromatic-aberration",
+    "datamosh",
+    "scanline",
+    "image-processing",
+    "drag-drop",
+    "canvas2d",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A live glitch-art (故障艺术) treatment in code: RGB channel split (chromatic aberration), horizontal slice-displacement bursts, scanlines, VHS roll, datamosh blocks and burst noise. Ships with a procedural cyberpunk poster, OR drop / upload your own image and it glitches that; save the frame as PNG. Canvas 2D (chosen over WebGL for reliability). Offline, reduced-motion aware.",
+  "usage_notes": "RUN: open index.html. TECHNIQUES: channel-isolated R/G/B canvases recombined with offsets ('lighter'); per-band slice roll; block copy/datamosh; scanline pattern; intensity envelope with bursts + pointer energy. INTERACTION: move/tap=intensify; ↻ Glitch=burst; ▲ Image or drag-drop=use your own; ▼ Save=PNG. NOTE: this is the glitch EFFECT, not an image generator — feed it a subject. TUNE: CFG (chromaMax, sliceMax, scan, aspect).",
+  "summary_vi": "Lớp xử lý glitch-art (故障艺术) bằng code: tách kênh màu RGB, xé lát ngang, scanline, VHS roll, datamosh. Có sẵn poster cyberpunk procedural, HOẶC thả/upload ảnh bất kỳ để glitch ảnh đó; lưu PNG. Canvas 2D (chọn thay WebGL cho chắc). Offline.",
+  "notes": "Reference-recreation (Ra) from Alex's IMG_4689 (故障艺术 glitch art). repo cosmos-akashic-effects/web-templates/fx/glitch-poster/."
+}

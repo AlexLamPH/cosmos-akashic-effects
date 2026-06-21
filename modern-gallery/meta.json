@@ -1,0 +1,24 @@
+{
+  "slug": "modern-gallery",
+  "card_number": "AK-CDP-00000BY",
+  "tier": "showcase",
+  "title": "Cosmos Modern Gallery — a 3D cylindrical photo carousel (drag to spin, click to focus)",
+  "title_vi": "Cosmos Modern Gallery — băng chuyền ảnh hình trụ 3D (kéo để xoay, bấm để phóng to)",
+  "tags": [
+    "3d",
+    "css-3d",
+    "carousel",
+    "photo-gallery",
+    "perspective",
+    "drag",
+    "interactive",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A 3D cylindrical photo carousel in deep perspective: 30 tiles on a rotating cylinder. Drag / swipe to spin and tilt the ring; click a tile to swing it to centre and enlarge while others dim; idle auto-drift + mouse parallax. Pure CSS-3D + a little JS, procedural gradient placeholders (white-label). Offline, reduced-motion aware.",
+  "usage_notes": "RUN: open index.html. TECHNIQUES: transform-style preserve-3d ring; each tile rotateY(col·angle) translateZ(R) translateY(row); rAF spin/tilt with eased auto-drift; shortest-path focus spin; pop via translateZ+scale. INTERACTION: drag=spin+tilt; click tile=focus. TUNE: COLS/ROWS, radius R, spin speed.",
+  "summary_vi": "Băng chuyền ảnh hình trụ 3D phối cảnh sâu: 30 ô trên trụ xoay. Kéo/vuốt để xoay + nghiêng; bấm 1 ô để ra giữa + phóng to, các ô khác mờ đi; tự trôi khi rảnh. CSS-3D thuần + ít JS. Ảnh gradient placeholder (white-label). Offline.",
+  "notes": "Reference-recreation (Ra) from Alex's IMG_3875. repo cosmos-akashic-effects/web-templates/fx/modern-gallery/."
+}
