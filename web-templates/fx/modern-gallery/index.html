@@ -1,0 +1,148 @@
+<!doctype html>
+<!--
+  Cosmos AI Lab · FX — "Modern Gallery"  (Ra, from Alex's reference)
+  A 3D cylindrical photo carousel in deep perspective: drag / move to spin + tilt the ring,
+  click a photo to swing it to centre and enlarge (others dim). Auto-drifts when idle.
+  Self-contained CSS-3D + a little JS. Procedural gradient "photos". Touch + reduced-motion aware.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Modern Gallery</title>
+<style>
+  :root{ --tileW:230px; --tileH:150px; --sans:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#070708;overflow:hidden;font-family:var(--sans);color:#fff}
+  body{background:radial-gradient(70% 70% at 50% 42%,#16131f 0%,#090909 60%,#040404 100%)}
+  .stage{position:fixed;inset:0;perspective:1300px;perspective-origin:50% 46%;cursor:grab}
+  .stage.drag{cursor:grabbing}
+  .ring{position:absolute;top:50%;left:50%;transform-style:preserve-3d;will-change:transform}
+  .tile{position:absolute;width:var(--tileW);height:var(--tileH);left:calc(var(--tileW)/-2);top:calc(var(--tileH)/-2);
+    transform-style:preserve-3d}
+  .photo{position:absolute;inset:0;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 18px 50px -18px rgba(0,0,0,.85);transition:transform .5s cubic-bezier(.2,.8,.2,1),filter .5s,box-shadow .5s;
+    filter:brightness(.62) saturate(.9);backface-visibility:hidden}
+  .photo .img{position:absolute;inset:0;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+  .photo .grain{position:absolute;inset:0;background:radial-gradient(120% 80% at 30% 20%,rgba(255,255,255,.22),transparent 55%)}
+  .photo .cap{position:absolute;left:12px;bottom:10px;z-index:2;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;
+    opacity:0;transform:translateY(6px);transition:.4s;text-shadow:0 2px 14px rgba(0,0,0,.8)}
+  .photo .no{position:absolute;right:12px;top:10px;z-index:2;font:700 12px var(--sans);opacity:.0;transition:.4s;color:rgba(255,255,255,.85)}
+  .tile:hover .photo, .tile.focused .photo{filter:brightness(1) saturate(1.05);box-shadow:0 30px 70px -16px rgba(120,80,255,.5),0 0 0 1px rgba(255,255,255,.35)}
+  .tile:hover .photo .img{transform:scale(1.08)}
+  .tile:hover .photo .cap,.tile:hover .photo .no,.tile.focused .photo .cap,.tile.focused .photo .no{opacity:1;transform:none}
+  .tile.dim .photo{filter:brightness(.28) saturate(.6) blur(1px)}
+
+  .center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:1;pointer-events:none;
+    transition:opacity .6s}
+  .center .k{font:600 11px var(--sans);letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+  .center h1{font:300 clamp(26px,4vw,46px)/1 "Segoe UI",system-ui,sans-serif;letter-spacing:.02em;margin-top:12px}
+  .center h1 b{font-weight:700}
+  .center.hide{opacity:0}
+  .help{position:fixed;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));text-align:center;z-index:3;pointer-events:none;
+    font:500 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);transition:opacity .6s}
+  .help.hide{opacity:0}
+  .close{position:fixed;top:max(22px,env(safe-area-inset-top));right:22px;z-index:5;width:42px;height:42px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);backdrop-filter:blur(6px);color:#fff;font-size:18px;
+    cursor:pointer;opacity:0;pointer-events:none;transition:.4s}
+  .close.show{opacity:1;pointer-events:auto}
+  @media(prefers-reduced-motion:reduce){.photo,.photo .img{transition:none}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="ring" id="ring"></div>
+</div>
+<div class="center" id="center"><div class="k">Cosmos · Gallery</div><h1>Modern <b>Gallery</b></h1></div>
+<div class="help" id="help">drag to explore · click a photo</div>
+<button class="close" id="close" aria-label="Close">✕</button>
+
+<script>
+(function(){
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var stage=document.getElementById('stage'), ring=document.getElementById('ring'),
+      center=document.getElementById('center'), help=document.getElementById('help'), closeBtn=document.getElementById('close');
+
+  var GRADS=[
+    'linear-gradient(150deg,#3a1d6e,#b95a8f)','linear-gradient(150deg,#0c3b4a,#3fb9c9)',
+    'linear-gradient(150deg,#5a3a12,#e0a35a)','linear-gradient(150deg,#1d5a2a,#9bd86a)',
+    'linear-gradient(150deg,#4a1230,#ff5c8a)','linear-gradient(150deg,#231b52,#6c8bff)',
+    'linear-gradient(150deg,#10303a,#36d39a)','linear-gradient(150deg,#3a2410,#ffae57)',
+    'linear-gradient(150deg,#2a1240,#a06bff)','linear-gradient(150deg,#0e2233,#5ab0ff)'
+  ];
+  var WORDS=['Aurora','Drift','Mono','Ember','Tide','Bloom','Atlas','Noir','Lumen','Vesper','Halo','Quartz'];
+
+  var COLS=10, ROWS=3, total=COLS*ROWS;
+  var tileW=230, ry, R=Math.round((tileW*1.18)/(2*Math.tan(Math.PI/COLS))); // radius so columns sit edge-to-edge
+  var rowGap=178;
+  var tiles=[];
+  for(var r=0;r<ROWS;r++){
+    for(var c=0;c<COLS;c++){
+      var idx=r*COLS+c, ang=c*(360/COLS), y=(r-(ROWS-1)/2)*rowGap;
+      var t=document.createElement('div'); t.className='tile';
+      t.style.transform='rotateY('+ang+'deg) translateZ('+R+'px) translateY('+y+'px)';
+      var g=GRADS[idx%GRADS.length], w=WORDS[idx%WORDS.length];
+      t.innerHTML='<div class="photo"><div class="img" style="background:'+g+'"></div><div class="grain"></div>'
+        +'<div class="cap">'+w+'</div><div class="no">'+String(idx+1).padStart(2,'0')+'</div></div>';
+      t.dataset.ang=ang; t.dataset.idx=idx;
+      ring.appendChild(t); tiles.push(t);
+      (function(tile,angle){ tile.addEventListener('click',function(e){e.stopPropagation();focus(tile,angle);}); })(t,ang);
+    }
+  }
+
+  // ---- motion ----
+  var spin=0, tilt=-4, targetTilt=-4, vel=0.05, mx=0, focused=null;
+  var dragging=false, lastX=0, lastY=0;
+  function render(){ ring.style.transform='translate(-50%,-50%) rotateX('+tilt+'deg) rotateY('+spin+'deg)'; }
+  function loop(){
+    if(!dragging && focused===null){ spin+=vel; }            // idle auto-drift
+    tilt+=(targetTilt-tilt)*0.06;
+    render(); requestAnimationFrame(loop);
+  }
+  render(); if(!reduce) requestAnimationFrame(loop);
+
+  // ---- drag / pointer ----
+  function down(x,y){dragging=true;lastX=x;lastY=y;stage.classList.add('drag');dismissHints();}
+  function move(x,y){ if(!dragging)return; var dx=x-lastX, dy=y-lastY; lastX=x;lastY=y;
+    spin+=dx*0.25; vel=dx*0.25*0.2; targetTilt=Math.max(-22,Math.min(14,targetTilt - dy*0.12)); }
+  function up(){dragging=false;stage.classList.remove('drag');}
+  stage.addEventListener('mousedown',function(e){down(e.clientX,e.clientY)});
+  addEventListener('mousemove',function(e){move(e.clientX,e.clientY)});
+  addEventListener('mouseup',up);
+  stage.addEventListener('touchstart',function(e){var t=e.touches[0];down(t.clientX,t.clientY)},{passive:true});
+  addEventListener('touchmove',function(e){var t=e.touches[0];if(t)move(t.clientX,t.clientY)},{passive:true});
+  addEventListener('touchend',up);
+  // gentle parallax tilt with mouse when not dragging
+  addEventListener('mousemove',function(e){ if(dragging||focused!==null)return; var ny=(e.clientY/innerHeight-0.5); targetTilt=-4 - ny*10; });
+
+  // ---- focus a tile: spin ring so it faces front, enlarge it, dim others ----
+  function focus(tile,angle){
+    if(focused===tile){ unfocus(); return; }
+    focused=tile;
+    // shortest spin to bring this tile's angle to front (0deg, i.e. spin = -angle mod 360)
+    var want=-angle; var cur=((spin%360)+360)%360; var goal=((want%360)+360)%360;
+    var d=goal-cur; if(d>180)d-=360; if(d<-180)d+=360; spin+=d;
+    targetTilt=0; render();
+    tiles.forEach(function(t){ t.classList.toggle('dim', t!==tile); });
+    tile.classList.add('focused');
+    // pop the focused photo toward camera
+    tile.querySelector('.photo').style.transform='translateZ(120px) scale(1.5)';
+    center.classList.add('hide'); help.classList.add('hide'); closeBtn.classList.add('show');
+  }
+  function unfocus(){
+    if(!focused)return;
+    focused.querySelector('.photo').style.transform='';
+    tiles.forEach(function(t){t.classList.remove('dim','focused');});
+    focused=null; targetTilt=-4; closeBtn.classList.remove('show'); center.classList.remove('hide');
+  }
+  closeBtn.addEventListener('click',unfocus);
+  stage.addEventListener('click',function(e){ if(e.target===stage||e.target===ring) unfocus(); });
+
+  // ---- hints ----
+  var dismissed=false;
+  function dismissHints(){ if(dismissed)return; dismissed=true; setTimeout(function(){help.classList.add('hide');center.classList.add('hide');},1200); }
+  function dismissSoon(){ setTimeout(dismissHints,5000); } dismissSoon();
+})();
+</script>
+</body>
+</html>
