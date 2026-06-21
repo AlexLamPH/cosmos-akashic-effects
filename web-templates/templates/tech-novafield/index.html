@@ -1,0 +1,1458 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NOVA Field — Computing that disappears.</title>
+    
+    <!-- Meta tags for Search Engine Optimization -->
+    <meta name="description" content="NOVA Field is a next-gen ambient computing device. The room becomes the interface with computing that disappears." />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (via CDN for local & standalone support) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+              display: ['"Space Grotesk"', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
+            },
+            colors: {
+              spaceInk: '#06070d',
+              luminousCyan: '#5ef2ff',
+              luminousViolet: '#9b6cff',
+              luminousMagenta: '#ff5ca8',
+            }
+          }
+        }
+      }
+    </script>
+    
+    <style>
+      /* Absolute premium customization styles */
+      html, body {
+        background-color: #06070d;
+        color: #f3f4f6;
+        scroll-behavior: auto; /* Handled by Lenis of smooth scrolling */
+        overflow-x: hidden;
+      }
+      
+      /* Hide scrollbar for standard visual aesthetics */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #06070d;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #252836;
+        border-radius: 3px;
+        transition: background 0.3s;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #5ef2ff;
+      }
+
+      /* Custom cursor styles (disabled on touch devices) */
+      .custom-cursor-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #5ef2ff;
+        border-radius: 50%;
+        position: fixed;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9999;
+        transition: transform 0.1s ease, width 0.2s, height 0.2s, background-color 0.3s;
+      }
+      .custom-cursor-ring {
+        width: 44px;
+        height: 44px;
+        border: 1px solid rgba(94, 242, 255, 0.4);
+        border-radius: 50%;
+        position: fixed;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9998;
+        transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s, border-color 0.3s, width 0.3s, height 0.3s;
+      }
+      .cursor-hover .custom-cursor-dot {
+        transform: translate(-50%, -50%) scale(0.5);
+        background-color: #ff5ca8;
+      }
+      .cursor-hover .custom-cursor-ring {
+        width: 60px;
+        height: 60px;
+        border-color: rgba(255, 92, 168, 0.8);
+        background-color: rgba(255, 92, 168, 0.05);
+      }
+
+      /* Masking text clip overlay */
+      .reveal-container {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+
+      /* Overlay grids & noise visual styling */
+      .noise-bg {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.015'/%3E%3C/svg%3E");
+      }
+      
+      .grid-bg {
+        background-size: 40px 40px;
+        background-image: 
+          linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      }
+
+      /* Hover animation for card elements */
+      .glowing-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: border-color 0.5s, box-shadow 0.4s, transform 0.4s, background-color 0.4s;
+      }
+      .glowing-card:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(94, 242, 255, 0.35);
+        box-shadow: 0 10px 30px -10px rgba(94, 242, 255, 0.12);
+        transform: translateY(-4px);
+      }
+
+      /* WebGL Container pinning state */
+      #canvas-holder {
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body class="font-sans antialiased text-gray-100 selection:bg-luminousCyan selection:text-spaceInk">
+    
+    <!-- Custom Cursor elements -->
+    <div id="cursor-dot" class="custom-cursor-dot hidden md:block"></div>
+    <div id="cursor-ring" class="custom-cursor-ring hidden md:block"></div>
+
+    <!-- Screen overlay elements -->
+    <div class="fixed inset-0 pointer-events-none noise-bg z-[40]"></div>
+    <div class="fixed inset-0 pointer-events-none grid-bg z-[5] opacity-50"></div>
+    
+    <!-- Radial Ambient Glowing Fields (Scroll Morphic Background) -->
+    <div id="ambient-glow-1" class="fixed -top-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full filter blur-[150px] bg-[#5ef2ff] opacity-[0.16] pointer-events-none z-[1] transition-all duration-1000"></div>
+    <div id="ambient-glow-2" class="fixed -bottom-[10%] -right-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[150px] bg-[#9b6cff] opacity-[0.18] pointer-events-none z-[1] transition-all duration-1000"></div>
+    <div id="ambient-glow-3" class="fixed top-[40%] left-[20%] w-[35vw] h-[35vw] rounded-full filter blur-[120px] bg-[#ff5ca8] opacity-[0.08] pointer-events-none z-[1] transition-all duration-1000"></div>
+
+    <!-- Intro Preloader Loader -->
+    <div id="preloader" class="fixed inset-0 w-full h-full bg-spaceInk flex flex-col justify-between p-8 md:p-16 z-[100] overflow-hidden">
+      <!-- Loader Header -->
+      <div class="w-full flex justify-between items-center text-xs font-mono tracking-widest text-gray-500">
+        <div>N O V A // F I E L D</div>
+        <div>SYS_BOOT: OK</div>
+      </div>
+
+      <!-- Center Loader Numbers -->
+      <div class="flex flex-col items-center">
+        <div class="font-display font-medium text-[20vw] md:text-[12vw] leading-none text-transparent bg-clip-text bg-gradient-to-r from-luminousCyan via-luminousViolet to-luminousMagenta tracking-widest select-none" id="loader-num">000</div>
+        
+        <div class="h-[1px] w-48 md:w-80 bg-gray-800 relative overflow-hidden mt-4">
+          <div id="loader-bar" class="absolute left-0 top-0 h-full w-0 bg-gradient-to-r from-luminousCyan to-luminousViolet transition-[width] ease-out duration-150"></div>
+        </div>
+
+        <div class="font-mono text-[10px] md:text-xs text-gray-500 tracking-widest mt-6 h-4 overflow-hidden" id="loader-status">
+          INITIALIZING CHIP NETWORKS...
+        </div>
+      </div>
+
+      <!-- Loader Footer -->
+      <div class="w-full flex justify-between items-end">
+        <div class="font-mono text-[10px] leading-relaxed text-gray-600 hidden md:block">
+          DEVICES METRIC: [00.419_LAT_8MS]<br>
+          ENCLOSURE PROTOCOL: AIR_LOCK_9
+        </div>
+        <div class="font-mono text-[10px] text-gray-500 tracking-widest">
+          EST. DISPLACEMENT: 1.054-ALPHA
+        </div>
+      </div>
+    </div>
+
+    <!-- Smooth Scroll Lenis Root Layer -->
+    <div id="smooth-wrapper">
+      <div id="smooth-content" class="relative z-10">
+
+        <!-- Top Navigation Header Links -->
+        <header class="fixed top-0 left-0 w-full px-6 py-6 md:px-12 md:py-8 flex justify-between items-center mix-blend-difference z-50">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full border-2 border-[#5ef2ff] flex items-center justify-center">
+              <div class="w-2 h-2 rounded-full bg-[#5ef2ff] animate-pulse"></div>
+            </div>
+            <span class="text-xl font-bold tracking-tighter uppercase whitespace-nowrap text-white">Nova Field</span>
+          </div>
+          
+          <nav class="hidden md:flex items-center gap-10 text-xs font-mono tracking-widest text-white/75">
+            <a href="#about" class="hover:text-luminousCyan transition-colors magnetic-btn">SENSE</a>
+            <a href="#capabilities" class="hover:text-luminousViolet transition-colors magnetic-btn">CAPABILITIES</a>
+            <a href="#stats" class="hover:text-luminousMagenta transition-colors magnetic-btn">METRICS</a>
+          </nav>
+
+          <div>
+            <button id="cta-header-btn" class="px-6 py-2 border border-white/20 rounded-full text-xs uppercase tracking-widest font-bold bg-white/5 hover:bg-white hover:text-black transition-all text-white cursor-pointer magnetic-btn">
+              REQUEST FIELD TEST
+            </button>
+          </div>
+        </header>
+
+        <!-- Dynamic Header Current Local Time Floating widget in left margin (desktop only) -->
+        <div class="hidden xl:flex fixed left-12 bottom-12 items-center gap-4 z-30 font-mono text-[11px] text-gray-500 mix-blend-difference">
+          <span>PORT_SYS: CONNECTED</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-luminousCyan animate-pulse"></span>
+          <span id="floating-clock">00:00:00 UTC</span>
+        </div>
+
+        <!-- Scroll Progress Tracker Line (Floating widget in right margin, desktop only) -->
+        <div class="hidden xl:flex fixed right-12 bottom-12 items-center gap-3 z-30 font-mono text-[11px] text-gray-500 mix-blend-difference">
+          <span>FIELD STATUS</span>
+          <span class="h-4 w-[120px] bg-white/5 border border-white/10 rounded-full relative overflow-hidden">
+            <span id="scroll-bar-indicator" class="absolute left-0 top-0 h-full w-[0%] bg-gradient-to-r from-luminousCyan to-luminousViolet"></span>
+          </span>
+        </div>
+
+        <!-- PART 1: 3D Scene Hero Stage & Title Section -->
+        <section id="hero" class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+          
+          <!-- WebGL Three.js Canvas Container (Underlay) -->
+          <div id="canvas-holder" class="absolute inset-0 w-full h-full z-10 transition-opacity duration-1000">
+            <canvas id="webgl-canvas" class="w-full h-full block"></canvas>
+          </div>
+
+          <!-- Elegant CSS gradient fallback (displayed only if WebGL fails) with High Density Procedural Sphere representation -->
+          <div id="webgl-fallback" class="absolute inset-0 w-full h-full z-0 bg-gradient-to-tr from-spaceInk via-[#0b0c16] to-[#120f26] opacity-0 transition-opacity duration-[1.5s] flex items-center justify-center">
+            <div class="absolute w-[600px] h-[600px] bg-luminousCyan/5 rounded-full blur-[100px] animate-pulse"></div>
+            <div class="absolute w-[500px] h-[500px] bg-luminousViolet/5 rounded-full blur-[100px] delay-1000 animate-pulse"></div>
+            
+            <div class="absolute w-[400px] h-[400px] flex items-center justify-center pointer-events-none">
+              <svg viewBox="0 0 200 200" class="w-full h-full opacity-60">
+                <defs>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                  <linearGradient id="sphereGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#5ef2ff" />
+                    <stop offset="50%" stop-color="#9b6cff" />
+                    <stop offset="100%" stop-color="#ff5ca8" />
+                  </linearGradient>
+                </defs>
+                <!-- Outer Rings -->
+                <circle cx="100" cy="100" r="80" fill="none" stroke="url(#sphereGrad)" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.3" />
+                <circle cx="100" cy="100" r="95" fill="none" stroke="white" stroke-width="0.1" opacity="0.2" />
+                <!-- Core Geometric Field -->
+                <path d="M100 20 L180 100 L100 180 L20 100 Z" fill="none" stroke="url(#sphereGrad)" stroke-width="1" opacity="0.8" filter="url(#glow)" />
+                <path d="M60 60 L140 60 L140 140 L60 140 Z" fill="none" stroke="#9b6cff" stroke-width="0.5" opacity="0.5" />
+                <path d="M100 40 L160 100 L100 160 L40 100 Z" fill="none" stroke="#5ef2ff" stroke-width="0.5" opacity="0.5" />
+                <!-- Random Particles -->
+                <circle cx="45" cy="45" r="1" fill="white" />
+                <circle cx="155" cy="155" r="1" fill="white" />
+                <circle cx="180" cy="60" r="1.5" fill="#5ef2ff" />
+                <circle cx="30" cy="140" r="1" fill="#ff5ca8" />
+                <circle cx="100" cy="100" r="10" fill="url(#sphereGrad)" filter="url(#glow)" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Overlay Dark gradient on baseline to ensure high contrast edge -->
+          <div class="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-spaceInk to-transparent z-15 pointer-events-none"></div>
+
+          <!-- Hero Text Elements -->
+          <div class="container mx-auto px-6 md:px-12 z-20 flex flex-col justify-between h-full pt-32 pb-16">
+            <!-- Left Corner tag lines -->
+            <div class="w-full flex justify-between items-start">
+              <div class="max-w-[15rem] md:max-w-md font-mono text-[10px] md:text-xs text-gray-400 leading-relaxed uppercase tracking-wider">
+                <span class="text-luminousCyan">N O V A // F I E L D</span><br>
+                NEXT-GEN AMBIENT COMPUTING DEVICE.<br>
+                THE DISCOVERY OF INVISIBLE POWER.
+              </div>
+              <div class="font-mono text-[10px] md:text-sm text-gray-500 text-right">
+                DISPLACEMENT_EST_V4<br>
+                MODEL_001A
+              </div>
+            </div>
+
+            <!-- Absolute hero centerpiece (The headline) -->
+            <div class="text-center self-center w-full my-auto flex flex-col items-center">
+              <div class="reveal-container mb-4">
+                <span class="text-[#5ef2ff] text-xs font-bold uppercase tracking-[0.3em] reveal-word opacity-0 block">Ambient Computing Flagship</span>
+              </div>
+              
+              <h1 class="font-display font-black text-[9vw] md:text-[6.5vw] leading-[0.85] tracking-tighter text-white text-center max-w-5xl reveal-text select-none uppercase">
+                The room becomes the <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#5ef2ff] via-[#9b6cff] to-[#ff5ca8]">interface.</span>
+              </h1>
+              
+              <!-- 3 Story Beat Horizontal Quick Indicators (High Density layout pattern) -->
+              <div class="flex gap-8 items-center border-t border-white/10 pt-8 mt-10">
+                <div class="flex flex-col text-left">
+                  <span class="text-xl md:text-2xl font-light tracking-tight text-white/95">Sense</span>
+                  <span class="text-[9px] uppercase text-white/40 tracking-widest font-mono">Input</span>
+                </div>
+                <div class="w-px h-8 bg-white/10"></div>
+                <div class="flex flex-col text-left">
+                  <span class="text-xl md:text-2xl font-light tracking-tight text-white/95">Understand</span>
+                  <span class="text-[9px] uppercase text-white/40 tracking-widest font-mono">Context</span>
+                </div>
+                <div class="w-px h-8 bg-white/10"></div>
+                <div class="flex flex-col text-left">
+                  <span class="text-xl md:text-2xl font-light tracking-tight text-white/95">Respond</span>
+                  <span class="text-[9px] uppercase text-white/40 tracking-widest font-mono">Ambient</span>
+                </div>
+              </div>
+
+              <div class="reveal-container mt-8">
+                <p class="font-mono text-gray-500 text-[11px] md:text-xs tracking-widest uppercase reveal-word opacity-0">
+                  SCROLL DOWN TO SENSE THE FIELD
+                </p>
+              </div>
+            </div>
+
+            <!-- Bottom elements of landing segment -->
+            <div class="w-full flex flex-col md:flex-row justify-between items-center gap-6">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-luminousCyan animate-ping"></span>
+                <span class="font-mono text-xs text-gray-400 uppercase tracking-widest">STABLE DISPLACEMENT FREQUENCY: 432.18HZ</span>
+              </div>
+
+              <!-- Animated pointer swipe down hint icon -->
+              <div class="flex items-center gap-2 font-mono text-[10px] text-gray-400 tracking-widest">
+                <span>SCROLL</span>
+                <div class="h-8 w-[1px] bg-gray-800 relative overflow-hidden">
+                  <div class="absolute top-0 left-0 w-full h-1/2 bg-luminousCyan" id="scroll-mouse-wheel"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PART 2: Pinned Narrative Morphing Story Beats -->
+        <section id="about" class="relative z-20">
+          <!-- Pinned Container wrapping absolute segments -->
+          <div id="scroll-story" class="relative h-[300vh] w-full">
+            
+            <div class="sticky top-0 h-screen w-full flex items-center overflow-hidden bg-spaceInk">
+              <!-- Replaced canvas elements position if standard, else canvas is static background -->
+              <div class="absolute inset-0 w-full h-full mix-blend-screen opacity-90 z-[3] pointer-events-none">
+                <!-- Three JS Canvas remains injected or overlays -->
+              </div>
+              
+              <div class="container mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 h-full items-center relative z-10 py-16">
+                
+                <!-- Left blank / space for WebGL object rendering -->
+                <div class="hidden lg:block"></div>
+
+                <!-- Right narrative panel which crossfades -->
+                <div class="relative w-full h-full flex flex-col justify-center select-none">
+                  
+                  <!-- Narrative Beat 1: Sense -->
+                  <div class="panel-1 absolute left-0 w-full flex flex-col gap-6 opacity-100 pointer-events-auto">
+                    <span class="font-mono text-xs text-luminousCyan tracking-widest uppercase flex items-center gap-2">
+                      <span class="inline-block w-4 h-[1px] bg-luminousCyan"></span> BEAT 01 // SENSE
+                    </span>
+                    <h2 class="font-display font-medium text-4xl md:text-6xl text-white tracking-tight leading-tight">
+                      Atmosphere is active structure.
+                    </h2>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-md">
+                      The space around you translates into highly-localized kinetic density fields. NOVA senses fine modifications in acoustic and barometric envelopes without a single camera lens.
+                    </p>
+                    <div class="flex items-center gap-6 mt-4">
+                      <div class="flex flex-col">
+                        <span class="font-mono text-white text-base">360°</span>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase">Acoustic sense</span>
+                      </div>
+                      <div class="w-[1px] h-8 bg-gray-800"></div>
+                      <div class="flex flex-col">
+                        <span class="font-mono text-white text-base">0.1 Pa</span>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase">Pressure Threshold</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Narrative Beat 2: Understand -->
+                  <div class="panel-2 absolute left-0 w-full flex flex-col gap-6 opacity-0 pointer-events-none">
+                    <span class="font-mono text-xs text-luminousViolet tracking-widest uppercase flex items-center gap-2">
+                      <span class="inline-block w-4 h-[1px] bg-luminousViolet"></span> BEAT 02 // UNDERSTAND
+                    </span>
+                    <h2 class="font-display font-medium text-4xl md:text-6xl text-white tracking-tight leading-tight">
+                      Decoding spatial intelligence.
+                    </h2>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-md">
+                      Our custom-molded high-density processor runs fully private local models. Dynamic sound vectors, depth configurations, and light structures are resolved dynamically as they happen.
+                    </p>
+                    <div class="flex items-center gap-6 mt-4">
+                      <div class="flex flex-col">
+                        <span class="font-mono text-white text-base">4.2 TFLOPs</span>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase">On-chip Speed</span>
+                      </div>
+                      <div class="w-[1px] h-8 bg-gray-800"></div>
+                      <div class="flex flex-col">
+                        <span class="font-mono text-white text-base">Local</span>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase">Encrypted Core</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Narrative Beat 3: Respond -->
+                  <div class="panel-3 absolute left-0 w-full flex flex-col gap-6 opacity-0 pointer-events-none">
+                    <span class="font-mono text-xs text-luminousMagenta tracking-widest uppercase flex items-center gap-2">
+                      <span class="inline-block w-4 h-[1px] bg-luminousMagenta"></span> BEAT 03 // RESPOND
+                    </span>
+                    <h2 class="font-display font-medium text-4xl md:text-6xl text-white tracking-tight leading-tight">
+                      Interfaces that manifest.
+                    </h2>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-md">
+                      When interaction is sought, computing shapes itself instantly around your hand or auditory focus. Realize responsive holographic audio rings and micro-tactile surface feedback.
+                    </p>
+                    <div class="flex items-center gap-6 mt-4">
+                      <div class="flex flex-col">
+                        <span class="font-mono text-white text-base">&lt; 8ms</span>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase">Closed latency</span>
+                      </div>
+                      <div class="w-[1px] h-8 bg-gray-800"></div>
+                      <div class="flex flex-col">
+                        <span class="font-mono text-white text-base">Haptic</span>
+                        <span class="font-mono text-[10px] text-gray-500 uppercase">Sound Waves</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- PART 3: Premium Metrics & Stats Dashboard -->
+        <section id="stats" class="relative py-24 md:py-36 bg-spaceInk border-t border-b border-white/5 overflow-hidden">
+          <div class="container mx-auto px-6 md:px-12 relative z-10">
+            <!-- Header for metrics segment -->
+            <div class="max-w-2xl mb-16 md:mb-24 flex flex-col gap-4">
+              <span class="font-mono text-[10px] tracking-[0.2em] text-[#5ef2ff] uppercase flex items-center gap-2">
+                <span class="w-1.5 h-1.5 bg-[#5ef2ff] rounded-full"></span> FIELD TELEMETRY DATA
+              </span>
+              <h2 class="font-display font-bold text-3xl md:text-5xl text-white tracking-tight leading-none reveal-text">
+                Metrics of sensory efficiency.
+              </h2>
+            </div>
+
+            <!-- Highly polished tech grid metrics items -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+              
+              <!-- Metric Class 1 -->
+              <div class="glowing-card p-8 rounded-2xl flex flex-col justify-between h-72 md:h-80 select-none">
+                <div class="flex justify-between items-start">
+                  <div class="font-mono text-xs text-gray-500">[LAT_INDX]</div>
+                  <i data-lucide="zap" class="w-4 h-4 text-luminousCyan"></i>
+                </div>
+                <div>
+                  <div class="stat-number font-display font-medium text-6xl md:text-7xl text-luminousCyan mb-2 tracking-tighter" data-val="8">&lt; 8ms</div>
+                  <h3 class="font-display font-semibold text-lg text-white mb-1">Latency floor</h3>
+                  <p class="text-xs text-gray-400">
+                    Acoustic spatial feedback is modulated faster than human neural interpretation filters.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Metric Class 2 -->
+              <div class="glowing-card p-8 rounded-2xl flex flex-col justify-between h-72 md:h-80 select-none">
+                <div class="flex justify-between items-start">
+                  <div class="font-mono text-xs text-gray-500">[NNE_MODULE]</div>
+                  <i data-lucide="shield-check" class="w-4 h-4 text-luminousViolet"></i>
+                </div>
+                <div>
+                  <div class="stat-number font-display font-medium text-6xl md:text-7xl text-luminousViolet mb-2 tracking-tighter" data-val="100">100%</div>
+                  <h3 class="font-display font-semibold text-lg text-white mb-1">On-Device processing</h3>
+                  <p class="text-xs text-gray-400">
+                    Your environment blueprints are kept strictly safe inside local floating-point structures.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Metric Class 3 -->
+              <div class="glowing-card p-8 rounded-2xl flex flex-col justify-between h-72 md:h-80 select-none">
+                <div class="flex justify-between items-start">
+                  <div class="font-mono text-xs text-gray-500">[CAM_ISOLATION]</div>
+                  <i data-lucide="eye-off" class="w-4 h-4 text-luminousMagenta"></i>
+                </div>
+                <div>
+                  <div class="stat-number font-display font-medium text-6xl md:text-7xl text-luminousMagenta mb-2 tracking-tighter" data-val="0">0</div>
+                  <h3 class="font-display font-semibold text-lg text-white mb-1">Active cameras</h3>
+                  <p class="text-xs text-gray-400">
+                    Zero visual tracking translates to pure spatial serenity and unbreakable data security.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- PART 4: Pinned Horizontal Showcase of Capability Cards -->
+        <section id="capabilities" class="relative z-20">
+          <div id="horizontal-sec" class="relative h-[300vh] w-full">
+            
+            <!-- Sticky Section viewport -->
+            <div class="sticky top-0 h-screen w-full flex flex-col justify-center overflow-hidden bg-[#070912]">
+              
+              <!-- Subtle Background Light vector -->
+              <div class="absolute top-[20%] left-1/2 -translate-x-1/2 w-[70vw] h-[30vh] bg-luminousViolet/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+
+              <!-- Top Text Indicator -->
+              <div class="container mx-auto px-6 md:px-12 mb-8 md:mb-12 relative z-10">
+                <div class="flex justify-between items-end">
+                  <div>
+                    <span class="font-mono text-[10px] tracking-[0.2em] text-luminousViolet uppercase flex items-center gap-2">
+                      SYSTEM CAPABILITIES // FIELD SPECS
+                    </span>
+                    <h3 class="font-display font-bold text-3xl md:text-5xl text-white tracking-tight mt-2">
+                      Sensory capabilities.
+                    </h3>
+                  </div>
+                  <span class="font-mono text-xs text-gray-500 hidden md:block">SCROLL TO SWEEP →</span>
+                </div>
+              </div>
+
+              <!-- Real horizontal track driven by vertical scroll -->
+              <div class="horizontal-track flex gap-8 px-6 md:px-[10vw] flex-nowrap overflow-x-auto md:overflow-x-visible scrollbar-none relative z-10 py-4">
+                
+                <!-- Card 1: Ambient Sensing -->
+                <div class="capability-card w-[80vw] md:w-[420px] bg-white/[0.04] backdrop-blur-md p-8 md:p-10 rounded-2xl border border-white/10 shrink-0 relative flex flex-col justify-between h-[450px] overflow-hidden group select-none transition-all duration-300">
+                  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-luminousCyan/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div class="flex justify-between items-center relative z-10">
+                    <span class="font-mono text-xs text-luminousCyan">[01_ATMOSPHERE]</span>
+                    <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                      <i data-lucide="wind" class="w-4 h-4 text-luminousCyan"></i>
+                    </div>
+                  </div>
+                  <div class="relative z-10">
+                    <h4 class="font-display font-semibold text-2xl md:text-3xl text-white mb-3">Ambient sensing</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      Senses subtle atmospheric changes, volumetric displacements, and airwaves dynamically inside complex physical environments, drafting full continuous acoustic profiles.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Card 2: On-chip AI -->
+                <div class="capability-card w-[80vw] md:w-[420px] bg-white/[0.04] backdrop-blur-md p-8 md:p-10 rounded-2xl border border-white/10 shrink-0 relative flex flex-col justify-between h-[450px] overflow-hidden group select-none transition-all duration-300">
+                  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-luminousViolet/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div class="flex justify-between items-center relative z-10">
+                    <span class="font-mono text-xs text-luminousViolet">[02_NEURAL]</span>
+                    <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                      <i data-lucide="cpu" class="w-4 h-4 text-luminousViolet"></i>
+                    </div>
+                  </div>
+                  <div class="relative z-10">
+                    <h4 class="font-display font-semibold text-2xl md:text-3xl text-white mb-3">On-device AI</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      Runs complex private spatial architectures directly on dedicated non-volatile silicone boards. Zero internet data packages, zero latency delay loops.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Card 3: Spatial Audio -->
+                <div class="capability-card w-[80vw] md:w-[420px] bg-white/[0.04] backdrop-blur-md p-8 md:p-10 rounded-2xl border border-white/10 shrink-0 relative flex flex-col justify-between h-[450px] overflow-hidden group select-none transition-all duration-300">
+                  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-luminousMagenta/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div class="flex justify-between items-center relative z-10">
+                    <span class="font-mono text-xs text-luminousMagenta">[03_WAVES]</span>
+                    <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                      <i data-lucide="waves" class="w-4 h-4 text-luminousMagenta"></i>
+                    </div>
+                  </div>
+                  <div class="relative z-10">
+                    <h4 class="font-display font-semibold text-2xl md:text-3xl text-white mb-3">Spatial audio</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      Modulates beautiful haptic acoustic sound waves that target precise coordinates around your room, turning flat surfaces and ambient furniture into reactive speakers.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Card 4: Privacy First -->
+                <div class="capability-card w-[80vw] md:w-[420px] bg-white/[0.04] backdrop-blur-md p-8 md:p-10 rounded-2xl border border-white/10 shrink-0 relative flex flex-col justify-between h-[450px] overflow-hidden group select-none transition-all duration-300">
+                  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-luminousCyan/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div class="flex justify-between items-center relative z-10">
+                    <span class="font-mono text-xs text-luminousCyan">[04_VAULT]</span>
+                    <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                      <i data-lucide="lock" class="w-4 h-4 text-luminousCyan"></i>
+                    </div>
+                  </div>
+                  <div class="relative z-10">
+                    <h4 class="font-display font-semibold text-2xl md:text-3xl text-white mb-3">Privacy-first</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      Built completely without cameras or microphone storage modules. Spatial density configurations exist as abstract numeric arrays that dissolve in memory.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Card 5: Seamless Handoff -->
+                <div class="capability-card w-[80vw] md:w-[420px] bg-white/[0.04] backdrop-blur-md p-8 md:p-10 rounded-2xl border border-white/10 shrink-0 relative flex flex-col justify-between h-[450px] overflow-hidden group select-none transition-all duration-300">
+                  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-luminousViolet/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div class="flex justify-between items-center relative z-10">
+                    <span class="font-mono text-xs text-luminousViolet">[05_SYNC]</span>
+                    <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                      <i data-lucide="split" class="w-4 h-4 text-luminousViolet"></i>
+                    </div>
+                  </div>
+                  <div class="relative z-10">
+                    <h4 class="font-display font-semibold text-2xl md:text-3xl text-white mb-3">Seamless handoff</h4>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      Fluidly moves interfaces across your displays, laptops, and smart wearable accessories, ensuring continuous focus workflows across all environment segments.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- PART 5: Interactive Closing CTA & Request Overlay -->
+        <section id="cta" class="relative py-32 md:py-48 bg-spaceInk flex items-center justify-center overflow-hidden">
+          
+          <!-- background decorative glowing fields -->
+          <div class="absolute w-[60vw] h-[60vw] rounded-full filter blur-[120px] bg-luminousMagenta/5 pointer-events-none z-0"></div>
+
+          <div class="container mx-auto px-6 md:px-12 text-center relative z-10 flex flex-col items-center">
+            <span class="font-mono text-xs text-luminousMagenta tracking-[0.3em] uppercase mb-4 block">BECOME THE INVITATION</span>
+            
+            <h2 class="font-display font-bold text-5xl md:text-[7.5vw] text-white tracking-widest leading-none mb-12 select-none uppercase reveal-text">
+              SENSE THE FUTURE.
+            </h2>
+            
+            <p class="text-gray-400 text-sm md:text-lg max-w-xl mx-auto mb-10 leading-relaxed select-none">
+              A premium, hand-assembled spatial device test segment is available in restricted cycles. Request access to join our active closed field test group.
+            </p>
+
+            <button id="main-cta-btn" class="px-8 py-4 md:px-10 md:py-5 rounded-full border border-luminousCyan bg-luminousCyan/10 hover:bg-luminousCyan hover:text-black transition-all duration-300 font-mono text-sm tracking-widest text-luminousCyan cursor-pointer magnetic-btn focus:outline-none focus:ring-2 focus:ring-luminousCyan focus:ring-offset-2 focus:ring-offset-spaceInk shadow-[0_0_30px_rgba(94,242,255,0.15)] glow-anim">
+              REQUEST FIELD TEST
+            </button>
+          </div>
+        </section>
+
+        <!-- Detailed Request dialogue overlap modular container -->
+        <div id="request-modal" class="fixed inset-0 w-full h-full bg-spaceInk/95 backdrop-blur-md z-[60] flex items-center justify-center p-4 md:p-6 opacity-0 pointer-events-none transition-all duration-500">
+          <div class="bg-[#0b0c13] border border-white/10 rounded-2xl p-6 md:p-10 max-w-lg w-full relative z-[61] shadow-2xl h-auto flex flex-col justify-between">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-luminousCyan animate-pulse"></span>
+                <span class="font-mono text-xs text-gray-400 uppercase tracking-widest">[FIELD ENTRY REGISTRATION]</span>
+              </div>
+              <button id="close-modal-btn" class="text-gray-500 hover:text-white transition-colors cursor-pointer p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+
+            <!-- Modal Body Form -->
+            <form id="field-test-form" class="flex flex-col gap-5">
+              <div>
+                <label class="block font-mono text-[10px] text-gray-500 uppercase tracking-widest mb-1.5" for="form-name">Name / Organisation</label>
+                <input class="w-full bg-spaceInk border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-luminousCyan transition-colors" type="text" id="form-name" placeholder="E.g. James Vance" required>
+              </div>
+
+              <div>
+                <label class="block font-mono text-[10px] text-gray-500 uppercase tracking-widest mb-1.5" for="form-email">Email Address</label>
+                <input class="w-full bg-spaceInk border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-luminousCyan transition-colors" type="email" id="form-email" placeholder="james@example.com" required>
+              </div>
+
+              <div>
+                <label class="block font-mono text-[10px] text-gray-500 uppercase tracking-widest mb-1.5" for="form-density">Environment spatial capacity</label>
+                <select class="w-full bg-spaceInk border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 focus:outline-none focus:border-luminousCyan transition-colors" id="form-density">
+                  <option value="dense">Studio Space (&lt; 50 sqm)</option>
+                  <option value="medium">Standard Floor (50 - 150 sqm)</option>
+                  <option value="expanded">Multiple Floors / Hall (&gt; 150 sqm)</option>
+                </select>
+              </div>
+
+              <div class="flex items-start gap-3 mt-1">
+                <input class="mt-1 accent-luminousCyan" type="checkbox" id="form-agreement" required>
+                <label class="text-[11px] text-gray-400 leading-normal" for="form-agreement">
+                  I accept standard pre-alpha metric reports and understand that data models remain purely on-device securely.
+                </label>
+              </div>
+
+              <button type="submit" class="w-full py-4 bg-gradient-to-r from-luminousCyan to-luminousViolet hover:from-white hover:to-white hover:text-black font-semibold rounded-lg font-mono text-xs tracking-widest text-black mt-3 transition-all duration-300">
+                INITIATE PROTOCOL
+              </button>
+            </form>
+
+            <div id="form-feedback" class="hidden text-center py-10 flex flex-col items-center gap-3">
+              <div class="h-12 w-12 rounded-full border border-luminousCyan flex items-center justify-center mb-2">
+                <i data-lucide="check" class="w-6 h-6 text-luminousCyan"></i>
+              </div>
+              <h4 class="font-display font-semibold text-lg text-white">ACCESS GRANTED</h4>
+              <p class="text-xs text-gray-400 max-w-sm">
+                Your credentials are encrypted. An ambient displacement key is being modulated for your email footprint. Expect field contact in 24 hours.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PART 6: Premium Dense Footer -->
+        <footer class="bg-spaceInk border-t border-white/5 py-12 md:py-20 relative z-20 overflow-hidden">
+          <div class="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 relative z-10 mb-16">
+            
+            <!-- Column 1: Brand Info -->
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center gap-1">
+                <span class="font-display font-bold text-lg tracking-widest text-white">NOVA</span>
+                <span class="font-mono text-[9px] bg-white/10 text-white/80 px-1.2 py-0.4 rounded ml-1">FIELD</span>
+              </div>
+              <p class="text-xs text-gray-500 leading-relaxed max-w-xs">
+                Computing that disappears. Developing premium spatial environments and non-volatile sensory hardware structures.
+              </p>
+            </div>
+
+            <!-- Column 2: Sense Index -->
+            <div class="flex flex-col gap-3 text-xs">
+              <span class="font-mono text-[9px] text-gray-600 uppercase tracking-widest mb-1.5">[SENSE CORE]</span>
+              <a href="#" class="text-gray-500 hover:text-luminousCyan transition-colors">Atmospheric sensing</a>
+              <a href="#" class="text-gray-500 hover:text-luminousCyan transition-colors">Closed feedback vectors</a>
+              <a href="#" class="text-gray-500 hover:text-luminousCyan transition-colors">Volumetric metrics</a>
+            </div>
+
+            <!-- Column 3: Silicon metrics -->
+            <div class="flex flex-col gap-3 text-xs">
+              <span class="font-mono text-[9px] text-gray-600 uppercase tracking-widest mb-1.5">[SILICONE LOG]</span>
+              <a href="#" class="text-gray-500 hover:text-luminousViolet transition-colors font-mono">LATENCY_INDX_8MS</a>
+              <a href="#" class="text-gray-500 hover:text-luminousViolet transition-colors font-mono font-normal">CHIP_ENGINE_V4</a>
+              <a href="#" class="text-gray-500 hover:text-luminousViolet transition-colors font-mono">ENCRYPTED_BLUEPRINTS</a>
+            </div>
+
+            <!-- Column 4: Legals / Location -->
+            <div class="flex flex-col gap-3 text-xs">
+              <span class="font-mono text-[9px] text-gray-600 uppercase tracking-widest mb-1.5">[ORIGIN LOGS]</span>
+              <p class="text-gray-500 leading-relaxed">
+                Modulus Laboratories, Inc.<br>
+                405 Silicon Alley, San Francisco<br>
+                info@nova.field
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Bottom Legals segment -->
+          <div class="container mx-auto px-6 md:px-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] text-gray-600 font-mono">
+            <div class="text-left flex flex-col gap-1">
+              <span>&copy; 2026 MODULUS LABORATORIES. ALL RIGHTS ENCRYPTED.</span>
+              <span class="text-[10px] uppercase tracking-[0.3em] text-white/20 mt-1">Computing that disappears.™</span>
+            </div>
+            <div class="flex gap-12 flex-wrap items-center">
+              <div class="flex flex-col gap-1 items-start md:items-end">
+                <span class="text-[9px] uppercase tracking-widest text-white/30">Current Build</span>
+                <span class="text-[11px] font-mono text-white/60">v1.0.4-AURORA</span>
+              </div>
+              <div class="flex flex-col gap-1 items-start md:items-end">
+                <span class="text-[9px] uppercase tracking-widest text-white/30">Location</span>
+                <span class="text-[11px] font-mono text-white/60">SFO / HQ</span>
+              </div>
+              <div class="flex gap-4">
+                <a href="#" class="hover:text-white transition-colors text-white/40">PRIVACY CODE</a>
+                <a href="#" class="hover:text-white transition-colors text-white/40">SENSORY PROTOCOLS</a>
+              </div>
+            </div>
+          </div>
+        </footer>
+
+      </div> <!-- #smooth-content -->
+    </div> <!-- #smooth-wrapper -->
+
+    <!-- Load CDN Libraries (GSAP, ScrollTrigger, Lenis, Lucide Icons, Three.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      // Initialize Lucide Vector Icons
+      lucide.createIcons();
+
+      // Check if user prefers reduced motion
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // 1. Digital Clock for floating marginal widgets
+      function updateClock() {
+        const clockEl = document.getElementById("floating-clock");
+        if (clockEl) {
+          const now = new Date();
+          const timeString = now.toLocaleTimeString() + " UTC";
+          clockEl.innerText = timeString;
+        }
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // 2. Custom Magnetic Cursors (Desktop only, auto-removed on Touch devices)
+      const cursorDot = document.getElementById("cursor-dot");
+      const cursorRing = document.getElementById("cursor-ring");
+      let mouseX = 0, mouseY = 0;
+      let dotX = 0, dotY = 0;
+      let ringX = 0, ringY = 0;
+
+      // Detect Touch Device to immediately hide custom cursor
+      const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if (isTouchDevice) {
+        if(cursorDot) cursorDot.style.display = "none";
+        if(cursorRing) cursorRing.style.display = "none";
+      } else {
+        window.addEventListener("mousemove", (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        });
+
+        // Loop dynamic interpolation for smooth physics cursor tracking
+        function animateCursor() {
+          const lerpDot = 0.35;
+          dotX += (mouseX - dotX) * lerpDot;
+          dotY += (mouseY - dotY) * lerpDot;
+
+          const lerpRing = 0.12;
+          ringX += (mouseX - ringX) * lerpRing;
+          ringY += (mouseY - ringY) * lerpRing;
+
+          if (cursorDot) {
+            cursorDot.style.left = `${dotX}px`;
+            cursorDot.style.top = `${dotY}px`;
+          }
+          if (cursorRing) {
+            cursorRing.style.left = `${ringX}px`;
+            cursorRing.style.top = `${ringY}px`;
+          }
+
+          requestAnimationFrame(animateCursor);
+        }
+        requestAnimationFrame(animateCursor);
+
+        // Hover expansions for clickable elements
+        const hovers = document.querySelectorAll("a, button, input, select, .capability-card, .glowing-card");
+        hovers.forEach(el => {
+          el.addEventListener("mouseenter", () => {
+            document.body.classList.add("cursor-hover");
+          });
+          el.addEventListener("mouseleave", () => {
+            document.body.classList.remove("cursor-hover");
+          });
+        });
+
+        // Magnetic effects for buttons
+        const magneticButtons = document.querySelectorAll(".magnetic-btn");
+        magneticButtons.forEach(btn => {
+          btn.addEventListener("mousemove", (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            // Move the button slightly toward pointer coordinates
+            gsap.to(btn, {
+              x: x * 0.45,
+              y: y * 0.45,
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          });
+
+          btn.addEventListener("mouseleave", () => {
+            gsap.to(btn, {
+              x: 0,
+              y: 0,
+              duration: 0.5,
+              ease: "elastic.out(1, 0.3)"
+            });
+          });
+        });
+      }
+
+      // 3. Preloader Progress Loading Numbers
+      const loaderNum = document.getElementById("loader-num");
+      const loaderBar = document.getElementById("loader-bar");
+      const preloader = document.getElementById("preloader");
+      const statusTexts = [
+        "INITIALIZING CHIP NETWORKS...",
+        "ALIGNING SENSORY INTUITIVE FIELD...",
+        "DECODING AMBIENT VOLUME COEFFICIENTS...",
+        "STABILIZING CORE RESONANCE..."
+      ];
+      const loaderStatus = document.getElementById("loader-status");
+
+      let currentProgress = 0;
+
+      function simulateLoading() {
+        if (prefersReducedMotion) {
+          // Skip the animated preloader entirely
+          if (preloader) preloader.style.display = "none";
+          initializeScripts();
+          return;
+        }
+
+        const interval = setInterval(() => {
+          currentProgress += Math.floor(Math.random() * 8) + 4;
+          if (currentProgress >= 100) {
+            currentProgress = 100;
+            clearInterval(interval);
+            
+            // Finish loader bar & dismiss loader with mask animation
+            if (loaderBar) loaderBar.style.width = "100%";
+            if (loaderNum) loaderNum.innerText = "100";
+            
+            setTimeout(dismissPreloader, 400);
+          } else {
+            if (loaderBar) loaderBar.style.width = `${currentProgress}%`;
+            if (loaderNum) loaderNum.innerText = currentProgress.toString().padStart(3, '0');
+            
+            // Periodically switch helper status labels
+            const statusIdx = Math.floor((currentProgress / 100) * statusTexts.length);
+            if (loaderStatus) loaderStatus.innerText = statusTexts[statusIdx];
+          }
+        }, 80);
+      }
+
+      function dismissPreloader() {
+        // High-end GSAP clip-path sliding transitions
+        gsap.timeline()
+          .to(preloader, {
+            clipPath: "polygon(0 0, 100% 0, 100% 0%, 0 0%)",
+            duration: 1.4,
+            ease: "power4.inOut"
+          })
+          .set(preloader, { display: "none" })
+          .fromTo(".reveal-word", { opacity: 0, y: 15 }, { opacity: 1, y: 0, stagger: 0.1, duration: 1.2, ease: "power3.out" }, "-=0.3")
+          .call(() => {
+            // Trigger core interactions & split highlights
+            initializeScripts();
+          });
+      }
+
+      // Trigger preloader loader sequence
+      window.addEventListener("DOMContentLoaded", simulateLoading);
+
+      // 4. Core Scripts Initializer (3D Canvas, Lenis scroll, Split animations)
+      function initializeScripts() {
+        // A. Register GSAP ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger);
+
+        // B. Set up Lenis smooth scrolling for high-end inertia feel
+        const lenis = new Lenis({
+          duration: 1.4,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          direction: 'vertical',
+          gestureDirection: 'vertical',
+          smooth: true,
+          mouseMultiplier: 1.1,
+          smoothTouch: false, // Ensure native clean touch scrolling on mobile
+        });
+
+        function raf(time) {
+          lenis.raf(time);
+          requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // Notify ScrollTrigger whenever Lenis scrolls
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => {
+          lenis.raf(time * 1000);
+        });
+        gsap.ticker.lagSmoothing(0);
+
+        // Bind scroll updates to right border bar gauge metric
+        lenis.on('scroll', (e) => {
+          const scrollPct = (e.scroll / (e.limit || 1)) * 100;
+          const scrollBarIndicator = document.getElementById("scroll-bar-indicator");
+          if (scrollBarIndicator) {
+            scrollBarIndicator.style.width = `${scrollPct}%`;
+          }
+        });
+
+        // C. Split headings animate-word characters
+        document.querySelectorAll('.reveal-text').forEach(el => {
+          const chars = el.innerText.trim();
+          // Clear standard contents and split to word spans
+          const items = chars.split(" ");
+          el.innerHTML = items.map(item => 
+            `<span class="inline-block overflow-hidden mr-[0.22em] font-sans pb-[0.05em]">` +
+              `<span class="char-span inline-block translate-y-[100%] transition-transform duration-1000 ease-out">${item}</span>` +
+            `</span>`
+          ).join("");
+          
+          gsap.to(el.querySelectorAll('.char-span'), {
+            y: "0%",
+            duration: 1.2,
+            stagger: 0.05,
+            ease: "power4.out",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 85%",
+              toggleActions: "play none none reverse"
+            }
+          });
+        });
+
+        // D. Setup Morphing Three.js WebGL Scene background
+        initThreeWebGL();
+
+        // E. Form submission handling & access control dialogues
+        setupModalHandling();
+      }
+
+      // Three.JS WebGL code structures
+      function initThreeWebGL() {
+        const holder = document.getElementById("canvas-holder");
+        const canvas = document.getElementById("webgl-canvas");
+        const fallback = document.getElementById("webgl-fallback");
+
+        if (!canvas) return;
+
+        let renderer, scene, camera, particleMaterial, particles;
+        const count = isTouchDevice ? 1500 : 3500; // Optimize count for touch screens
+
+        // Check WebGL compatibility support.
+        try {
+          // Setup Scene elements
+          scene = new THREE.Scene();
+          
+          // Setup Camera perspective
+          camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+          camera.position.z = 6;
+
+          // Setup Renderer options
+          renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            alpha: true
+          });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Cap high DPI on mobile screen
+          renderer.setSize(window.innerWidth, window.innerHeight);
+
+          // Build Geometry States
+          const geometry = new THREE.BufferGeometry();
+          
+          // Generate Coordinates
+          const spherePositions = [];
+          const cloudPositions = [];
+          const ringPositions = [];
+          const colors = [];
+
+          for (let i = 0; i < count; i++) {
+            // State 1: Sphere Distribution
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const rSphere = 2.0 + Math.random() * 0.1;
+            spherePositions.push(
+              rSphere * Math.sin(phi) * Math.cos(theta),
+              rSphere * Math.sin(phi) * Math.sin(theta),
+              rSphere * Math.cos(phi)
+            );
+
+            // State 2: Dispersed Random Cloud Box
+            cloudPositions.push(
+              (Math.random() - 0.5) * 8.5,
+              (Math.random() - 0.5) * 8.5,
+              (Math.random() - 0.5) * 8.5
+            );
+
+            // State 3: Flat Torus Ring configuration
+            const thetaRing = Math.random() * 2.0 * Math.PI;
+            const rRing = 2.4 + Math.random() * 0.8;
+            ringPositions.push(
+              rRing * Math.cos(thetaRing),
+              (Math.random() - 0.5) * 0.35, // Thin ring thickness
+              rRing * Math.sin(thetaRing)
+            );
+
+            // Colors setup: Cyan (#5ef2ff), Violet (#9b6cff), Magenta (#ff5ca8) blends
+            const rand = Math.random();
+            if (rand < 0.35) {
+              colors.push(0.37, 0.95, 1.0); // Cyan glow
+            } else if (rand < 0.70) {
+              colors.push(0.61, 0.42, 1.0); // Violet pulse
+            } else {
+              colors.push(1.0, 0.36, 0.66); // Magenta pop
+            }
+          }
+
+          // Inject Geometry variables attributes
+          geometry.setAttribute('position', new THREE.Float32BufferAttribute(spherePositions, 3));
+          geometry.setAttribute('aCloudPosition', new THREE.Float32BufferAttribute(cloudPositions, 3));
+          geometry.setAttribute('aRingPosition', new THREE.Float32BufferAttribute(ringPositions, 3));
+          geometry.setAttribute('aColor', new THREE.Float32BufferAttribute(colors, 3));
+
+          // Customize GLSL Fragment & Vertex Shaders for maximum visual quality
+          const vertexShader = `
+            uniform float uTime;
+            uniform float uMorph1;
+            uniform float uMorph2;
+            uniform float uMouseX;
+            uniform float uMouseY;
+            attribute vec3 aCloudPosition;
+            attribute vec3 aRingPosition;
+            attribute vec3 aColor;
+            varying vec3 vColor;
+            varying float vDepth;
+
+            void main() {
+              // Smooth morph transitions between sphere, cloud and ring state.
+              vec3 mixPosition = mix(position, aCloudPosition, uMorph1);
+              vec3 finalPosition = mix(mixPosition, aRingPosition, uMorph2);
+
+              // Inject smooth atmospheric sine motion fields
+              float dist = sin(finalPosition.x * 1.5 + uTime * 1.2) * cos(finalPosition.y * 1.5 + uTime * 1.1) * 0.15;
+              finalPosition += vec3(dist * (1.0 - uMorph2 * 0.7)); // reduce noise distortion inside flat ring layout
+
+              // Parallax movement driven by mouse pointer coordinates
+              finalPosition.x += uMouseX * 0.5;
+              finalPosition.y += uMouseY * 0.5;
+
+              vec4 mvPosition = modelViewMatrix * vec4(finalPosition, 1.0);
+              gl_Position = projectionMatrix * mvPosition;
+
+              // Size attenuation logic
+              gl_PointSize = (15.0 / -mvPosition.z) * (1.0 + sin(uTime + finalPosition.x) * 0.35);
+
+              vColor = aColor;
+              vDepth = -mvPosition.z;
+            }
+          `;
+
+          const fragmentShader = `
+            varying vec3 vColor;
+            varying float vDepth;
+
+            void main() {
+              // Create soft circular vector discs instead of standard square dots
+              vec2 tempCoords = gl_PointCoord - vec2(0.5);
+              float dist = length(tempCoords);
+
+              if (dist > 0.5) {
+                discard;
+              }
+
+              // High vibrance radial glow decay falloff formula
+              float glowPower = 1.0 - (dist * 2.0);
+              glowPower = pow(glowPower, 1.8);
+
+              // Output blended rgb colors
+              gl_FragColor = vec4(vColor * glowPower * 1.2, glowPower);
+            }
+          `;
+
+          // Custom points shader material
+          particleMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+              uTime: { value: 0 },
+              uMorph1: { value: 0 },
+              uMorph2: { value: 0 },
+              uMouseX: { value: 0 },
+              uMouseY: { value: 0 }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+          });
+
+          // Inject elements into core scene elements
+          particles = new THREE.Points(geometry, particleMaterial);
+          scene.add(particles);
+
+          // Display canvas layer
+          canvas.style.opacity = "1";
+
+          // Track window resize adjustments triggers
+          window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+          });
+
+          // Register mouse moves for parallax tracking variables
+          let currentMouseX = 0, currentMouseY = 0;
+          let targetMouseX = 0, targetMouseY = 0;
+
+          if (!isTouchDevice) {
+            window.addEventListener("mousemove", (e) => {
+              targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+              targetMouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+            });
+          }
+
+          // Build Pinned Scroll Story bound timelines
+          // This ties ScrollTrigger transitions directly into shader morph uniforms!
+          const morphTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: "#scroll-story",
+              start: "top top",
+              end: "bottom bottom",
+              scrub: 1.0,  // Smooth scrub lag for Awwwards level cohesion
+              invalidateOnRefresh: true,
+            }
+          });
+
+          // Phase 1 Scroll Segment: Morph Sphere to Cloud
+          morphTimeline.to(particleMaterial.uniforms.uMorph1, {
+            value: 1.0,
+            ease: "power2.inOut"
+          }, 0);
+
+          // Segment margins fade interactions elements
+          morphTimeline.to(".panel-1", {
+            opacity: 0,
+            y: -30,
+            ease: "power2.out"
+          }, 0)
+          .to(".panel-2", {
+            opacity: 1,
+            y: 0,
+            pointerEvents: "auto",
+            ease: "power2.out"
+          }, 0.25);
+
+          // Background ambient lights layout shifts
+          morphTimeline.to("#ambient-glow-1", {
+            backgroundColor: "#9b6cff",
+            opacity: 0.08,
+            scale: 1.1,
+            ease: "none"
+          }, 0);
+
+          // Phase 2 Scroll segment: Morph Cloud to Ring
+          morphTimeline.to(particleMaterial.uniforms.uMorph2, {
+            value: 1.0,
+            ease: "power2.inOut"
+          }, 0.5);
+
+          morphTimeline.to(".panel-2", {
+            opacity: 0,
+            y: -30,
+            ease: "power2.out"
+          }, 0.5)
+          .to(".panel-3", {
+            opacity: 1,
+            y: 0,
+            pointerEvents: "auto",
+            ease: "power2.out"
+          }, 0.75);
+
+          morphTimeline.to("#ambient-glow-2", {
+            backgroundColor: "#ff5ca8",
+            opacity: 0.1,
+            scale: 1.25,
+            ease: "none"
+          }, 0.5);
+
+          // F. Horizontal Showcase scroll setups
+          setupHorizontalTrack();
+
+          // Standard animation loop inside WebGL contexts
+          const clock = new THREE.Clock();
+
+          function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+            if (particleMaterial) {
+              particleMaterial.uniforms.uTime.value = time;
+
+              // Lerp viewport targets for parallax physics tracking
+              currentMouseX += (targetMouseX - currentMouseX) * 0.05;
+              currentMouseY += (targetMouseY - currentMouseY) * 0.05;
+
+              particleMaterial.uniforms.uMouseX.value = currentMouseX;
+              particleMaterial.uniforms.uMouseY.value = currentMouseY;
+            }
+
+            // Subtle base visual rotations matching states
+            if (particles) {
+              particles.rotation.y = time * 0.05;
+              particles.rotation.x = time * 0.015;
+            }
+
+            renderer.render(scene, camera);
+          }
+          animate();
+
+        } catch (webglErr) {
+          console.error("WebGL environment init failure:", webglErr);
+          // Gracefully show static CSS fallback
+          if (holder) holder.style.display = "none";
+          if (fallback) {
+            fallback.classList.remove("opacity-0");
+            fallback.classList.add("opacity-100");
+          }
+          
+          // Still register text scroll highlights triggers without 3D animations
+          setupCSSFallbackFallbackTimeline();
+        }
+      }
+
+      // Traditional standard gsap timelines in case WebGL dies or is unavailable
+      function setupCSSFallbackFallbackTimeline() {
+        const fallTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#scroll-story",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1.0,
+          }
+        });
+
+        fallTimeline.to(".panel-1", { opacity: 0, y: -30, ease: "power2.out" }, 0)
+          .to(".panel-2", { opacity: 1, pointerEvents: "auto", y: 0, ease: "power2.out" }, 0.25)
+          .to(".panel-2", { opacity: 0, y: -30, ease: "power2.out" }, 0.5)
+          .to(".panel-3", { opacity: 1, pointerEvents: "auto", y: 0, ease: "power2.out" }, 0.75);
+
+        setupHorizontalTrack();
+      }
+
+      // Horizontal horizontal track bento setups
+      function setupHorizontalTrack() {
+        // Vertical scroll moves track horizontally based on ScrollTrigger
+        const track = document.querySelector('.horizontal-track');
+        if (!track) return;
+
+        // Skip pinning setup on mobile touch panels if standard native sweep is preferred, 
+        // but perform full fluid pins on desktop displays.
+        if (!isTouchDevice && window.innerWidth >= 768) {
+          const horizontalAmount = track.scrollWidth - window.innerWidth;
+          
+          gsap.to(track, {
+            x: () => -horizontalAmount - 120, // Add nice spacing values offset
+            ease: "none",
+            scrollTrigger: {
+              trigger: "#capabilities",
+              start: "top top",
+              end: () => `+=${track.scrollWidth}`,
+              scrub: 1.0,
+              pin: true,
+              invalidateOnRefresh: true,
+            }
+          });
+
+          // Subtle parallax reveals on cards as they pass through the viewport
+          gsap.utils.toArray('.capability-card').forEach((card, idx) => {
+            gsap.fromTo(card, 
+              { opacity: 0.6, scale: 0.9, y: 30 },
+              {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.8,
+                ease: "power3.out",
+                scrollTrigger: {
+                  trigger: card,
+                  containerAnimation: gsap.getById("capabilities-trigger"), // bind alignment
+                  start: "left 90%",
+                  toggleActions: "play none none reverse"
+                }
+              }
+            );
+          });
+        }
+      }
+
+      // Detailed Dialog request setups
+      function setupModalHandling() {
+        const reqModal = document.getElementById("request-modal");
+        const ctaBtnHeader = document.getElementById("cta-header-btn");
+        const ctaBtnMain = document.getElementById("main-cta-btn");
+        const closeModalBtn = document.getElementById("close-modal-btn");
+        const fieldForm = document.getElementById("field-test-form");
+        const formFeedback = document.getElementById("form-feedback");
+
+        function openModal() {
+          if (!reqModal) return;
+          reqModal.classList.remove("opacity-0", "pointer-events-none");
+          reqModal.classList.add("opacity-100", "pointer-events-auto");
+          
+          // Animate inner request box to scale zoom nicely
+          gsap.fromTo(reqModal.querySelector('div'), 
+            { scale: 0.9, y: 30, opacity: 0 },
+            { scale: 1, y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }
+          );
+        }
+
+        function closeModal() {
+          if (!reqModal) return;
+          gsap.to(reqModal.querySelector('div'), {
+            scale: 0.92,
+            y: 15,
+            opacity: 0,
+            duration: 0.3,
+            ease: "power3.in",
+            onComplete: () => {
+              reqModal.classList.remove("opacity-100", "pointer-events-auto");
+              reqModal.classList.add("opacity-0", "pointer-events-none");
+              
+              // Reset standard layouts on completion
+              if (fieldForm && formFeedback) {
+                fieldForm.classList.remove("hidden");
+                formFeedback.classList.add("hidden");
+                fieldForm.reset();
+              }
+            }
+          });
+        }
+
+        if (ctaBtnHeader) ctaBtnHeader.addEventListener("click", openModal);
+        if (ctaBtnMain) ctaBtnMain.addEventListener("click", openModal);
+        if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
+
+        // Click outside backdrop triggers cancel close
+        if (reqModal) {
+          reqModal.addEventListener("click", (e) => {
+            if (e.target === reqModal) {
+              closeModal();
+            }
+          });
+        }
+
+        // Action Form Submit Protocol simulation
+        if (fieldForm) {
+          fieldForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            
+            // Trigger beautiful encrypted loader transitions
+            const submitBtn = fieldForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+              submitBtn.innerText = "LINKING CHIP FOOTPRINT...";
+              submitBtn.disabled = true;
+            }
+
+            setTimeout(() => {
+              fieldForm.classList.add("hidden");
+              if (formFeedback) {
+                formFeedback.classList.remove("hidden");
+                gsap.fromTo(formFeedback, 
+                  { opacity: 0, scale: 0.95 },
+                  { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }
+                );
+              }
+            }, 1200);
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
