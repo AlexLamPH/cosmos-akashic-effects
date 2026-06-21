@@ -1,0 +1,18 @@
+{
+  "code": "CWT-014",
+  "slug": "studio-prism",
+  "title": "PRISM — Creative Studio",
+  "title_vi": "PRISM — Studio sáng tạo",
+  "industry": "creative",
+  "industries": ["creative", "agency", "studio", "portfolio"],
+  "style": "Editorial dark, view-based",
+  "tier": "showcase",
+  "tags": ["creative", "portfolio", "page-transition", "curtain-wipe", "views", "white-label", "responsive"],
+  "palette": ["#0e0e12", "#ff5b39", "#2b59ff", "#b6e34a", "#c08cff"],
+  "sections": ["intro-curtain", "nav", "view-home", "view-work", "view-about", "view-contact"],
+  "special": "PAGE-TRANSITION: nav switches between full-screen views with a staggered multi-color curtain wipe (intro reveal on load + a wipe between every 'page'). Tap-driven, mobile-friendly. Reduced-motion → instant swap.",
+  "white_label": true, "self_contained": true, "responsive": true,
+  "summary": "Single-page portfolio that behaves like a multi-page site: clicking nav plays a staggered colored curtain transition between full-screen Home / Work / About / Contact views.",
+  "summary_vi": "Portfolio một-trang nhưng cảm giác như nhiều trang: bấm menu phát hiệu ứng rèm màu wipe chuyển giữa các view Home / Work / About / Contact toàn màn hình.",
+  "builder": "Ra", "card_type": "effect", "created": "2026-06-20"
+}
