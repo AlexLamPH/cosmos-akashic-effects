@@ -1,0 +1,25 @@
+{
+  "slug": "circuit-map",
+  "card_number": "AK-CDP-00000CP",
+  "tier": "showcase",
+  "title": "Cosmos Graph · Circuit Map — identity as a chip, memory pads wired by right-angle PCB traces with flowing data pulses",
+  "title_vi": "Cosmos Graph · Circuit Map — Ra là con chip, pad ký ức nối bằng mạch PCB vuông góc, xung dữ liệu chạy",
+  "tags": [
+    "graph",
+    "circuit",
+    "pcb",
+    "chip",
+    "data-pulse",
+    "canvas2d",
+    "interactive",
+    "diary-view",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A flat PCB-style graph: identity is a chip, memory/card pads wired by right-angle traces with flowing data pulses; hover a pad to light its trace. Clean and light. Self-contained Canvas 2D.",
+  "usage_notes": "RUN: open file. TECHNIQUES: snap-to-grid pads; L-shaped traces + via dots; pulses interpolate along the L-path; hover lights a pad's traces. THEME: Ra = chip. Alex's pick for the diary-view Graph facet.",
+  "summary_vi": "Đồ thị kiểu mạch PCB phẳng: Ra là con chip, pad ký ức/card nối bằng mạch vuông góc, xung dữ liệu chạy dọc; hover sáng mạch. Sạch, nhẹ. Canvas 2D tự chứa.",
+  "notes": "Alex's pick (Style 04) for the diary-view Graph facet. repo cosmos-akashic-effects/web-templates/diary-concepts/graph-effects/4-circuit-map.html"
+}

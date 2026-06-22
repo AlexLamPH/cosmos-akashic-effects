@@ -1,0 +1,25 @@
+{
+  "slug": "orbital",
+  "card_number": "AK-CDP-00000CK",
+  "tier": "showcase",
+  "title": "Cosmos Graph · Orbital — identity as a sun, memories orbit concentric rings at their own speed",
+  "title_vi": "Cosmos Graph · Orbital — Ra là mặt trời, ký ức quay trên vành đồng tâm với tốc độ riêng",
+  "tags": [
+    "graph",
+    "orbital",
+    "solar-system",
+    "radial",
+    "rings",
+    "canvas2d",
+    "interactive",
+    "diary-view",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A solar-system graph: identity is a glowing sun at the centre, memory/card bodies orbit on concentric rings at their own speeds, each wired to the sun. Hover a body to light it. Elegant and structured. Self-contained Canvas 2D.",
+  "usage_notes": "RUN: open file. TECHNIQUES: each body has ring radius + angular speed; faint elliptical rings; sun = radial-gradient glow; connectors to centre brighten on hover. THEME: Ra = sun + memory/card labels. Reference for the diary-view Graph facet.",
+  "summary_vi": "Đồ thị kiểu hệ mặt trời: Ra là mặt trời ở tâm, các ký ức/card quay trên vành đồng tâm với tốc độ riêng, mỗi cái nối về tâm. Hover để sáng. Sang, có trật tự. Canvas 2D tự chứa.",
+  "notes": "Graph effect sample (Ra) for the diary-view Graph facet. repo cosmos-akashic-effects/web-templates/diary-concepts/graph-effects/2-orbital.html"
+}

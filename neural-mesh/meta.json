@@ -1,0 +1,25 @@
+{
+  "slug": "neural-mesh",
+  "card_number": "AK-CDP-00000CM",
+  "tier": "showcase",
+  "title": "Cosmos Graph · Neural Mesh — a dense breathing neural net with depth parallax; synapses fire",
+  "title_vi": "Cosmos Graph · Neural Mesh — mạng nơ-ron dày có chiều sâu (parallax); synapse bắn xung",
+  "tags": [
+    "graph",
+    "neural-network",
+    "synapse",
+    "parallax",
+    "depth",
+    "canvas2d",
+    "interactive",
+    "diary-view",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A dense, breathing neural-network graph with depth (parallax on pointer move); synapses fire as pulses along the dendrites in teal with magenta sparks. Evokes a living mind. Self-contained Canvas 2D.",
+  "usage_notes": "RUN: open file. TECHNIQUES: nodes at varied depth (size/alpha by z); nearest-neighbour edges; pointer parallax shifts by depth; pulses fire on edges (additive). THEME: Ra = bright soma. Reference for the diary-view Graph facet.",
+  "summary_vi": "Đồ thị mạng nơ-ron dày, \"thở\", có chiều sâu (parallax theo chuột); synapse bắn xung dọc dây thần kinh, tông teal + tia hồng. Gợi cảm giác bộ não sống. Canvas 2D tự chứa.",
+  "notes": "Graph effect sample (Ra) for the diary-view Graph facet. repo cosmos-akashic-effects/web-templates/diary-concepts/graph-effects/3-neural-mesh.html"
+}

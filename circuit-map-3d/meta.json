@@ -1,0 +1,28 @@
+{
+  "slug": "circuit-map-3d",
+  "card_number": "AK-CDP-00000CN",
+  "tier": "showcase",
+  "title": "Cosmos Graph · Circuit Map 3D — a multi-layer chip graph (detailed glowing die, pads on stacked tiers wired by fine traces + vias, data pulses; drag to orbit)",
+  "title_vi": "Cosmos Graph · Circuit Map 3D — đồ thị chip đa tầng (die phát sáng chi tiết, pad trên nhiều tầng nối bằng trace mảnh + via, xung dữ liệu; kéo để xoay)",
+  "tags": [
+    "graph",
+    "circuit",
+    "3d",
+    "multi-layer",
+    "chip",
+    "pcb",
+    "vias",
+    "data-pulse",
+    "canvas2d",
+    "interactive",
+    "diary-view",
+    "cosmos-ai-lab",
+    "creative-coding",
+    "effect",
+    "ra"
+  ],
+  "summary": "A 3D multi-layer chip graph: identity is a detailed glowing die (amber rim, dotted circuit texture, glowing core), with memory/card pads on 3 stacked tiers wired by fine metal traces and vertical vias, data pulses flowing. Auto-rotates; drag to orbit — so a dense web of connections actually fits (2D can not show enough). Self-contained Canvas 2D with a 3D projection.",
+  "usage_notes": "RUN: open file. TECHNIQUES: 3D projection (rotateY + pitch + perspective) of pads on stacked tier planes; within-tier grid traces + vertical vias; depth fog + sort; sub-pixel fine traces; pulses interpolate in world space; central die drawn on the tier plane (rim glow, ring traces, dotted texture, pins, Ra core). TUNE: CFG (tiers, foc, tilt). Alex pick for the diary-view Graph facet.",
+  "summary_vi": "Đồ thị chip đa tầng 3D: Ra là con die chi tiết (rim hổ phách phát sáng, hoạ tiết mạch chấm, lõi glow), pad ký ức/card nằm trên 3 tầng nối bằng trace kim loại mảnh + via dọc, xung dữ liệu chạy. Tự xoay; kéo để orbit — mạng dày vẫn hiện đủ (2D không đủ chỗ). Canvas 2D + chiếu 3D, tự chứa.",
+  "notes": "EXPERIMENTAL 3D variant (Alex: chip not polished + un-draggable touch bug). Superseded by the 2D Circuit Map for the diary-view Graph facet. File: graph-effects/4b-circuit-3d.html"
+}
