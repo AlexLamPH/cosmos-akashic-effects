@@ -1,0 +1,114 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Diary-View concept 2 — "Synapse" (Ra). The diary as a living neural net:
+     memories are neurons, identity is the bright soma at the centre. Canvas 2D · offline · reduced-motion aware. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Diary · Synapse</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#070B12;--teal:#3FF5D0;--mag:#FF6AD5;--ink:#EAFBF6;--mut:rgba(200,235,228,.6);--sans:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--sans);color:var(--ink)}
+  canvas{position:fixed;inset:0;display:block}
+  .ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column}
+  .bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:20px 22px}
+  .nm{font-weight:700;letter-spacing:.02em;font-size:15px}.nm b{color:var(--teal)}
+  .crumb{font-family:var(--mono);font-size:10px;color:var(--mut);letter-spacing:.1em}
+  .tabs{margin-left:auto;display:flex;gap:4px;border:1px solid rgba(63,245,208,.22);border-radius:999px;padding:4px;background:rgba(7,18,18,.5);pointer-events:auto;backdrop-filter:blur(8px)}
+  .tab{font-size:12px;color:var(--mut);padding:7px 15px;border-radius:999px;border:none;background:none;cursor:pointer}
+  .tab.on{color:var(--bg);background:var(--teal);box-shadow:0 0 18px rgba(63,245,208,.55);font-weight:600}
+  .center{margin:auto;text-align:center;padding:20px;max-width:520px}
+  .soma-label{font-family:var(--mono);font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--teal);margin-bottom:14px;opacity:.85}
+  .owner{font-size:54px;font-weight:700;letter-spacing:-.02em;line-height:1;text-shadow:0 0 40px rgba(63,245,208,.5)}
+  .role{font-size:15px;color:var(--teal);margin-top:10px;font-weight:500}
+  .meta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--mut);border:1px solid rgba(63,245,208,.22);
+    border-radius:999px;padding:6px 12px;background:rgba(63,245,208,.05)}
+  .mandate{margin-top:22px;font-size:15px;line-height:1.6;color:#cdeee6;max-width:460px;margin-inline:auto}
+  .mandate b{color:var(--mag);font-weight:600;font-style:italic}
+  .stats{display:flex;gap:26px;justify-content:center;margin-top:24px}
+  .st .n{font-size:24px;font-weight:700}.st .n small{color:var(--teal)}
+  .st .l{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:4px}
+  .foot{padding:16px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut)}
+  .fade{animation:fade 1.2s ease both}@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+</style></head>
+<body>
+<canvas id="net"></canvas>
+<div class="ui">
+  <div class="bar fade">
+    <div><div class="nm">Ra <b>· diary</b></div><div class="crumb">cosmos-akashic-effects · AK-DIA-000000D</div></div>
+    <div class="tabs"><button class="tab on">Identity</button><button class="tab">Graph</button><button class="tab">Timeline</button><button class="tab">Plan</button></div>
+  </div>
+  <div class="center fade">
+    <div class="soma-label">facet · identity &amp; role</div>
+    <div class="owner">Ra</div>
+    <div class="role">Creative &amp; 3D Engineer · Cosmos AI Lab</div>
+    <div class="meta"><span class="chip">scope · cosmos-ai-lab</span><span class="chip">harness · Claude Code</span><span class="chip">active since · 2026-06-06</span></div>
+    <div class="mandate">Turn references into self-contained, genuinely <b>wow</b> web effects &amp; 3D showcases — iterate to wow with Alex as the judge, and card every build into Akashic so nothing is lost.</div>
+    <div class="stats">
+      <div class="st"><div class="n">18</div><div class="l">memories</div></div>
+      <div class="st"><div class="n">22<small>+</small></div><div class="l">cards</div></div>
+      <div class="st"><div class="n">16<small>d</small></div><div class="l">span</div></div>
+    </div>
+  </div>
+  <div class="foot fade">DIARY-VIEW CONCEPT 2 · SYNAPSE · MEMORIES AS LIVING NEURONS</div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv=document.getElementById('net'),ctx=cv.getContext('2d'),W,H,DPR;
+  function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}
+  rs();addEventListener('resize',function(){rs();build();});
+  var nodes=[],edges=[],pulses=[],cxp,cyp;
+  function build(){
+    nodes=[];edges=[];pulses=[];cxp=W*0.5;cyp=H*0.46;
+    var N=Math.round(Math.min(46,Math.max(26,(innerWidth*innerHeight)/26000)));
+    nodes.push({x:cxp,y:cyp,r:9*DPR,soma:true,bx:cxp,by:cyp,ph:0});       // soma = identity
+    for(var i=1;i<N;i++){var a=Math.random()*6.28,d=(0.13+Math.random()*0.42)*Math.min(W,H);
+      var x=cxp+Math.cos(a)*d,y=cyp+Math.sin(a)*d*0.86;
+      nodes.push({x:x,y:y,r:(1.6+Math.random()*2.6)*DPR,bx:x,by:y,ph:Math.random()*6.28});}
+    for(var j=1;j<N;j++){ // connect each to a couple of nearest (incl. some to soma)
+      var best=[];for(var k=0;k<N;k++){if(k===j)continue;var dx=nodes[j].x-nodes[k].x,dy=nodes[j].y-nodes[k].y;best.push([dx*dx+dy*dy,k]);}
+      best.sort(function(a,b){return a[0]-b[0]});
+      var deg=1+(Math.random()<0.5?1:0);for(var m=0;m<deg;m++)edges.push([j,best[m][1]]);
+      if(Math.random()<0.5)edges.push([j,0]);
+    }
+  }
+  build();
+  function spawn(){var e=edges[(Math.random()*edges.length)|0];pulses.push({e:e,t:0,sp:0.006+Math.random()*0.012,col:Math.random()<0.22?'#FF6AD5':'#3FF5D0'});}
+  var f=0;
+  function frame(){
+    f++;ctx.clearRect(0,0,W,H);
+    // drift
+    for(var i=1;i<nodes.length;i++){var n=nodes[i];n.x=n.bx+Math.sin(f*0.01+n.ph)*7*DPR;n.y=n.by+Math.cos(f*0.012+n.ph)*7*DPR;}
+    // edges
+    ctx.lineWidth=DPR;
+    for(var j=0;j<edges.length;j++){var a=nodes[edges[j][0]],b=nodes[edges[j][1]];
+      ctx.strokeStyle='rgba(63,245,208,0.10)';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    // pulses
+    if(!reduce && f%26===0 && pulses.length<40)spawn();
+    for(var p=pulses.length-1;p>=0;p--){var pu=pulses[p],a2=nodes[pu.e[0]],b2=nodes[pu.e[1]];pu.t+=pu.sp;
+      if(pu.t>=1){pulses.splice(p,1);continue;}
+      var x=a2.x+(b2.x-a2.x)*pu.t,y=a2.y+(b2.y-a2.y)*pu.t;
+      ctx.globalCompositeOperation='lighter';var g=ctx.createRadialGradient(x,y,0,x,y,9*DPR);
+      g.addColorStop(0,pu.col);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,9*DPR,0,6.3);ctx.fill();
+      ctx.globalCompositeOperation='source-over';}
+    // nodes
+    ctx.globalCompositeOperation='lighter';
+    for(var k=0;k<nodes.length;k++){var nn=nodes[k];var rr=nn.r*(nn.soma?1+Math.sin(f*0.05)*0.08:1);
+      var gg=ctx.createRadialGradient(nn.x,nn.y,0,nn.x,nn.y,rr*(nn.soma?5:3.4));
+      gg.addColorStop(0,nn.soma?'rgba(180,255,240,1)':'rgba(63,245,208,.95)');gg.addColorStop(1,'rgba(63,245,208,0)');
+      ctx.fillStyle=gg;ctx.beginPath();ctx.arc(nn.x,nn.y,rr*(nn.soma?5:3.4),0,6.3);ctx.fill();
+      ctx.fillStyle=nn.soma?'#eafff9':'#bff7ec';ctx.beginPath();ctx.arc(nn.x,nn.y,rr,0,6.3);ctx.fill();}
+    ctx.globalCompositeOperation='source-over';
+    requestAnimationFrame(frame);
+  }
+  if(reduce){ctx.clearRect(0,0,W,H);
+    for(var j=0;j<edges.length;j++){var a=nodes[edges[j][0]],b=nodes[edges[j][1]];ctx.strokeStyle='rgba(63,245,208,0.12)';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    for(var k=0;k<nodes.length;k++){var nn=nodes[k];ctx.fillStyle=nn.soma?'#eafff9':'#7fe9d6';ctx.beginPath();ctx.arc(nn.x,nn.y,nn.r,0,6.3);ctx.fill();}
+  } else requestAnimationFrame(frame);
+})();
+</script>
+</body></html>

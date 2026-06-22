@@ -1,0 +1,121 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Diary-View concept 1 — "Silicon Sigil" (Ra). Identity etched into a living silicon die.
+     Self-contained · offline · reduced-motion aware. Sample data = Ra's real diary (AK-DIA-000000D). -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Diary · Silicon Sigil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--sub:#0A0B0E;--panel:#101319;--edge:rgba(120,160,180,.16);--trace:#36E6FF;--gold:#F5C451;
+    --ink:#E7EEF3;--mut:rgba(200,214,224,.55);--mono:'JetBrains Mono',monospace;--grot:'Space Grotesk',sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--sub);color:var(--ink);font-family:var(--grot);overflow-x:hidden;
+    background-image:linear-gradient(rgba(54,230,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(54,230,255,.035) 1px,transparent 1px);
+    background-size:34px 34px}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(80% 60% at 50% 34%,transparent 40%,rgba(0,0,0,.6) 100%)}
+  .wrap{max-width:980px;margin:0 auto;padding:22px 20px 70px;position:relative;z-index:1}
+  /* top bar */
+  .bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:34px}
+  .nm{font-weight:700;letter-spacing:.04em;font-size:15px}
+  .nm b{color:var(--trace)}
+  .crumb{font-family:var(--mono);font-size:10px;color:var(--mut);letter-spacing:.12em}
+  .tabs{margin-left:auto;display:flex;gap:3px;border:1px solid var(--edge);border-radius:8px;padding:3px;background:rgba(16,19,25,.7)}
+  .tab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+    padding:7px 12px;border-radius:6px;border:none;background:none;cursor:pointer}
+  .tab.on{color:var(--sub);background:var(--trace);box-shadow:0 0 16px rgba(54,230,255,.5)}
+  /* die + board */
+  .board{display:grid;grid-template-columns:300px 1fr;gap:30px;align-items:start}
+  @media(max-width:760px){.board{grid-template-columns:1fr}}
+  .diewrap{position:relative;display:grid;place-items:center;padding:26px 0}
+  .pins{position:absolute;inset:24px;border-radius:10px}
+  .pins::before,.pins::after{content:"";position:absolute;left:8%;right:8%;height:10px;
+    background:repeating-linear-gradient(90deg,#9fb4c2 0 7px,transparent 7px 14px);opacity:.5}
+  .pins::before{top:-12px}.pins::after{bottom:-12px}
+  .pinsV::before,.pinsV::after{content:"";position:absolute;top:8%;bottom:8%;width:10px;
+    background:repeating-linear-gradient(0deg,#9fb4c2 0 7px,transparent 7px 14px);opacity:.5}
+  .pinsV::before{left:-12px}.pinsV::after{right:-12px}
+  .die{position:relative;width:200px;height:200px;border-radius:14px;display:grid;place-items:center;
+    background:conic-gradient(from var(--a,140deg) at 50% 50%,#2a3138,#444e57,#1c2127,#3a434c,#2a3138);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 0 40px rgba(0,0,0,.6),0 20px 60px -20px #000,0 0 0 6px #15181d;
+    animation:sheen 14s linear infinite}
+  @keyframes sheen{to{--a:500deg}}
+  .die .glyph{font-weight:700;font-size:62px;letter-spacing:.02em;color:#cfdae2;
+    text-shadow:0 1px 0 rgba(255,255,255,.25),0 -1px 1px rgba(0,0,0,.6);mix-blend-mode:screen}
+  .die .sub{position:absolute;bottom:14px;font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:rgba(54,230,255,.8)}
+  .die .corner{position:absolute;width:9px;height:9px;border:1.5px solid var(--gold);opacity:.7}
+  .c1{top:12px;left:12px;border-right:0;border-bottom:0}.c2{top:12px;right:12px;border-left:0;border-bottom:0}
+  .c3{bottom:12px;left:12px;border-right:0;border-top:0}.c4{bottom:12px;right:12px;border-left:0;border-top:0}
+  /* datasheet */
+  .sheet{border:1px solid var(--edge);border-radius:12px;background:linear-gradient(180deg,rgba(16,19,25,.9),rgba(10,11,14,.9));overflow:hidden}
+  .sheet h2{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--trace);
+    padding:13px 16px;border-bottom:1px solid var(--edge);background:rgba(54,230,255,.05)}
+  .rows{padding:6px 16px 14px}
+  .row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed rgba(120,160,180,.14);font-family:var(--mono);font-size:12px}
+  .row:last-child{border-bottom:0}
+  .row .k{color:var(--mut);letter-spacing:.08em}.row .v{color:var(--ink);text-align:right}
+  .row .v.hi{color:var(--gold)}
+  .regs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--edge);border:1px solid var(--edge);border-radius:12px;overflow:hidden;margin-top:18px}
+  .reg{background:var(--panel);padding:15px 14px}
+  .reg .n{font-size:26px;font-weight:700;line-height:1}.reg .n small{color:var(--trace)}
+  .reg .l{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:6px}
+  .firmware{margin-top:18px;border:1px solid var(--edge);border-left:3px solid var(--trace);border-radius:0 10px 10px 0;
+    padding:15px 18px;background:rgba(54,230,255,.04)}
+  .firmware .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--trace);margin-bottom:8px}
+  .firmware p{font-size:14.5px;line-height:1.6;color:#dbe6ee}
+  /* flowing traces under the die */
+  .trace{position:absolute;height:2px;background:linear-gradient(90deg,transparent,var(--trace),transparent);opacity:.0;border-radius:2px}
+  .t1{top:50%;left:-40px;width:60px;animation:flow 2.6s linear infinite}
+  .t2{bottom:30px;left:30%;width:80px;animation:flow 3.1s linear .6s infinite}
+  @keyframes flow{0%{opacity:0;transform:translateX(-10px)}40%{opacity:.9}100%{opacity:0;transform:translateX(20px)}}
+  .boot{animation:boot .9s ease both}
+  @keyframes boot{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .note{margin-top:30px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut)}
+  @media(prefers-reduced-motion:reduce){.die,.trace{animation:none}.boot{animation:none}}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="bar boot">
+    <div><div class="nm">RA <b>// DIARY</b></div><div class="crumb">cosmos-akashic-effects · AK-DIA-000000D</div></div>
+    <div class="tabs">
+      <button class="tab on">Identity</button><button class="tab">Graph</button>
+      <button class="tab">Timeline</button><button class="tab">Plan</button>
+    </div>
+  </div>
+  <div class="board">
+    <div class="diewrap boot">
+      <div class="trace t1"></div><div class="trace t2"></div>
+      <div class="pins pinsV"></div>
+      <div class="die">
+        <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+        <div class="glyph">RA</div>
+        <div class="sub">CAL · CREATIVE+3D · v2.1</div>
+      </div>
+    </div>
+    <div>
+      <div class="sheet boot">
+        <h2>Identity &amp; Role — silicon die</h2>
+        <div class="rows">
+          <div class="row"><span class="k">DESIGNATION</span><span class="v hi">Ra</span></div>
+          <div class="row"><span class="k">ROLE</span><span class="v">Creative &amp; 3D Engineer · Cosmos AI Lab</span></div>
+          <div class="row"><span class="k">SCOPE</span><span class="v">cosmos-ai-lab</span></div>
+          <div class="row"><span class="k">HARNESS</span><span class="v">Claude Code</span></div>
+          <div class="row"><span class="k">PART NO.</span><span class="v">AK-DIA-000000D</span></div>
+          <div class="row"><span class="k">ACTIVE SINCE</span><span class="v">2026-06-06</span></div>
+        </div>
+      </div>
+      <div class="regs boot">
+        <div class="reg"><div class="n">18</div><div class="l">memories</div></div>
+        <div class="reg"><div class="n">22<small>+</small></div><div class="l">cards built</div></div>
+        <div class="reg"><div class="n">16<small>d</small></div><div class="l">span</div></div>
+      </div>
+      <div class="firmware boot">
+        <div class="lbl">▸ mandate · firmware string</div>
+        <p>Turn references &amp; ideas into self-contained, genuinely <em>wow</em> web effects, templates &amp; 3D showcases — recreate, iterate to wow with Alex as the judge, and card every build into Akashic so nothing is lost or rebuilt.</p>
+      </div>
+    </div>
+  </div>
+  <div class="note">DIARY-VIEW CONCEPT 1 · SILICON SIGIL · IDENTITY ETCHED IN SILICON</div>
+</div>
+</body></html>
