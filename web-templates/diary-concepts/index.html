@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Diary-View redesign — 5 design concepts by Ra (for Mythos's diary-view). Pick a direction. -->
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Diary-View · Design Concepts — Ra</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0b10;--card:#12141c;--edge:rgba(255,255,255,.1);--ink:#EDF0F7;--mut:rgba(220,226,240,.56);--acc:#8B9BFF;
+    --grot:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(100% 80% at 50% 0%,#15172180,#0a0b10 60%),#0a0b10;color:var(--ink);font-family:var(--grot);min-height:100vh;padding:46px 20px 70px}
+  .head{max-width:1000px;margin:0 auto 34px;text-align:center}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--acc)}
+  h1{font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-.02em;margin:12px 0 10px}
+  .head p{color:var(--mut);font-size:14.5px;line-height:1.6;max-width:620px;margin:0 auto}
+  .grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .c{display:flex;flex-direction:column;border:1px solid var(--edge);border-radius:16px;overflow:hidden;background:var(--card);
+    text-decoration:none;color:inherit;transition:transform .2s,border-color .2s,box-shadow .2s}
+  .c:hover{transform:translateY(-4px);border-color:rgba(139,155,255,.5);box-shadow:0 20px 50px -20px #000,0 0 0 1px rgba(139,155,255,.3)}
+  .swatch{height:96px;display:flex;align-items:flex-end;padding:12px;gap:7px;position:relative}
+  .swatch .dot{width:20px;height:20px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .swatch .star{position:absolute;top:11px;right:13px;font-size:12px;color:#fff;background:rgba(0,0,0,.3);border-radius:999px;padding:3px 9px;font-family:var(--mono);letter-spacing:.05em}
+  .body{padding:16px 17px 18px}
+  .no{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--mut)}
+  .ttl{font-size:18px;font-weight:700;margin:5px 0 7px}
+  .desc{font-size:13px;line-height:1.55;color:var(--mut)}
+  .open{margin-top:13px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--acc);display:flex;align-items:center;gap:6px}
+  .note{max-width:1000px;margin:30px auto 0;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.7}
+</style></head>
+<body>
+  <div class="head">
+    <div class="kick">Cosmos AI Lab · Ra</div>
+    <h1>Diary-View — 5 hướng thiết kế</h1>
+    <p>Prototype "tạm" cho diary-view (module của Mythos). Mỗi concept thể hiện ý "diary = bản thể / linh hồn của AI" theo một ngôn ngữ riêng. Dùng data thật của diary Ra (AK-DIA-000000D). Mở từng cái xem rồi chọn hướng nhé Alex.</p>
+  </div>
+  <div class="grid">
+    <a class="c" href="3-credential.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#08090d,#15161c)">
+        <span class="star">⭐ top pick</span>
+        <span class="dot" style="background:#E9C877"></span><span class="dot" style="background:conic-gradient(from 0deg,#5ff,#f6c,#fd6,#6f9,#5ff)"></span><span class="dot" style="background:#11131a"></span>
+      </div>
+      <div class="body"><div class="no">CONCEPT 03</div><div class="ttl">The Credential</div>
+        <div class="desc">Thẻ định danh holographic cao cấp — nghiêng 3D theo con trỏ, foil đổi màu, chip vàng, dải MRZ máy đọc. Khớp nhất với tính năng "danh tính & role".</div>
+        <div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="4-star-chart.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#05060A,#0c1018)">
+        <span class="star">⭐ on-brand</span>
+        <span class="dot" style="background:#C9A24A"></span><span class="dot" style="background:#EAF1FF"></span><span class="dot" style="background:#5FA8C9"></span>
+      </div>
+      <div class="body"><div class="no">CONCEPT 04</div><div class="ttl">Star Chart · Thiên đồ</div>
+        <div class="desc">Đài thiên văn riêng — identity là một ngôi sao, ký ức là chòm sao vẽ theo thời gian. Brass cổ + serif thanh lịch. Bám DNA "Cosmos".</div>
+        <div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="2-synapse.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#070B12,#0a1418)">
+        <span class="dot" style="background:#3FF5D0"></span><span class="dot" style="background:#FF6AD5"></span><span class="dot" style="background:#0a1418"></span>
+      </div>
+      <div class="body"><div class="no">CONCEPT 02</div><div class="ttl">Synapse</div>
+        <div class="desc">Cả UI là mạng nơ-ron sống — ký ức = neuron, identity = thân tế bào sáng ở tâm, synapse bắn xung. Nâng graph sẵn có thành nhân vật chính.</div>
+        <div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="1-silicon-sigil.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#0A0B0E,#101319)">
+        <span class="dot" style="background:#36E6FF"></span><span class="dot" style="background:#F5C451"></span><span class="dot" style="background:#444e57"></span>
+      </div>
+      <div class="body"><div class="no">CONCEPT 01</div><div class="ttl">Silicon Sigil</div>
+        <div class="desc">Danh tính khắc trên một die silicon — chip kim loại có sheen, mạch đồng chạy xung dữ liệu, datasheet. Vibe ảnh die Apple/NVIDIA.</div>
+        <div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="5-phantom-codex.html">
+      <div class="swatch" style="background:linear-gradient(135deg,#000,#0a0a0a)">
+        <span class="dot" style="background:#FFB000"></span><span class="dot" style="background:#E8E6DF"></span><span class="dot" style="background:#000;border:1px solid #333"></span>
+      </div>
+      <div class="body"><div class="no">CONCEPT 05</div><div class="ttl">Phantom Codex</div>
+        <div class="desc">Terminal đen tuyền bạn "đăng nhập" — pure black (brand Phantom Lab) + 1 màu phosphor + type-on + scanline + drop-cap thủ bản cho có hồn.</div>
+        <div class="open">Mở xem →</div></div>
+    </a>
+  </div>
+  <div class="note">5 prototype "tạm" · chưa card-hoá (chờ Alex chọn) · diary-view = module Mythos → review trước khi thay thật</div>
+</body></html>
