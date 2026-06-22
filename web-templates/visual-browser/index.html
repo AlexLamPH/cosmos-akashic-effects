@@ -1,0 +1,132 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Visual Card Browser (Ra) — the visual memory for design cards.
+     See it → remember it → tell an AI the card number to apply it. Live iframe thumbnails of every design card,
+     each labelled with its Akashic card number. Lazy-loads (only visible thumbs run) so it stays light on phones. -->
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cosmos · Visual Card Browser</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0b10;--card:#12141c;--edge:rgba(255,255,255,.1);--ink:#EDF0F7;--mut:rgba(220,226,240,.55);--acc:#8B9BFF;--gold:#E9C877;
+    --grot:'Space Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(100% 80% at 50% 0%,#15172180,#0a0b10 60%),#0a0b10;color:var(--ink);font-family:var(--grot);min-height:100vh}
+  .head{padding:40px 20px 8px;text-align:center;max-width:900px;margin:0 auto}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--acc)}
+  h1{font-size:clamp(24px,4vw,38px);font-weight:700;letter-spacing:-.02em;margin:10px 0 8px}
+  .head p{color:var(--mut);font-size:14px;line-height:1.6;max-width:640px;margin:0 auto}
+  .bar{position:sticky;top:0;z-index:20;background:rgba(10,11,16,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--edge);
+    padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:18px}
+  #q{flex:1;min-width:180px;max-width:380px;background:var(--card);border:1px solid var(--edge);border-radius:10px;color:var(--ink);
+    padding:9px 13px;font-family:var(--mono);font-size:12.5px}
+  .filters{display:flex;gap:6px;flex-wrap:wrap}
+  .fb{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--mut);padding:8px 12px;border-radius:999px;border:1px solid var(--edge);
+    background:none;cursor:pointer;transition:.15s}
+  .fb.on{color:#0a0b10;background:var(--acc);border-color:var(--acc);font-weight:600}
+  .grid{max-width:1280px;margin:0 auto;padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+  .c{border:1px solid var(--edge);border-radius:16px;overflow:hidden;background:var(--card);display:flex;flex-direction:column;transition:transform .2s,border-color .2s,box-shadow .2s}
+  .c:hover{transform:translateY(-3px);border-color:rgba(139,155,255,.5);box-shadow:0 18px 44px -20px #000}
+  .thumb{position:relative;height:190px;background:#05060a;overflow:hidden;border-bottom:1px solid var(--edge)}
+  .thumb iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;background:#05060a}
+  .thumb .ph{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--mut)}
+  .thumb .open{position:absolute;top:9px;right:9px;z-index:3;font-family:var(--mono);font-size:10px;color:#dfe6ff;background:rgba(10,12,22,.7);
+    border:1px solid var(--edge);border-radius:8px;padding:5px 9px;text-decoration:none;backdrop-filter:blur(4px)}
+  .body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:6px}
+  .nm{font-size:15px;font-weight:600}
+  .desc{font-size:12px;color:var(--mut);line-height:1.45}
+  .cardno{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--gold);
+    background:rgba(233,200,119,.08);border:1px solid rgba(233,200,119,.25);border-radius:8px;padding:6px 9px;cursor:pointer;width:fit-content;margin-top:2px}
+  .cardno:hover{background:rgba(233,200,119,.16)}
+  .cardno.asset{color:var(--mut);background:rgba(255,255,255,.04);border-color:var(--edge);cursor:default}
+  .copied{color:#7ee0a0 !important}
+  .note{max-width:900px;margin:6px auto 50px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.7;padding:0 20px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);z-index:50;background:#1a1d28;border:1px solid var(--edge);
+    color:var(--ink);font-family:var(--mono);font-size:12px;padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style></head>
+<body>
+  <div class="head">
+    <div class="kick">Cosmos AI Lab · Ra</div>
+    <h1>Visual Card Browser</h1>
+    <p>Trí nhớ trực quan cho card design. <b>Thấy → nhớ → bảo AI dùng mã card</b>. Mỗi ô là bản render SỐNG của 1 card; bấm vào mã (vàng) để copy, rồi nói AI <i>"dùng card AK-CDP-…"</i>.</p>
+  </div>
+  <div class="bar">
+    <input id="q" placeholder="tìm theo tên / mã / mô tả…" autocomplete="off">
+    <div class="filters" id="filters"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="note">Render SỐNG bằng iframe (lazy-load: chỉ ô đang nhìn mới chạy → nhẹ trên phone). Card được sync từ Akashic. · Asset = ảnh lưu, chưa card-hoá.</div>
+  <div class="toast" id="toast"></div>
+<script>
+(function(){
+  "use strict";
+  var DATA=[
+    {p:"../fx/glowing-birds/",n:"Glowing Birds",c:"AK-CDP-00000BX",cat:"effect",d:"Đàn chim phát sáng đuổi theo con trỏ"},
+    {p:"../fx/scribble-cat/",n:"Scribble Cat",c:"AK-CDP-00000BW",cat:"effect",d:"Mèo tự vẽ, mắt nhìn theo con trỏ"},
+    {p:"../fx/modern-gallery/",n:"Modern Gallery",c:"AK-CDP-00000BY",cat:"effect",d:"Băng chuyền ảnh hình trụ 3D"},
+    {p:"../fx/circular-gallery/",n:"Circular Gallery",c:"AK-CDP-00000C0",cat:"effect",d:"Vòng ảnh xoay kiểu cánh hoa"},
+    {p:"../fx/glitch-poster/",n:"Glitch Poster",c:"AK-CDP-00000BZ",cat:"effect",d:"Glitch-art sống + thả ảnh của bạn"},
+    {p:"../diary-concepts/graph-effects/1-constellation.html",n:"Graph · Constellation",c:"AK-CDP-00000CJ",cat:"graph",d:"Mạng sao trôi, hover sáng hàng xóm"},
+    {p:"../diary-concepts/graph-effects/2-orbital.html",n:"Graph · Orbital",c:"AK-CDP-00000CK",cat:"graph",d:"Mặt trời + ký ức quay quanh"},
+    {p:"../diary-concepts/graph-effects/3-neural-mesh.html",n:"Graph · Neural Mesh",c:"AK-CDP-00000CM",cat:"graph",d:"Mạng nơ-ron dày, parallax"},
+    {p:"../diary-concepts/graph-effects/4-circuit-map.html",n:"Graph · Circuit Map (2D)",c:"AK-CDP-00000CP",cat:"graph",d:"Mạch PCB + xung (Alex chọn)"},
+    {p:"../templates/game-playforge/",n:"PLAYFORGE · CWT-001",c:"AK-CDP-00000C7",cat:"template",d:"Game/Toys — dark neon arcade"},
+    {p:"../templates/tech-neuracore/",n:"NEURACORE · CWT-002",c:"AK-CDP-00000CD",cat:"template",d:"Tech/AI — bento + API mock"},
+    {p:"../templates/finance-vaultline/",n:"VAULTLINE · CWT-003",c:"AK-CDP-00000C6",cat:"template",d:"Finance — portfolio dashboard"},
+    {p:"../templates/light-axiom/",n:"AXIOM · CWT-004",c:"AK-CDP-00000CA",cat:"template",d:"Architecture — full-white editorial"},
+    {p:"../templates/dark-eclipse/",n:"ECLIPSE · CWT-005",c:"AK-CDP-00000C4",cat:"template",d:"Luxury — full-black scroll-zoom 3D"},
+    {p:"../templates/gray-concrete/",n:"CONCRETE · CWT-006",c:"AK-CDP-00000C8",cat:"template",d:"Creative — full-gray brutalist"},
+    {p:"../templates/event-pulse/",n:"PULSE · CWT-007",c:"AK-CDP-00000C5",cat:"template",d:"Event — duotone + parallax"},
+    {p:"../templates/shop-marlo/",n:"MARLO · CWT-008",c:"AK-CDP-00000CB",cat:"template",d:"E-commerce — fashion retail"},
+    {p:"../templates/travel-altura/",n:"ALTURA · CWT-009",c:"AK-CDP-00000CG",cat:"template",d:"Travel — multi-layer parallax"},
+    {p:"../templates/toys-wobble/",n:"WOBBLE · CWT-010",c:"AK-CDP-00000CF",cat:"template",d:"Kids Toys — bright bouncy"},
+    {p:"../templates/agency-lumen/",n:"LUMEN · CWT-011",c:"AK-CDP-00000C1",cat:"template",d:"Agency — effect showcase"},
+    {p:"../templates/beauty-lume/",n:"LUMÉ · CWT-012",c:"AK-CDP-00000C2",cat:"template",d:"Beauty — scroll-story"},
+    {p:"../templates/webgl-aether/",n:"AETHER · CWT-013",c:"AK-CDP-00000CH",cat:"template",d:"WebGL aurora shader"},
+    {p:"../templates/studio-prism/",n:"PRISM · CWT-014",c:"AK-CDP-00000CC",cat:"template",d:"Creative — page transitions"},
+    {p:"../templates/jewel-facet/",n:"FACET · CWT-015",c:"AK-CDP-00000C9",cat:"template",d:"Jewelry — 3D model on scroll"},
+    {p:"../templates/coffee-roast/",n:"ROAST · CWT-016",c:"AK-CDP-00000C3",cat:"template",d:"Coffee — horizontal story"},
+    {p:"../templates/tech-novafield/",n:"NOVA Field · CWT-017",c:"AK-CDP-00000CE",cat:"template",d:"Tech flagship (GeminiStudio)"},
+    {p:"../fx/holo-cube/",n:"Holo Cube",c:"(asset)",cat:"asset",d:"Ảnh asset — cho hiệu ứng cube sau"},
+    {p:"../fx/circuit-city/",n:"Circuit City",c:"(asset)",cat:"asset",d:"Ảnh asset — nền cyberpunk bay vào tâm"}
+  ];
+  var CATS=[["all","Tất cả"],["effect","Effects"],["template","Templates"],["graph","Graph"],["asset","Assets"]];
+  var grid=document.getElementById('grid'),q=document.getElementById('q'),toast=document.getElementById('toast'),filt="all",term="";
+
+  var fb=document.getElementById('filters');
+  CATS.forEach(function(ct){var b=document.createElement('button');b.className='fb'+(ct[0]==='all'?' on':'');b.textContent=ct[1];
+    b.onclick=function(){filt=ct[0];[].forEach.call(fb.children,function(x){x.classList.remove('on')});b.classList.add('on');render();};fb.appendChild(b);});
+
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){var fr=e.target.querySelector('iframe');if(!fr)return;
+    if(e.isIntersecting){ if(!fr.src) fr.src=fr.dataset.src; } else { if(fr.src){fr.removeAttribute('src');} }});},{rootMargin:"120px"});
+
+  function toastMsg(m){toast.textContent=m;toast.classList.add('show');setTimeout(function(){toast.classList.remove('show');},1400);}
+
+  function render(){
+    grid.innerHTML='';io.disconnect&&io.disconnect();
+    DATA.filter(function(x){
+      if(filt!=='all'&&x.cat!==filt)return false;
+      if(term&&(x.n+' '+x.c+' '+x.d).toLowerCase().indexOf(term)<0)return false;
+      return true;
+    }).forEach(function(x){
+      var c=document.createElement('div');c.className='c';
+      var asset=x.c==='(asset)';
+      c.innerHTML=
+        '<div class="thumb"><div class="ph">loading…</div>'+
+        '<a class="open" href="'+x.p+'" target="_blank" rel="noopener">mở ↗</a>'+
+        '<iframe loading="lazy" data-src="'+x.p+'" title="'+x.n+'"></iframe></div>'+
+        '<div class="body"><div class="nm">'+x.n+'</div><div class="desc">'+x.d+'</div>'+
+        '<div class="cardno'+(asset?' asset':'')+'" data-c="'+x.c+'">'+(asset?'◆ '+x.c:'▣ '+x.c+'  ⧉')+'</div></div>';
+      grid.appendChild(c);
+      if(!asset){c.querySelector('.cardno').onclick=function(){var t=this;
+        navigator.clipboard.writeText(x.c).then(function(){t.classList.add('copied');t.textContent='✓ đã copy '+x.c;toastMsg('Copied '+x.c+' — bảo AI: "dùng card '+x.c+'"');
+          setTimeout(function(){t.classList.remove('copied');t.textContent='▣ '+x.c+'  ⧉';},1600);});};}
+      io.observe(c);
+    });
+  }
+  q.addEventListener('input',function(){term=q.value.trim().toLowerCase();render();});
+  render();
+})();
+</script>
+</body></html>
