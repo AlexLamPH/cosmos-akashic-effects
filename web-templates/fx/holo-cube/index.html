@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- Cosmos AI Lab · FX — "Holo Cube" (Ra). Preserves Alex's holographic-cube render as a floating showcase:
+     gentle bob + pulsing glow + a light sweep across the cube, on a soft grid floor. This is the design ASSET
+     intended to later feed our existing rotating-cube effect. Image: cube.jpeg (this folder). Offline · reduced-motion aware. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Holo Cube</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;font-family:'Space Grotesk',system-ui,sans-serif;color:#dbe9f5;
+    background:radial-gradient(80% 70% at 50% 40%,#0e2236,#081420 55%,#04090f 100%)}
+  .stage{position:fixed;inset:0;display:grid;place-items:center;perspective:1200px}
+  .glow{position:absolute;width:62vmin;height:62vmin;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(80,200,255,.3),transparent 60%);mix-blend-mode:screen;animation:pulse 5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5;transform:scale(.92)}50%{opacity:.95;transform:scale(1.05)}}
+  .holder{position:relative;animation:bob 6s ease-in-out infinite;will-change:transform}
+  @keyframes bob{0%,100%{transform:translateY(-1.4vmin)}50%{transform:translateY(1.4vmin)}}
+  .frame{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -24px rgba(0,0,0,.8),0 0 60px -10px rgba(80,200,255,.4)}
+  .frame img{display:block;height:min(80vh,640px);width:auto;max-width:92vw}
+  .sweep{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);
+    background-size:250% 100%;animation:sweep 6.5s ease-in-out infinite}
+  @keyframes sweep{0%,100%{background-position:160% 0}55%{background-position:-60% 0}}
+  .cap{position:fixed;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));text-align:center;z-index:3;pointer-events:none}
+  .cap .t{font-weight:600;font-size:15px;letter-spacing:.02em}
+  .cap .s{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(120,200,255,.65);margin-top:6px}
+  .tag{position:fixed;top:max(16px,env(safe-area-inset-top));left:18px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(120,200,255,.6);z-index:3}
+  @media(prefers-reduced-motion:reduce){.glow,.holder,.sweep{animation:none}}
+</style></head>
+<body>
+<div class="stage" id="stage">
+  <div class="glow"></div>
+  <div class="holder" id="holder">
+    <div class="frame"><img src="cube.jpeg" alt="Holographic cube"><div class="sweep"></div></div>
+  </div>
+</div>
+<div class="tag">asset · holo-cube · saved design</div>
+<div class="cap"><div class="t">Holo Cube</div><div class="s">design asset · sẽ thay vào hiệu ứng cube xoay</div></div>
+<script>
+(function(){
+  "use strict";
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  // gentle parallax of the GLOW only (image stays undistorted)
+  var stage=document.getElementById('stage'),glow=document.querySelector('.glow');
+  addEventListener('pointermove',function(e){var x=(e.clientX/innerWidth-.5),y=(e.clientY/innerHeight-.5);
+    glow.style.marginLeft=(x*40)+'px';glow.style.marginTop=(y*40)+'px';});
+})();
+</script>
+</body></html>
