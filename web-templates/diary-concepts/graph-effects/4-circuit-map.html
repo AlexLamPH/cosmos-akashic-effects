@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Graph effect sample 4 — "Circuit Map" (Ra). Identity is a chip; memories & cards are pads
+     wired by right-angle PCB traces with flowing data pulses. Hover a pad to light its trace.
+     Self-contained Canvas 2D · offline · reduced-motion aware. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Graph · Circuit Map</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0A0B0E;
+    background-image:linear-gradient(rgba(245,196,81,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,196,81,.03) 1px,transparent 1px);background-size:32px 32px}
+  canvas{display:block}
+  .lbl{position:fixed;left:18px;top:16px;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,196,81,.55)}
+  .lbl b{color:#F5C451}
+  .hint{position:fixed;left:0;right:0;bottom:16px;text-align:center;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,196,81,.4)}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div class="lbl">graph style 04 · <b>circuit map</b></div>
+<div class="hint">identity = chip · pads wired by traces · hover a pad</div>
+<script>
+(function(){
+  "use strict";
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv=document.getElementById('c'),ctx=cv.getContext('2d'),W,H,DPR;
+  var LAB=['fx effects','CWT templates','brand kit','effective-html','Charter','diary','3D swarm','gallery','wake hook','Akashic','Vishnu gate','showcases'];
+  var nodes=[],edges=[],pulses=[],hover=-1,f=0;
+  function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';build();}
+  function snap(v){var g=32*DPR;return Math.round(v/g)*g;}
+  function build(){nodes=[];edges=[];pulses=[];var cx=snap(W/2),cy=snap(H/2);
+    nodes.push({x:cx,y:cy,chip:true,lab:'Ra'});
+    for(var i=0;i<LAB.length;i++){var a=i/LAB.length*6.28,d=(0.2+((i*5)%4)*0.07)*Math.min(W,H);
+      nodes.push({x:snap(cx+Math.cos(a)*d),y:snap(cy+Math.sin(a)*d*0.8),lab:LAB[i]});}
+    for(var j=1;j<nodes.length;j++)edges.push([j,0]);
+    for(var k=1;k<nodes.length;k++){if(Math.random()<0.35)edges.push([k,1+((k+4)%(nodes.length-1))]);}}
+  rs();addEventListener('resize',rs);
+  function corner(a,b){return {x:b.x,y:a.y};} // horizontal-first L
+  function spawn(){var idx=(Math.random()*edges.length)|0;pulses.push({e:edges[idx],t:0,sp:.01+Math.random()*.012});}
+  function frame(){f++;ctx.clearRect(0,0,W,H);
+    // traces
+    for(var j=0;j<edges.length;j++){var a=nodes[edges[j][0]],b=nodes[edges[j][1]],c=corner(a,b),lit=hover>=0&&(edges[j][0]===hover||edges[j][1]===hover);
+      ctx.strokeStyle=lit?'rgba(54,230,255,0.75)':'rgba(245,196,81,0.16)';ctx.lineWidth=(lit?2:1.4)*DPR;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(c.x,c.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      // via dot at corner
+      ctx.fillStyle=lit?'#36E6FF':'rgba(245,196,81,0.3)';ctx.beginPath();ctx.arc(c.x,c.y,2.2*DPR,0,6.3);ctx.fill();}
+    // pulses along L-path
+    if(!reduce&&f%16===0&&pulses.length<30)spawn();
+    ctx.globalCompositeOperation='lighter';
+    for(var p=pulses.length-1;p>=0;p--){var pu=pulses[p],a2=nodes[pu.e[0]],b2=nodes[pu.e[1]],c2=corner(a2,b2);pu.t+=pu.sp;if(pu.t>=1){pulses.splice(p,1);continue;}
+      var l1=Math.abs(a2.x-c2.x),l2=Math.abs(c2.y-b2.y),tot=l1+l2||1,fr=l1/tot,x,y;
+      if(pu.t<fr){var u=pu.t/fr;x=a2.x+(c2.x-a2.x)*u;y=a2.y;}else{var u2=(pu.t-fr)/(1-fr);x=c2.x;y=c2.y+(b2.y-c2.y)*u2;}
+      var g=ctx.createRadialGradient(x,y,0,x,y,7*DPR);g.addColorStop(0,'#bdf3ff');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,7*DPR,0,6.3);ctx.fill();}
+    ctx.globalCompositeOperation='source-over';
+    // pads
+    for(var k=0;k<nodes.length;k++){var n=nodes[k];if(n.chip)continue;var dim=hover>=0&&hover!==k&&!isNbr(k,hover),s=(7+ (k%3)*1.5)*DPR;
+      ctx.fillStyle=dim?'rgba(245,196,81,.3)':'#1a1c22';ctx.strokeStyle=dim?'rgba(245,196,81,.3)':(hover===k?'#36E6FF':'#F5C451');ctx.lineWidth=1.6*DPR;
+      ctx.beginPath();ctx.roundRect(n.x-s,n.y-s*0.7,s*2,s*1.4,3*DPR);ctx.fill();ctx.stroke();}
+    // chip (Ra)
+    var ch=nodes[0],cs=Math.min(W,H)*0.045;
+    ctx.fillStyle='#1c1f26';ctx.strokeStyle='#F5C451';ctx.lineWidth=2*DPR;
+    ctx.beginPath();ctx.roundRect(ch.x-cs,ch.y-cs,cs*2,cs*2,6*DPR);ctx.fill();ctx.stroke();
+    // chip pins
+    ctx.strokeStyle='rgba(245,196,81,.5)';ctx.lineWidth=1.4*DPR;for(var pi=0;pi<6;pi++){var off=-cs+cs*0.3+pi*(cs*1.4/5);
+      ctx.beginPath();ctx.moveTo(ch.x+off,ch.y-cs);ctx.lineTo(ch.x+off,ch.y-cs-7*DPR);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ch.x+off,ch.y+cs);ctx.lineTo(ch.x+off,ch.y+cs+7*DPR);ctx.stroke();}
+    ctx.font='700 '+(15*DPR)+'px "JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#F5C451';ctx.fillText('Ra',ch.x,ch.y+5*DPR);
+    // labels on hover
+    ctx.font='500 '+(11*DPR)+'px "JetBrains Mono",monospace';
+    for(var m=1;m<nodes.length;m++){if(m!==hover)continue;ctx.fillStyle='rgba(54,230,255,.95)';ctx.fillText(nodes[m].lab,nodes[m].x,nodes[m].y-14*DPR);}
+    requestAnimationFrame(frame);}
+  function isNbr(k,h){for(var j=0;j<edges.length;j++){var e=edges[j];if((e[0]===h&&e[1]===k)||(e[1]===h&&e[0]===k))return true;}return false;}
+  requestAnimationFrame(frame);  // reduced-motion: loop runs but pulses are gated off → effectively static
+  cv.addEventListener('pointermove',function(e){var mx=e.clientX*DPR,my=e.clientY*DPR,best=-1,bd=22*DPR;
+    for(var k=1;k<nodes.length;k++){var d=Math.hypot(nodes[k].x-mx,nodes[k].y-my);if(d<bd){bd=d;best=k;}}hover=best;});
+})();
+</script>
+</body></html>

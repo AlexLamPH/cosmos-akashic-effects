@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Graph effect sample 1 — "Constellation" (Ra). A drifting node-web: identity at the centre,
+     memories & linked cards as glowing stars, edges pulse. Hover a node to light its neighbours · drag to spin.
+     Self-contained Canvas 2D · offline · reduced-motion aware. Reference for the diary-view Graph facet. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Graph · Constellation</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#070912;cursor:grab}
+  body.drag{cursor:grabbing}
+  canvas{display:block}
+  .lbl{position:fixed;left:18px;top:16px;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;
+    letter-spacing:.2em;text-transform:uppercase;color:rgba(180,200,255,.5)}
+  .lbl b{color:#7FD8FF}
+  .hint{position:fixed;left:0;right:0;bottom:16px;text-align:center;z-index:2;pointer-events:none;
+    font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(180,200,255,.4)}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div class="lbl">graph style 01 · <b>constellation</b></div>
+<div class="hint">hover a node · drag to spin</div>
+<script>
+(function(){
+  "use strict";
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv=document.getElementById('c'),ctx=cv.getContext('2d'),W,H,DPR;
+  var LAB=['fx effects','CWT templates','brand kit','effective-html','Charter','diary','3D swarm','gallery','wake hook','Akashic','Vishnu gate','showcases'];
+  var nodes=[],edges=[],pulses=[],rot=0,vel=0,drag=false,lx=0,hover=-1,f=0;
+  function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';build();}
+  function build(){nodes=[];edges=[];pulses=[];var cx=W/2,cy=H/2,N=LAB.length+1;
+    nodes.push({a:0,d:0,r:13*DPR,soma:true,lab:'Ra',ph:0});
+    for(var i=1;i<N;i++){var a=(i-1)/(N-1)*6.28+Math.random()*0.2,d=(0.2+((i*7)%5)*0.06)*Math.min(W,H);
+      nodes.push({a:a,d:d,r:(3+Math.random()*3.5)*DPR,lab:LAB[i-1],ph:Math.random()*6.28});}
+    for(var j=1;j<N;j++){edges.push([j,0]);if(Math.random()<0.5)edges.push([j,1+((j+3)%(N-1))]);}}
+  rs();addEventListener('resize',rs);
+  function pos(n){var cx=W/2,cy=H/2,a=n.a+rot,dd=n.d+(n.soma?0:Math.sin(f*0.01+n.ph)*10*DPR);
+    return [cx+Math.cos(a)*dd,cy+Math.sin(a)*dd*0.82];}
+  function spawn(){var e=edges[(Math.random()*edges.length)|0];pulses.push({e:e,t:0,sp:.008+Math.random()*.013});}
+  function frame(){f++;if(!drag){rot+=vel||0.0011;vel*=0.95;}ctx.clearRect(0,0,W,H);
+    var P=nodes.map(pos);
+    // edges
+    for(var j=0;j<edges.length;j++){var a=P[edges[j][0]],b=P[edges[j][1]];
+      var lit=hover>=0&&(edges[j][0]===hover||edges[j][1]===hover);
+      ctx.strokeStyle=lit?'rgba(127,216,255,0.6)':'rgba(127,216,255,0.10)';ctx.lineWidth=(lit?1.6:1)*DPR;
+      ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+    // pulses
+    if(!reduce&&f%22===0&&pulses.length<28)spawn();
+    ctx.globalCompositeOperation='lighter';
+    for(var p=pulses.length-1;p>=0;p--){var pu=pulses[p],a2=P[pu.e[0]],b2=P[pu.e[1]];pu.t+=pu.sp;if(pu.t>=1){pulses.splice(p,1);continue;}
+      var x=a2[0]+(b2[0]-a2[0])*pu.t,y=a2[1]+(b2[1]-a2[1])*pu.t,g=ctx.createRadialGradient(x,y,0,x,y,7*DPR);
+      g.addColorStop(0,'#aef0ff');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,7*DPR,0,6.3);ctx.fill();}
+    // nodes
+    for(var k=0;k<nodes.length;k++){var nn=nodes[k],x=P[k][0],y=P[k][1],rr=nn.r,R=rr*(nn.soma?4.5:3.2),
+      dim=hover>=0&&k!==hover&&!isNbr(k,hover);
+      var g2=ctx.createRadialGradient(x,y,0,x,y,R);
+      g2.addColorStop(0,nn.soma?'rgba(190,240,255,1)':'rgba(167,139,250,'+(dim?.3:.95)+')');g2.addColorStop(1,'rgba(110,170,255,0)');
+      ctx.fillStyle=g2;ctx.beginPath();ctx.arc(x,y,R,0,6.3);ctx.fill();
+      ctx.fillStyle=nn.soma?'#eafaff':(dim?'rgba(200,210,240,.4)':'#cdd6ff');ctx.beginPath();ctx.arc(x,y,rr,0,6.3);ctx.fill();}
+    ctx.globalCompositeOperation='source-over';
+    // labels (soma always; others on hover/near)
+    ctx.font='500 '+(11*DPR)+'px "JetBrains Mono",monospace';ctx.textAlign='center';
+    for(var m=0;m<nodes.length;m++){var nm=nodes[m];if(!nm.soma&&m!==hover&&!(hover>=0&&isNbr(m,hover)))continue;
+      ctx.fillStyle=nm.soma?'rgba(234,250,255,.95)':'rgba(205,214,255,.85)';ctx.fillText(nm.lab,P[m][0],P[m][1]+(nm.soma?5*DPR:nm.r+15*DPR));}
+    requestAnimationFrame(frame);}
+  function isNbr(k,h){for(var j=0;j<edges.length;j++){var e=edges[j];if((e[0]===h&&e[1]===k)||(e[1]===h&&e[0]===k))return true;}return false;}
+  if(reduce){f=1;rot=0;frameStatic();}else requestAnimationFrame(frame);
+  function frameStatic(){ctx.clearRect(0,0,W,H);var P=nodes.map(pos);
+    for(var j=0;j<edges.length;j++){var a=P[edges[j][0]],b=P[edges[j][1]];ctx.strokeStyle='rgba(127,216,255,0.12)';ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+    for(var k=0;k<nodes.length;k++){var nn=nodes[k];ctx.fillStyle=nn.soma?'#eafaff':'#a78bfa';ctx.beginPath();ctx.arc(P[k][0],P[k][1],nn.r,0,6.3);ctx.fill();}}
+  // input
+  function hit(mx,my){var P=nodes.map(pos),best=-1,bd=26*DPR;for(var k=0;k<nodes.length;k++){var d=Math.hypot(P[k][0]-mx*DPR,P[k][1]-my*DPR);if(d<bd+nodes[k].r){bd=d;best=k;}}return best;}
+  cv.addEventListener('pointermove',function(e){if(drag){var dx=e.clientX-lx;lx=e.clientX;rot+=dx*0.004;vel=dx*0.004;hover=-1;}else hover=hit(e.clientX,e.clientY);});
+  cv.addEventListener('pointerdown',function(e){drag=true;lx=e.clientX;document.body.classList.add('drag');});
+  addEventListener('pointerup',function(){drag=false;document.body.classList.remove('drag');});
+})();
+</script>
+</body></html>
