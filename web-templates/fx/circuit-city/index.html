@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- Cosmos AI Lab · FX — "Circuit City" (Ra). Alex's cyberpunk circuit-canyon render as a reusable BACKGROUND:
+     an endless slow fly-in toward the vanishing point (two cross-fading zoom layers), a teal core glow, parallax,
+     vignette + a white-label content slot. Image: circuit-city.jpeg (this folder). Offline · reduced-motion aware. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Circuit City</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#05070c;font-family:'Space Grotesk',system-ui,sans-serif;color:#eaf2ff}
+  .scene{position:fixed;inset:0;overflow:hidden}
+  .bg{position:absolute;inset:-6%;will-change:transform}
+  .layer{position:absolute;inset:-12%;background:url('circuit-city.jpeg') center 42%/cover no-repeat;
+    transform-origin:50% 42%;animation:fly 20s linear infinite;opacity:0}
+  .layer.b{animation-delay:-10s}
+  @keyframes fly{0%{transform:scale(1);opacity:0}11%{opacity:1}76%{opacity:1}100%{transform:scale(2.7);opacity:0}}
+  .core{position:fixed;left:50%;top:42%;width:40vmin;height:40vmin;transform:translate(-50%,-50%);pointer-events:none;
+    background:radial-gradient(circle,rgba(90,230,235,.4),transparent 60%);mix-blend-mode:screen;animation:pulse 5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(.9)}50%{opacity:.95;transform:translate(-50%,-50%) scale(1.12)}}
+  .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(75% 65% at 50% 44%,transparent 28%,rgba(0,0,0,.4) 72%,rgba(2,4,8,.8) 100%)}
+  .grain{position:fixed;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 2px)}
+  .ui{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:9vmin 7vw;pointer-events:none}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:#7af0f5;text-shadow:0 0 18px rgba(90,230,235,.6);
+    opacity:0;animation:rise 1.3s ease .5s forwards}
+  h1{font-size:clamp(34px,7vw,78px);font-weight:700;line-height:.98;letter-spacing:-.02em;margin:14px 0 12px;max-width:13ch;text-shadow:0 6px 40px rgba(0,0,0,.7);
+    opacity:0;animation:rise 1.3s ease .65s forwards}
+  h1 b{color:#5AE6EB}
+  p{font-size:clamp(14px,1.6vw,18px);color:rgba(234,242,255,.8);max-width:44ch;line-height:1.5;opacity:0;animation:rise 1.3s ease .8s forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  .tag{position:fixed;top:max(16px,env(safe-area-inset-top));left:18px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(122,240,245,.7);z-index:3}
+  @media(prefers-reduced-motion:reduce){.layer{animation:none}.layer.a{opacity:1;transform:scale(1.15)}.layer.b{display:none}.core{animation:none}.eyebrow,h1,p{animation:none;opacity:1;transform:none}}
+</style></head>
+<body>
+<div class="scene">
+  <div class="bg" id="bg"><div class="layer a"></div><div class="layer b"></div></div>
+</div>
+<div class="core"></div>
+<div class="vig"></div>
+<div class="grain"></div>
+<div class="tag">asset · circuit-city · saved design</div>
+<div class="ui">
+  <div class="eyebrow">Cosmos AI Lab · The Grid</div>
+  <h1>Dive into the <b>machine city</b>.</h1>
+  <p>A reusable background — an endless fly-in toward the core, with parallax and a teal glow. White-label: drop any headline over it.</p>
+</div>
+<script>
+(function(){
+  "use strict";
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var bg=document.getElementById('bg');
+  addEventListener('pointermove',function(e){var x=(e.clientX/innerWidth-.5),y=(e.clientY/innerHeight-.5);
+    bg.style.transform='translate('+(-x*26)+'px,'+(-y*26)+'px)';});
+})();
+</script>
+</body></html>
