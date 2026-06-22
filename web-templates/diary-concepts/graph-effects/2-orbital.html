@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Graph effect sample 2 — "Orbital" (Ra). Identity is a sun; memories & cards orbit on
+     concentric rings at their own speeds. Hover a body to light it. Self-contained Canvas 2D · offline · reduced-motion aware. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Graph · Orbital</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(70% 60% at 50% 50%,#15120a,#08070b 70%)}
+  canvas{display:block}
+  .lbl{position:fixed;left:18px;top:16px;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:rgba(233,200,119,.55)}
+  .lbl b{color:#F4DD92}
+  .hint{position:fixed;left:0;right:0;bottom:16px;text-align:center;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(233,200,119,.4)}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div class="lbl">graph style 02 · <b>orbital</b></div>
+<div class="hint">identity = sun · memories orbit · hover a body</div>
+<script>
+(function(){
+  "use strict";
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv=document.getElementById('c'),ctx=cv.getContext('2d'),W,H,DPR;
+  var LAB=['fx effects','CWT templates','brand kit','effective-html','Charter','diary','3D swarm','gallery','wake hook','Akashic','Vishnu gate','showcases'];
+  var bodies=[],rings=[],hover=-1,f=0;
+  function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';build();}
+  function build(){bodies=[];rings=[];var base=Math.min(W,H)*0.11;
+    var ringR=[base*1.0,base*1.5,base*2.05,base*2.6];rings=ringR;
+    for(var i=0;i<LAB.length;i++){var ri=i%ringR.length;
+      bodies.push({R:ringR[ri],a:Math.random()*6.28,sp:(0.0016+ (ringR.length-ri)*0.0009)*(reduce?0:1),r:(3.4+ (i%3)*1.4)*DPR,lab:LAB[i]});}}
+  rs();addEventListener('resize',rs);
+  function frame(){f++;var cx=W/2,cy=H/2;ctx.clearRect(0,0,W,H);
+    // rings
+    for(var i=0;i<rings.length;i++){ctx.strokeStyle='rgba(233,200,119,0.10)';ctx.lineWidth=DPR;ctx.beginPath();ctx.ellipse(cx,cy,rings[i],rings[i]*0.84,0,0,6.3);ctx.stroke();}
+    // bodies
+    var P=[];
+    for(var k=0;k<bodies.length;k++){var b=bodies[k];b.a+=b.sp;var x=cx+Math.cos(b.a)*b.R,y=cy+Math.sin(b.a)*b.R*0.84;P.push([x,y]);
+      // connector to sun (faint, brighter on hover)
+      var lit=hover===k;ctx.strokeStyle=lit?'rgba(244,221,146,0.5)':'rgba(233,200,119,0.06)';ctx.lineWidth=(lit?1.4:1)*DPR;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke();}
+    ctx.globalCompositeOperation='lighter';
+    for(var k2=0;k2<bodies.length;k2++){var b2=bodies[k2],x=P[k2][0],y=P[k2][1],dim=hover>=0&&hover!==k2,R=b2.r*3.2;
+      var g=ctx.createRadialGradient(x,y,0,x,y,R);g.addColorStop(0,'rgba(244,221,146,'+(dim?.35:1)+')');g.addColorStop(1,'rgba(233,200,119,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,R,0,6.3);ctx.fill();
+      ctx.fillStyle=dim?'rgba(244,221,146,.45)':'#fff3d4';ctx.beginPath();ctx.arc(x,y,b2.r,0,6.3);ctx.fill();}
+    // sun
+    var sr=Math.min(W,H)*0.055,sg=ctx.createRadialGradient(cx,cy,0,cx,cy,sr*3.4);
+    sg.addColorStop(0,'rgba(255,244,210,1)');sg.addColorStop(0.4,'rgba(244,221,146,.7)');sg.addColorStop(1,'rgba(233,200,119,0)');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(cx,cy,sr*3.4,0,6.3);ctx.fill();
+    ctx.fillStyle='#fff6e0';ctx.beginPath();ctx.arc(cx,cy,sr,0,6.3);ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+    // labels
+    ctx.font='600 '+(13*DPR)+'px "JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#fff6e0';ctx.fillText('Ra',cx,cy+5*DPR);
+    ctx.font='500 '+(11*DPR)+'px "JetBrains Mono",monospace';
+    for(var m=0;m<bodies.length;m++){if(m!==hover)continue;ctx.fillStyle='rgba(255,243,212,.95)';ctx.fillText(bodies[m].lab,P[m][0],P[m][1]-bodies[m].r-10*DPR);}
+    requestAnimationFrame(frame);}
+  requestAnimationFrame(frame);
+  // hover
+  cv.addEventListener('pointermove',function(e){var cx=W/2,cy=H/2,mx=e.clientX*DPR,my=e.clientY*DPR,best=-1,bd=24*DPR;
+    for(var k=0;k<bodies.length;k++){var b=bodies[k],x=cx+Math.cos(b.a)*b.R,y=cy+Math.sin(b.a)*b.R*0.84,d=Math.hypot(x-mx,y-my);if(d<bd+b.r){bd=d;best=k;}}hover=best;});
+})();
+</script>
+</body></html>

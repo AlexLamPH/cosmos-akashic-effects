@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Graph effect sample 3 — "Neural Mesh" (Ra). A dense, breathing neural net with depth parallax;
+     synapses fire along the dendrites. Move to parallax. Self-contained Canvas 2D · offline · reduced-motion aware. -->
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Graph · Neural Mesh</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(80% 70% at 50% 46%,#07140f,#04080b 72%)}
+  canvas{display:block}
+  .lbl{position:fixed;left:18px;top:16px;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:rgba(63,245,208,.55)}
+  .lbl b{color:#5CFBDC}
+  .hint{position:fixed;left:0;right:0;bottom:16px;text-align:center;z-index:2;pointer-events:none;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(63,245,208,.4)}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div class="lbl">graph style 03 · <b>neural mesh</b></div>
+<div class="hint">memories as neurons · synapses fire · move to parallax</div>
+<script>
+(function(){
+  "use strict";
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var cv=document.getElementById('c'),ctx=cv.getContext('2d'),W,H,DPR,nodes=[],edges=[],pulses=[],f=0,mx=0,my=0,tmx=0,tmy=0;
+  function rs(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';build();}
+  function build(){nodes=[];edges=[];pulses=[];var cx=W/2,cy=H/2;
+    nodes.push({x:cx,y:cy,bx:cx,by:cy,z:1,r:11*DPR,soma:true,ph:0});
+    var N=Math.round(Math.min(60,Math.max(34,innerWidth*innerHeight/20000)));
+    for(var i=1;i<N;i++){var a=Math.random()*6.28,d=(0.08+Math.random()*0.46)*Math.min(W,H),z=0.4+Math.random()*0.9;
+      var x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d*0.82;nodes.push({x:x,y:y,bx:x,by:y,z:z,r:(1.4+z*2.6)*DPR,ph:Math.random()*6.28});}
+    for(var j=1;j<N;j++){var best=[];for(var k=0;k<N;k++){if(k===j)continue;var dx=nodes[j].bx-nodes[k].bx,dy=nodes[j].by-nodes[k].by;best.push([dx*dx+dy*dy,k]);}
+      best.sort(function(a,b){return a[0]-b[0]});var deg=2+(Math.random()<.4?1:0);for(var m=0;m<deg;m++)edges.push([j,best[m][1]]);
+      if(Math.random()<.4)edges.push([j,0]);}}
+  rs();addEventListener('resize',rs);
+  function spawn(){var e=edges[(Math.random()*edges.length)|0];pulses.push({e:e,t:0,sp:.01+Math.random()*.016,c:Math.random()<.26?'#FF6AD5':'#3FF5D0'});}
+  function frame(){f++;mx+=(tmx-mx)*0.06;my+=(tmy-my)*0.06;ctx.clearRect(0,0,W,H);
+    for(var i=1;i<nodes.length;i++){var n=nodes[i];n.x=n.bx+Math.sin(f*0.012+n.ph)*9*DPR+mx*n.z*22;n.y=n.by+Math.cos(f*0.014+n.ph)*9*DPR+my*n.z*22;}
+    ctx.lineWidth=DPR;for(var j=0;j<edges.length;j++){var a=nodes[edges[j][0]],b=nodes[edges[j][1]];var al=0.05+0.08*Math.min(a.z,b.z);
+      ctx.strokeStyle='rgba(63,245,208,'+al+')';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    if(!reduce&&f%18===0&&pulses.length<46)spawn();
+    ctx.globalCompositeOperation='lighter';
+    for(var p=pulses.length-1;p>=0;p--){var pu=pulses[p],a2=nodes[pu.e[0]],b2=nodes[pu.e[1]];pu.t+=pu.sp;if(pu.t>=1){pulses.splice(p,1);continue;}
+      var x=a2.x+(b2.x-a2.x)*pu.t,y=a2.y+(b2.y-a2.y)*pu.t,g=ctx.createRadialGradient(x,y,0,x,y,8*DPR);
+      g.addColorStop(0,pu.c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,8*DPR,0,6.3);ctx.fill();}
+    for(var k=0;k<nodes.length;k++){var nn=nodes[k],rr=nn.r*(nn.soma?1+Math.sin(f*0.05)*0.09:1),R=rr*(nn.soma?5:3.3);
+      var gg=ctx.createRadialGradient(nn.x,nn.y,0,nn.x,nn.y,R);gg.addColorStop(0,nn.soma?'rgba(190,255,242,1)':'rgba(63,245,208,'+(0.4+nn.z*0.55)+')');gg.addColorStop(1,'rgba(63,245,208,0)');
+      ctx.fillStyle=gg;ctx.beginPath();ctx.arc(nn.x,nn.y,R,0,6.3);ctx.fill();
+      ctx.fillStyle=nn.soma?'#eafff9':'rgba(160,247,230,'+(0.5+nn.z*0.5)+')';ctx.beginPath();ctx.arc(nn.x,nn.y,rr,0,6.3);ctx.fill();}
+    ctx.globalCompositeOperation='source-over';
+    ctx.font='600 '+(12*DPR)+'px "JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='rgba(234,255,249,.95)';ctx.fillText('Ra',nodes[0].x,nodes[0].y+5*DPR);
+    requestAnimationFrame(frame);}
+  if(reduce){ctx.clearRect(0,0,W,H);for(var j=0;j<edges.length;j++){var a=nodes[edges[j][0]],b=nodes[edges[j][1]];ctx.strokeStyle='rgba(63,245,208,0.12)';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    for(var k=0;k<nodes.length;k++){var nn=nodes[k];ctx.fillStyle=nn.soma?'#eafff9':'#3FF5D0';ctx.beginPath();ctx.arc(nn.x,nn.y,nn.r,0,6.3);ctx.fill();}}
+  else requestAnimationFrame(frame);
+  addEventListener('pointermove',function(e){tmx=(e.clientX/innerWidth-0.5);tmy=(e.clientY/innerHeight-0.5);});
+})();
+</script>
+</body></html>

@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   @property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
+  @property --hue{syntax:'<angle>';inherits:false;initial-value:0deg}
   :root{--bg:#08090d;--ink:#EDEFF5;--mut:rgba(210,216,232,.55);--faint:rgba(210,216,232,.34);
     --gold:#E9C877;--gold2:#F4DD92;--amber:#C99A45;--line:rgba(255,255,255,.08);--surf:rgba(255,255,255,.035);
     --grot:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
@@ -50,12 +51,14 @@
     background:repeating-radial-gradient(circle at 28% 16%,transparent 0 6px,rgba(233,200,119,.05) 6px 7px),
               repeating-radial-gradient(circle at 84% 90%,transparent 0 7px,rgba(120,160,255,.045) 7px 8px)}
   .card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.14) 50%,transparent 62%);
-    background-size:240% 100%;background-position:var(--sheen,120%) 0}
+    background-size:240% 100%;background-position:140% 0;animation:sweep 7.5s ease-in-out infinite}
+  @keyframes sweep{0%,100%{background-position:150% 0}55%{background-position:-50% 0}}
   .row1{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
   .issuer{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
   .issuer small{display:block;color:var(--mut);letter-spacing:.14em;margin-top:3px}
   .holo{width:52px;height:52px;border-radius:12px;position:relative;overflow:hidden;
-    background:conic-gradient(from var(--hue,0deg),#5ff,#f6c,#fd6,#6f9,#5ff);filter:saturate(1.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+    background:conic-gradient(from var(--hue,0deg),#5ff,#f6c,#fd6,#6f9,#5ff);filter:saturate(1.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);animation:huerot 9s linear infinite}
+  @keyframes huerot{to{--hue:360deg}}
   .holo span{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:21px;color:rgba(20,20,28,.78);mix-blend-mode:overlay}
   .chip{width:44px;height:32px;border-radius:7px;margin:26px 0 0;position:relative;z-index:2;background:linear-gradient(135deg,#f4dd92,#b8923f)}
   .chip::before{content:"";position:absolute;inset:5px;border:1px solid rgba(80,55,10,.5);border-radius:3px;
@@ -99,7 +102,7 @@
   .standby{margin-top:20px;border:1px dashed var(--line);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--mut);font-family:var(--mono);letter-spacing:.02em}
   .standby b{color:var(--gold);font-weight:500}
   .hint{flex:0 0 auto;text-align:center;padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:.13em;color:var(--faint)}
-  @media(prefers-reduced-motion:reduce){.neon::before,.neon::after{animation:none}.neon{animation:none}.card::after{display:none}}
+  @media(prefers-reduced-motion:reduce){.neon::before,.neon::after,.neon,.holo,.card::after{animation:none}.card::after{display:none}}
 </style></head>
 <body>
   <div class="bar">
@@ -152,7 +155,7 @@
       <div class="standby" id="standby"></div>
     </div></section>
   </div>
-  <div class="hint" id="hint">tilt the card · holographic foil &amp; neon border flow live</div>
+  <div class="hint" id="hint">holographic foil &amp; neon border flow live · stable card</div>
 <script>
 (function(){
   "use strict";
@@ -182,7 +185,7 @@
 
   // ---- tabs ----
   var tabs=[].slice.call(document.querySelectorAll('.tab')), hint=document.getElementById('hint');
-  var hints={identity:'tilt the card · holographic foil & neon border flow live',
+  var hints={identity:'holographic foil & neon border flow live · stable, no distortion',
              graph:'identity at the centre · memories & cards orbit and pulse',
              timeline:'every memory stamped & dated — the soul of the team',
              plan:'focus areas + objectives, in the credential language'};
@@ -195,17 +198,7 @@
   }
   tabs.forEach(function(t){t.addEventListener('click',function(){show(t.dataset.f);});});
 
-  // ---- identity card: 3D tilt + foil + sheen ----
-  if(!reduce){
-    var neon=document.getElementById('neon'),card=document.getElementById('card');
-    addEventListener('pointermove',function(e){
-      if(!document.getElementById('f-identity').classList.contains('on'))return;
-      var r=card.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;
-      neon.style.transform='rotateY('+(px*15)+'deg) rotateX('+(-py*15)+'deg)';
-      card.style.setProperty('--hue',(px*180)+'deg');card.style.setProperty('--sheen',(120-(px+.5)*200)+'%');
-    });
-    addEventListener('pointerleave',function(){neon.style.transform='';});
-  }
+  // ---- identity card: foil + sheen + neon border AUTO-animate (no 3D tilt — Alex: cursor warped the card) ----
 
   // ---- timeline render ----
   var led=document.getElementById('ledger');

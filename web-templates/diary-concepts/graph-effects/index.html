@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- Cosmos AI Lab · Graph effect samples (Ra) — reference styles for the diary-view Graph facet. Pick one to apply. -->
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Graph effects — Ra</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0b10;--card:#12141c;--edge:rgba(255,255,255,.1);--ink:#EDF0F7;--mut:rgba(220,226,240,.56);--acc:#E9C877;--grot:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(100% 80% at 50% 0%,#15172180,#0a0b10 60%),#0a0b10;color:var(--ink);font-family:var(--grot);min-height:100vh;padding:46px 20px 70px}
+  .head{max-width:1000px;margin:0 auto 32px;text-align:center}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--acc)}
+  h1{font-size:clamp(24px,4vw,38px);font-weight:700;letter-spacing:-.02em;margin:12px 0 10px}
+  .head p{color:var(--mut);font-size:14px;line-height:1.6;max-width:640px;margin:0 auto}
+  .grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .c{display:flex;flex-direction:column;border:1px solid var(--edge);border-radius:16px;overflow:hidden;background:var(--card);text-decoration:none;color:inherit;transition:transform .2s,border-color .2s,box-shadow .2s}
+  .c:hover{transform:translateY(-4px);border-color:rgba(233,200,119,.5);box-shadow:0 20px 50px -20px #000,0 0 0 1px rgba(233,200,119,.3)}
+  .sw{height:84px;display:flex;align-items:flex-end;gap:7px;padding:12px}
+  .sw .dot{width:18px;height:18px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .body{padding:16px 17px 18px}
+  .no{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--mut)}
+  .ttl{font-size:18px;font-weight:700;margin:5px 0 7px}
+  .desc{font-size:12.5px;line-height:1.55;color:var(--mut)}
+  .open{margin-top:13px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--acc)}
+  .note{max-width:1000px;margin:28px auto 0;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mut);line-height:1.7}
+</style></head>
+<body>
+  <div class="head">
+    <div class="kick">Cosmos AI Lab · Ra</div>
+    <h1>Graph — 4 hiệu ứng mẫu</h1>
+    <p>Mẫu tham khảo cho tab <b>Graph</b> của diary-view (theo cách Alex chỉ: làm hiệu ứng riêng rồi chọn → app vào). Đều dùng theme diary: "Ra" ở tâm + node ký ức/card. Mở từng cái xem rồi chọn 1 (hoặc trộn) nhé.</p>
+  </div>
+  <div class="grid">
+    <a class="c" href="2-orbital.html">
+      <div class="sw" style="background:radial-gradient(70% 90% at 50% 100%,#15120a,#08070b)"><span class="dot" style="background:#F4DD92"></span><span class="dot" style="background:#fff6e0"></span><span class="dot" style="background:#15120a;border:1px solid #444"></span></div>
+      <div class="body"><div class="no">STYLE 02</div><div class="ttl">Orbital · hệ mặt trời</div>
+        <div class="desc">"Ra" là mặt trời, ký ức/card quay quanh trên các vành đồng tâm với tốc độ riêng. Sang, có trật tự. Hover 1 thiên thể để sáng.</div><div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="1-constellation.html">
+      <div class="sw" style="background:radial-gradient(70% 90% at 50% 100%,#0b1020,#070912)"><span class="dot" style="background:#7FD8FF"></span><span class="dot" style="background:#A78BFA"></span><span class="dot" style="background:#070912;border:1px solid #345"></span></div>
+      <div class="body"><div class="no">STYLE 01</div><div class="ttl">Constellation</div>
+        <div class="desc">Mạng sao trôi nhẹ, cạnh phát sáng + xung chạy. Hover 1 node để sáng hàng xóm; kéo để xoay cả chòm. Thoáng, thơ.</div><div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="3-neural-mesh.html">
+      <div class="sw" style="background:radial-gradient(70% 90% at 50% 100%,#07140f,#04080b)"><span class="dot" style="background:#3FF5D0"></span><span class="dot" style="background:#FF6AD5"></span><span class="dot" style="background:#04080b;border:1px solid #264"></span></div>
+      <div class="body"><div class="no">STYLE 03</div><div class="ttl">Neural Mesh</div>
+        <div class="desc">Mạng nơ-ron dày, có chiều sâu (parallax theo chuột), synapse bắn xung, "thở". Đậm chất "bộ não / linh hồn".</div><div class="open">Mở xem →</div></div>
+    </a>
+    <a class="c" href="4-circuit-map.html">
+      <div class="sw" style="background:linear-gradient(135deg,#0A0B0E,#101319)"><span class="dot" style="background:#F5C451"></span><span class="dot" style="background:#36E6FF"></span><span class="dot" style="background:#1a1c22;border:1px solid #555"></span></div>
+      <div class="body"><div class="no">STYLE 04</div><div class="ttl">Circuit Map · mạch PCB</div>
+        <div class="desc">"Ra" là con chip, ký ức là pad nối bằng mạch vuông góc, xung dữ liệu chạy dọc mạch. Hợp tông Credential (vàng/holo). Hover để sáng mạch.</div><div class="open">Mở xem →</div></div>
+    </a>
+  </div>
+  <div class="note">4 hiệu ứng graph mẫu · chọn 1 (hoặc trộn) → em app vào tab Graph của bộ Credential · chưa card-hoá (chờ Alex chọn)</div>
+</body></html>
