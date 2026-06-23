@@ -1,0 +1,25 @@
+{
+  "slug": "diary-card-app",
+  "card_number": "AK-CDP-00000CQ",
+  "tier": "showcase",
+  "title": "Cosmos Diary-Card — data-driven AI diary app (Credential + Circuit Map), React/Vite/Tailwind, white-label",
+  "title_vi": "Cosmos Diary-Card — app nhat ky AI data-driven (Credential + Circuit Map), React/Vite/Tailwind, white-label",
+  "tags": [
+    "diary",
+    "diary-card",
+    "react",
+    "vite",
+    "tailwind",
+    "credential",
+    "circuit-map",
+    "canvas",
+    "white-label",
+    "geministudio",
+    "showcase",
+    "app"
+  ],
+  "summary": "Data-driven AI diary-card app (React 19 / Vite 6 / Tailwind v4). One Diary object renders Identity / Timeline / Plan / Graph facets, with a white-label profile swap (Ra <-> Anubis). Ra's two custom facets: holographic Credential (IdentityCard) + 2D Circuit Map (GraphMap). Bundles the GeminiStudio-build security-audit + subpath-deploy recipe.",
+  "usage_notes": "Rebuild: npm install && npm run build (vite base './'). Deploy: cp -r dist/. web-templates/apps/diary-card/. Source kept at apps/diary-card/_src/. Live (after PR #23 merge): https://alexlamph.github.io/cosmos-akashic-effects/web-templates/apps/diary-card/ . Design patterns carded separately: Circuit Map = AK-CDP-00000CP; Credential = diary-concepts/credential-full. White-label proven via the Ra/Anubis profile swapper.",
+  "summary_vi": "App nhat ky-the AI: 1 object Diary do ra 4 mat (Identity/Timeline/Plan/Graph) + doi ho so white-label (Ra<->Anubis). Hai mat cua Ra: the Credential hologram (vien neon @property --cred-ang, foil xoay mau, chip vang, MRZ; bo 3D tilt) + Circuit Map 2D canvas (chip Ra giua, pad noi mach PCB goc vuong, pulse chay, hover sang trace, click ghim HUD). Kem cong thuc audit bao mat build GeminiStudio + deploy subpath. Repo: web-templates/apps/diary-card/ (build + _src). Cross-ref Circuit Map AK-CDP-00000CP. Live sau merge PR #23.",
+  "notes": "GeminiStudio build, Ra sua 2 facet (IdentityCard->Credential, GraphMap->Circuit Map). genai/express/dotenv = scaffold thua, tree-shaken; security audit clean (client-only, 0 network). PR #23 (cung Visual Browser)."
+}

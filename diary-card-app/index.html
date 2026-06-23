@@ -1,0 +1,29 @@
+// Cosmos Diary-Card — turn a GeminiStudio React/Vite/Tailwind build into a
+// data-driven AI "diary credential". ONE Diary object drives every facet;
+// Ra swapped two facets into Ra's own designs.
+
+interface Diary {                            // src/types.ts — single source of truth
+  identity: { name; role; scope; harness; activeSince; cardNumber; mandate; stats };
+  timeline: { id; date; kind; title; body; tags }[];
+  plan:     { focus; objectives; standby };
+  graph:    { nodes: { id; label; group; description }[]; edges: { from; to }[] };
+}
+
+// App.tsx wires the facets — only these two are Ra's:
+<IdentityCard identity={diary.identity} auraTone={tone} />              // → Credential
+<GraphMap nodes={diary.graph.nodes} edges={diary.graph.edges} .../>    // → Circuit Map
+
+// IdentityCard → holographic Credential (patterns in src/index.css .cred-*):
+//   animated rainbow neon border via @property --cred-ang (masked conic ring + blur glow),
+//   hue-rotating holo foil, gold smart-chip, sheen sweep, passport MRZ. No 3D tilt
+//   (Alex feedback: cursor warped the card → everything auto-animates instead).
+// GraphMap → 2D Circuit Map on <canvas>: identity = gold PCB chip; nodes = silkscreen
+//   pads wired by right-angle traces (corner = horizontal-first L) with flowing pulses;
+//   hover lights a trace + shows label, click pins the HUD. DPR-aware + ResizeObserver.
+//   Pad colour follows node.group (identity gold / artifact cyan / ecosystem rose).
+
+// Host under a subpath:  vite.config.ts → base: './'  then  npm run build
+//   → cp -r dist/. web-templates/apps/diary-card/
+// Security-audit a GeminiStudio build first: @google/genai / express / dotenv are
+//   UNUSED scaffold — verify 0 fetch/eval/secret in src/ and 0 external origins in
+//   dist/assets/*.js (they tree-shake out). Result: 100% client-side, no network.
