@@ -188,22 +188,43 @@ export default function GraphMap({ nodes, edges, onNavigateNode }: GraphMapProps
         if (labels && !dim) { ctx.fillStyle = isActive ? 'rgba(54,230,255,.95)' : 'rgba(210,216,232,.72)'; ctx.font = '500 ' + (10 * DPR) + 'px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText(n.label, sx, sy - s - 5 * DPR); }
       }
 
-      // ---- core chip: plasma die (#6) + multicolour blinking LED grid (#7) ----
+      // ---- core chip: metallic gold casing + plasma die (#6) + multicolour LED grid (#7) ----
       if (core && positions[core]) {
-        const ccx = wsx(positions[core].wx), ccy = wsy(positions[core].wy), cs = Math.max(22 * DPR, 64 * cam.z * DPR), ct = f / 60;
-        ctx.save(); ctx.beginPath(); ctx.roundRect(ccx - cs, ccy - cs, cs * 2, cs * 2, cs * 0.16); ctx.clip();
-        ctx.fillStyle = '#0b0a0e'; ctx.fillRect(ccx - cs, ccy - cs, cs * 2, cs * 2);
+        const ccx = wsx(positions[core].wx), ccy = wsy(positions[core].wy), cs = Math.max(15 * DPR, 42 * cam.z * DPR), ct = f / 60;
+        const bw = cs * 0.2, di = cs - bw;                          // casing thickness + inner die half-size
+        // 1. metallic gold casing (brushed-gold diagonal gradient) + premium drop glow
+        ctx.shadowColor = 'rgba(233,200,119,.4)'; ctx.shadowBlur = 15 * DPR;
+        const mg = ctx.createLinearGradient(ccx - cs, ccy - cs, ccx + cs, ccy + cs);
+        mg.addColorStop(0, '#fff7e6'); mg.addColorStop(0.18, '#ECD49A'); mg.addColorStop(0.4, '#C7A24E');
+        mg.addColorStop(0.52, '#7C5F26'); mg.addColorStop(0.66, '#B98F3E'); mg.addColorStop(0.82, '#EBCB82'); mg.addColorStop(1, '#fff3d6');
+        ctx.fillStyle = mg; ctx.beginPath(); ctx.roundRect(ccx - cs, ccy - cs, cs * 2, cs * 2, cs * 0.22); ctx.fill();
+        ctx.shadowBlur = 0;
+        // 2. brushed sheen (light top -> shadow bottom) for a polished-metal read
+        const sh = ctx.createLinearGradient(ccx, ccy - cs, ccx, ccy + cs);
+        sh.addColorStop(0, 'rgba(255,255,255,.4)'); sh.addColorStop(0.5, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(40,26,6,.35)');
+        ctx.fillStyle = sh; ctx.beginPath(); ctx.roundRect(ccx - cs, ccy - cs, cs * 2, cs * 2, cs * 0.22); ctx.fill();
+        // 3. bevel edges: dark outer rim + bright top-left highlight
+        ctx.lineWidth = 1 * DPR; ctx.strokeStyle = 'rgba(60,42,12,.7)';
+        ctx.beginPath(); ctx.roundRect(ccx - cs, ccy - cs, cs * 2, cs * 2, cs * 0.22); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,248,225,.55)';
+        ctx.beginPath(); ctx.roundRect(ccx - cs + DPR, ccy - cs + DPR, cs * 2 - 2 * DPR, cs * 2 - 2 * DPR, cs * 0.2); ctx.stroke();
+        // 4. inner groove around the die
+        ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 2 * DPR;
+        ctx.beginPath(); ctx.roundRect(ccx - di, ccy - di, di * 2, di * 2, di * 0.16); ctx.stroke();
+        // 5. die: clip inner -> plasma blobs + LED grid
+        ctx.save(); ctx.beginPath(); ctx.roundRect(ccx - di, ccy - di, di * 2, di * 2, di * 0.16); ctx.clip();
+        ctx.fillStyle = '#0b0a0e'; ctx.fillRect(ccx - di, ccy - di, di * 2, di * 2);
         const blobs: [string, number][] = [['#E9C877', 0], ['#FF5A8A', 2.1], ['#A06BFF', 4.2], ['#36E6FF', 1.0]];
         for (let bi = 0; bi < 4; bi++) {
-          const bx3 = ccx + Math.cos(ct * 0.6 + blobs[bi][1]) * cs * 0.6, by3 = ccy + Math.sin(ct * 0.5 + blobs[bi][1] * 1.3) * cs * 0.6;
-          const bg = ctx.createRadialGradient(bx3, by3, 0, bx3, by3, cs * 1.1); bg.addColorStop(0, blobs[bi][0]); bg.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.globalAlpha = 0.6; ctx.fillStyle = bg; ctx.fillRect(ccx - cs, ccy - cs, cs * 2, cs * 2);
+          const bx3 = ccx + Math.cos(ct * 0.6 + blobs[bi][1]) * di * 0.6, by3 = ccy + Math.sin(ct * 0.5 + blobs[bi][1] * 1.3) * di * 0.6;
+          const bg = ctx.createRadialGradient(bx3, by3, 0, bx3, by3, di * 1.1); bg.addColorStop(0, blobs[bi][0]); bg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = 0.6; ctx.fillStyle = bg; ctx.fillRect(ccx - di, ccy - di, di * 2, di * 2);
         }
         ctx.globalAlpha = 1;
-        const stp = cs * 0.26; let gc = 0;
-        for (let gx = ccx - cs + stp * 0.5; gx < ccx + cs; gx += stp) {
+        const stp = di * 0.28; let gc = 0;
+        for (let gx = ccx - di + stp * 0.5; gx < ccx + di; gx += stp) {
           let gr = 0;
-          for (let gy = ccy - cs + stp * 0.5; gy < ccy + cs; gy += stp) {
+          for (let gy = ccy - di + stp * 0.5; gy < ccy + di; gy += stp) {
             const li = (gc * 7 + gr * 3 + Math.floor(ct * 0.8)) % 4, bk = 0.25 + 0.75 * Math.abs(Math.sin(ct * 2.6 + (gc + gr) * 0.6));
             ctx.fillStyle = 'rgba(5,5,8,.5)'; ctx.beginPath(); ctx.arc(gx, gy, stp * 0.33, 0, 6.3); ctx.fill();
             ctx.globalAlpha = bk; ctx.fillStyle = PAL[li]; ctx.beginPath(); ctx.arc(gx, gy, stp * 0.21, 0, 6.3); ctx.fill(); ctx.globalAlpha = 1; gr++;
@@ -211,19 +232,19 @@ export default function GraphMap({ nodes, edges, onNavigateNode }: GraphMapProps
           gc++;
         }
         ctx.restore();
-        ctx.strokeStyle = '#fff3d4'; ctx.lineWidth = 2 * DPR; ctx.shadowColor = '#FF5A8A'; ctx.shadowBlur = 16 * DPR;
-        ctx.beginPath(); ctx.roundRect(ccx - cs, ccy - cs, cs * 2, cs * 2, cs * 0.16); ctx.stroke(); ctx.shadowBlur = 0;
-        ctx.strokeStyle = 'rgba(255,240,210,.45)'; ctx.lineWidth = 1.4 * DPR;
+        // 6. metallic pins from the casing edges
+        ctx.strokeStyle = 'rgba(220,196,140,.65)'; ctx.lineWidth = 1.4 * DPR;
         for (let pi = 0; pi < 6; pi++) {
-          const off = -cs + cs * 0.32 + pi * (cs * 1.36 / 5);
-          ctx.beginPath(); ctx.moveTo(ccx + off, ccy - cs); ctx.lineTo(ccx + off, ccy - cs - cs * 0.18); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(ccx + off, ccy + cs); ctx.lineTo(ccx + off, ccy + cs + cs * 0.18); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(ccx - cs, ccy + off); ctx.lineTo(ccx - cs - cs * 0.18, ccy + off); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(ccx + cs, ccy + off); ctx.lineTo(ccx + cs + cs * 0.18, ccy + off); ctx.stroke();
+          const off = -cs + cs * 0.34 + pi * (cs * 1.32 / 5);
+          ctx.beginPath(); ctx.moveTo(ccx + off, ccy - cs); ctx.lineTo(ccx + off, ccy - cs - cs * 0.16); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ccx + off, ccy + cs); ctx.lineTo(ccx + off, ccy + cs + cs * 0.16); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ccx - cs, ccy + off); ctx.lineTo(ccx - cs - cs * 0.16, ccy + off); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ccx + cs, ccy + off); ctx.lineTo(ccx + cs + cs * 0.16, ccy + off); ctx.stroke();
         }
+        // 7. label
         const coreLabel = (ns[0]?.label || 'Ra').replace(/\s*\(.*\)\s*/, '').trim();
-        ctx.font = '700 ' + Math.max(13, cs * 0.42) + 'px "Space Grotesk",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-        ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6 * DPR; ctx.fillStyle = '#fff3d4'; ctx.fillText(coreLabel, ccx, ccy + cs * 0.16); ctx.shadowBlur = 0;
+        ctx.font = '700 ' + Math.max(11, di * 0.5) + 'px "Space Grotesk",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 5 * DPR; ctx.fillStyle = '#fff7e6'; ctx.fillText(coreLabel, ccx, ccy + di * 0.18); ctx.shadowBlur = 0;
       }
 
       // edge fog (vignette)
