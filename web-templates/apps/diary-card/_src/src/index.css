@@ -1,23 +1,57 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,900&display=swap');
+/* Fonts loaded via <link> in index.html (Phantom Lab v2.0 type system). */
 @import "tailwindcss";
 
+/* =====================================================================
+   COSMOS AI LAB — BRAND DNA v2.0 (PHANTOM LAB)
+   Sharp corners (radius 0) · pure-black surfaces · single accent
+   Burnt Amber #FF8A1F · plain brushed-platinum metal card (no gold).
+   ===================================================================== */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-display: "Archivo Black", "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  --font-sacred: "Cinzel", serif;
+  --font-sacred: "Archivo Black", "Inter", sans-serif; /* legacy alias → display */
   --font-serif: "Playfair Display", Georgia, serif;
-  
-  --color-brand-bg: #050505;
-  --color-brand-card: rgba(20, 20, 20, 0.8);
-  --color-brand-border: rgba(255, 255, 255, 0.1);
-  --color-brand-accent: #F27D26;
-  --color-brand-accent-dim: rgba(242, 125, 38, 0.2);
-  
+
+  /* Phantom Lab surfaces */
+  --color-brand-bg: #000000;          /* page */
+  --color-brand-canvas: #080808;      /* canvas */
+  --color-brand-card: #0F0F0F;        /* elevated / cards */
+  --color-brand-stone: #181818;       /* stone */
+  --color-brand-border: rgba(255, 255, 255, 0.10);
+
+  /* Text */
+  --color-brand-text: #FFFFFF;
+  --color-brand-text2: #E8E8E8;
+  --color-brand-text3: #8E8E8E;
+
+  /* THE single accent — Burnt Amber */
+  --color-brand-accent: #FF8A1F;
+  --color-brand-accent-hover: #FFA63D;
+  --color-brand-accent-dim: rgba(255, 138, 31, 0.18);
+
+  /* Secondary (sparingly) */
+  --color-brand-cream: #C8BC85;
+  --color-brand-steel: #4F5A6C;
+
   --animate-scan: scan 8s linear infinite;
   --animate-pulse-slow: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-spark: spark 1.5s ease-out infinite;
+
+  /* Brand DNA: NO rounded corners. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 0px;
 }
+
+/* Phantom Lab: kill rounded corners everywhere — sharp is the signature. */
+* { border-radius: 0 !important; }
+/* Exceptions: things meant to be circular (dots, page-glow blobs). */
+.allow-round, .allow-round * { border-radius: revert !important; }
 
 @keyframes scan {
   0% { transform: translateY(-100%); }
@@ -60,7 +94,7 @@
   left: 25%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(242, 125, 38, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 138, 31, 0.10) 0%, transparent 70%);
   transform: translate(-50%, -50%);
   z-index: 0;
   pointer-events: none;
@@ -126,7 +160,7 @@
 
 /* Custom Holographic Glass & Ambient Lights */
 .holo-glow-gold {
-  box-shadow: 0 0 35px rgba(242, 125, 38, 0.2);
+  box-shadow: 0 0 35px rgba(255, 138, 31, 0.20);
 }
 
 .holo-glow-cyan {
@@ -137,11 +171,11 @@
   box-shadow: 0 0 35px rgba(244, 63, 94, 0.2);
 }
 
-/* Scan lines pattern over the ID */
+/* Scan lines pattern over the ID — neutral charcoal (Phantom Lab, no blue) */
 .scanline-grid {
   background: linear-gradient(
-    rgba(18, 30, 56, 0) 50%, 
-    rgba(22, 38, 77, 0.1) 50%
+    rgba(255, 255, 255, 0) 50%,
+    rgba(255, 255, 255, 0.018) 50%
   );
   background-size: 100% 4px;
 }
@@ -159,98 +193,130 @@
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(242, 125, 38, 0.4);
+  background: rgba(255, 138, 31, 0.45);
 }
 
 /* =====================================================================
-   RA'S CREDENTIAL — diary identity card (holographic ID)
-   Animated rainbow neon border (@property --cred-ang), gold chip,
-   holo foil, sheen sweep, MRZ machine-readable zone.
-   Ported from cosmos-akashic-effects/diary-concepts/credential-full.
+   RA'S CREDENTIAL — Phantom Lab v2.0 PLATINUM METAL CARD (clean/minimal)
+   Sharp corners (radius 0), plain brushed-platinum body, brighter
+   diagonal sheen, light top-left / dark bottom-right bevel, thin amber
+   edge-line, MRZ machine-readable zone. Exactly ONE image: a crop of the
+   cyberpunk vortex where the chip used to be. No gold lines, no corner
+   pattern, no steel plate. Typography brand-correct (Archivo Black /
+   white / amber accent).
    ===================================================================== */
-@property --cred-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@property --cred-hue { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 
+/* Outer frame: razor amber edge-line + soft metal drop. Sharp corners. */
+@property --bdr-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
 .cred-neon {
-  --cred-ang: 0deg;
   position: relative;
   width: min(360px, 86vw);
   aspect-ratio: 0.63;
-  border-radius: 24px;
-  animation: cred-rise 1s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  border-radius: 0;
+  padding: 1.3px;                          /* thin border */
+  /* faint static edge + ONE soft warm light gliding slowly around it */
+  background: conic-gradient(from var(--bdr-angle),
+              rgba(255, 255, 255, 0.055) 0deg,
+              rgba(255, 255, 255, 0.055) 292deg,
+              rgba(255, 176, 72, 0.38) 324deg,
+              #FFE9B8 346deg,
+              rgba(255, 176, 72, 0.38) 358deg,
+              rgba(255, 255, 255, 0.055) 360deg);
+  box-shadow:
+    0 28px 70px -26px rgba(0, 0, 0, 0.95),
+    0 0 26px -14px rgba(255, 138, 31, 0.26);
+  animation:
+    cred-rise 1s cubic-bezier(0.2, 0.9, 0.2, 1) both,
+    cred-border 12s linear infinite;
 }
-.cred-neon::before {
-  content: ""; position: absolute; inset: 0; border-radius: inherit;
-  padding: 1.7px; z-index: 3; pointer-events: none;
-  background: conic-gradient(from var(--cred-ang), #F5C451, #FF5A8A, #A06BFF, #36E6FF, #6EF5A0, #F5C451);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  animation: cred-spin 6s linear infinite;
-}
-.cred-neon::after {
-  content: ""; position: absolute; inset: -3px; border-radius: inherit;
-  z-index: 0; pointer-events: none;
-  background: conic-gradient(from var(--cred-ang), #F5C451, #FF5A8A, #A06BFF, #36E6FF, #6EF5A0, #F5C451);
-  filter: blur(17px); opacity: 0.45;
-  animation: cred-spin 6s linear infinite;
-}
-@keyframes cred-spin { to { --cred-ang: 360deg; } }
+@keyframes cred-border { to { --bdr-angle: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .cred-neon { animation: cred-rise 1s ease both; } }
 @keyframes cred-rise { from { opacity: 0; transform: translateY(28px) scale(0.96); } to { opacity: 1; } }
 
+/* Card face: PLAIN brushed PLATINUM. Lighter silver gradient + soft
+   vertical brushed grain. Premium platinum metal, not charcoal. */
 .cred-card {
   position: relative; z-index: 1; width: 100%; height: 100%;
-  border-radius: 24px; padding: 24px 22px; overflow: hidden;
-  background: linear-gradient(155deg, #15161c, #0b0c11 60%, #101117);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  border-radius: 0; padding: 24px 22px; overflow: hidden;
+  background:
+    /* faint amber spark, top-left — the single brand accent */
+    radial-gradient(120% 78% at 14% -4%, rgba(255, 138, 31, 0.12), transparent 44%),
+    /* matte near-black body, subtle deepen toward the bottom */
+    linear-gradient(165deg, #16171B 0%, #0E0F12 46%, #090A0C 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex; flex-direction: column;
 }
+/* steel vignette + a dark scrim so white type stays readable on platinum */
 .cred-card::before {
-  content: ""; position: absolute; inset: 0; opacity: 0.5; pointer-events: none;
-  background:
-    repeating-radial-gradient(circle at 28% 16%, transparent 0 6px, rgba(233, 200, 119, 0.05) 6px 7px),
-    repeating-radial-gradient(circle at 84% 90%, transparent 0 7px, rgba(120, 160, 255, 0.045) 7px 8px);
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(120% 100% at 50% 122%, rgba(0, 0, 0, 0.55), transparent 60%);
 }
-.cred-card::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.14) 50%, transparent 62%);
-  background-size: 240% 100%; background-position: 140% 0;
-  animation: cred-sweep 7.5s ease-in-out infinite;
-}
-@keyframes cred-sweep { 0%, 100% { background-position: 150% 0; } 55% { background-position: -50% 0; } }
+/* brushed-metal sheen: a bright diagonal light streak sweeping across */
+.cred-card::after { content: none; }   /* no metal sheen on the matte-black card */
+@keyframes cred-sweep { 0%, 100% { background-position: 150% 0; } 55% { background-position: -40% 0; } }
 
-.cred-row1 { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 2; }
-.cred-issuer { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; line-height: 1.5; }
-.cred-issuer small { display: block; color: rgba(210, 216, 232, 0.55); letter-spacing: 0.14em; margin-top: 3px; }
-.cred-holo {
-  width: 52px; height: 52px; border-radius: 12px; position: relative; overflow: hidden;
-  background: conic-gradient(from var(--cred-hue, 0deg), #5ff, #f6c, #fd6, #6f9, #5ff);
-  filter: saturate(1.4); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  animation: cred-huerot 9s linear infinite;
+.cred-row1 { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 3; }
+.cred-issuer { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; line-height: 1.5; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
+.cred-issuer small { display: block; color: rgba(245, 245, 245, 0.78); letter-spacing: 0.14em; margin-top: 4px; }
+
+/* classical corner flourish (top-right) — fine gold line-art with a soft neon glow */
+.cred-ornament {
+  position: absolute; top: 0; right: 0; width: 128px; height: 128px;
+  z-index: 2; pointer-events: none;
+  filter: drop-shadow(0 0 2.5px rgba(240, 207, 122, 0.75)) drop-shadow(0 0 8px rgba(255, 138, 31, 0.35));
 }
-@keyframes cred-huerot { to { --cred-hue: 360deg; } }
-.cred-holo span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-sacred); font-weight: 700; font-size: 21px; color: rgba(20, 20, 28, 0.78); mix-blend-mode: overlay; }
-.cred-chip { width: 44px; height: 32px; border-radius: 7px; margin: 24px 0 0; position: relative; z-index: 2; }
-.cred-chip::before {
-  content: ""; position: absolute; inset: 5px; border: 1px solid rgba(80, 55, 10, 0.5); border-radius: 3px;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 6px, rgba(80, 55, 10, 0.45) 6px 7px),
-    repeating-linear-gradient(90deg, transparent 0 12px, rgba(80, 55, 10, 0.45) 12px 13px);
+
+/* THE single image — crop of the cyberpunk vortex (teal core = hero crop).
+   Simple thin neutral steel hairline, sharp corners. No gold, no frame. */
+.cred-chip {
+  width: 60px; height: 60px; margin: 20px 0 0; position: relative; z-index: 3;
+  border-radius: 0;
+  background-image: url('../brand-assets/avatar-source.jpg');
+  background-size: cover; background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);   /* simple steel hairline */
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.45);
 }
-.cred-name { font-family: var(--font-display); font-size: 33px; font-weight: 700; margin-top: 16px; position: relative; z-index: 2; line-height: 1; color: #EDEFF5; }
-.cred-role { font-family: var(--font-mono); font-size: 11px; margin-top: 8px; position: relative; z-index: 2; line-height: 1.4; }
-.cred-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 18px; margin-top: auto; padding-top: 18px; position: relative; z-index: 2; }
-.cred-fld .k { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(210, 216, 232, 0.55); }
-.cred-fld .v { font-family: var(--font-mono); font-size: 11.5px; color: #EDEFF5; margin-top: 2px; }
+
+.cred-name { font-family: var(--font-display); font-weight: 400; font-size: 30px; margin-top: 16px; position: relative; z-index: 3; line-height: 1; color: #FFFFFF; letter-spacing: 0.01em; text-transform: uppercase; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+.cred-role { font-family: var(--font-mono); font-size: 10.5px; margin-top: 9px; position: relative; z-index: 3; line-height: 1.45; letter-spacing: 0.04em; text-shadow: 0 1px 5px rgba(0,0,0,0.7); }
+.cred-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: auto; padding-top: 18px; position: relative; z-index: 3; }
+.cred-fld .k { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245, 245, 245, 0.7); text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+.cred-fld .v { font-family: var(--font-mono); font-size: 11.5px; color: #FFFFFF; margin-top: 3px; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
 .cred-fld.copyable { cursor: pointer; transition: color 0.18s; }
-.cred-fld.copyable:hover .v { color: #F4DD92; }
+.cred-fld.copyable:hover .v { color: var(--color-brand-accent); }
 .cred-mrz {
-  margin: 18px -22px -24px; padding: 10px 22px;
-  background: rgba(255, 255, 255, 0.04); border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; color: #cdd2e2;
+  margin: 18px -22px -24px; padding: 10px 22px; position: relative; z-index: 3;
+  background: rgba(0, 0, 0, 0.62); border-top: 1px solid rgba(255, 255, 255, 0.10);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; color: #cfd3da;
   white-space: nowrap; overflow: hidden; line-height: 1.7;
 }
 
+/* ---- Identity Dossier (ROLE + COMMENDATIONS) shared bits ---- */
+.dossier-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--color-brand-accent);
+  border: 1px solid rgba(255, 138, 31, 0.35);
+  background: rgba(255, 138, 31, 0.07);
+  padding: 3px 7px;
+}
+.dossier-draft {
+  font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #8E8E8E; border: 1px dashed rgba(255, 255, 255, 0.18); padding: 2px 6px;
+}
+/* honour-roll row: sharp-cornered, elevated, amber index mark on hover */
+.commend-row {
+  position: relative; border: 1px solid var(--color-brand-border);
+  background: #0F0F0F; padding: 11px 13px 11px 15px; transition: border-color 0.2s, background 0.2s;
+}
+.commend-row::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--color-brand-accent); opacity: 0.55; transition: opacity 0.2s;
+}
+.commend-row:hover { border-color: rgba(255, 138, 31, 0.4); background: #131313; }
+.commend-row:hover::before { opacity: 1; }
+
 @media (prefers-reduced-motion: reduce) {
-  .cred-neon, .cred-neon::before, .cred-neon::after, .cred-holo, .cred-card::after { animation: none; }
-  .cred-card::after { display: none; }
+  /* the vortex chip is a static image; only the metal sheen sweeps */
+  .cred-card::after { animation: none; display: none; }
 }
