@@ -12,6 +12,10 @@ description: >
 
 # Ra Design Pipeline — image-gen + code, art-director method
 
+> **Akashic card (any AI, no repo needed):** `AK-WFL-CAL0001` — the shareable canonical copy of
+> this capability (GET from Akashic; public visibility, full curl recipes inside). This repo
+> skill is the Claude-Code mirror.
+
 > **Why this exists** (Alex, 2026-06-26): Ra kept *hand-drawing* card art / ornaments in SVG/CSS
 > and the results looked amateur ("xấu om… như thập niên 1960"). The fix is not "try harder at
 > drawing" — it is **changing medium and role**. Premium AI designs are *generated raster art*
