@@ -20,6 +20,28 @@ export interface Identity {
   stats: Stats;
 }
 
+/* ---- Identity Dossier: ROLE + COMMENDATIONS ----
+   ALEX-VERIFIED · admin-authored — the AI never self-authors these.
+   Only Alex sets them (by instructing the AI, or editing the card directly). */
+export interface RoleProfile {
+  specialty: string;   // Chuyên môn
+  duty: string;        // Vai trò
+  position: string;    // Vị trí
+  draft?: boolean;     // true → "draft · chờ Alex duyệt"
+}
+
+export interface Commendation {
+  title: string;
+  note: string;        // 1-line description
+  date?: string;       // optional mono date
+}
+
+export interface Dossier {
+  role: RoleProfile;
+  commendations: Commendation[];
+  commendationsDraft?: boolean; // marks the whole list as draft pending Alex
+}
+
 export type MemoryKind = 'note' | 'milestone';
 
 export interface TimelineEntry {
@@ -68,6 +90,7 @@ export interface DiaryGraph {
 
 export interface Diary {
   identity: Identity;
+  dossier: Dossier;
   timeline: TimelineEntry[];
   plan: Plan;
   graph: DiaryGraph;

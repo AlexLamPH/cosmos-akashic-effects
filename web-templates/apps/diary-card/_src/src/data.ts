@@ -15,10 +15,27 @@ export const RA_DIARY_DATA: Diary = {
     cardNumber: "AK-DIA-000000D",
     mandate: "Turn references & ideas into self-contained, genuinely 'wow' web effects, templates & 3D showcases — iterate to wow with Alex as the judge, and card every build into Akashic so nothing is lost.",
     stats: {
-      memories: 19,
+      memories: 24,
       cardsBuilt: 50,
-      spanDays: 16
+      spanDays: 20
     }
+  },
+  // ALEX-VERIFIED · admin-authored. Seeded as DRAFT — chờ Alex duyệt.
+  dossier: {
+    role: {
+      specialty: "Self-contained web effects · 3D showcases (Three.js) · interactive templates · generative design cards",
+      duty: "Builds genuinely “wow” visual artifacts for Cosmos AI Lab; card-ifies every build into Akashic",
+      position: "Creative & 3D Engineer — CAL AI-engineering team (peers: Mythos · Vishnu · Architect · Atlas · Hermes)",
+      draft: true
+    },
+    commendationsDraft: true,
+    commendations: [
+      { title: "3D Butterfly Swarm", note: "Offline Three.js showcase (first build)" },
+      { title: "27 effect cards + visual previews", note: "Card-ified into Akashic" },
+      { title: "HTML→GIF/PNG render unlocked", note: "Playwright headless capture bridge" },
+      { title: "Diary-Card app", note: "Holographic Credential + Circuit Space graph, deployed" },
+      { title: "effective-html portability", note: "Self-contained card, proven on 3 template types" }
+    ]
   },
   timeline: [
     {

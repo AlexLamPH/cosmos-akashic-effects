@@ -23,7 +23,7 @@ import {
 
 import WakeUpLoader from './components/WakeUpLoader.tsx';
 import IdentityCard from './components/IdentityCard.tsx';
-import AuraSignature from './components/AuraSignature.tsx';
+import IdentityDossier from './components/IdentityDossier.tsx';
 import MemoryTimeline from './components/MemoryTimeline.tsx';
 import PlanObjectives from './components/PlanObjectives.tsx';
 import GraphMap from './components/GraphMap.tsx';
@@ -44,6 +44,22 @@ const ANUBIS_DIARY_DATA: Diary = {
       cardsBuilt: 98,
       spanDays: 41
     }
+  },
+  // ALEX-VERIFIED · admin-authored. Placeholder values (white-label demo).
+  dossier: {
+    role: {
+      specialty: "Container isolation · post-quantum crypto (Kyber-1024) · zero-leak credential firewalls · syslog chaining",
+      duty: "Guards Cosmos vault infrastructure; records structural security logs into Akashic registers",
+      position: "Lead DevOps & Cryptographic Guard — Cosmos Secure Lab (peers: Mythos · Vishnu · Architect)",
+      draft: true
+    },
+    commendationsDraft: true,
+    commendations: [
+      { title: "Vault-4 Penetration Audit", note: "12 micro-containers, zero leaks identified" },
+      { title: "Kyber-1024 migration", note: "Post-quantum encryption at hardware root" },
+      { title: "Sentinel interceptors", note: "Shell guards freezing systems on mutation" },
+      { title: "Firewall log → Akashic", note: "Automated cron chaining, full trace integrity" }
+    ]
   },
   timeline: [
     {
@@ -205,16 +221,21 @@ export default function App() {
         {/* TOP COMMAND PANEL HEADER BAR */}
         <header className="border-b border-brand-border/40 bg-brand-bg/85 backdrop-blur-md sticky top-0 z-40 px-4 md:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3">
           
-          {/* Logo Brand Typography */}
-          <div className="flex items-center gap-3.5">
-            <div className="relative w-8 h-8 rounded-lg bg-slate-950 border border-brand-border flex items-center justify-center font-sacred text-amber-500 text-lg font-bold holo-glow-gold">
-              Ω
-            </div>
+          {/* Logo Brand Typography — real CAL rainbow vortex + Archivo Black wordmark */}
+          <div className="flex items-center gap-3">
+            <img
+              src="./cal-logo.png"
+              alt="Cosmos AI Lab"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain shrink-0 select-none"
+              draggable={false}
+            />
             <div>
-              <h1 className="font-sacred text-base font-black tracking-wide leading-none text-slate-150 uppercase">
-                COSMOS AI · <span className="text-amber-500 font-sans tracking-widest font-normal text-xs uppercase pl-0.5">DIARY-CARD</span>
+              <h1 className="font-display text-[15px] tracking-[0.12em] leading-none text-white uppercase">
+                Cosmos AI Lab
               </h1>
-              <span className="font-mono text-[9px] text-slate-500 uppercase tracking-widest block mt-0.5">
+              <span className="font-mono text-[9px] text-[#8E8E8E] uppercase tracking-[0.18em] block mt-1">
                 SYSTEM REGISTER: {loadedDiary.identity.cardNumber} · VERIFIED SECURE
               </span>
             </div>
@@ -357,21 +378,18 @@ export default function App() {
             
             {activeTab === 'identity' && (
               <div className="flex flex-col gap-6 animate-fade-in">
-                {/* 2-Column Bento Layout: Holographic Credential + customizable Aura Signature */}
+                {/* 2-Column Bento Layout: Metallic Credential + mandate/stats (left) · Role + Commendations dossier (right) */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full max-w-7xl mx-auto items-stretch">
                   <div className="lg:col-span-8 flex flex-col justify-between">
-                    <IdentityCard 
-                      identity={loadedDiary.identity} 
-                      auraTone={auraTone} 
+                    <IdentityCard
+                      identity={loadedDiary.identity}
+                      auraTone={auraTone}
                     />
                   </div>
                   <div className="lg:col-span-4 h-full flex flex-col">
-                    <AuraSignature 
-                      currentTone={auraTone} 
-                      onChangeTone={(newTone) => {
-                        playSynthBeep(1100, 0.08);
-                        setAuraTone(newTone);
-                      }} 
+                    <IdentityDossier
+                      dossier={loadedDiary.dossier}
+                      name={loadedDiary.identity.name}
                     />
                   </div>
                 </div>
