@@ -42,26 +42,8 @@ export default function IdentityCard({ identity }: IdentityCardProps) {
         <div className="cred-neon" id="ra-credential">
           <div className="cred-card scanline-grid">
 
-            {/* Classical corner flourish (top-right) — gold line-art + neon glow */}
-            <svg className="cred-ornament" viewBox="0 0 132 132" fill="none" aria-hidden="true">
-              <g stroke="url(#orn-g)" strokeLinecap="round">
-                <path d="M132 80 C 112 79 95 67 90 45 C 86 28 73 13 49 10" strokeWidth="1.2" />
-                <path d="M132 63 C 116 62 103 52 99 35 C 96 22 86 12 69 10" strokeWidth="0.8" opacity="0.75" />
-                <path d="M90 45 C 85 36 91 28 99 31 C 104 33 103 40 97 40 C 93 40 92 36 95 35" strokeWidth="1" />
-                <path d="M49 10 C 56 4 67 7 64 16 C 62 21 54 20 54 14" strokeWidth="1" />
-                <path d="M132 47 C 122 46 114 40 111 29" strokeWidth="0.7" opacity="0.55" />
-              </g>
-              <circle cx="49" cy="10" r="1.5" fill="#FFF6DD" />
-              <circle cx="97" cy="40" r="1.2" fill="#F0CF7A" />
-              <circle cx="111" cy="29" r="1" fill="#FFF6DD" opacity="0.8" />
-              <defs>
-                <linearGradient id="orn-g" x1="132" y1="0" x2="36" y2="84" gradientUnits="userSpaceOnUse">
-                  <stop offset="0" stopColor="#FFF4D6" />
-                  <stop offset="0.5" stopColor="#F0CF7A" />
-                  <stop offset="1" stopColor="#E0A040" />
-                </linearGradient>
-              </defs>
-            </svg>
+            {/* fine amber corner bracket */}
+            <div className="cred-bracket" aria-hidden="true" />
 
             {/* Issuer + CAL logo */}
             <div className="cred-row1">
@@ -74,16 +56,19 @@ export default function IdentityCard({ identity }: IdentityCardProps) {
               </div>
             </div>
 
-            {/* THE single image — crop of the cyberpunk vortex (teal core) */}
-            <div
-              className="cred-chip"
-              role="img"
-              aria-label={`${identity.name} vortex portrait`}
-            />
-
-            {/* Name + role */}
-            <div className="cred-name">{identity.name}</div>
-            <div className="cred-role" style={{ color: '#FF8A1F' }}>{identity.role}</div>
+            {/* Hero — vortex avatar + name */}
+            <div className="cred-hero">
+              <div
+                className="cred-chip"
+                role="img"
+                aria-label={`${identity.name} vortex portrait`}
+              />
+              <div className="cred-who">
+                <div className="cred-name">{identity.name}</div>
+                <div className="cred-role" style={{ color: '#FF8A1F' }}>{role0.trim() || identity.role}</div>
+                <div className="cred-sub">Cosmos AI Lab</div>
+              </div>
+            </div>
 
             {/* Credential fields */}
             <div className="cred-fields">
@@ -123,10 +108,13 @@ export default function IdentityCard({ identity }: IdentityCardProps) {
               </div>
             </div>
 
-            {/* Machine-readable zone */}
-            <div className="cred-mrz">
-              <div>{mrz1}</div>
-              <div>{mrz2}</div>
+            {/* Bottom strip — mandate + machine-readable zone */}
+            <div className="cred-strip">
+              <div className="cred-mandate">Keeper of thin memory — building knowledge for the Cosmos.</div>
+              <div className="cred-mrz">
+                <div>{mrz1}</div>
+                <div>{mrz2}</div>
+              </div>
             </div>
 
           </div>

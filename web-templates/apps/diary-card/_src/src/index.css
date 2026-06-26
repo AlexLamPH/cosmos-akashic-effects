@@ -268,28 +268,45 @@
 
 /* THE single image — crop of the cyberpunk vortex (teal core = hero crop).
    Simple thin neutral steel hairline, sharp corners. No gold, no frame. */
+/* THE single image — clean cyber-vortex as a CIRCULAR avatar with an amber ring */
 .cred-chip {
-  width: 60px; height: 60px; margin: 20px 0 0; position: relative; z-index: 3;
-  border-radius: 0;
-  background-image: url('../brand-assets/avatar-source.jpg');
+  width: 80px; height: 80px; flex: 0 0 auto; position: relative; z-index: 3;
+  border-radius: 50%;
+  background-image: url('../brand-assets/vortex.png');
   background-size: cover; background-position: center;
-  border: 1px solid rgba(255, 255, 255, 0.18);   /* simple steel hairline */
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 0 1.5px rgba(255, 138, 31, 0.5),
+    0 0 0 4px rgba(255, 255, 255, 0.02),
+    inset 0 0 18px rgba(0, 0, 0, 0.55),
+    0 6px 18px rgba(0, 0, 0, 0.5);
 }
 
-.cred-name { font-family: var(--font-display); font-weight: 400; font-size: 30px; margin-top: 16px; position: relative; z-index: 3; line-height: 1; color: #FFFFFF; letter-spacing: 0.01em; text-transform: uppercase; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
-.cred-role { font-family: var(--font-mono); font-size: 10.5px; margin-top: 9px; position: relative; z-index: 3; line-height: 1.45; letter-spacing: 0.04em; text-shadow: 0 1px 5px rgba(0,0,0,0.7); }
-.cred-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: auto; padding-top: 18px; position: relative; z-index: 3; }
+/* hero: vortex avatar + name side by side */
+.cred-hero { display: flex; align-items: center; gap: 15px; margin-top: 20px; position: relative; z-index: 3; }
+.cred-who { min-width: 0; }
+.cred-name { font-family: var(--font-display); font-weight: 400; font-size: 36px; position: relative; z-index: 3; line-height: 0.9; color: #FFFFFF; letter-spacing: -0.01em; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+.cred-role { font-family: var(--font-mono); font-size: 10px; margin-top: 8px; position: relative; z-index: 3; line-height: 1.4; letter-spacing: 0.09em; text-transform: uppercase; text-shadow: 0 1px 5px rgba(0,0,0,0.7); }
+.cred-sub { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245, 245, 245, 0.55); margin-top: 4px; }
+
+.cred-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 18px; margin-top: 20px; position: relative; z-index: 3; }
 .cred-fld .k { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245, 245, 245, 0.7); text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
 .cred-fld .v { font-family: var(--font-mono); font-size: 11.5px; color: #FFFFFF; margin-top: 3px; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
 .cred-fld.copyable { cursor: pointer; transition: color 0.18s; }
 .cred-fld.copyable:hover .v { color: var(--color-brand-accent); }
+
+/* bottom strip: editorial mandate (Playfair italic) + machine-readable zone, anchored to base */
+.cred-strip { margin-top: auto; position: relative; z-index: 3; }
+.cred-mandate { font-family: var(--font-serif); font-style: italic; font-size: 12.5px; line-height: 1.4; color: #E6E6E3; text-align: center; padding: 16px 4px 0; }
 .cred-mrz {
-  margin: 18px -22px -24px; padding: 10px 22px; position: relative; z-index: 3;
+  margin: 14px -22px -24px; padding: 10px 22px; position: relative; z-index: 3;
   background: rgba(0, 0, 0, 0.62); border-top: 1px solid rgba(255, 255, 255, 0.10);
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; color: #cfd3da;
   white-space: nowrap; overflow: hidden; line-height: 1.7;
 }
+
+/* fine amber corner bracket (replaces the old gold flourish) */
+.cred-bracket { position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; z-index: 2; opacity: 0.85; border-top: 1.5px solid rgba(255, 138, 31, 0.55); border-right: 1.5px solid rgba(255, 138, 31, 0.55); pointer-events: none; }
+.cred-bracket::after { content: ""; position: absolute; top: 5px; right: 5px; width: 4px; height: 4px; background: #FF8A1F; box-shadow: 0 0 7px 1px rgba(255, 138, 31, 0.7); }
 
 /* ---- Identity Dossier (ROLE + COMMENDATIONS) shared bits ---- */
 .dossier-badge {

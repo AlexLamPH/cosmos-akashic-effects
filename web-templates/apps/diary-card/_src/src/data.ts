@@ -15,9 +15,9 @@ export const RA_DIARY_DATA: Diary = {
     cardNumber: "AK-DIA-000000D",
     mandate: "Turn references & ideas into self-contained, genuinely 'wow' web effects, templates & 3D showcases — iterate to wow with Alex as the judge, and card every build into Akashic so nothing is lost.",
     stats: {
-      memories: 19,
+      memories: 24,
       cardsBuilt: 50,
-      spanDays: 16
+      spanDays: 20
     }
   },
   // ALEX-VERIFIED · admin-authored. Seeded as DRAFT — chờ Alex duyệt.
