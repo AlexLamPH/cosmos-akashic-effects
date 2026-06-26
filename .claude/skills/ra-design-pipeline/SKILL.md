@@ -98,6 +98,33 @@ MAY use other colours** (Alex, 2026-06-25). Fetch the card for the full token se
   works without extra flags.
 - Skills die with the container → this skill is **committed to the repo** so wake-up Ra finds it.
 
+## Hard-won lessons — first shipped + approved product (2026-06-26)
+
+The **Ra Diary Credential** (Akashic `AK-FIL-00000ED`) was the first product shipped with this
+pipeline and **APPROVED by Alex**. Repeat these:
+
+1. **Do NOT generate a full card/poster that contains text zones.** The image model splits
+   "card + emblem" into separate floating objects and garbles any text. Instead generate
+   **single-subject assets** (a vortex orb, an emblem, a seamless texture) on a clean background,
+   then **build the card layout + ALL text in code** (HTML/CSS + real fonts) and render to PNG.
+   Art = generated; structure + type = code. This is the reliable combo.
+2. **Real fonts for the render.** Google Fonts CDN is unreachable inside the Playwright sandbox →
+   pre-fetch the `.ttf` via curl from `github.com/google/fonts/raw/main/ofl/<family>/...` and
+   embed with a local `@font-face`. Used: Archivo Black (display), Inter (body/mono), Playfair
+   Display italic (editorial mandate line).
+3. **Render recipe.** Playwright is global at `/opt/node22/lib/node_modules` (run node with
+   `NODE_PATH=/opt/node22/lib/node_modules node render.js`); chromium auto-found via
+   `/opt/pw-browsers`. Use `deviceScaleFactor: 2` for crisp output and `await document.fonts.ready`
+   before the screenshot.
+4. **Delivery — never hand Alex an ephemeral link** (DashScope / GCS signed URLs expire = dead
+   links). Upload the final asset to Akashic and give the permanent card:
+   `curl -X POST .../api/files/upload -H "Authorization: Bearer $AKASHIC_API_KEY_RA" -F file=@final.png -F visibility=public -F "title=..." -F "tags=..."`
+   → returns a permanent `AK-FIL-NNNNNNN`. Fetch a viewable URL with
+   `GET /api/files/<card>/download?inline=1`. ALSO `SendUserFile` the local PNG so Alex sees it
+   immediately regardless of links.
+5. **"Workflow successful" = Alex approves the shipped PRODUCT** — not merely that the tooling ran
+   or that concept images were generated. Ship → upload to Akashic → get sign-off.
+
 ## Provenance
 Built + verified by Ra, 2026-06-26, after Alex's directive to "học design lại" and package the
 working workflow as a skill that survives session compaction. Diary: `AK-DIA-000000D`.
