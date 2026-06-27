@@ -60,6 +60,22 @@ The art layer is generated one of two ways:
 - **3D (Three.js SVG/text→3D)** — metallic typographic / logo / emblem assets (CAL's metallic
   identity). See the *3D asset leg* section near the end.
 
+## Video / motion output (added 2026-06-27)
+
+Render to **video / GIF**, fully headless & **$0**: animate with **GSAP** (HTML) and/or **Three.js**
+(3D metal text), then capture with **Playwright `recordVideo`** — Playwright BUNDLES ffmpeg, so NO
+system ffmpeg is needed (this box has none). For 3D, launch chromium with the swiftshader WebGL args
++ `WebGLRenderer({preserveDrawingBuffer:true})` + a RAF loop. Output = `.webm`. Proven: the Ra
+profile motion intro (platinum "RA" + sheen sweep + embossed CAL logo lockup).
+
+## 🔴 Brand rule — Phantom DNA (NEVER violate in user-facing UI)
+
+CAL Brand DNA v2.0 (`AK-CDP-00000CV`) = pure black + a **single accent: burnt-amber `#FF8A1F`**.
+- **NO gold** in UI/UX. Metallic text/logo = **white / platinum (brushed, scratched)**, never gold.
+- Accent amber ONLY; rainbow is for the logo only. Minimal beats ornate.
+- Emboss / relief ("dập nổi", raised or debossed) reads premium. Platinum-metal + amber + black =
+  the approved look. *(Lesson 2026-06-27: a gold motion version was rejected as off-brand.)*
+
 ## Tools (VERIFIED 2026-06-26 — Alibaba DashScope via `ALIBABA_API_KEY`)
 
 Both legs proven end-to-end (submitted, polled, downloaded real PNGs).
