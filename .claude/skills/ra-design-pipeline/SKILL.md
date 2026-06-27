@@ -53,6 +53,13 @@ description: >
 For multi-asset / multi-variant jobs, drive steps 2–3 with the **Workflow tool** (fan-out
 sub-agents) — Alex explicitly approved orchestrating sub-agents with Ra as final designer.
 
+## Two asset legs (step 2)
+
+The art layer is generated one of two ways:
+- **Image-gen (2D)** — organic art (avatars, textures, hero art). DashScope Wanxiang — details below.
+- **3D (Three.js SVG/text→3D)** — metallic typographic / logo / emblem assets (CAL's metallic
+  identity). See the *3D asset leg* section near the end.
+
 ## Tools (VERIFIED 2026-06-26 — Alibaba DashScope via `ALIBABA_API_KEY`)
 
 Both legs proven end-to-end (submitted, polled, downloaded real PNGs).
@@ -101,6 +108,31 @@ MAY use other colours** (Alex, 2026-06-25). Fetch the card for the full token se
 - Requires `ALIBABA_API_KEY` in env (CAL-provisioned). Outbound goes through the agent proxy; curl
   works without extra flags.
 - Skills die with the container → this skill is **committed to the repo** so wake-up Ra finds it.
+
+## 3D asset leg — Three.js SVG/text → 3D (added 2026-06-27)
+
+For 3D **metallic** typographic / logo / emblem assets (gold / chrome / holographic) — CAL's
+metallic identity, complementing the 2D image-gen leg. Governance: external tool renatoworks/3dsvg
+(`AK-RPO-CAL0002`) is vetted Risk_Green, lane *use-as-tool* (decision `AK-DEC-CAL0002`) — do NOT
+embed its React component into Cosmos vanilla-JS apps; use **exported assets / plain Three.js**
+(recipe below). 3dsvg.design = the no-code GUI for the same.
+
+Headless recipe (verified 2026-06-27):
+- `npm install three`. ES-module HTML page → serve locally (`python3 -m http.server`) → render with
+  Playwright → screenshot the `<canvas>`.
+- **SVG → 3D:** `SVGLoader` → shapes → `ExtrudeGeometry({depth, bevelEnabled, bevelThickness, bevelSize})`.
+  **Text → 3D:** `FontLoader` + `TextGeometry`; fetch a `typeface.json` via curl from
+  `raw.githubusercontent.com/mrdoob/three.js/master/examples/fonts/...` (CDN unreachable in sandbox).
+- **Materials (metal presets):** gold/chrome `MeshStandardMaterial({metalness:1, roughness:0.05–0.2})`;
+  holographic `MeshPhysicalMaterial({metalness:1, iridescence:1, iridescenceIOR:1.6})`.
+- **Reflections (no HDR file):** `scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.03).texture`. Lights: white key + amber rim `0xFF8A1F`.
+- **WebGL-headless gotchas (CRITICAL):** launch chromium with
+  `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`;
+  set `WebGLRenderer({preserveDrawingBuffer:true})` AND render in a `requestAnimationFrame` loop —
+  else the screenshot is BLANK (drawing buffer cleared before capture).
+- Output: transparent PNG (`alpha:true`) → stack-agnostic asset (drop into React or vanilla).
+
+Canonical shareable copy of this whole skill (incl. 3D, for any AI): Akashic card `AK-WFL-CAL0001`.
 
 ## Hard-won lessons — first shipped + approved product (2026-06-26)
 
