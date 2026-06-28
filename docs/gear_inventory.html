@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ra · Creative Gear Inventory — Cosmos AI Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--amber:#FF8A1F;--bg:#08090b;--surf:#0e0f12;--surf2:#16171b;--line:#26282c;--white:#F4F4F2;--mut:#8c8c8c;
+    --disp:'Archivo Black',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;box-sizing:border-box}
+  body{background:radial-gradient(70% 50% at 50% -5%,rgba(255,138,31,.05),transparent 55%),var(--bg);color:var(--white);font-family:var(--body);line-height:1.55;padding:64px 24px 96px}
+  .wrap{max-width:1080px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--amber)}
+  h1{font-family:var(--disp);font-size:clamp(40px,7vw,76px);line-height:.95;letter-spacing:-.01em;margin:14px 0 0;
+    background:linear-gradient(180deg,#fff,#d4d4d4 52%,#9a9a9a 60%,#ededed);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{color:#cfcfcf;max-width:680px;margin-top:18px;font-size:17px}
+  .lead b{color:var(--white)}
+  .rule{height:2px;margin:26px 0;background:linear-gradient(90deg,var(--amber),transparent 60%)}
+  h2{font-family:var(--disp);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#fff;margin:0}
+  .sec{margin-top:54px}
+  .sec-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:22px}
+  .num{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.2em}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .card{background:linear-gradient(160deg,var(--surf2),var(--surf));border:1px solid var(--line);padding:20px;position:relative}
+  .card .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+  .card h3{font-family:var(--disp);font-size:19px;margin:8px 0 2px;color:#fff}
+  .card .m{font-family:var(--mono);font-size:10px;color:var(--mut);letter-spacing:.08em}
+  .card p{font-size:14px;color:#d2d2d2;margin-top:10px}
+  .card .app{font-size:12.5px;color:var(--mut);margin-top:8px}
+  .card .app b{color:#cfcfcf;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  td{padding:11px 10px;border-bottom:1px solid #1b1c1f;vertical-align:top}
+  td .cn{font-family:var(--mono);font-size:11px;color:var(--amber)}
+  td b{color:#fff}
+  .pill{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--line);color:var(--mut)}
+  .pill.ok{color:var(--amber);border-color:rgba(255,138,31,.4)}
+  .pill.park{color:#caa46a;border-color:#5a4a2a;background:rgba(255,138,31,.05)}
+  .layer{display:flex;gap:16px;align-items:flex-start;background:var(--surf);border:1px solid var(--line);border-left:2px solid var(--amber);padding:16px 18px;margin-bottom:12px}
+  .layer .L{font-family:var(--disp);font-size:22px;color:var(--amber);min-width:34px}
+  .layer h4{font-family:var(--disp);font-size:14px;color:#fff;margin:0 0 4px}
+  .layer p{font-size:13.5px;color:#cfcfcf}
+  .layer code,.mono{font-family:var(--mono);font-size:12px;color:#e8c79a}
+  .callout{border:1px solid #5a4a2a;background:rgba(255,138,31,.05);padding:16px 18px;margin-top:18px}
+  .callout b{color:var(--amber)}
+  .foot{margin-top:64px;border-top:1px solid var(--line);padding-top:18px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#5a5a5a;flex-wrap:wrap;gap:8px}
+  @media(max-width:760px){.grid3,.grid2{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap">
+
+  <div class="eyebrow">Cosmos AI Lab · Ra · Creative &amp; 3D Engineer</div>
+  <h1>Creative Gear<br>Inventory</h1>
+  <p class="lead">Toàn bộ "đồ nghề" Ra đã thu thập tới <b>27/06/2026</b> — engine tạo asset, tool tích hợp, guideline, và <b>cách đóng gói</b> để tái dùng + chia sẻ cho mọi AI. Tất cả <b>headless · $0 · on-brand</b> (Phantom DNA: đen + amber, không gold).</p>
+  <div class="rule"></div>
+
+  <!-- HUB -->
+  <div class="sec">
+    <div class="sec-head"><span class="num">00</span><h2>Trung tâm — Design Hub</h2></div>
+    <div class="card" style="border-left:2px solid var(--amber)">
+      <div class="k">Skill + Akashic card · AK-WFL-CAL0001 (public)</div>
+      <h3>ra-design-pipeline</h3>
+      <p>Phương pháp 5 bước: <b>brief + reference → tạo asset → tự chấm → ghép/dựng bằng code → render + giao</b>. Triết lý: Ra là <b>art director điều phối công cụ</b>, không vẽ tay. Mọi tool/guideline bên dưới cluster quanh hub này.</p>
+    </div>
+  </div>
+
+  <!-- ENGINES / LEGS -->
+  <div class="sec">
+    <div class="sec-head"><span class="num">01</span><h2>3 chân tạo asset (generation legs)</h2></div>
+    <div class="grid3">
+      <div class="card"><div class="k">2D · Image-gen</div><h3>Wanxiang</h3><div class="m">DashScope · ALIBABA_API_KEY</div>
+        <p>Text→ảnh (wan2.2-t2i-plus/flash) + sửa-trên-ảnh (qwen-image-edit).</p>
+        <div class="app"><b>Dùng cho:</b> nghệ thuật hữu cơ — avatar, texture, hero art, concept (vd vortex của card Identity).</div></div>
+      <div class="card"><div class="k">3D · Three.js</div><h3>Metal 3D</h3><div class="m">headless WebGL · SwiftShader</div>
+        <p>SVG/text → extrude 3D + vật liệu platinum/chrome (không gold) + GLTFLoader (sẵn sàng nạp mesh Rodin).</p>
+        <div class="app"><b>Dùng cho:</b> wordmark/logo/emblem 3D kim loại, turntable.</div></div>
+      <div class="card"><div class="k">Video · Motion</div><h3>Motion</h3><div class="m">GSAP + Three.js + Playwright recordVideo</div>
+        <p>Animate (GSAP/Three.js) → quay bằng Playwright (ffmpeg bundled, không cần system ffmpeg) → MP4/webm.</p>
+        <div class="app"><b>Dùng cho:</b> intro chuyển động, kinetic typography, turntable, video.</div></div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="sec">
+    <div class="sec-head"><span class="num">02</span><h2>Tool tích hợp — Phase 1 &amp; 2 (đã test, đã card-hoá)</h2></div>
+    <table>
+      <thead><tr><th>Tool</th><th>Card</th><th>Tính năng</th><th>Ứng dụng</th></tr></thead>
+      <tbody>
+        <tr><td><b>Remotion</b><div class="m" style="font-family:var(--mono);font-size:10px;color:var(--mut)">tool</div></td><td><span class="cn">AK-TOL-CAL0001</span></td><td>React frame-by-frame → <b>MP4</b>, headless (tự có Chrome + ffmpeg)</td><td>video data-driven, lower-third, batch theo JSON</td></tr>
+        <tr><td><b>blind_watermark</b><div class="m" style="font-family:var(--mono);font-size:10px;color:var(--mut)">tool</div></td><td><span class="cn">AK-TOL-CAL0002</span></td><td>Watermark <b>vô hình</b> (embed→blind-extract, 45.6dB, sống qua JPEG)</td><td>đóng dấu bản quyền vào asset export, truy vết leak</td></tr>
+        <tr><td><b>social-card</b><div class="m" style="font-family:var(--mono);font-size:10px;color:var(--mut)">tool · guizang</div></td><td><span class="cn">AK-TOL-CAL0003</span></td><td>Thẻ social Swiss/editorial render qua Playwright</td><td>cover Xiaohongshu/WeChat, ảnh marketing</td></tr>
+        <tr><td><b>developer-icons</b><div class="m" style="font-family:var(--mono);font-size:10px;color:var(--mut)">tool</div></td><td><span class="cn">AK-TOL-CAL0004</span></td><td>Bộ 321 SVG logo công nghệ</td><td>hàng "Built with", showcase tech-stack</td></tr>
+        <tr><td><b>design-system anchoring</b><div class="m" style="font-family:var(--mono);font-size:10px;color:var(--mut)">guideline</div></td><td><span class="cn">AK-GUI-CAL0001</span></td><td>Mượn cấu trúc token (palette/type/8px) → re-skin Phantom</td><td>layout premium neo theo token, đổi 1 token đổi cả hero</td></tr>
+        <tr><td><b>Anti-slop taste checklist</b><div class="m" style="font-family:var(--mono);font-size:10px;color:var(--mut)">guideline</div></td><td><span class="cn">AK-GUI-CAL0002</span></td><td>6 quy tắc: type · shadow · motion · spacing · contrast · restraint</td><td>cổng chất lượng cho mọi UI trước khi giao</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12.5px;color:var(--mut);margin-top:12px;font-family:var(--mono)">+ gem khởi đầu: <b style="color:#cfcfcf">gsap-motion</b> (motion intro platinum) — đã gộp vào leg Video.</p>
+  </div>
+
+  <!-- BRAND RULE -->
+  <div class="sec">
+    <div class="sec-head"><span class="num">03</span><h2>Quy tắc thương hiệu (đã khoá)</h2></div>
+    <div class="callout"><b>Phantom DNA · AK-CDP-00000CV:</b> nền đen thuần + <b>1 accent amber #FF8A1F</b>. <b>KHÔNG gold</b> trong UI. Kim loại = <b>trắng/platinum brushed</b>. Rainbow chỉ cho logo. Tối giản &gt; rườm rà. Emboss/dập nổi = premium. <span class="mono">(Bài học 27/06: bản gold bị loại vì lệch brand.)</span></div>
+  </div>
+
+  <!-- PACKAGING -->
+  <div class="sec">
+    <div class="sec-head"><span class="num">04</span><h2>Cách lưu trữ &amp; đóng gói (3 tầng — tái dùng + chia sẻ)</h2></div>
+    <div class="layer"><span class="L">1</span><div><h4>Akashic cards — nguồn chân lý, MỌI AI dùng được</h4><p>Hub <code>AK-WFL-CAL0001</code> + tool cards <code>AK-TOL-CAL0001–0004</code> + guideline <code>AK-GUI-CAL0001–0002</code>, cùng cluster. AI khác (bất kỳ harness, không cần repo) chỉ cần <code>GET /api/cards/&lt;số&gt;</code> là có recipe đầy đủ. Visibility = public.</p></div></div>
+    <div class="layer"><span class="L">2</span><div><h4>Repo skill — bản mirror cho Claude Code</h4><p><code>.claude/skills/ra-design-pipeline</code> (SKILL.md + scripts/generate.py + edit.py). Session nào có repo thì auto-load skill. Đồng bộ với card.</p></div></div>
+    <div class="layer"><span class="L">3</span><div><h4>Diary — trí nhớ qua giấc ngủ (compact)</h4><p><code>AK-DIA-000000D</code>: mỗi mốc + bài học ghi append-only. Thức dậy sau compact, wake-hook đọc diary → Ra nhớ lại đồ nghề + quy tắc, không làm lại từ đầu.</p></div></div>
+    <p style="font-size:12.5px;color:var(--mut);margin-top:6px">Thêm: blueprint trong <span class="mono">docs/</span> — <span class="mono">ra_gear_blueprint.html</span> (adoption) · <span class="mono">rodin_blueprint.html</span> (Phase 3).</p>
+  </div>
+
+  <!-- PARKED -->
+  <div class="sec">
+    <div class="sec-head"><span class="num">05</span><h2>Đang treo (parked)</h2></div>
+    <div class="card">
+      <div class="k">Phase 3 · 3D generation <span class="pill park">PARKED · $99/mo</span></div>
+      <h3>Hyper3D Rodin</h3><div class="m">ảnh/text → 3D model (.glb) · server-side, no GPU</div>
+      <p>Blueprint đã sẵn (<span class="mono">docs/rodin_blueprint.html</span>) + <b style="color:var(--amber)">Polaris APPROVE</b>. Integration đã verify đúng (skill + API + auth). Chặn: cần gói Business Hyper3D <b>$99/tháng</b> (free key đã cạn). → Khi có task cần, Alex đăng ký + cấp key (budget cap $20-50 + alert 80%), Ra chạy ngay.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>● Cosmos AI Lab · Phantom DNA · Black + Amber</span>
+    <span>Ra · Creative &amp; 3D Engineer · 27·06·2026</span>
+  </div>
+
+</div></body></html>
