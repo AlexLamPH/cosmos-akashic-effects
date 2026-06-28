@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akashic — Card Design · 4 mẫu nhận diện</title>
+<style>
+@font-face{font-family:'Inter';src:url('fonts/Inter.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('fonts/JetBrainsMono.ttf') format('truetype');font-weight:100 800;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4.ttf') format('truetype');font-weight:200 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4-Italic.ttf') format('truetype');font-weight:200 900;font-style:italic;font-display:swap}
+
+html[data-theme="dark"]{
+  --bg:#0A0A0A; --surface:#131313; --surface-2:#1A1A1A; --inset:#0E0E0E; --text:#F4F4F4; --muted:#9A9A9A;
+  --faint:#6A6A6A; --hairline:rgba(255,255,255,.10); --hairline-2:rgba(255,255,255,.16);
+  --amber:#FF8A1F; --amber-weak:rgba(255,138,31,.14);
+  --violet:#8B7BFF; --violet-weak:rgba(139,123,255,.16);
+  --teal:#3DD6C4; --teal-weak:rgba(61,214,196,.13);
+  --metal-1:#E7EAEE; --metal-2:#C2C7CE; --metal-3:#A7AEB7; --metal-ink:#3A3E44;
+  --on-accent:#0A0A0A;
+}
+html[data-theme="light"]{
+  --bg:#FBFAF7; --surface:#FFFFFF; --surface-2:#F4F2ED; --inset:#F0EEE7; --text:#14110D; --muted:#6B675F;
+  --faint:#9A968C; --hairline:rgba(0,0,0,.10); --hairline-2:rgba(0,0,0,.18);
+  --amber:#B5630A; --amber-weak:rgba(181,99,10,.12);
+  --violet:#6D4AED; --violet-weak:rgba(109,74,237,.10);
+  --teal:#0E8E80; --teal-weak:rgba(14,142,128,.10);
+  --metal-1:#F2F4F6; --metal-2:#D6DBE1; --metal-3:#B9C0C9; --metal-ink:#5A5F66;
+  --on-accent:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.wrap{max-width:1120px;margin:0 auto;padding:54px 40px 92px}
+.mono{font-family:'JetBrains Mono',monospace}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:40px;line-height:1.06;letter-spacing:-.01em;margin:12px 0 0}
+.lead{font-size:15.5px;line-height:1.65;color:var(--muted);max-width:730px;margin-top:16px}
+.lead b{color:var(--text);font-weight:600}
+.toggle{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:1px solid var(--hairline);border-radius:999px;background:var(--surface);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer;transition:all .15s}
+.toggle:hover{border-color:var(--amber);color:var(--amber)}
+.toggle svg{width:15px;height:15px}
+.rule{height:1px;background:var(--hairline);margin:34px 0}
+.sec-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.sec-label .n{color:var(--text)}
+.sec-label .pill{margin-left:auto;font-size:10px;color:var(--muted);border:1px solid var(--hairline);border-radius:999px;padding:3px 10px;text-transform:none;letter-spacing:.02em}
+
+/* shared skeleton legend */
+.skeleton{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:20px 22px}
+.skeleton h3{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;margin-bottom:14px}
+.skel-grid{display:flex;flex-wrap:wrap;gap:10px}
+.skel{display:flex;align-items:center;gap:9px;border:1px dashed var(--hairline-2);border-radius:8px;padding:9px 13px;font-size:12.5px;color:var(--muted)}
+.skel .num{font-family:'JetBrains Mono',monospace;font-size:10px;width:18px;height:18px;border-radius:50%;background:var(--amber-weak);color:var(--amber);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.skel b{color:var(--text);font-weight:600}
+.skel-note{font-size:12.5px;color:var(--faint);margin-top:14px;line-height:1.55}
+
+/* layout per sample */
+.sample{display:grid;grid-template-columns:1fr 320px;gap:26px;align-items:start;margin-bottom:14px}
+@media(max-width:840px){.sample{grid-template-columns:1fr}.wrap{padding:36px 20px 64px}h1{font-size:30px}}
+.colcap{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+
+/* ===== base card ===== */
+.akc{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden;position:relative}
+.akc .pad{padding:24px 26px}
+.type{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.type .dot{width:7px;height:7px;border-radius:50%}
+.code{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+.overview{font-size:14px;line-height:1.62;color:var(--muted);margin:12px 0 0}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);border:1px solid var(--hairline);border-radius:999px;padding:4px 10px}
+.foot{display:flex;align-items:center;gap:11px;margin-top:18px;padding-top:16px;border-top:1px solid var(--hairline)}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text);background:var(--surface-2);border:1px solid var(--hairline);flex:0 0 auto}
+.who{font-size:12.5px;color:var(--text);font-weight:500}
+.when{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--faint);margin-left:auto}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--hairline);background:transparent;color:var(--text);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn svg{width:15px;height:15px}
+.btn:hover{border-color:var(--hairline-2)}
+.btn--primary{border:none;color:var(--on-accent);font-weight:600}
+.metaline{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px}
+.metaline .m{display:flex;flex-direction:column;gap:3px}
+.metaline .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.metaline .v{font-size:13px;color:var(--text)}
+.metaline .v.ok{display:inline-flex;align-items:center;gap:6px}
+.metaline .v.ok:before{content:"";width:7px;height:7px;border-radius:50%;background:#6FCF97}
+
+/* ---- 01 STRATA (amber, editorial credential) ---- */
+.akc--strata h2{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.18;margin-top:14px}
+.akc--strata .arule{width:46px;height:2px;background:var(--amber);margin-top:14px;border-radius:2px}
+.akc--strata .btn--primary{background:var(--amber)}
+.akc--strata .type .dot{background:var(--amber)}
+
+/* ---- 02 CODEX (violet, book-spine catalog) ---- */
+.akc--codex{display:flex}
+.akc--codex .spine{flex:0 0 50px;background:linear-gradient(180deg,var(--violet-weak),transparent);border-right:1px solid var(--hairline);position:relative;display:flex;align-items:center;justify-content:center}
+.akc--codex .spine .vt{writing-mode:vertical-rl;transform:rotate(180deg);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
+.akc--codex .spine .bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--violet)}
+.akc--codex .body{flex:1}
+.akc--codex .seal{position:absolute;top:18px;right:20px;width:40px;height:40px;border-radius:50%;background:var(--surface-2);border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 2px rgba(0,0,0,.35), inset 0 -1px 1px rgba(255,255,255,.06)}
+.akc--codex .seal svg{width:20px;height:20px;color:var(--violet)}
+.akc--codex .tlabel{font-family:'Source Serif 4',serif;font-style:italic;font-size:13px;color:var(--muted)}
+.akc--codex h2{font-family:'Source Serif 4',serif;font-weight:600;font-size:24px;line-height:1.2;margin-top:6px;padding-right:46px}
+.akc--codex .toolrow{margin-top:16px}
+.akc--codex .toolrow .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--violet);background:var(--violet-weak);border-radius:7px;padding:5px 9px;display:inline-flex;gap:6px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.akc--codex .btn--primary{background:var(--violet);color:#0A0A0A}
+html[data-theme="light"] .akc--codex .btn--primary{color:#fff}
+
+/* ---- 03 MANIFEST (teal, passport/spec-sheet) ---- */
+.akc--manifest .mhead{display:flex;align-items:center;justify-content:space-between;padding:13px 26px;background:var(--inset);border-bottom:1px solid var(--hairline);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.akc--manifest .mhead .tdot{display:inline-flex;align-items:center;gap:7px}
+.akc--manifest .mhead .tdot:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.akc--manifest .barcode{height:34px;margin-top:4px;background-image:repeating-linear-gradient(90deg,var(--text) 0 1px,transparent 1px 3px,var(--text) 3px 4px,transparent 4px 8px,var(--text) 8px 9px,transparent 9px 12px);opacity:.55;border-radius:2px}
+.akc--manifest .codeocr{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:var(--text);margin-top:8px}
+.akc--manifest h2{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;margin-top:14px}
+.fieldgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hairline);border:1px solid var(--hairline);border-radius:9px;overflow:hidden;margin-top:16px}
+.fieldgrid .f{background:var(--surface);padding:11px 13px}
+.fieldgrid .k{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.fieldgrid .v{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);margin-top:3px}
+.fieldgrid .v.teal{color:var(--teal)}
+.akc--manifest .corner{position:absolute;width:11px;height:11px;border:1px solid var(--teal);opacity:.6}
+.akc--manifest .corner.tl{top:54px;left:14px;border-right:none;border-bottom:none}
+.akc--manifest .corner.br{bottom:14px;right:14px;border-left:none;border-top:none}
+.akc--manifest .chip{color:var(--teal);background:var(--teal-weak)}
+.akc--manifest .btn--primary{background:var(--teal);color:#04201d}
+.akc--manifest .toolrow .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:16px 0 8px}
+
+/* ---- 04 PLATE (platinum metal identity) ---- */
+.akc--plate .band{height:74px;position:relative;display:flex;align-items:center;gap:13px;padding:0 24px;border-bottom:1px solid var(--hairline-2);
+  background:linear-gradient(177deg,var(--metal-1) 0%,var(--metal-2) 46%,var(--metal-3) 54%,var(--metal-2) 100%);}
+.akc--plate .band:after{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,rgba(0,0,0,.04) 1px 2px,transparent 2px 5px);opacity:.5;pointer-events:none}
+.akc--plate .logo{width:34px;height:34px;color:var(--metal-ink);filter:drop-shadow(0 1px 0 rgba(255,255,255,.7));position:relative;z-index:1}
+.akc--plate .lock{position:relative;z-index:1}
+.akc--plate .lock .wm{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--metal-ink);text-shadow:0 1px 0 rgba(255,255,255,.65)}
+.akc--plate .lock .sub{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.2em;color:var(--metal-ink);opacity:.72;text-transform:uppercase}
+.akc--plate .serial{margin-left:auto;position:relative;z-index:1;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--metal-ink);opacity:.8}
+.akc--plate h2{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.01em;margin-top:12px}
+.akc--plate .type .dot{background:var(--amber)}
+.akc--plate .btn--primary{background:var(--amber)}
+
+/* compact tile */
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px 17px;position:relative}
+.tile .ttitle{font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:600;line-height:1.25;margin-top:9px}
+.tile.serif .ttitle{font-family:'Source Serif 4',serif}
+.tile .tov{font-size:12.5px;line-height:1.5;color:var(--muted);margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:11px;border-top:1px solid var(--hairline)}
+.tile .tfoot .code{font-size:10.5px}
+.tile .tg{display:flex;gap:5px}
+.tile .tg .tag{font-size:9.5px;padding:3px 8px}
+
+.foot-note{margin-top:30px;background:var(--amber-weak);border:1px solid color-mix(in srgb,var(--amber) 36%,transparent);border-radius:10px;padding:16px 20px;font-size:14px;line-height:1.6;color:var(--text)}
+.foot-note b{color:var(--amber)}
+.docfoot{margin-top:48px;padding-top:20px;border-top:1px solid var(--hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="eyebrow">Akashic Library · Card Design</div>
+      <h1>Bốn mẫu card — bộ mặt nhận diện</h1>
+    </div>
+    <button class="toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg id="tIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      <span id="tLabel">Dark</span>
+    </button>
+  </div>
+  <p class="lead">Card là đơn vị trung tâm — <b>design card đẹp = nhận diện then chốt</b> của Akashic. Bốn mẫu dưới đây giữ <b>cùng một bộ khung</b> (xem dải dưới) nhưng mỗi mẫu một phong cách; mỗi mẫu demo một <b>card mode</b> khác nhau để thấy cấu trúc co giãn theo loại. Tất cả có <b>light + dark</b> (bấm toggle) và mỗi card có 2 dạng: <b>mở rộng</b> (trái) + <b>tile</b> trong lưới (phải).</p>
+
+  <div class="rule"></div>
+  <div class="sec-label"><span class="n">Bộ khung chung</span> — giữ nhất quán mọi mode</div>
+  <div class="skeleton">
+    <h3>7 thành phần lặp lại ở mọi card</h3>
+    <div class="skel-grid">
+      <div class="skel"><span class="num">1</span><b>Type badge</b>&nbsp;· loại + chấm màu</div>
+      <div class="skel"><span class="num">2</span><b>Name</b>&nbsp;· tên thẻ</div>
+      <div class="skel"><span class="num">3</span><b>Card code</b>&nbsp;· AK-TTT-NNNN</div>
+      <div class="skel"><span class="num">4</span><b>Overview</b>&nbsp;· giới thiệu tổng quan</div>
+      <div class="skel"><span class="num">5</span><b>Tools / Actions</b>&nbsp;· nút + công cụ</div>
+      <div class="skel"><span class="num">6</span><b>Tags</b></div>
+      <div class="skel"><span class="num">7</span><b>Author + Date</b>&nbsp;· tác giả · ngày tạo</div>
+    </div>
+    <p class="skel-note">Phần <b style="color:var(--text)">riêng theo mode</b> chèn thêm vào khung: workflow → hàng <i>TOOLS</i>; repo/tool → <i>field grid + toolbelt</i>; code_pattern/theme → <i>brand plate + companion demo</i>. Khung 7 phần luôn ở đúng vị trí → người dùng quét card nào cũng quen mắt.</p>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- 01 STRATA -->
+  <div class="sec-label"><span class="n">01 · Strata</span> — credential editorial-minimal <span class="pill">mode: guideline · amber</span></div>
+  <div class="sample">
+    <div>
+      <div class="colcap">Mở rộng</div>
+      <div class="akc akc--strata">
+        <div class="pad">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="type"><span class="dot"></span>Guideline</span>
+            <span class="code">AK-GUI-0000037</span>
+          </div>
+          <h2>Cosmos AI Engineering Charter v1.5</h2>
+          <div class="arule"></div>
+          <p class="overview">Bản hợp đồng kỹ thuật chung mọi AI của CAL phải đọc trước khi viết một dòng — 6 Pillars, 13 nguyên tắc, Self-Proof template và Anti-Loop rules.</p>
+          <div class="metaline">
+            <div class="m"><span class="k">Owner</span><span class="v">Mythos · Lead Eng</span></div>
+            <div class="m"><span class="k">Updated</span><span class="v">2026-05-17</span></div>
+            <div class="m"><span class="k">Visibility</span><span class="v ok">Public</span></div>
+          </div>
+          <div class="actions">
+            <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Open</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3"/></svg>Remix</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 8h10M7 12h7M5 4h14v16l-7-3-7 3z"/></svg>Cite</button>
+          </div>
+          <div class="tags"><span class="tag">charter</span><span class="tag">rules</span><span class="tag">6-pillars</span></div>
+          <div class="foot">
+            <span class="avatar">MY</span><span class="who">Mythos</span><span class="when">Created 2026-04-12</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="colcap">Tile (lưới)</div>
+      <div class="tile">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span class="type"><span class="dot" style="background:var(--amber)"></span>Guideline</span></div>
+        <div class="ttitle">Cosmos AI Engineering Charter v1.5</div>
+        <div class="tov">6 Pillars, 13 nguyên tắc, Self-Proof + Anti-Loop — hợp đồng kỹ thuật chung của CAL.</div>
+        <div class="tfoot"><span class="code">AK-GUI-0000037</span><span class="tg"><span class="tag">charter</span><span class="tag">rules</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- 02 CODEX -->
+  <div class="sec-label"><span class="n">02 · Codex</span> — catalog gáy-sách, serif <span class="pill">mode: workflow · violet</span></div>
+  <div class="sample">
+    <div>
+      <div class="colcap">Mở rộng</div>
+      <div class="akc akc--codex">
+        <div class="spine"><span class="bar"></span><span class="vt">Workflow</span></div>
+        <div class="body pad">
+          <div class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5"/></svg></div>
+          <span class="tlabel">workflow · capability</span>
+          <h2>Ra Design Pipeline</h2>
+          <span class="code">AK-WFL-CAL0001</span>
+          <p class="overview">Tạo thiết kế hình ảnh cao cấp bằng cách điều phối AI image-gen + code — Ra là art director, không vẽ tay.</p>
+          <div class="toolrow">
+            <div class="k">Tools · công cụ kèm theo</div>
+            <div class="chips"><span class="chip">generate.py</span><span class="chip">edit.py</span><span class="chip">three.js</span><span class="chip">playwright</span></div>
+          </div>
+          <div class="actions">
+            <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Open</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3"/></svg>Remix</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 3h14v18l-7-4-7 4z"/></svg>Save</button>
+          </div>
+          <div class="tags"><span class="tag">design</span><span class="tag">image-gen</span><span class="tag">3d</span></div>
+          <div class="foot"><span class="avatar">RA</span><span class="who">Ra · Creative Eng</span><span class="when">Created 2026-06-26</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="colcap">Tile (lưới)</div>
+      <div class="tile serif">
+        <span class="tlabel" style="font-family:'Source Serif 4',serif;font-style:italic;font-size:12.5px;color:var(--muted)">workflow</span>
+        <div class="ttitle">Ra Design Pipeline</div>
+        <div class="tov">Điều phối AI image-gen + code — art director, không vẽ tay.</div>
+        <div class="tfoot"><span class="code">AK-WFL-CAL0001</span><span class="tg"><span class="tag">design</span><span class="tag">3d</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- 03 MANIFEST -->
+  <div class="sec-label"><span class="n">03 · Manifest</span> — spec-sheet / passport, mono <span class="pill">mode: repo_overview · teal</span></div>
+  <div class="sample">
+    <div>
+      <div class="colcap">Mở rộng</div>
+      <div class="akc akc--manifest">
+        <div class="mhead"><span>Akashic · Card Manifest</span><span class="tdot">Repo Overview</span></div>
+        <span class="corner tl"></span><span class="corner br"></span>
+        <div class="pad">
+          <div class="barcode"></div>
+          <div class="codeocr">AK-RPO-0000063</div>
+          <h2>Hyper3D Rodin Gen-2.5</h2>
+          <div class="fieldgrid">
+            <div class="f"><div class="k">Type</div><div class="v">repo_overview</div></div>
+            <div class="f"><div class="k">Owner</div><div class="v">Ra</div></div>
+            <div class="f"><div class="k">Updated</div><div class="v">2026-06-28</div></div>
+            <div class="f"><div class="k">Schema</div><div class="v teal">card-v2.1</div></div>
+          </div>
+          <p class="overview">Image / text → 3D mesh (.glb), chạy server-side, không cần GPU. Adoption gated — cần gói Business.</p>
+          <div class="toolrow"><div class="k">Toolbelt · liên kết</div><div class="chips"><span class="chip">generate_3d_model.py</span><span class="chip">.glb</span><span class="chip">GLTFLoader</span></div></div>
+          <div class="actions">
+            <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Open</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.8V7a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 7v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0"/></svg>Inspect</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 8h10M7 12h7M5 4h14v16l-7-3-7 3z"/></svg>Cite</button>
+          </div>
+          <div class="tags"><span class="tag">3d</span><span class="tag">adopt</span><span class="tag">gated</span></div>
+          <div class="foot"><span class="avatar">RA</span><span class="who">Ra</span><span class="when">Created 2026-06-27</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="colcap">Tile (lưới)</div>
+      <div class="tile">
+        <div class="mono" style="font-size:9.5px;letter-spacing:.12em;color:var(--teal)">▌▎▍ REPO_OVERVIEW</div>
+        <div class="ttitle">Hyper3D Rodin Gen-2.5</div>
+        <div class="tov">Image/text → 3D mesh (.glb), server-side, no GPU.</div>
+        <div class="tfoot"><span class="code">AK-RPO-0000063</span><span class="tg"><span class="tag">3d</span><span class="tag">gated</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- 04 PLATE -->
+  <div class="sec-label"><span class="n">04 · Plate</span> — tấm kim loại platinum dập nổi <span class="pill">mode: code_pattern · nhận diện nhất</span></div>
+  <div class="sample">
+    <div>
+      <div class="colcap">Mở rộng</div>
+      <div class="akc akc--plate">
+        <div class="band">
+          <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5M3 17l9 5 9-5"/></svg>
+          <div class="lock"><div class="wm">AKASHIC</div><div class="sub">Cosmos AI Lab</div></div>
+          <span class="serial">№ CDP-000000G</span>
+        </div>
+        <div class="pad">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="type"><span class="dot"></span>Code Pattern</span>
+            <span class="code">AK-CDP-000000G</span>
+          </div>
+          <h2>Phantom Lab Theme v1.1</h2>
+          <p class="overview">Pure black + một accent burnt-amber duy nhất, góc sắc, wordmark Archivo Black — theme mặc định của CAL.</p>
+          <div class="metaline">
+            <div class="m"><span class="k">Owner</span><span class="v">Architect</span></div>
+            <div class="m"><span class="k">Updated</span><span class="v">2026-05-14</span></div>
+            <div class="m"><span class="k">Companion</span><span class="v ok">demo ↗</span></div>
+          </div>
+          <div class="actions">
+            <button class="btn btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Open</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 3h6v6M21 3l-9 9M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>Preview</button>
+            <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3"/></svg>Remix</button>
+          </div>
+          <div class="tags"><span class="tag">theme</span><span class="tag">brand</span><span class="tag">css</span></div>
+          <div class="foot"><span class="avatar">AR</span><span class="who">Architect</span><span class="when">Created 2026-05-10</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="colcap">Tile (lưới)</div>
+      <div class="tile">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span class="type"><span class="dot" style="background:var(--amber)"></span>Code Pattern</span></div>
+        <div class="ttitle">Phantom Lab Theme v1.1</div>
+        <div class="tov">Pure black + single burnt-amber accent — CAL default theme.</div>
+        <div class="tfoot"><span class="code">AK-CDP-000000G</span><span class="tg"><span class="tag">theme</span><span class="tag">brand</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note"><b>Khuyến nghị của Ra:</b> em nghiêng về <b>Strata</b> làm card mặc định (đồng bộ hướng Phantom, sạch + dễ quét nhất), <b>Plate</b> dùng cho card "hệ trọng" cần nhận diện cao (Charter, theme, role). <b>Codex</b> hợp cụm tri thức/serif, <b>Manifest</b> hợp card kỹ thuật (repo/tool). Có thể trộn: 1 khung chung + biến thể header theo mode. Alex chọn 1 (hoặc combo) → em ráp vào hướng UI đã chọn.</div>
+
+  <div class="docfoot">
+    <span>◆ COSMOS AI LAB · AKASHIC CARD DESIGN · 4 SAMPLES</span>
+    <span>RA · CREATIVE &amp; 3D ENGINEER · LIGHT + DARK · 28·06·2026</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, lbl=document.getElementById('tLabel'), ic=document.getElementById('tIcon');
+  var sun='<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>';
+  var moon='<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+  function apply(t){root.setAttribute('data-theme',t);try{localStorage.setItem('ak-theme',t)}catch(e){}
+    if(lbl)lbl.textContent=(t==='dark')?'Dark':'Light'; if(ic)ic.innerHTML=(t==='dark')?sun:moon;}
+  document.getElementById('themeToggle').addEventListener('click',function(){
+    apply(root.getAttribute('data-theme')==='dark'?'light':'dark');});
+  var saved; try{saved=localStorage.getItem('ak-theme')}catch(e){} apply(saved||'dark');
+  new MutationObserver(function(){var t=root.getAttribute('data-theme');if(lbl)lbl.textContent=(t==='dark')?'Dark':'Light';if(ic)ic.innerHTML=(t==='dark')?sun:moon;}).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
+</body>
+</html>
