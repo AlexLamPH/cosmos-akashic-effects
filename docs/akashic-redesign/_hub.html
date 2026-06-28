@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akashic Redesign — Preview Hub</title>
+<style>
+@font-face{font-family:'Inter';src:url('fonts/Inter.ttf') format('truetype');font-weight:100 900;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('fonts/JetBrainsMono.ttf') format('truetype');font-weight:100 800;font-display:swap}
+:root{--bg:#0A0A0A;--card:#141414;--text:#F4F4F4;--muted:#9A9A9A;--faint:#6A6A6A;--hairline:rgba(255,255,255,.10);--amber:#FF8A1F}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;padding:48px 32px 80px}
+.wrap{max-width:960px;margin:0 auto}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:34px;margin:10px 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:14.5px;line-height:1.6;max-width:640px}
+.grp{margin-top:34px}
+.grp-t{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;border-bottom:1px solid var(--hairline);padding-bottom:8px}
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+a.card{display:block;background:var(--card);border:1px solid var(--hairline);border-radius:13px;padding:16px 18px;text-decoration:none;color:var(--text);transition:border-color .15s,transform .12s}
+a.card:hover{border-color:var(--amber);transform:translateY(-2px)}
+a.card .n{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15.5px;display:flex;align-items:center;gap:8px}
+a.card .n .tag{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,138,31,.4);border-radius:999px;padding:2px 8px}
+a.card .d{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:6px}
+.foot{margin-top:46px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.05em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Akashic Library · Design Preview Hub</div>
+  <h1>Akashic Redesign — bấm vào xem &amp; thao tác trực tiếp</h1>
+  <p class="sub">Tất cả design Ra làm cho Akashic. Bấm mở từng cái, thao tác thật (toggle light/dark, click, scroll). Alex note feedback, mình sửa live ở đây.</p>
+
+  <div class="grp">
+    <div class="grp-t">★ Card detail modal — đang làm (spec 10 ý)</div>
+    <div class="links">
+      <a class="card" href="card-modal-soft.html"><div class="n">V1 · Soft / Neumorphism <span class="tag">light+dark</span></div><div class="d">Modal chi tiết card: code dập-nổi click-copy · toolbar speed-dial · preview port đổi kênh + dots · tags ẩn/mở.</div></a>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="grp-t">Card design — mẫu thẻ</div>
+    <div class="links">
+      <a class="card" href="card-styles.html"><div class="n">4 style từ reference <span class="tag">light+dark</span></div><div class="d">Neumorphism · Cinematic · Dark Tactile · Dark Palette — recolor Phantom.</div></a>
+      <a class="card" href="gallery-cards.html"><div class="n">8 card đặc sắc <span class="tag">image-gen</span></div><div class="d">Art sinh bởi model + khung code: nebula, platinum, holo, crystal…</div></a>
+      <a class="card" href="cards.html"><div class="n">4 card khung-chuẩn <span class="tag">light+dark</span></div><div class="d">Strata · Codex · Manifest · Plate — pure code.</div></a>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="grp-t">Full UI redesign — 4 hướng</div>
+    <div class="links">
+      <a class="card" href="index.html"><div class="n">Board so sánh 4 hướng <span class="tag">hub</span></div><div class="d">Phantom · Obsidian Violet · Blueprint · Editorial — before/after + khuyến nghị.</div></a>
+      <a class="card" href="phantom.html"><div class="n">Phantom <span class="tag">light+dark</span></div><div class="d">CAL house, amber, editorial-minimal.</div></a>
+      <a class="card" href="violet.html"><div class="n">Obsidian Violet <span class="tag">light+dark</span></div><div class="d">Giữ hồn tím nhưng fix accessible.</div></a>
+      <a class="card" href="blueprint.html"><div class="n">Blueprint <span class="tag">light+dark</span></div><div class="d">Schematic / kỹ thuật, teal.</div></a>
+      <a class="card" href="editorial.html"><div class="n">Editorial <span class="tag">light+dark</span></div><div class="d">Phòng đọc, serif, clay.</div></a>
+    </div>
+  </div>
+
+  <div class="foot">◆ COSMOS AI LAB · AKASHIC · RA · CREATIVE &amp; 3D ENGINEER · served via Claude Code preview</div>
+</div>
+</body>
+</html>
