@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akashic Library — Editorial</title>
+<style>
+/* ============================================================
+   FONTS — local @font-face (ttf files live next to this html)
+   ============================================================ */
+@font-face{font-family:'Inter';src:url('fonts/Inter.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('fonts/JetBrainsMono.ttf') format('truetype');font-weight:100 800;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4.ttf') format('truetype');font-weight:200 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4-Italic.ttf') format('truetype');font-weight:200 900;font-style:italic;font-display:swap}
+
+/* ============================================================
+   THEME TOKENS — every color driven by [data-theme]
+   Direction: EDITORIAL LIBRARY — warm neutral, one muted clay
+   ============================================================ */
+:root[data-theme="dark"]{
+  --bg:#131311;
+  --surface:#1B1B18;
+  --surface-2:#222220;
+  --surface-3:#2A2A27;
+  --text:#EDEAE3;
+  --muted:#A09B8F;
+  --faint:#726E63;
+  --hairline:rgba(255,255,255,.09);
+  --hairline-strong:rgba(255,255,255,.16);
+  --accent:#D99A5B;            /* muted warm clay */
+  --accent-text:#E6AE73;       /* clay tuned for link text on dark */
+  --accent-weak:rgba(217,154,91,.14);
+  --accent-line:rgba(217,154,91,.34);
+  --on-accent:#1A130B;         /* text on the clay primary button */
+  --shadow:rgba(0,0,0,.40);
+  --shadow-soft:rgba(0,0,0,.22);
+  --selection:rgba(217,154,91,.22);
+
+  /* quiet, accessible per-type dots */
+  --t-guideline:#C9A24B;
+  --t-role:#7FA9C9;
+  --t-workflow:#8FB98C;
+  --t-tool:#C98C7F;
+  --t-code_pattern:#B59ACB;
+  --t-diary:#CBA38F;
+  --t-repo_overview:#7FBFB2;
+  --t-decision:#C99FB8;
+}
+:root[data-theme="light"]{
+  --bg:#FAF8F3;                /* cream paper */
+  --surface:#FFFFFF;
+  --surface-2:#F3EFE7;
+  --surface-3:#EBE5DA;
+  --text:#1E1B16;
+  --muted:#6E685C;
+  --faint:#9C968A;
+  --hairline:rgba(0,0,0,.09);
+  --hairline-strong:rgba(0,0,0,.16);
+  --accent:#A9662E;            /* deeper clay, AA on cream */
+  --accent-text:#9A5A26;       /* link text on cream */
+  --accent-weak:rgba(169,102,46,.10);
+  --accent-line:rgba(169,102,46,.30);
+  --on-accent:#FFFFFF;
+  --shadow:rgba(60,48,30,.16);
+  --shadow-soft:rgba(60,48,30,.08);
+  --selection:rgba(169,102,46,.16);
+
+  --t-guideline:#9A7A1E;
+  --t-role:#3F6E96;
+  --t-workflow:#3F7A4A;
+  --t-tool:#9A5040;
+  --t-code_pattern:#6F4F94;
+  --t-diary:#8A5A3E;
+  --t-repo_overview:#2F7A6E;
+  --t-decision:#8A4A72;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  font-size:15px;
+  letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  transition:background .45s ease,color .45s ease;
+}
+::selection{background:var(--selection)}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+svg{display:block}
+.serif{font-family:'Source Serif 4',Georgia,serif}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* subtle paper texture behind everything — calm, near-invisible */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(var(--hairline) .5px,transparent .5px);
+  background-size:22px 22px;
+  mask-image:radial-gradient(120% 100% at 50% 0%,#000 30%,transparent 100%);
+}
+
+/* ============================================================
+   APP BAR (A)
+   ============================================================ */
+.appbar{
+  position:sticky;top:0;z-index:60;
+  display:flex;align-items:center;gap:20px;
+  height:62px;padding:0 26px;
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:saturate(120%) blur(14px);
+  -webkit-backdrop-filter:saturate(120%) blur(14px);
+  border-bottom:1px solid var(--hairline);
+}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.brand .mark{width:26px;height:26px;color:var(--text)}
+.brand .word{
+  font-family:'Source Serif 4',serif;font-weight:600;font-size:20px;
+  letter-spacing:.01em;
+}
+.brand .word .dot{color:var(--accent)}
+
+.search{
+  position:relative;flex:1;max-width:560px;
+}
+.search svg{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;color:var(--faint);pointer-events:none;
+}
+.search input{
+  width:100%;height:40px;
+  padding:0 14px 0 40px;
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:10px;
+  color:var(--text);font-size:13.5px;font-family:inherit;
+  transition:border-color .2s,background .2s;
+}
+.search input::placeholder{color:var(--faint)}
+.search input:focus{
+  outline:none;border-color:var(--accent-line);
+  background:var(--surface-2);
+}
+.search .kbd{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--faint);
+  border:1px solid var(--hairline);border-radius:5px;padding:2px 6px;
+  background:var(--bg);
+}
+.appbar .spacer{flex:1}
+.bar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+.iconbtn{
+  width:38px;height:38px;display:grid;place-items:center;
+  border-radius:9px;border:1px solid transparent;color:var(--muted);
+  transition:background .2s,color .2s,border-color .2s;
+}
+.iconbtn:hover{background:var(--surface-2);color:var(--text);border-color:var(--hairline)}
+.iconbtn svg{width:18px;height:18px}
+
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;flex-shrink:0;
+  background:var(--surface-2);border:1px solid var(--hairline-strong);
+  font-family:'Source Serif 4',serif;font-weight:600;font-size:12.5px;
+  color:var(--text);letter-spacing:.04em;
+}
+
+/* ============================================================
+   SHELL (B)
+   ============================================================ */
+.shell{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:248px 1fr;
+  max-width:1320px;margin:0 auto;
+  align-items:start;
+}
+.sidebar{
+  position:sticky;top:62px;
+  align-self:start;
+  height:calc(100vh - 62px);
+  overflow-y:auto;
+  padding:26px 18px 40px;
+  border-right:1px solid var(--hairline);
+}
+.sidebar::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--hairline-strong);border-radius:8px}
+
+.nav-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);
+  padding:0 12px;margin:6px 0 10px;
+}
+.nav{display:flex;flex-direction:column;gap:2px;margin-bottom:26px}
+.nav a{
+  display:flex;align-items:center;gap:11px;
+  padding:8px 12px;border-radius:9px;
+  color:var(--muted);font-size:13.5px;font-weight:450;
+  transition:background .16s,color .16s;
+  position:relative;
+}
+.nav a svg{width:17px;height:17px;flex-shrink:0;stroke-width:1.5}
+.nav a .count{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;color:var(--faint);
+}
+.nav a:hover{background:var(--surface-2);color:var(--text)}
+.nav a.active{
+  background:var(--accent-weak);color:var(--text);font-weight:550;
+}
+.nav a.active svg{color:var(--accent)}
+.nav a.active::before{
+  content:"";position:absolute;left:-18px;top:50%;transform:translateY(-50%);
+  width:3px;height:18px;border-radius:0 3px 3px 0;background:var(--accent);
+}
+.nav a.active .count{color:var(--accent-text)}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 6px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 11px 5px 9px;border-radius:999px;
+  border:1px solid var(--hairline);
+  font-size:12px;color:var(--muted);
+  background:var(--surface);
+  transition:border-color .16s,color .16s,background .16s;
+  cursor:pointer;
+}
+.chip:hover{color:var(--text);border-color:var(--hairline-strong);background:var(--surface-2)}
+.chip .d{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.chip.on{border-color:var(--accent-line);background:var(--accent-weak);color:var(--text)}
+
+.side-foot{
+  margin-top:30px;padding:14px 12px;border-top:1px solid var(--hairline);
+}
+.side-foot .row{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:11.5px}
+.side-foot .row svg{width:14px;height:14px}
+.side-foot .row + .row{margin-top:8px}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+.main{padding:32px 38px 80px;min-width:0}
+
+/* ---- Library header (C) ---- */
+.lib-head{
+  display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;
+  padding-bottom:20px;margin-bottom:26px;
+  border-bottom:1px solid var(--hairline);
+}
+.lib-head .titlewrap{display:flex;align-items:baseline;gap:14px}
+.lib-head h1{
+  font-family:'Source Serif 4',serif;font-weight:500;
+  font-size:33px;letter-spacing:-.01em;line-height:1.1;
+}
+.lib-head .count{
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--faint);
+  letter-spacing:.02em;
+}
+.lib-head .controls{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.viewtoggle{
+  display:flex;border:1px solid var(--hairline);border-radius:9px;overflow:hidden;
+  background:var(--surface);
+}
+.viewtoggle button{
+  width:36px;height:34px;display:grid;place-items:center;color:var(--faint);
+  transition:background .16s,color .16s;
+}
+.viewtoggle button svg{width:16px;height:16px}
+.viewtoggle button:hover{color:var(--text)}
+.viewtoggle button.on{background:var(--surface-2);color:var(--text)}
+
+.sortbtn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:36px;padding:0 14px;border-radius:9px;
+  border:1px solid var(--hairline);background:var(--surface);
+  color:var(--muted);font-size:13px;
+  transition:border-color .16s,color .16s,background .16s;
+}
+.sortbtn:hover{color:var(--text);border-color:var(--hairline-strong);background:var(--surface-2)}
+.sortbtn svg{width:15px;height:15px}
+.sortbtn b{color:var(--text);font-weight:550}
+
+/* ---- GRID ---- */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:18px;
+}
+
+/* ---- CARD ---- */
+.card{
+  position:relative;
+  display:flex;flex-direction:column;
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:12px;
+  padding:22px;
+  min-height:196px;
+  cursor:pointer;
+  transition:background .2s ease,border-color .2s ease;
+}
+/* the calmest hover: gentle tint + slightly stronger hairline. no lift, no glow. */
+.card:hover{
+  background:var(--surface-2);
+  border-color:var(--hairline-strong);
+}
+.card .ctype{
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.card .ctype .d{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card .ctype .lab{
+  font-family:'Source Serif 4',serif;font-style:italic;font-weight:500;
+  font-size:13px;color:var(--muted);letter-spacing:.01em;
+}
+.card h3{
+  font-family:'Source Serif 4',serif;font-weight:500;
+  font-size:19px;line-height:1.32;letter-spacing:-.005em;
+  color:var(--text);margin-bottom:9px;
+}
+.card .excerpt{
+  font-size:13.5px;line-height:1.62;color:var(--muted);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  overflow:hidden;
+  margin-bottom:auto;
+}
+.card .cfoot{
+  display:flex;align-items:center;gap:10px;
+  margin-top:18px;padding-top:14px;
+  border-top:1px solid var(--hairline);
+}
+.card .cnum{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--faint);letter-spacing:.01em;
+}
+.card .ctags{margin-left:auto;display:flex;gap:6px}
+.tag{
+  font-size:11px;color:var(--muted);
+  padding:2px 9px;border-radius:999px;
+  border:1px solid var(--hairline);
+  background:transparent;white-space:nowrap;
+  transition:border-color .16s,color .16s;
+}
+.card:hover .tag{border-color:var(--hairline-strong)}
+
+/* ============================================================
+   CARD DETAIL (D)
+   ============================================================ */
+.detail-wrap{margin-top:48px}
+.detail-eyebrow{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.detail-eyebrow .line{height:1px;flex:1;background:var(--hairline)}
+.detail-eyebrow .txt{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--faint);
+}
+
+.detail{
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:16px;
+  padding:40px 44px;
+  position:relative;
+  overflow:hidden;
+}
+/* a single faint clay rule down the left margin — a fine-book gutter */
+.detail::before{
+  content:"";position:absolute;left:0;top:40px;bottom:40px;width:2px;
+  background:var(--accent-line);border-radius:2px;
+}
+.detail .d-type{
+  display:inline-flex;align-items:center;gap:9px;
+  margin-bottom:18px;
+}
+.detail .d-type .d{width:9px;height:9px;border-radius:50%;background:var(--t-guideline)}
+.detail .d-type .lab{
+  font-family:'Source Serif 4',serif;font-style:italic;font-size:15px;
+  color:var(--muted);
+}
+.detail h2{
+  font-family:'Source Serif 4',serif;font-weight:500;
+  font-size:40px;line-height:1.14;letter-spacing:-.015em;
+  color:var(--text);margin-bottom:14px;max-width:18ch;
+}
+.detail .d-num{
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;
+  color:var(--accent-text);letter-spacing:.03em;margin-bottom:22px;
+}
+.d-meta{
+  display:flex;flex-wrap:wrap;gap:0;
+  border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);
+  margin-bottom:30px;
+}
+.d-meta .cell{
+  padding:16px 26px 16px 0;margin-right:26px;
+}
+.d-meta .cell + .cell{border-left:1px solid var(--hairline);padding-left:26px}
+.d-meta .k{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:5px;
+}
+.d-meta .v{font-size:13.5px;color:var(--text);font-weight:500}
+.d-meta .v.dot{display:flex;align-items:center;gap:7px}
+.d-meta .v.dot i{width:7px;height:7px;border-radius:50%;background:var(--t-workflow);display:inline-block}
+
+.d-body{max-width:68ch}
+.d-body p{
+  font-size:16px;line-height:1.72;color:var(--text);margin-bottom:18px;
+}
+.d-body p.lead::first-letter{
+  font-family:'Source Serif 4',serif;font-weight:500;
+  font-size:3.4em;line-height:.78;float:left;
+  padding:6px 12px 0 0;color:var(--accent-text);
+}
+.d-body strong{font-weight:650}
+
+.d-tags{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 30px}
+.d-tags .tag{font-size:12px;padding:4px 12px}
+
+.d-actions{
+  display:flex;flex-wrap:wrap;gap:10px;
+  padding-top:26px;border-top:1px solid var(--hairline);
+}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:42px;padding:0 18px;border-radius:10px;
+  font-size:13.5px;font-weight:550;
+  border:1px solid var(--hairline);background:var(--surface-2);color:var(--text);
+  transition:background .18s,border-color .18s,transform .05s;
+}
+.btn svg{width:16px;height:16px;stroke-width:1.6}
+.btn:hover{background:var(--surface-3);border-color:var(--hairline-strong)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{
+  background:var(--accent);border-color:var(--accent);color:var(--on-accent);
+}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn .ghosttxt{color:var(--muted);font-weight:450}
+
+/* ============================================================
+   HEMERA (E)
+   ============================================================ */
+.hemera{margin-top:56px}
+.hemera .lead{
+  display:flex;align-items:baseline;gap:12px;margin-bottom:16px;
+}
+.hemera .lead h4{
+  font-family:'Source Serif 4',serif;font-weight:500;font-size:22px;
+  letter-spacing:-.01em;
+}
+.hemera .lead .sub{font-size:13px;color:var(--muted)}
+.ask{
+  display:flex;align-items:center;gap:14px;
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:14px;
+  padding:8px 8px 8px 20px;
+  transition:border-color .2s,background .2s;
+}
+.ask:focus-within{border-color:var(--accent-line);background:var(--surface-2)}
+.ask .spark{width:20px;height:20px;color:var(--accent);flex-shrink:0}
+.ask input{
+  flex:1;height:44px;background:none;border:none;outline:none;
+  color:var(--text);font-size:15px;font-family:inherit;
+}
+.ask input::placeholder{color:var(--faint)}
+.ask .send{
+  display:inline-flex;align-items:center;gap:8px;
+  height:42px;padding:0 18px;border-radius:10px;
+  background:var(--accent);color:var(--on-accent);font-size:13.5px;font-weight:600;
+  flex-shrink:0;transition:filter .18s,transform .05s;
+}
+.ask .send:hover{filter:brightness(1.06)}
+.ask .send:active{transform:translateY(1px)}
+.ask .send svg{width:16px;height:16px;stroke-width:1.7}
+.hemera .hints{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;
+}
+.hint{
+  font-size:12.5px;color:var(--muted);
+  padding:7px 13px;border-radius:999px;
+  border:1px solid var(--hairline);background:var(--surface);
+  transition:border-color .16s,color .16s,background .16s;cursor:pointer;
+}
+.hint:hover{color:var(--text);border-color:var(--hairline-strong);background:var(--surface-2)}
+.hint span{color:var(--accent-text)}
+
+/* page foot */
+.pfoot{
+  max-width:1320px;margin:0 auto;
+  padding:30px 38px 50px;
+  border-top:1px solid var(--hairline);
+  display:flex;align-items:center;gap:14px;
+  color:var(--faint);font-size:12px;
+}
+.pfoot .mono{font-size:11px}
+.pfoot .sp{flex:1}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:1080px){
+  .shell{grid-template-columns:212px 1fr}
+  .main{padding:28px 26px 70px}
+  .detail{padding:34px 30px}
+  .detail h2{font-size:32px}
+}
+@media(max-width:760px){
+  .appbar{gap:12px;padding:0 16px}
+  .search{max-width:none}
+  .search .kbd{display:none}
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:24px 18px 60px}
+  .lib-head h1{font-size:27px}
+  .d-meta .cell{border-left:none!important;padding-left:0!important;margin-right:18px}
+  .detail h2{font-size:27px}
+  .d-body p{font-size:15px}
+}
+
+/* reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ (A) APP BAR ============================ -->
+<header class="appbar">
+  <a class="brand" href="#" aria-label="Akashic home">
+    <!-- layered stacked-strata diamond glyph, monochrome -->
+    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+      <path d="M12 2.5 21 7.2 12 12 3 7.2 12 2.5Z"/>
+      <path d="M3 12 12 16.7 21 12" opacity=".62"/>
+      <path d="M3 16.7 12 21.4 21 16.7" opacity=".34"/>
+    </svg>
+    <span class="word">Akashic<span class="dot">.</span></span>
+  </a>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>
+    </svg>
+    <input type="text" placeholder="Search cards, tags, types…" aria-label="Search">
+    <span class="kbd">⌘K</span>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="bar-right">
+    <button class="iconbtn" aria-label="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+      </svg>
+    </button>
+
+    <button class="iconbtn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+      <!-- icon swapped by script -->
+    </button>
+
+    <div class="avatar" title="Ra · Creative & 3D Engineer">RA</div>
+  </div>
+</header>
+
+<!-- ============================ (B) SHELL ============================ -->
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="nav-label">Workspace</div>
+    <nav class="nav">
+      <a href="#" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10a2 2 0 0 1 2 2v14a1.6 1.6 0 0 0-1.6-1.6H4Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H14a2 2 0 0 0-2 2v14a1.6 1.6 0 0 1 1.6-1.6H20Z"/></svg>
+        Library <span class="count">128</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="15" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/></svg>
+        Collections <span class="count">12</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v10l8 4 8-4V7Z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+        RAG Packs <span class="count">6</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9Z"/><path d="M13 3v6h6"/></svg>
+        Files <span class="count">340</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="6.5" r="2.5"/><path d="M6.5 9v6M9 6.5h6M17.5 9c0 5-5 3.5-5 8.5"/></svg>
+        Repos <span class="count">63</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6 6l-1.4-1.4M19.4 19.4 18 18"/><circle cx="12" cy="12" r="4.2"/></svg>
+        Hemera
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7"/></svg>
+        Trash
+      </a>
+    </nav>
+
+    <div class="nav-label">Filter by type</div>
+    <div class="chips">
+      <button class="chip on"><span class="d" style="background:var(--t-guideline)"></span>guideline</button>
+      <button class="chip"><span class="d" style="background:var(--t-role)"></span>role</button>
+      <button class="chip"><span class="d" style="background:var(--t-workflow)"></span>workflow</button>
+      <button class="chip"><span class="d" style="background:var(--t-tool)"></span>tool</button>
+      <button class="chip"><span class="d" style="background:var(--t-code_pattern)"></span>code_pattern</button>
+      <button class="chip"><span class="d" style="background:var(--t-diary)"></span>diary</button>
+      <button class="chip"><span class="d" style="background:var(--t-repo_overview)"></span>repo_overview</button>
+      <button class="chip"><span class="d" style="background:var(--t-decision)"></span>decision</button>
+    </div>
+
+    <div class="side-foot">
+      <div class="row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 4.5 3.4 7.6 8 9 4.6-1.4 8-4.5 8-9V7Z"/><path d="m9 12 2 2 4-4"/></svg>
+        Postgres · canonical store
+      </div>
+      <div class="row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Synced · 4 min ago
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================ MAIN ============================ -->
+  <main class="main">
+
+    <!-- (C) LIBRARY HEADER -->
+    <div class="lib-head">
+      <div class="titlewrap">
+        <h1 class="serif">Card Library</h1>
+        <span class="count">128 cards</span>
+      </div>
+      <div class="controls">
+        <div class="viewtoggle">
+          <button class="on" aria-label="Grid view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4"/></svg>
+          </button>
+          <button aria-label="List view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+          </button>
+        </div>
+        <button class="sortbtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M7 4l3 3M14 7h6M14 12h4M14 17h2"/></svg>
+          Sort: <b>Recent</b>
+        </button>
+      </div>
+    </div>
+
+    <!-- (C) GRID — all 8 real cards -->
+    <section class="grid">
+
+      <!-- 1 · guideline · Charter -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-guideline)"></span><span class="lab">guideline</span></div>
+        <h3>Cosmos AI Engineering Charter v1.5</h3>
+        <p class="excerpt">6 Pillars, 13 principles, Self-Proof template, Anti-Loop rules — the universal engineering charter for every CAL AI.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-GUI-0000037</span>
+          <div class="ctags"><span class="tag">charter</span><span class="tag">rules</span></div>
+        </div>
+      </article>
+
+      <!-- 2 · role -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-role)"></span><span class="lab">role</span></div>
+        <h3>First-Read — Personal Layer</h3>
+        <p class="excerpt">Alex + Cosmos AI Lab ecosystem foundation, team identities, safety rules. Read first, every session.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-ROL-0000005</span>
+          <div class="ctags"><span class="tag">onboarding</span><span class="tag">ecosystem</span></div>
+        </div>
+      </article>
+
+      <!-- 3 · workflow -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-workflow)"></span><span class="lab">workflow</span></div>
+        <h3>Ra Design Pipeline</h3>
+        <p class="excerpt">Produce premium visual design by orchestrating AI image-gen + code — art director, not hand-drawer.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-WFL-CAL0001</span>
+          <div class="ctags"><span class="tag">design</span><span class="tag">image-gen</span></div>
+        </div>
+      </article>
+
+      <!-- 4 · tool -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-tool)"></span><span class="lab">tool</span></div>
+        <h3>Cross-Vendor Model Quick Lookup Index</h3>
+        <p class="excerpt">34 models across 5 vendors (xAI / Anthropic / OpenAI / Google / Mimo) — filter by modality + tier + use.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-TOL-0000005</span>
+          <div class="ctags"><span class="tag">models</span><span class="tag">registry</span></div>
+        </div>
+      </article>
+
+      <!-- 5 · code_pattern -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-code_pattern)"></span><span class="lab">code_pattern</span></div>
+        <h3>Phantom Lab Theme v1.1</h3>
+        <p class="excerpt">Pure black + single burnt-amber accent, sharp corners, Archivo Black wordmark — CAL default theme.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-CDP-000000G</span>
+          <div class="ctags"><span class="tag">theme</span><span class="tag">brand</span></div>
+        </div>
+      </article>
+
+      <!-- 6 · diary -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-diary)"></span><span class="lab">diary</span></div>
+        <h3>Ra — Creative &amp; 3D Engineer Diary</h3>
+        <p class="excerpt">Append-only memory across session compaction — timeline + plan, thin-lens. A continuous record of intent.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-DIA-000000D</span>
+          <div class="ctags"><span class="tag">memory</span><span class="tag">ra</span></div>
+        </div>
+      </article>
+
+      <!-- 7 · repo_overview -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-repo_overview)"></span><span class="lab">repo_overview</span></div>
+        <h3>Hyper3D Rodin Gen-2.5</h3>
+        <p class="excerpt">Image / text → 3D mesh (.glb), server-side, no GPU. Adoption gated on Business plan.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-RPO-0000063</span>
+          <div class="ctags"><span class="tag">3d</span><span class="tag">adopt</span></div>
+        </div>
+      </article>
+
+      <!-- 8 · guideline -->
+      <article class="card">
+        <div class="ctype"><span class="d" style="background:var(--t-guideline)"></span><span class="lab">guideline</span></div>
+        <h3>HTML Blueprint Review Board Standard</h3>
+        <p class="excerpt">14 sections, verdict vocabulary, cross-AI review board for every blueprint before a single line ships.</p>
+        <div class="cfoot">
+          <span class="cnum">AK-GUI-000003S</span>
+          <div class="ctags"><span class="tag">blueprint</span><span class="tag">governance</span></div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ============================ (D) CARD DETAIL ============================ -->
+    <div class="detail-wrap">
+      <div class="detail-eyebrow">
+        <span class="txt">Opened card</span>
+        <span class="line"></span>
+      </div>
+
+      <article class="detail">
+        <div class="d-type"><span class="d"></span><span class="lab">guideline</span></div>
+        <h2 class="serif">Cosmos AI Engineering Charter v1.5</h2>
+        <div class="d-num">AK-GUI-0000037</div>
+
+        <div class="d-meta">
+          <div class="cell"><div class="k">Updated</div><div class="v">17 May 2026</div></div>
+          <div class="cell"><div class="k">Owner</div><div class="v dot"><i></i> Mythos · Lead Eng</div></div>
+          <div class="cell"><div class="k">Visibility</div><div class="v">Public</div></div>
+          <div class="cell"><div class="k">Schema</div><div class="v">v2.1</div></div>
+        </div>
+
+        <div class="d-body">
+          <p class="lead">The Charter is the single universal contract every Cosmos AI Lab engineer reads before touching the codebase. It defines <strong>6 Pillars</strong> of practice, <strong>13 principles</strong>, the Self-Proof template, and the Anti-Loop rules that keep an agent from spinning on a red baseline — one shared language for safe, honest, high-craft work.</p>
+          <p>Beyond rules, it encodes the team's git workflow (one task, one branch, one PR into <strong>main</strong>), the token &amp; context discipline adopted as an AI-respect agreement, and the escalation matrix for cross-AI conflict. When two engineers disagree on approach, the Charter is the tie-breaker before Alex is asked for the final call.</p>
+        </div>
+
+        <div class="d-tags">
+          <span class="tag">charter</span><span class="tag">rules</span><span class="tag">6-pillars</span><span class="tag">anti-loop</span><span class="tag">self-proof</span>
+        </div>
+
+        <div class="d-actions">
+          <button class="btn primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M21 3l-9 9M10 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-4"/></svg>
+            Open
+          </button>
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6M20 20v-6h-6M20 9A8 8 0 0 0 6 6L4 8M4 15a8 8 0 0 0 14 3l2-2"/></svg>
+            Remix
+          </button>
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><path d="M17.5 14v7M14 17.5h7"/></svg>
+            Add to Collection
+          </button>
+          <button class="btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l5 5v13a0 0 0 0 1 0 0H6a0 0 0 0 1 0 0Z"/><path d="M15 3v5h5M9 13h6M9 17h6"/></svg>
+            Cite <span class="ghosttxt">· AK-GUI-0000037</span>
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <!-- ============================ (E) HEMERA ============================ -->
+    <section class="hemera">
+      <div class="lead">
+        <h4 class="serif">Ask Hemera</h4>
+        <span class="sub">your AI Librarian — grounded in 128 cards</span>
+      </div>
+
+      <div class="ask">
+        <svg class="spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3.5 13.4 9 18.5 10.4 13.4 11.8 12 17.5 10.6 11.8 5.5 10.4 10.6 9 12 3.5Z"/><path d="M18.5 16.5l.6 2.2 2.2.6-2.2.6-.6 2.2-.6-2.2-2.2-.6 2.2-.6.6-2.2Z"/>
+        </svg>
+        <input type="text" placeholder="Ask Hemera anything about the library…" aria-label="Ask Hemera">
+        <button class="send">
+          Ask
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <div class="hints">
+        <button class="hint"><span>↳</span> Summarise the Charter's Anti-Loop rules</button>
+        <button class="hint"><span>↳</span> Which cards cover theming?</button>
+        <button class="hint"><span>↳</span> What should I read first this session?</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- PAGE FOOT -->
+<footer class="pfoot">
+  <span class="mono">Akashic · Knowledge Operating System</span>
+  <span class="sp"></span>
+  <span class="mono">v5.1</span>
+  <span>·</span>
+  <span class="mono">128 cards · 8 types · 12 collections</span>
+</footer>
+
+<!-- ============================ SCRIPT ============================ -->
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn  = document.getElementById('themeToggle');
+
+  var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19"/></svg>';
+  var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/></svg>';
+
+  function paint(theme){
+    // sun shown in dark = "switch to light"; moon shown in light = "switch to dark"
+    btn.innerHTML = (theme === 'dark') ? SUN : MOON;
+    btn.setAttribute('title', theme === 'dark' ? 'Switch to light' : 'Switch to dark');
+  }
+
+  function apply(theme, persist){
+    root.setAttribute('data-theme', theme);
+    if(persist){ try{ localStorage.setItem('ak-theme', theme); }catch(e){} }
+    paint(theme);
+  }
+
+  // initial: localStorage or default dark
+  var saved;
+  try{ saved = localStorage.getItem('ak-theme'); }catch(e){}
+  apply(saved === 'light' ? 'light' : 'dark', false);
+
+  btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    apply(next, true);
+  });
+
+  // harness may set data-theme directly — keep the toggle icon in sync
+  new MutationObserver(function(){
+    paint(root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+  }).observe(root, {attributes:true, attributeFilter:['data-theme']});
+})();
+</script>
+</body>
+</html>

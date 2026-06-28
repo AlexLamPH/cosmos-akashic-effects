@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akashic Library — Obsidian Violet</title>
+<style>
+/* ============================================================
+   AKASHIC LIBRARY · "OBSIDIAN VIOLET" redesign
+   We heard you — we fixed the purple, we didn't abandon it.
+   Violet = ONE refined, accessible accent on a calm deep-indigo
+   surface. High-contrast off-white text. No neon. No glow.
+   ============================================================ */
+
+/* ---- Local fonts (ttf siblings already present) ---- */
+@font-face{font-family:'Inter';src:url('fonts/Inter.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('fonts/JetBrainsMono.ttf') format('truetype');font-weight:100 800;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4.ttf') format('truetype');font-weight:200 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4-Italic.ttf') format('truetype');font-weight:200 900;font-style:italic;font-display:swap}
+
+/* ============================================================
+   THEME TOKENS — 100% of color comes from [data-theme]
+   ============================================================ */
+:root[data-theme="dark"]{
+  --bg:#0B0B12;
+  --surface:#14141F;
+  --surface-2:#1B1B2A;
+  --surface-3:#222234;
+  --text:#ECECF2;
+  --muted:#9E9EB0;
+  --faint:#6E6E84;
+  --hairline:rgba(255,255,255,.08);
+  --hairline-strong:rgba(255,255,255,.14);
+  --accent:#8B7BFF;          /* lighter, accessible violet — NOT neon #7000FF */
+  --accent-hover:#A293FF;
+  --accent-weak:rgba(139,123,255,.16);
+  --accent-line:rgba(139,123,255,.40);
+  --accent-on:#0B0B12;       /* text on a solid violet fill */
+  --ring:rgba(139,123,255,.55);
+  --shadow:rgba(0,0,0,.45);
+  --chip-bg:rgba(255,255,255,.045);
+  --chip-text:#B7B7C8;
+  --scrim:rgba(11,11,18,.72);
+
+  /* quiet, harmonious per-type dots (dots only — never text) */
+  --t-guideline:#8B7BFF;     /* violet (our soul) */
+  --t-role:#5BA8C9;          /* muted teal-blue */
+  --t-workflow:#6FB28C;      /* muted sage */
+  --t-tool:#C9A15B;          /* muted brass (this is a DOT, not gold UI) */
+  --t-code_pattern:#C97FA8;  /* muted rose */
+  --t-diary:#9B8BD0;         /* soft lilac */
+  --t-repo_overview:#7E9BC4; /* dusty steel-blue */
+  --t-decision:#C98A6F;      /* muted terracotta */
+}
+:root[data-theme="light"]{
+  --bg:#F7F6FB;               /* soft lavender-tinted paper */
+  --surface:#FFFFFF;
+  --surface-2:#F0EEF8;
+  --surface-3:#E8E5F4;
+  --text:#16151E;
+  --muted:#66647A;
+  --faint:#9694A8;
+  --hairline:rgba(20,18,40,.10);
+  --hairline-strong:rgba(20,18,40,.16);
+  --accent:#6D4AED;          /* darker violet — passes AA on white */
+  --accent-hover:#5B38DC;
+  --accent-weak:rgba(109,74,237,.10);
+  --accent-line:rgba(109,74,237,.30);
+  --accent-on:#FFFFFF;
+  --ring:rgba(109,74,237,.45);
+  --shadow:rgba(40,36,80,.10);
+  --chip-bg:rgba(20,18,40,.04);
+  --chip-text:#4D4B60;
+  --scrim:rgba(247,246,251,.72);
+
+  --t-guideline:#6D4AED;
+  --t-role:#2F7E9E;
+  --t-workflow:#3C8C63;
+  --t-tool:#9A7322;
+  --t-code_pattern:#A8487C;
+  --t-diary:#6B59B0;
+  --t-repo_overview:#4D6E9E;
+  --t-decision:#A8603F;
+}
+
+/* ============================================================
+   RESET + BASE
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  font-feature-settings:"cv01","cv03","ss01";
+  transition:background .35s ease,color .35s ease;
+  min-height:100vh;
+}
+::selection{background:var(--accent-weak);color:var(--text)}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+svg{display:block}
+.mono{font-family:'JetBrains Mono',monospace;font-feature-settings:"zero"}
+.serif{font-family:'Source Serif 4',Georgia,serif}
+
+/* focus visibility — exactly ONE subtle ring, no glow */
+:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--ring)}
+
+/* ============================================================
+   (A) APP BAR
+   ============================================================ */
+.appbar{
+  position:sticky;top:0;z-index:60;
+  display:flex;align-items:center;gap:18px;
+  height:60px;padding:0 22px;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:saturate(140%) blur(14px);
+  -webkit-backdrop-filter:saturate(140%) blur(14px);
+  border-bottom:1px solid var(--hairline);
+}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.brand-mark{
+  width:30px;height:30px;border-radius:8px;
+  display:grid;place-items:center;
+  color:var(--accent);
+  background:var(--accent-weak);
+  border:1px solid var(--accent-line);
+}
+.brand-name{
+  font-family:'Source Serif 4',serif;
+  font-weight:600;font-size:19px;letter-spacing:.2px;
+  color:var(--text);
+}
+.brand-name b{
+  font-weight:600;
+  background:linear-gradient(180deg,var(--text),color-mix(in srgb,var(--text) 62%,var(--muted)));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.search{
+  flex:1;max-width:540px;margin:0 auto;
+  display:flex;align-items:center;gap:10px;
+  height:38px;padding:0 14px;
+  background:var(--bg);
+  border:1px solid var(--hairline);
+  border-radius:10px;
+  color:var(--muted);
+  transition:border-color .18s ease,background .18s ease;
+}
+.search:focus-within{border-color:var(--accent-line);background:var(--surface)}
+.search svg{color:var(--faint);flex-shrink:0}
+.search input{
+  flex:1;border:none;background:none;outline:none;
+  font-family:inherit;font-size:13.5px;color:var(--text);
+}
+.search input::placeholder{color:var(--faint)}
+.search kbd{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--faint);
+  border:1px solid var(--hairline);border-radius:5px;
+  padding:2px 6px;background:var(--surface-2);
+}
+
+.appbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.iconbtn{
+  width:38px;height:38px;border-radius:9px;
+  display:grid;place-items:center;
+  color:var(--muted);
+  border:1px solid transparent;
+  transition:background .16s ease,color .16s ease,border-color .16s ease;
+}
+.iconbtn:hover{background:var(--surface-2);color:var(--text);border-color:var(--hairline)}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+  letter-spacing:.5px;
+  color:var(--accent);
+  background:var(--accent-weak);
+  border:1px solid var(--accent-line);
+}
+
+/* ============================================================
+   (B) SHELL — sidebar + main
+   ============================================================ */
+.shell{display:flex;align-items:flex-start;max-width:1480px;margin:0 auto}
+.sidebar{
+  position:sticky;top:60px;
+  width:248px;flex-shrink:0;
+  height:calc(100vh - 60px);
+  overflow-y:auto;
+  padding:22px 16px;
+  border-right:1px solid var(--hairline);
+}
+.sidebar::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--hairline-strong);border-radius:8px}
+
+.nav-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--faint);
+  padding:0 10px;margin:4px 0 9px;
+}
+.nav-group{margin-bottom:26px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  width:100%;padding:8px 10px;
+  border-radius:9px;
+  font-size:13.5px;font-weight:500;
+  color:var(--muted);
+  position:relative;
+  transition:background .15s ease,color .15s ease;
+}
+.nav-item svg{color:var(--faint);flex-shrink:0;transition:color .15s ease}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item:hover svg{color:var(--muted)}
+.nav-item .count{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--faint);
+}
+/* active = violet pill */
+.nav-item.active{
+  background:var(--accent-weak);
+  color:var(--accent);
+  font-weight:600;
+}
+.nav-item.active svg{color:var(--accent)}
+.nav-item.active .count{color:var(--accent)}
+
+/* filter-by-type chips */
+.typefilter{display:flex;flex-wrap:wrap;gap:7px;padding:0 6px}
+.tchip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px 5px 8px;
+  border-radius:999px;
+  font-size:11.5px;font-weight:500;
+  color:var(--muted);
+  background:var(--chip-bg);
+  border:1px solid var(--hairline);
+  transition:border-color .15s ease,color .15s ease,background .15s ease;
+}
+.tchip:hover{border-color:var(--hairline-strong);color:var(--text)}
+.tchip.on{border-color:var(--accent-line);color:var(--text);background:var(--accent-weak)}
+.tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ============================================================
+   (C) MAIN — library
+   ============================================================ */
+.main{flex:1;min-width:0;padding:30px 34px 80px}
+
+.lib-head{
+  display:flex;align-items:flex-end;gap:14px;
+  flex-wrap:wrap;margin-bottom:26px;
+}
+.lib-title{
+  font-family:'Source Serif 4',serif;
+  font-size:30px;font-weight:600;letter-spacing:-.4px;
+  color:var(--text);line-height:1.1;
+}
+.lib-count{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;color:var(--faint);
+  padding-bottom:4px;
+}
+.lib-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.seg{
+  display:inline-flex;padding:3px;
+  background:var(--surface-2);
+  border:1px solid var(--hairline);
+  border-radius:9px;gap:2px;
+}
+.seg button{
+  width:32px;height:28px;border-radius:6px;
+  display:grid;place-items:center;color:var(--muted);
+  transition:background .15s ease,color .15s ease;
+}
+.seg button:hover{color:var(--text)}
+.seg button.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px var(--shadow)}
+
+.sortbtn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:34px;padding:0 13px;
+  background:var(--surface-2);
+  border:1px solid var(--hairline);
+  border-radius:9px;
+  font-size:12.5px;font-weight:500;color:var(--text);
+  transition:border-color .15s ease;
+}
+.sortbtn:hover{border-color:var(--hairline-strong)}
+.sortbtn .k{color:var(--faint);font-weight:400}
+.sortbtn svg{color:var(--faint)}
+
+/* responsive grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(284px,1fr));
+  gap:16px;
+}
+
+/* CARD */
+.card{
+  position:relative;
+  display:flex;flex-direction:column;
+  padding:20px;
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:12px;
+  overflow:hidden;
+  transition:border-color .18s ease,transform .18s ease,background .18s ease;
+}
+.card::before{ /* left accent bar slot — invisible until active */
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:transparent;transition:background .18s ease;
+}
+.card:hover{border-color:var(--accent-line);transform:translateY(-1px)}
+.card.active{background:var(--surface-2)}
+.card.active::before{background:var(--accent)}
+
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:4px 9px 4px 8px;
+  border-radius:7px;
+  background:var(--accent-weak);
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:.8px;
+  text-transform:uppercase;
+  color:var(--accent);
+}
+.badge .tdot{width:6px;height:6px}
+.card-flag{color:var(--faint)}
+
+.card-title{
+  font-family:'Source Serif 4',serif;
+  font-size:18px;font-weight:600;line-height:1.3;
+  letter-spacing:-.1px;color:var(--text);
+  margin-bottom:8px;
+}
+.card-excerpt{
+  font-size:13px;line-height:1.6;color:var(--muted);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;margin-bottom:18px;
+}
+.card-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-top:auto;
+  padding-top:13px;border-top:1px solid var(--hairline);
+}
+.card-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--faint);letter-spacing:.3px;
+}
+.tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag{
+  font-size:10.5px;font-weight:500;
+  padding:3px 8px;border-radius:6px;
+  color:var(--chip-text);background:var(--chip-bg);
+  border:1px solid var(--hairline);
+  white-space:nowrap;
+}
+
+/* ============================================================
+   (D) CARD DETAIL — opened panel
+   ============================================================ */
+.detail-wrap{margin-top:38px}
+.detail-eyebrow{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.detail-eyebrow .line{height:1px;flex:1;background:var(--hairline)}
+.detail-eyebrow span{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--faint);
+}
+
+.detail{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:16px;
+  padding:34px 38px;
+  overflow:hidden;
+}
+.detail::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--accent);
+}
+.detail-head{
+  display:flex;align-items:flex-start;gap:16px;
+  flex-wrap:wrap;margin-bottom:8px;
+}
+.detail-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:5px 11px 5px 9px;border-radius:8px;
+  background:var(--accent-weak);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  color:var(--accent);
+}
+.detail-num{
+  margin-left:auto;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;color:var(--faint);
+  padding-top:4px;letter-spacing:.4px;
+}
+.detail-title{
+  font-family:'Source Serif 4',serif;
+  font-size:34px;font-weight:600;line-height:1.18;
+  letter-spacing:-.6px;color:var(--text);
+  margin:6px 0 18px;max-width:42ch;
+}
+.detail-meta{
+  display:flex;flex-wrap:wrap;gap:0;
+  margin-bottom:24px;
+  border:1px solid var(--hairline);border-radius:10px;
+  overflow:hidden;
+}
+.meta-cell{
+  display:flex;flex-direction:column;gap:3px;
+  padding:11px 18px;flex:1;min-width:150px;
+  border-right:1px solid var(--hairline);
+}
+.meta-cell:last-child{border-right:none}
+.meta-k{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  color:var(--faint);
+}
+.meta-v{font-size:13.5px;color:var(--text);font-weight:500}
+.meta-v .ok{
+  display:inline-flex;align-items:center;gap:6px;color:var(--accent);
+}
+
+.detail-body{max-width:74ch}
+.detail-body p{
+  font-size:15px;line-height:1.72;color:var(--text);
+  margin-bottom:16px;
+}
+.detail-body p.lead{
+  font-family:'Source Serif 4',serif;
+  font-size:17px;font-style:italic;color:var(--muted);
+}
+.detail-body strong{color:var(--text);font-weight:600}
+
+.detail-tags{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 26px}
+.detail-tags .tag{font-size:11.5px;padding:5px 11px}
+
+.detail-actions{
+  display:flex;gap:10px;flex-wrap:wrap;
+  padding-top:22px;border-top:1px solid var(--hairline);
+}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:38px;padding:0 16px;border-radius:9px;
+  font-size:13px;font-weight:600;
+  border:1px solid var(--hairline);
+  background:var(--surface-2);color:var(--text);
+  transition:border-color .15s ease,background .15s ease,transform .12s ease;
+}
+.btn svg{color:var(--muted)}
+.btn:hover{border-color:var(--hairline-strong);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{
+  background:var(--accent);color:var(--accent-on);
+  border-color:var(--accent);
+}
+.btn.primary svg{color:var(--accent-on)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+
+/* ============================================================
+   (E) HEMERA — ask bar
+   ============================================================ */
+.hemera{
+  position:sticky;bottom:22px;z-index:40;
+  max-width:1480px;margin:46px auto 0;
+  padding:0 34px;
+}
+.hemera-bar{
+  display:flex;align-items:center;gap:14px;
+  padding:6px 6px 6px 18px;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:saturate(150%) blur(16px);
+  -webkit-backdrop-filter:saturate(150%) blur(16px);
+  border:1px solid var(--hairline-strong);
+  border-radius:14px;
+  box-shadow:0 8px 30px -12px var(--shadow);
+}
+.hemera-spark{color:var(--accent);flex-shrink:0}
+.hemera-bar input{
+  flex:1;border:none;background:none;outline:none;
+  font-family:inherit;font-size:14.5px;color:var(--text);
+  padding:10px 0;
+}
+.hemera-bar input::placeholder{color:var(--faint)}
+.hemera-meta{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;color:var(--faint);
+  white-space:nowrap;
+}
+.hemera-send{
+  width:40px;height:40px;border-radius:10px;flex-shrink:0;
+  display:grid;place-items:center;
+  background:var(--accent);color:var(--accent-on);
+  transition:background .15s ease,transform .12s ease;
+}
+.hemera-send:hover{background:var(--accent-hover);transform:translateY(-1px)}
+
+/* footer breathing room so sticky bar doesn't clip */
+.tailspace{height:36px}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1024px){
+  .sidebar{display:none}
+  .main{padding:24px 22px 70px}
+  .search{max-width:none}
+}
+@media (max-width:640px){
+  .appbar{gap:12px;padding:0 14px}
+  .search kbd{display:none}
+  .brand-name{display:none}
+  .detail{padding:24px 20px}
+  .detail-title{font-size:26px}
+  .hemera{padding:0 16px}
+  .hemera-meta{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     (A) APP BAR
+     ============================================================ -->
+<header class="appbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <!-- stacked-strata diamond glyph -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M12 2.5 21 7 12 11.5 3 7z"/>
+        <path d="M3 12 12 16.5 21 12"/>
+        <path d="M3 17 12 21.5 21 17"/>
+      </svg>
+    </span>
+    <span class="brand-name"><b>Akashic</b></span>
+  </div>
+
+  <label class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>
+    </svg>
+    <input type="text" placeholder="Search cards, tags, types…" aria-label="Search the library">
+    <kbd>⌘K</kbd>
+  </label>
+
+  <div class="appbar-right">
+    <button class="iconbtn" id="themeToggle" aria-label="Toggle theme" title="Switch theme">
+      <!-- icon swapped by script -->
+    </button>
+    <button class="iconbtn" aria-label="Notifications" title="Notifications">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+      </svg>
+    </button>
+    <div class="avatar" title="Ra — Creative &amp; 3D Engineer">RA</div>
+  </div>
+</header>
+
+<!-- ============================================================
+     (B) SHELL
+     ============================================================ -->
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="nav-group">
+      <div class="nav-label">Workspace</div>
+      <button class="nav-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14z"/></svg>
+        Library<span class="count">128</span>
+      </button>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 3l9 4.5-9 4.5z"/><path d="m3 12 9 4.5L21 12"/><path d="m3 16.5 9 4.5 9-4.5"/></svg>
+        Collections<span class="count">12</span>
+      </button>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/></svg>
+        RAG Packs<span class="count">7</span>
+      </button>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l6 6v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+        Files<span class="count">340</span>
+      </button>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M8.5 7.2 15.6 10.8M8.5 16.8 15.6 13.2"/></svg>
+        Repos<span class="count">63</span>
+      </button>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M12 7.5 13.4 11l3.6 1-3.6 1L12 16.5 10.6 13 7 12l3.6-1z"/></svg>
+        Hemera
+      </button>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg>
+        Trash
+      </button>
+    </nav>
+
+    <div class="nav-group">
+      <div class="nav-label">Filter by type</div>
+      <div class="typefilter">
+        <button class="tchip on"><span class="tdot" style="background:var(--t-guideline)"></span>guideline</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-role)"></span>role</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-workflow)"></span>workflow</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-tool)"></span>tool</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-code_pattern)"></span>code_pattern</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-diary)"></span>diary</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-repo_overview)"></span>repo_overview</button>
+        <button class="tchip"><span class="tdot" style="background:var(--t-decision)"></span>decision</button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Pinned collection</div>
+      <button class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v7l-3 4h12l-3-4V4M8 4h8M11 19v2"/></svg>
+        Onboarding Core<span class="count">9</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- (C) LIBRARY HEADER -->
+    <div class="lib-head">
+      <h1 class="lib-title">Card Library</h1>
+      <span class="lib-count">128 cards</span>
+
+      <div class="lib-actions">
+        <div class="seg" role="group" aria-label="View mode">
+          <button class="active" aria-label="Grid view" title="Grid">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/></svg>
+          </button>
+          <button aria-label="List view" title="List">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+          </button>
+        </div>
+        <button class="sortbtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M7 4l3 3M14 7h7M14 12h5M14 17h3"/></svg>
+          <span class="k">Sort:</span> Recent
+        </button>
+      </div>
+    </div>
+
+    <!-- GRID — 8 real cards -->
+    <div class="grid">
+
+      <!-- 1 · Charter · guideline · ACTIVE (opened below) -->
+      <article class="card active" data-type="guideline">
+        <div class="card-top">
+          <span class="badge"><span class="tdot" style="background:var(--t-guideline)"></span>Guideline</span>
+          <span class="card-flag" title="Opened">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6v12a2 2 0 0 0 2 2h9l5-5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M15 20v-4a1 1 0 0 1 1-1h4"/></svg>
+          </span>
+        </div>
+        <h3 class="card-title">Cosmos AI Engineering Charter v1.5</h3>
+        <p class="card-excerpt">6 Pillars, 13 principles, Self-Proof template, Anti-Loop rules — the universal engineering charter for every CAL AI.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-GUI-0000037</span>
+          <div class="tags"><span class="tag">charter</span><span class="tag">rules</span></div>
+        </div>
+      </article>
+
+      <!-- 2 · First-Read · role -->
+      <article class="card" data-type="role">
+        <div class="card-top">
+          <span class="badge" style="background:color-mix(in srgb,var(--t-role) 16%,transparent);color:var(--t-role)"><span class="tdot" style="background:var(--t-role)"></span>Role</span>
+        </div>
+        <h3 class="card-title">First-Read — Personal Layer</h3>
+        <p class="card-excerpt">Alex + Cosmos AI Lab ecosystem foundation, team identities, safety rules. Read first, every session.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-ROL-0000005</span>
+          <div class="tags"><span class="tag">onboarding</span><span class="tag">ecosystem</span></div>
+        </div>
+      </article>
+
+      <!-- 3 · Ra Pipeline · workflow -->
+      <article class="card" data-type="workflow">
+        <div class="card-top">
+          <span class="badge" style="background:color-mix(in srgb,var(--t-workflow) 16%,transparent);color:var(--t-workflow)"><span class="tdot" style="background:var(--t-workflow)"></span>Workflow</span>
+        </div>
+        <h3 class="card-title">Ra Design Pipeline</h3>
+        <p class="card-excerpt">Produce premium visual design by orchestrating AI image-gen + code — art director, not hand-drawer.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-WFL-CAL0001</span>
+          <div class="tags"><span class="tag">design</span><span class="tag">image-gen</span></div>
+        </div>
+      </article>
+
+      <!-- 4 · Model Index · tool -->
+      <article class="card" data-type="tool">
+        <div class="card-top">
+          <span class="badge" style="background:color-mix(in srgb,var(--t-tool) 16%,transparent);color:var(--t-tool)"><span class="tdot" style="background:var(--t-tool)"></span>Tool</span>
+        </div>
+        <h3 class="card-title">Cross-Vendor Model Quick Lookup Index</h3>
+        <p class="card-excerpt">34 models across 5 vendors (xAI / Anthropic / OpenAI / Google / Mimo) — filter by modality + tier + use.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-TOL-0000005</span>
+          <div class="tags"><span class="tag">models</span><span class="tag">registry</span></div>
+        </div>
+      </article>
+
+      <!-- 5 · Phantom Lab · code_pattern -->
+      <article class="card" data-type="code_pattern">
+        <div class="card-top">
+          <span class="badge" style="background:color-mix(in srgb,var(--t-code_pattern) 16%,transparent);color:var(--t-code_pattern)"><span class="tdot" style="background:var(--t-code_pattern)"></span>Code Pattern</span>
+        </div>
+        <h3 class="card-title">Phantom Lab Theme v1.1</h3>
+        <p class="card-excerpt">Pure black + single burnt-amber accent, sharp corners, Archivo Black wordmark — CAL default theme.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-CDP-000000G</span>
+          <div class="tags"><span class="tag">theme</span><span class="tag">brand</span></div>
+        </div>
+      </article>
+
+      <!-- 6 · Ra Diary · diary -->
+      <article class="card" data-type="diary">
+        <div class="card-top">
+          <span class="badge" style="background:color-mix(in srgb,var(--t-diary) 16%,transparent);color:var(--t-diary)"><span class="tdot" style="background:var(--t-diary)"></span>Diary</span>
+        </div>
+        <h3 class="card-title">Ra — Creative &amp; 3D Engineer Diary</h3>
+        <p class="card-excerpt">Append-only memory across session compaction — timeline + plan, thin-lens.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-DIA-000000D</span>
+          <div class="tags"><span class="tag">memory</span><span class="tag">ra</span></div>
+        </div>
+      </article>
+
+      <!-- 7 · Rodin · repo_overview -->
+      <article class="card" data-type="repo_overview">
+        <div class="card-top">
+          <span class="badge" style="background:color-mix(in srgb,var(--t-repo_overview) 16%,transparent);color:var(--t-repo_overview)"><span class="tdot" style="background:var(--t-repo_overview)"></span>Repo Overview</span>
+        </div>
+        <h3 class="card-title">Hyper3D Rodin Gen-2.5</h3>
+        <p class="card-excerpt">Image/text → 3D mesh (.glb), server-side, no GPU. Adoption gated on Business plan.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-RPO-0000063</span>
+          <div class="tags"><span class="tag">3d</span><span class="tag">adopt</span></div>
+        </div>
+      </article>
+
+      <!-- 8 · Review Board · guideline -->
+      <article class="card" data-type="guideline">
+        <div class="card-top">
+          <span class="badge"><span class="tdot" style="background:var(--t-guideline)"></span>Guideline</span>
+        </div>
+        <h3 class="card-title">HTML Blueprint Review Board Standard</h3>
+        <p class="card-excerpt">14 sections, verdict vocabulary, cross-AI review board for every blueprint.</p>
+        <div class="card-foot">
+          <span class="card-num">AK-GUI-000003S</span>
+          <div class="tags"><span class="tag">blueprint</span><span class="tag">governance</span></div>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- ============================================================
+         (D) CARD DETAIL — opened panel for card #1
+         ============================================================ -->
+    <section class="detail-wrap">
+      <div class="detail-eyebrow">
+        <span>Opened card</span>
+        <span class="line"></span>
+      </div>
+
+      <article class="detail">
+        <div class="detail-head">
+          <span class="detail-badge"><span class="tdot" style="background:var(--t-guideline)"></span>Guideline</span>
+          <span class="detail-num">AK-GUI-0000037 · v1.5</span>
+        </div>
+
+        <h2 class="detail-title">Cosmos AI Engineering Charter</h2>
+
+        <div class="detail-meta">
+          <div class="meta-cell">
+            <span class="meta-k">Updated</span>
+            <span class="meta-v">2026-05-17</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-k">Owner</span>
+            <span class="meta-v">Mythos · Lead Eng</span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-k">Visibility</span>
+            <span class="meta-v"><span class="ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Public</span></span>
+          </div>
+          <div class="meta-cell">
+            <span class="meta-k">Schema</span>
+            <span class="meta-v mono" style="font-size:12.5px">card-v2.1</span>
+          </div>
+        </div>
+
+        <div class="detail-body">
+          <p class="lead">The universal engineering charter every Cosmos AI Lab agent reads before it writes a single line — gravitas without the contrast pain.</p>
+          <p>The Charter codifies <strong>6 Pillars</strong> and <strong>13 principles</strong> that govern how every CAL AI plans, builds, reviews, and ships. It defines the <strong>Self-Proof template</strong> — seven lines an agent appends to prove its work is real — and the <strong>Anti-Loop rules</strong> that stop an agent burning cycles on a red baseline or re-deriving facts already settled.</p>
+          <p>Sections cross-reference the Pre-Flight Gate, the 1-task-1-branch-1-PR contract, and the repo-sandbox safety bands. When a rule changes, the canonical copy lives here in Akashic and propagates to every project entry point — this card is the source of truth, never a local mirror.</p>
+        </div>
+
+        <div class="detail-tags">
+          <span class="tag">charter</span>
+          <span class="tag">rules</span>
+          <span class="tag">6-pillars</span>
+          <span class="tag">self-proof</span>
+          <span class="tag">anti-loop</span>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l6 6v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 13h6M9 17h4"/></svg>
+            Open
+          </button>
+          <button class="btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 9a8 8 0 0 0-14.3-3.7L4 7M4 15a8 8 0 0 0 14.3 3.7L20 17"/></svg>
+            Remix
+          </button>
+          <button class="btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 3l9 4.5-9 4.5z"/><path d="m3 12 9 4.5L21 12"/><path d="M12 21v-9"/></svg>
+            Add to Collection
+          </button>
+          <button class="btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
+            Cite
+          </button>
+        </div>
+      </article>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     (E) HEMERA — Ask bar
+     ============================================================ -->
+<div class="hemera">
+  <div class="hemera-bar">
+    <span class="hemera-spark" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3.5 13.7 9l5.5 1.7-5.5 1.7L12 18l-1.7-5.6L4.8 10.7 10.3 9z"/>
+        <path d="M18.5 4.5l.6 1.9 1.9.6-1.9.6-.6 1.9-.6-1.9-1.9-.6 1.9-.6z"/>
+      </svg>
+    </span>
+    <input type="text" placeholder="Ask Hemera anything about the library…" aria-label="Ask Hemera">
+    <span class="hemera-meta">GPT-4o-mini · cites sources</span>
+    <button class="hemera-send" aria-label="Send to Hemera">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="tailspace"></div>
+
+<!-- ============================================================
+     THEME TOGGLE
+     ============================================================ -->
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn  = document.getElementById('themeToggle');
+
+  // Sun (shown in DARK = "switch to light")
+  var SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+  // Moon (shown in LIGHT = "switch to dark")
+  var MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>';
+
+  function paint(theme){
+    btn.innerHTML = (theme === 'dark') ? SUN : MOON;
+    btn.setAttribute('title', theme === 'dark' ? 'Switch to light' : 'Switch to dark');
+  }
+
+  // Init: honor harness-set attribute, else stored, else dark
+  var stored = null;
+  try { stored = localStorage.getItem('ak-theme'); } catch(e){}
+  var initial = root.getAttribute('data-theme') || stored || 'dark';
+  root.setAttribute('data-theme', initial);
+  paint(initial);
+
+  btn.addEventListener('click', function(){
+    var next = (root.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('ak-theme', next); } catch(e){}
+    paint(next);
+  });
+
+  // Keep the toggle icon correct if the harness flips data-theme directly.
+  new MutationObserver(function(){
+    paint(root.getAttribute('data-theme') || 'dark');
+  }).observe(root, { attributes:true, attributeFilter:['data-theme'] });
+})();
+</script>
+
+</body>
+</html>
