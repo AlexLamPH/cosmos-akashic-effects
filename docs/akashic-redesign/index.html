@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akashic — UI Redesign · 4 Directions</title>
+<style>
+@font-face{font-family:'Inter';src:url('fonts/Inter.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('fonts/JetBrainsMono.ttf') format('truetype');font-weight:100 800;font-display:swap}
+
+:root{
+  --bg:#0A0A0A; --surface:#121212; --surface-2:#181818; --text:#F4F4F4; --muted:#9A9A9A;
+  --faint:#6A6A6A; --hairline:rgba(255,255,255,.10); --accent:#FF8A1F; --accent-weak:rgba(255,138,31,.14);
+  --ok:#6FCF97; --serif:'Space Grotesk',sans-serif; --sans:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:64px 40px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+h1{font-family:var(--serif);font-weight:600;font-size:46px;line-height:1.04;letter-spacing:-.01em;margin:14px 0 0}
+h1 .pl{background:linear-gradient(180deg,#fff 0%,#cfcfcf 55%,#8f8f8f 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:16px;line-height:1.65;color:var(--muted);max-width:760px;margin-top:18px}
+.lead b{color:var(--text);font-weight:600}
+.by{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--faint);margin-top:18px}
+.rule{height:1px;background:var(--hairline);margin:40px 0}
+.sec-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:18px}
+
+/* before */
+.before{display:flex;gap:22px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:22px 24px}
+.before .txt{flex:1;min-width:280px}
+.before h3{font-family:var(--serif);font-size:18px;font-weight:600;margin-bottom:6px}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.sw{display:flex;flex-direction:column;gap:6px;align-items:center}
+.sw .chip{width:54px;height:38px;border-radius:7px;border:1px solid var(--hairline)}
+.sw small{font-family:var(--mono);font-size:9.5px;color:var(--faint)}
+
+/* directions */
+.dir{border:1px solid var(--hairline);border-radius:14px;background:var(--surface);overflow:hidden;margin-bottom:30px}
+.dir-head{display:flex;align-items:flex-start;gap:16px;padding:24px 26px 18px;border-bottom:1px solid var(--hairline)}
+.idx{font-family:var(--mono);font-size:13px;color:var(--faint);padding-top:6px;min-width:26px}
+.dir-head .h{flex:1}
+.dir-head h2{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);background:var(--accent-weak)}
+.badge.alt{border-color:var(--hairline);color:var(--muted);background:transparent}
+.pitch{color:var(--muted);font-size:14.5px;line-height:1.6;margin-top:9px;max-width:760px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:auto;margin-top:8px}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.shotbox{position:relative;border-right:1px solid var(--hairline)}
+.shotbox:last-child{border-right:none}
+.shotbox img{display:block;width:100%;height:auto;border-bottom:1px solid var(--hairline)}
+.shotbox .tag{position:absolute;top:12px;left:12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);color:#fff;padding:4px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
+.dir-foot{display:flex;gap:26px;padding:20px 26px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1;min-width:220px}
+.col .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.col ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.col li{font-size:13.5px;color:var(--muted);line-height:1.5;padding-left:16px;position:relative}
+.col li:before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.pal{display:flex;gap:8px;align-items:center}
+.pal .c{width:30px;height:30px;border-radius:6px;border:1px solid var(--hairline)}
+.pal small{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.open{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--text);text-decoration:none;border:1px solid var(--hairline);padding:9px 14px;border-radius:8px;transition:all .15s;white-space:nowrap}
+.open:hover{border-color:var(--accent);color:var(--accent)}
+.open .arr{color:var(--accent)}
+
+/* choose */
+.choose{border:1px solid var(--hairline);border-radius:12px;overflow:hidden}
+.choose .row{display:flex;gap:16px;padding:16px 22px;border-bottom:1px solid var(--hairline);align-items:center}
+.choose .row:last-child{border-bottom:none}
+.choose .row .q{flex:1;font-size:14.5px;color:var(--text)}
+.choose .row .a{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--accent);min-width:180px;text-align:right}
+.note{background:var(--accent-weak);border:1px solid rgba(255,138,31,.34);border-radius:10px;padding:18px 22px;margin-top:26px;font-size:14.5px;line-height:1.6;color:var(--text)}
+.note b{color:var(--accent)}
+.foot{margin-top:54px;padding-top:22px;border-top:1px solid var(--hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--faint)}
+@media(max-width:720px){.shots{grid-template-columns:1fr}.shotbox{border-right:none}h1{font-size:34px}.wrap{padding:40px 22px 64px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Akashic Library · UI/UX Redesign Proposal</div>
+  <h1>Bốn hướng thiết kế lại<br><span class="pl">Akashic — toàn diện</span></h1>
+  <p class="lead">Akashic là dự án trung tâm của CAL, nhưng UI hiện tại bị từ chối: <b>tím trên nền tối khó đọc</b>, card rối, neon overload, và <b>chỉ có dark mode</b>. Bốn hướng dưới đây đều bám 3 nguyên tắc lõi — <b>tối giản · đồng nhất · công nghệ</b> — và đều có <b>light + dark thật</b> (bấm toggle trong mockup), font kim loại, dùng <b>dữ liệu card thật</b>, đạt <b>WCAG AA</b> cả hai chế độ. Mở từng mockup để bấm thử; ảnh dưới là dark + light của mỗi hướng.</p>
+  <div class="by">— Ra · Creative &amp; 3D Engineer · Cosmos AI Lab · 28·06·2026</div>
+
+  <div class="rule"></div>
+
+  <div class="sec-label">Hiện trạng — cái đang thay thế</div>
+  <div class="before">
+    <div class="txt">
+      <h3>"Cyber Luxury Vault" — dark-only</h3>
+      <p class="muted" style="font-size:13.5px;line-height:1.55">Violet + cyan + neon pink trên near-black, glow khắp nơi → chữ tím low-contrast khó đọc, card cluttered, không có light mode. Đây là gốc của vấn đề Alex nêu.</p>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#7000FF"></div><small>#7000FF</small></div>
+      <div class="sw"><div class="chip" style="background:#00F2FF"></div><small>#00F2FF</small></div>
+      <div class="sw"><div class="chip" style="background:#FF00E5"></div><small>#FF00E5</small></div>
+      <div class="sw"><div class="chip" style="background:#050508"></div><small>#050508</small></div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sec-label">Bốn hướng đề xuất</div>
+
+  <!-- PHANTOM -->
+  <div class="dir">
+    <div class="dir-head">
+      <div class="idx">01</div>
+      <div class="h">
+        <h2>Phantom <span class="badge">★ Ra đề xuất chính</span></h2>
+        <p class="pitch">House style của CAL mang vào Akashic — đơn sắc editorial, một điểm nhấn hổ phách cháy, hairline tinh tế. Tối giản nhất, đồng nhất với cả hệ sinh thái (Multi-AI, Phantom DNA), Linear-grade. <i>The most unified, calmest option.</i></p>
+      </div>
+      <span class="dot" style="background:#FF8A1F"></span>
+    </div>
+    <div class="shots">
+      <div class="shotbox"><span class="tag">● Dark</span><img src="shots/phantom_dark.png" alt="Phantom dark"></div>
+      <div class="shotbox"><span class="tag">○ Light</span><img src="shots/phantom_light.png" alt="Phantom light"></div>
+    </div>
+    <div class="dir-foot">
+      <div class="col"><div class="k">Hợp nhất khi</div><ul><li>Muốn Akashic đồng nhất với toàn hệ CAL</li><li>Ưu tiên tối giản + dễ đọc tuyệt đối</li><li>Amber accent = ngôn ngữ chung ecosystem</li></ul></div>
+      <div class="col"><div class="k">Type · Accent</div>
+        <p class="muted" style="font-size:13px;margin-bottom:10px">Space Grotesk + Inter + JetBrains Mono</p>
+        <div class="pal"><span class="c" style="background:#FF8A1F"></span><span class="c" style="background:#B5630A"></span><small>amber · dark / light</small></div>
+      </div>
+      <div class="col" style="flex:0 0 auto;align-self:center"><a class="open" href="phantom.html">Mở mockup <span class="arr">↗</span></a></div>
+    </div>
+  </div>
+
+  <!-- VIOLET -->
+  <div class="dir">
+    <div class="dir-head">
+      <div class="idx">02</div>
+      <div class="h">
+        <h2>Obsidian Violet <span class="badge alt">giữ bản sắc</span></h2>
+        <p class="pitch">Giữ "hồn" tím của Akashic nhưng <b style="color:var(--text)">sửa</b> nó: tím thành MỘT accent tinh tế đạt AA (active, type dot, link) trên nền indigo-đen êm, chữ off-white nét, serif sang. <i>We didn't kill the purple — we fixed it.</i></p>
+      </div>
+      <span class="dot" style="background:#8B7BFF"></span>
+    </div>
+    <div class="shots">
+      <div class="shotbox"><span class="tag">● Dark</span><img src="shots/violet_dark.png" alt="Violet dark"></div>
+      <div class="shotbox"><span class="tag">○ Light</span><img src="shots/violet_light.png" alt="Violet light"></div>
+    </div>
+    <div class="dir-foot">
+      <div class="col"><div class="k">Hợp nhất khi</div><ul><li>Muốn giữ bản sắc tím riêng của Akashic</li><li>Không gây sốc người dùng quen giao diện cũ</li><li>Serif gravitas cho "thư viện tri thức"</li></ul></div>
+      <div class="col"><div class="k">Type · Accent</div>
+        <p class="muted" style="font-size:13px;margin-bottom:10px">Source Serif 4 + Inter + JetBrains Mono</p>
+        <div class="pal"><span class="c" style="background:#8B7BFF"></span><span class="c" style="background:#6D4AED"></span><small>violet · dark / light</small></div>
+      </div>
+      <div class="col" style="flex:0 0 auto;align-self:center"><a class="open" href="violet.html">Mở mockup <span class="arr">↗</span></a></div>
+    </div>
+  </div>
+
+  <!-- BLUEPRINT -->
+  <div class="dir">
+    <div class="dir-head">
+      <div class="idx">03</div>
+      <div class="h">
+        <h2>Blueprint <span class="badge alt">"công nghệ" nhất</span></h2>
+        <p class="pitch">Bản kỹ thuật nhất — xám lạnh, lưới chấm mờ như bản vẽ CAD, chữ mono dẫn dắt, mỗi card là một "spec sheet" với dấu góc chữ-L, một màu teal tín hiệu. Có cả stats bar + TOC + related. <i>Instrument-grade Knowledge OS.</i></p>
+      </div>
+      <span class="dot" style="background:#3DD6C4"></span>
+    </div>
+    <div class="shots">
+      <div class="shotbox"><span class="tag">● Dark</span><img src="shots/blueprint_dark.png" alt="Blueprint dark"></div>
+      <div class="shotbox"><span class="tag">○ Light</span><img src="shots/blueprint_light.png" alt="Blueprint light"></div>
+    </div>
+    <div class="dir-foot">
+      <div class="col"><div class="k">Hợp nhất khi</div><ul><li>Muốn cảm giác engineering / Knowledge-OS mạnh nhất</li><li>Thích data-dense (stats, TOC, related) gọn đẹp</li><li>Teal lạnh = chất công nghệ, kỷ luật</li></ul></div>
+      <div class="col"><div class="k">Type · Accent</div>
+        <p class="muted" style="font-size:13px;margin-bottom:10px">JetBrains Mono-forward + Space Grotesk + Inter</p>
+        <div class="pal"><span class="c" style="background:#3DD6C4"></span><span class="c" style="background:#0E8E80"></span><small>teal · dark / light</small></div>
+      </div>
+      <div class="col" style="flex:0 0 auto;align-self:center"><a class="open" href="blueprint.html">Mở mockup <span class="arr">↗</span></a></div>
+    </div>
+  </div>
+
+  <!-- EDITORIAL -->
+  <div class="dir">
+    <div class="dir-head">
+      <div class="idx">04</div>
+      <div class="h">
+        <h2>Editorial Library <span class="badge alt">đọc thoải mái nhất</span></h2>
+        <p class="pitch">Phòng đọc số yên tĩnh nhất — chữ serif sang, drop-cap, nhiều khoảng thở, một sắc đất-sét trầm. Trả lời thẳng lời than "khó đọc" bằng readability tối đa. <i>The calmest reading room.</i></p>
+      </div>
+      <span class="dot" style="background:#D99A5B"></span>
+    </div>
+    <div class="shots">
+      <div class="shotbox"><span class="tag">● Dark</span><img src="shots/editorial_dark.png" alt="Editorial dark"></div>
+      <div class="shotbox"><span class="tag">○ Light</span><img src="shots/editorial_light.png" alt="Editorial light"></div>
+    </div>
+    <div class="dir-foot">
+      <div class="col"><div class="k">Hợp nhất khi</div><ul><li>Ưu tiên đọc lâu, ít mỏi mắt nhất</li><li>Muốn cảm giác ấm + sang như một cuốn sách đẹp</li><li>Typography + khoảng trắng là điểm nhấn</li></ul></div>
+      <div class="col"><div class="k">Type · Accent</div>
+        <p class="muted" style="font-size:13px;margin-bottom:10px">Source Serif 4 (italic labels) + Inter + JetBrains Mono</p>
+        <div class="pal"><span class="c" style="background:#D99A5B"></span><span class="c" style="background:#A9662E"></span><small>clay · dark / light</small></div>
+      </div>
+      <div class="col" style="flex:0 0 auto;align-self:center"><a class="open" href="editorial.html">Mở mockup <span class="arr">↗</span></a></div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sec-label">Chọn theo mục tiêu</div>
+  <div class="choose">
+    <div class="row"><div class="q">Muốn Akashic <b>đồng nhất với toàn hệ sinh thái CAL</b> (Multi-AI, Phantom DNA)</div><div class="a">→ Phantom ★</div></div>
+    <div class="row"><div class="q">Muốn <b>giữ bản sắc tím riêng</b> của Akashic, không gây sốc</div><div class="a">→ Obsidian Violet</div></div>
+    <div class="row"><div class="q">Muốn cảm giác <b>engineering / Knowledge-OS</b> mạnh &amp; data-dense</div><div class="a">→ Blueprint</div></div>
+    <div class="row"><div class="q">Muốn <b>đọc thoải mái nhất</b>, ấm &amp; tĩnh như sách</div><div class="a">→ Editorial</div></div>
+  </div>
+
+  <div class="note">
+    <b>Khuyến nghị của Ra:</b> em chọn <b>Phantom</b> làm hướng chính — nó tối giản nhất, dễ đọc tuyệt đối, và quan trọng nhất là <b>đồng nhất</b> Akashic với phần còn lại của hệ CAL (cùng ngôn ngữ amber + Phantom DNA). <b>Blueprint</b> là á quân nếu Alex muốn Akashic "ngầu công nghệ" hơn. Còn <b>Obsidian Violet</b> là lựa chọn an toàn nếu muốn giữ linh hồn tím. Cả 4 đều ship-ready; chỉ cần Alex chỉ 1 hướng là em ráp vào Akashic thật (qua Mythos owner + security review trước khi apply).
+  </div>
+
+  <div class="foot">
+    <span>◆ COSMOS AI LAB · AKASHIC KNOWLEDGE OS · REDESIGN PROPOSAL</span>
+    <span>RA · CREATIVE &amp; 3D ENGINEER · 4 DIRECTIONS · LIGHT + DARK · WCAG AA</span>
+  </div>
+</div>
+</body>
+</html>

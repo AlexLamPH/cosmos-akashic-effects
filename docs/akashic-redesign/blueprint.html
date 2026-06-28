@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akashic Library — Blueprint</title>
+<style>
+/* ============================================================
+   FONTS — local, no CDN
+   ============================================================ */
+@font-face{font-family:'Inter';src:url('fonts/Inter.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('fonts/JetBrainsMono.ttf') format('truetype');font-weight:100 800;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4.ttf') format('truetype');font-weight:200 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Source Serif 4';src:url('fonts/SourceSerif4-Italic.ttf') format('truetype');font-weight:200 900;font-style:italic;font-display:swap}
+
+/* ============================================================
+   TOKENS — BLUEPRINT direction
+   DARK (default)
+   ============================================================ */
+:root,
+[data-theme="dark"]{
+  --bg:#0C0E10;
+  --surface:#14171A;
+  --surface-2:#1A1E22;
+  --text:#E6E9EC;
+  --muted:#8A9096;
+  --faint:#5C636A;
+  --hairline:rgba(255,255,255,.09);
+  --hairline-strong:rgba(255,255,255,.14);
+  --grid:rgba(255,255,255,.035);
+  --accent:#3DD6C4;
+  --accent-weak:rgba(61,214,196,.14);
+  --accent-line:rgba(61,214,196,.32);
+  --tick:rgba(255,255,255,.16);
+  --shadow:rgba(0,0,0,.45);
+
+  /* quiet type-accent dots (muted, harmonious) */
+  --t-guideline:#3DD6C4;   /* teal — same family as signal */
+  --t-role:#6F9BE8;        /* steel blue */
+  --t-workflow:#C7A86B;    /* sand (NOT gold leaf — muted ochre dot only) */
+  --t-tool:#7FB389;        /* sage */
+  --t-code_pattern:#C58A9E;/* dusty rose */
+  --t-diary:#9C8FD6;       /* muted lilac */
+  --t-repo_overview:#5FB0C9;/* slate cyan */
+  --t-decision:#B08A6A;    /* clay */
+}
+
+/* ============================================================
+   LIGHT
+   ============================================================ */
+[data-theme="light"]{
+  --bg:#F6F8F9;
+  --surface:#FFFFFF;
+  --surface-2:#EDF1F2;
+  --text:#11161A;
+  --muted:#5C656C;
+  --faint:#98A0A6;
+  --hairline:rgba(0,0,0,.10);
+  --hairline-strong:rgba(0,0,0,.16);
+  --grid:rgba(0,0,0,.04);
+  --accent:#0E8E80;
+  --accent-weak:rgba(14,142,128,.10);
+  --accent-line:rgba(14,142,128,.30);
+  --tick:rgba(0,0,0,.20);
+  --shadow:rgba(20,30,35,.10);
+
+  --t-guideline:#0E8E80;
+  --t-role:#3B66B0;
+  --t-workflow:#9A7B33;
+  --t-tool:#3E7E4C;
+  --t-code_pattern:#9E5670;
+  --t-diary:#6A5BB0;
+  --t-repo_overview:#2E7E97;
+  --t-decision:#8A5E3A;
+}
+
+/* ============================================================
+   RESET + BASE
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.55;
+  min-height:100vh;
+  /* dotted-grid motif: extremely subtle, on --bg only */
+  background-image:radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+  background-position:-1px -1px;
+  transition:background-color .35s ease, color .35s ease;
+}
+::selection{background:var(--accent-weak);color:var(--text)}
+
+/* mono helper */
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.micro{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:10.5px;
+  font-weight:500;
+  color:var(--muted);
+}
+.disp{font-family:'Space Grotesk',sans-serif;letter-spacing:-.01em;font-weight:500}
+
+svg{display:block}
+.ico{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ico-sm{width:15px;height:15px;stroke-width:1.5}
+button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none}
+a{color:inherit;text-decoration:none}
+
+/* ============================================================
+   (A) APP BAR
+   ============================================================ */
+.appbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:18px;
+  height:56px;padding:0 22px;
+  background:color-mix(in srgb, var(--surface) 88%, transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--hairline);
+}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.logo-mark{width:26px;height:26px;color:var(--text)}
+.wordmark{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;font-size:16px;letter-spacing:.02em;
+  /* subtle platinum sheen on wordmark only */
+  background:linear-gradient(180deg, var(--text), color-mix(in srgb, var(--text) 62%, var(--muted)));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.brand-rule{
+  width:1px;height:22px;background:var(--hairline);margin:0 2px;flex-shrink:0;
+}
+.brand-tag{font-size:10.5px;letter-spacing:.14em}
+
+.search{
+  flex:1;max-width:520px;
+  display:flex;align-items:center;gap:9px;
+  height:34px;padding:0 12px;
+  background:var(--bg);
+  border:1px solid var(--hairline);
+  border-radius:4px;
+  color:var(--muted);
+  transition:border-color .2s ease, background .2s ease;
+}
+.search:focus-within{border-color:var(--accent-line);background:var(--surface-2)}
+.search input{
+  flex:1;background:none;border:none;outline:none;
+  font-family:'Inter',sans-serif;font-size:13px;color:var(--text);
+}
+.search input::placeholder{color:var(--faint)}
+.search kbd{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--faint);border:1px solid var(--hairline);
+  border-radius:3px;padding:1px 5px;letter-spacing:.04em;
+}
+.appbar-spacer{flex:1}
+
+.bar-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:4px;
+  border:1px solid var(--hairline);color:var(--muted);
+  background:var(--bg);
+  transition:all .18s ease;
+}
+.bar-btn:hover{color:var(--text);border-color:var(--hairline-strong);background:var(--surface-2)}
+.avatar{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:4px;flex-shrink:0;
+  background:var(--surface-2);border:1px solid var(--hairline);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  letter-spacing:.04em;color:var(--text);
+}
+
+/* ============================================================
+   (B) SHELL — sidebar + main
+   ============================================================ */
+.shell{display:grid;grid-template-columns:236px 1fr;align-items:start}
+.sidebar{
+  position:sticky;top:56px;
+  height:calc(100vh - 56px);
+  border-right:1px solid var(--hairline);
+  padding:18px 14px;
+  display:flex;flex-direction:column;gap:22px;
+  overflow-y:auto;
+  background:color-mix(in srgb, var(--surface) 40%, transparent);
+}
+.nav-group{display:flex;flex-direction:column;gap:2px}
+.nav-label{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 8px 8px;
+}
+.nav-label .micro{font-size:10px;color:var(--faint)}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  height:34px;padding:0 8px;border-radius:4px;
+  color:var(--muted);font-size:13.5px;font-weight:450;
+  position:relative;transition:color .16s ease, background .16s ease;
+}
+.nav-item .ico{color:var(--faint);transition:color .16s ease}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item:hover .ico{color:var(--muted)}
+.nav-item.active{background:var(--accent-weak);color:var(--text)}
+.nav-item.active .ico{color:var(--accent)}
+.nav-item.active::before{
+  content:"";position:absolute;left:-14px;top:7px;bottom:7px;width:2px;
+  background:var(--accent);border-radius:0 2px 2px 0;
+}
+.nav-count{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;color:var(--faint);
+}
+.nav-item.active .nav-count{color:var(--accent)}
+
+/* type filter chips */
+.type-filter{display:flex;flex-wrap:wrap;gap:6px;padding:0 4px}
+.tchip{
+  display:inline-flex;align-items:center;gap:6px;
+  height:26px;padding:0 9px;border-radius:4px;
+  border:1px solid var(--hairline);background:var(--bg);
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  transition:all .16s ease;
+}
+.tchip:hover{border-color:var(--hairline-strong);color:var(--text)}
+.tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--d,var(--accent))}
+.tchip.on{border-color:var(--accent-line);color:var(--text);background:var(--accent-weak)}
+
+.side-foot{margin-top:auto;padding:10px 8px 2px;border-top:1px solid var(--hairline)}
+.side-foot .micro{font-size:9.5px;color:var(--faint);line-height:1.7}
+.side-foot .dot-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:middle}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+.main{padding:26px 30px 80px;min-width:0;max-width:1340px}
+
+/* schematic rule — a labeled hairline divider */
+.schem-rule{
+  display:flex;align-items:center;gap:12px;margin:0 0 22px;
+}
+.schem-rule .line{flex:1;height:1px;background:var(--hairline)}
+.schem-rule .micro{font-size:9.5px;color:var(--faint);white-space:nowrap}
+
+/* library header */
+.lib-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:20px;margin-bottom:6px;flex-wrap:wrap;
+}
+.lib-title-wrap{display:flex;align-items:baseline;gap:14px}
+.lib-title{font-size:27px;font-weight:500;letter-spacing:-.02em;line-height:1}
+.lib-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.lib-count b{color:var(--text);font-weight:600}
+
+.lib-controls{display:flex;align-items:center;gap:10px}
+.seg{
+  display:flex;border:1px solid var(--hairline);border-radius:4px;overflow:hidden;
+  background:var(--bg);
+}
+.seg button{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:30px;color:var(--faint);transition:all .16s ease;
+}
+.seg button + button{border-left:1px solid var(--hairline)}
+.seg button.on{background:var(--surface-2);color:var(--accent)}
+.seg button:hover:not(.on){color:var(--muted)}
+.sortbtn{
+  display:flex;align-items:center;gap:8px;height:30px;padding:0 11px;
+  border:1px solid var(--hairline);border-radius:4px;background:var(--bg);
+  font-size:12px;color:var(--muted);transition:all .16s ease;
+}
+.sortbtn:hover{border-color:var(--hairline-strong);color:var(--text)}
+.sortbtn .mono{font-size:11px;color:var(--text)}
+
+/* metric strip — instrument feel */
+.metrics{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--hairline);border:1px solid var(--hairline);border-radius:4px;
+  overflow:hidden;margin:18px 0 26px;
+}
+.metric{background:var(--surface);padding:13px 16px;display:flex;flex-direction:column;gap:4px}
+.metric .micro{font-size:9.5px;color:var(--faint)}
+.metric .val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:var(--text);letter-spacing:-.01em}
+.metric .val .u{font-size:11px;color:var(--muted);font-weight:400;margin-left:3px}
+.metric .delta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent)}
+
+/* ============================================================
+   (C) CARD GRID — spec sheets
+   ============================================================ */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(282px,1fr));
+  gap:16px;
+}
+.card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:4px;
+  padding:0;
+  display:flex;flex-direction:column;
+  transition:border-color .2s ease, background .2s ease, transform .2s ease;
+  overflow:hidden;
+}
+.card:hover{
+  border-color:var(--hairline-strong);
+  background:color-mix(in srgb, var(--surface) 86%, var(--surface-2));
+  transform:translateY(-1px);
+}
+/* faint accent wash on hover */
+.card::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:var(--accent-weak);opacity:0;transition:opacity .2s ease;
+}
+.card:hover::after{opacity:1}
+.card > *{position:relative;z-index:1}
+
+/* L-shaped corner ticks (schematic motif) — top-left + bottom-right */
+.card .tick{position:absolute;width:9px;height:9px;z-index:2;pointer-events:none}
+.card .tick.tl{top:7px;left:7px;border-top:1px solid var(--tick);border-left:1px solid var(--tick)}
+.card .tick.br{bottom:7px;right:7px;border-bottom:1px solid var(--tick);border-right:1px solid var(--tick)}
+.card:hover .tick.tl{border-color:var(--accent-line)}
+.card:hover .tick.br{border-color:var(--accent-line)}
+
+/* spec header strip */
+.card-spec{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 14px;border-bottom:1px solid var(--hairline);
+  background:color-mix(in srgb, var(--surface-2) 50%, transparent);
+}
+.card-spec .tdot{width:8px;height:8px}
+.card-spec .micro{font-size:10px;color:var(--muted)}
+.card-spec .ck{margin-left:auto;color:var(--faint)}
+
+.card-body{padding:14px 14px 12px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card-title{
+  font-family:'Space Grotesk',sans-serif;font-weight:500;
+  font-size:16px;line-height:1.28;letter-spacing:-.01em;color:var(--text);
+  position:relative;display:inline;width:fit-content;
+}
+.card-title-wrap{position:relative;width:fit-content}
+.card-title-wrap::after{
+  content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform .25s cubic-bezier(.2,.7,.2,1);
+}
+.card:hover .card-title-wrap::after{transform:scaleX(1)}
+.card-excerpt{
+  font-size:12.5px;line-height:1.5;color:var(--muted);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+
+/* mini spec grid: UPDATED / TAGS */
+.spec-grid{
+  display:grid;grid-template-columns:auto 1fr;gap:4px 14px;
+  padding-top:10px;margin-top:2px;border-top:1px dashed var(--hairline);
+}
+.spec-grid dt{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);align-self:center}
+.spec-grid dd{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+.card-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 14px;border-top:1px solid var(--hairline);
+}
+.cardno{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.02em}
+.tags{display:flex;gap:6px}
+.tag{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--muted);border:1px solid var(--hairline);border-radius:3px;padding:2px 7px;
+  transition:all .16s ease;
+}
+.card:hover .tag{border-color:var(--hairline-strong)}
+
+/* ============================================================
+   (D) CARD DETAIL
+   ============================================================ */
+.detail{
+  position:relative;margin-top:34px;
+  background:var(--surface);
+  border:1px solid var(--hairline);border-radius:4px;
+  overflow:hidden;
+}
+.detail .tick{position:absolute;width:12px;height:12px;z-index:3}
+.detail .tick.tl{top:9px;left:9px;border-top:1px solid var(--tick);border-left:1px solid var(--tick)}
+.detail .tick.tr{top:9px;right:9px;border-top:1px solid var(--tick);border-right:1px solid var(--tick)}
+.detail .tick.bl{bottom:9px;left:9px;border-bottom:1px solid var(--tick);border-left:1px solid var(--tick)}
+.detail .tick.br{bottom:9px;right:9px;border-bottom:1px solid var(--tick);border-right:1px solid var(--tick)}
+
+.detail-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 22px;border-bottom:1px solid var(--hairline);
+  background:color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+.detail-bar .tdot{width:9px;height:9px}
+.detail-bar .micro{color:var(--muted)}
+.detail-bar .cardno{margin-left:auto}
+.detail-state{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--accent);border:1px solid var(--accent-line);border-radius:3px;padding:2px 8px;
+}
+
+.detail-grid{display:grid;grid-template-columns:1fr 248px;gap:0}
+.detail-main{padding:26px 28px;border-right:1px solid var(--hairline);min-width:0}
+.detail-side{padding:24px 22px;display:flex;flex-direction:column;gap:20px}
+
+.detail-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:30px;line-height:1.14;letter-spacing:-.02em;margin-bottom:14px}
+.detail-meta{
+  display:flex;flex-wrap:wrap;gap:7px 0;margin-bottom:22px;
+  border:1px solid var(--hairline);border-radius:4px;overflow:hidden;
+}
+.dm{padding:9px 15px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px;border-right:1px solid var(--hairline)}
+.dm:last-child{border-right:none}
+.dm .micro{font-size:9px;color:var(--faint)}
+.dm .v{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)}
+.dm .v.ok{color:var(--accent)}
+
+.detail-body p{font-size:14.5px;line-height:1.72;color:var(--text);margin-bottom:14px;max-width:64ch}
+.detail-body p .lead{color:var(--muted)}
+.detail-body .pull{
+  font-family:'Source Serif 4',serif;font-style:italic;font-size:16px;line-height:1.6;
+  color:var(--muted);border-left:2px solid var(--accent-line);padding:4px 0 4px 16px;margin:18px 0;max-width:60ch;
+}
+
+.detail-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:22px}
+.detail-tags .tag{font-size:10px;padding:3px 9px}
+
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px;padding-top:20px;border-top:1px solid var(--hairline)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;
+  border-radius:4px;border:1px solid var(--hairline);background:var(--bg);
+  font-size:12.5px;font-weight:500;color:var(--text);transition:all .16s ease;
+}
+.btn:hover{border-color:var(--hairline-strong);background:var(--surface-2)}
+.btn .ico-sm{color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#08120F}
+.btn.primary .ico-sm{color:#08120F}
+.btn.primary:hover{background:color-mix(in srgb, var(--accent) 90%, #fff);filter:none}
+
+/* side blocks */
+.side-block{display:flex;flex-direction:column;gap:9px}
+.side-block .micro{font-size:9.5px;color:var(--faint)}
+.toc{display:flex;flex-direction:column;gap:1px}
+.toc a{
+  display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:4px;
+  font-size:12.5px;color:var(--muted);transition:all .16s ease;
+}
+.toc a:hover{background:var(--surface-2);color:var(--text)}
+.toc a .n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);width:18px}
+.toc a.cur{color:var(--text)}
+.toc a.cur .n{color:var(--accent)}
+
+.related{display:flex;flex-direction:column;gap:8px}
+.rel{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:4px;
+  border:1px solid var(--hairline);background:var(--bg);transition:all .16s ease;
+}
+.rel:hover{border-color:var(--accent-line);background:var(--surface-2)}
+.rel .tdot{width:7px;height:7px;flex-shrink:0}
+.rel .rt{font-size:12px;color:var(--text);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rel .rn{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--faint);margin-top:2px}
+
+/* ============================================================
+   (E) HEMERA bar
+   ============================================================ */
+.hemera-wrap{margin-top:36px}
+.hemera{
+  position:relative;
+  display:flex;align-items:center;gap:14px;
+  padding:16px 18px;
+  background:var(--surface);
+  border:1px solid var(--hairline);border-radius:4px;
+  overflow:hidden;
+}
+.hemera::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent);
+}
+.hemera-ico{
+  display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:4px;flex-shrink:0;
+  background:var(--accent-weak);color:var(--accent);border:1px solid var(--accent-line);
+}
+.hemera-text{flex:1;min-width:0}
+.hemera-text .micro{font-size:9.5px;color:var(--accent);margin-bottom:3px}
+.hemera-input{
+  display:flex;align-items:center;gap:10px;
+}
+.hemera-input input{
+  flex:1;background:none;border:none;outline:none;
+  font-family:'Inter',sans-serif;font-size:14px;color:var(--text);
+}
+.hemera-input input::placeholder{color:var(--faint)}
+.hemera-send{
+  display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:4px;flex-shrink:0;
+  background:var(--accent);color:#08120F;transition:all .16s ease;
+}
+.hemera-send:hover{background:color-mix(in srgb, var(--accent) 90%, #fff)}
+.hemera-hint{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;
+}
+.hpill{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.03em;
+  color:var(--muted);border:1px solid var(--hairline);border-radius:3px;padding:4px 9px;
+  transition:all .16s ease;
+}
+.hpill:hover{border-color:var(--accent-line);color:var(--text)}
+
+/* footer */
+.foot{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  margin-top:40px;padding-top:18px;border-top:1px solid var(--hairline);
+}
+.foot .micro{font-size:9.5px;color:var(--faint)}
+.foot-coords{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--faint);letter-spacing:.06em}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1080px){
+  .detail-grid{grid-template-columns:1fr}
+  .detail-main{border-right:none;border-bottom:1px solid var(--hairline)}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .brand-rule,.brand-tag{display:none}
+}
+@media (max-width:560px){
+  .main{padding:20px 16px 60px}
+  .metrics{grid-template-columns:1fr 1fr}
+  .search kbd{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     (A) APP BAR
+     ============================================================ -->
+<header class="appbar">
+  <div class="brand">
+    <!-- layered / stacked-strata diamond glyph -->
+    <svg class="logo-mark" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <path d="M13 2 L23 8 L13 14 L3 8 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M3 13 L13 19 L23 13" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" opacity=".62"/>
+      <path d="M3 18 L13 24 L23 18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" opacity=".34"/>
+    </svg>
+    <span class="wordmark">Akashic</span>
+    <span class="brand-rule"></span>
+    <span class="micro brand-tag">KNOWLEDGE&nbsp;OS</span>
+  </div>
+
+  <label class="search">
+    <svg class="ico-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="text" placeholder="Search cards, tags, types…" aria-label="Search">
+    <kbd>⌘K</kbd>
+  </label>
+
+  <div class="appbar-spacer"></div>
+
+  <button class="bar-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+    <!-- icon swapped by JS -->
+    <svg class="ico" id="themeIco" viewBox="0 0 24 24"></svg>
+  </button>
+  <button class="bar-btn" aria-label="Notifications" title="Activity">
+    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+  </button>
+  <div class="avatar" title="Ra">RA</div>
+</header>
+
+<!-- ============================================================
+     (B) SHELL
+     ============================================================ -->
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="nav-group">
+      <div class="nav-label"><span class="micro">Workspace</span></div>
+
+      <a class="nav-item active">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><rect x="3" y="3" width="18" height="18" rx="1.5" opacity=".0"/></svg>
+        Library <span class="nav-count">128</span>
+      </a>
+      <a class="nav-item">
+        <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M3 9h18M9 18v2M15 18v2"/></svg>
+        Collections <span class="nav-count">12</span>
+      </a>
+      <a class="nav-item">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" opacity=".55"/></svg>
+        RAG Packs <span class="nav-count">7</span>
+      </a>
+      <a class="nav-item">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-5z"/></svg>
+        Files <span class="nav-count">340</span>
+      </a>
+      <a class="nav-item">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M8.3 7l7.4 1.6M8.2 16.6 16 10.4"/></svg>
+        Repos <span class="nav-count">9</span>
+      </a>
+      <a class="nav-item">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><path d="M19 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z"/></svg>
+        Hemera
+      </a>
+      <a class="nav-item">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>
+        Trash <span class="nav-count">3</span>
+      </a>
+    </nav>
+
+    <div class="nav-group">
+      <div class="nav-label"><span class="micro">Filter by type</span><span class="micro" style="color:var(--faint)">8</span></div>
+      <div class="type-filter">
+        <button class="tchip on"><span class="tdot" style="--d:var(--t-guideline)"></span>guideline</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-role)"></span>role</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-workflow)"></span>workflow</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-tool)"></span>tool</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-code_pattern)"></span>code_pattern</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-diary)"></span>diary</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-repo_overview)"></span>repo_overview</button>
+        <button class="tchip"><span class="tdot" style="--d:var(--t-decision)"></span>decision</button>
+      </div>
+    </div>
+
+    <div class="side-foot">
+      <div class="micro"><span class="dot-live"></span>HEMERA · ONLINE</div>
+      <div class="micro" style="margin-top:5px">PG · pgvector · GCS</div>
+      <div class="micro" style="margin-top:5px">BUILD 5.1 · NODE 18</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="schem-rule">
+      <span class="micro">§ LIBRARY / INDEX</span>
+      <span class="line"></span>
+      <span class="micro">REV 2026.06.28</span>
+    </div>
+
+    <!-- (C) LIBRARY HEADER -->
+    <div class="lib-head">
+      <div class="lib-title-wrap">
+        <h1 class="lib-title disp">Card Library</h1>
+        <span class="lib-count"><b>128</b>&nbsp;cards</span>
+      </div>
+      <div class="lib-controls">
+        <div class="seg" role="group" aria-label="View mode">
+          <button class="on" aria-label="Grid view">
+            <svg class="ico-sm" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+          </button>
+          <button aria-label="List view">
+            <svg class="ico-sm" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+          </button>
+        </div>
+        <button class="sortbtn">
+          <svg class="ico-sm" viewBox="0 0 24 24"><path d="M3 6h12M3 12h9M3 18h6M17 8V4m0 0-2 2m2-2 2 2M17 16v4m0 0 2-2m-2 2-2-2" opacity=".0"/><path d="M3 6h12M3 12h8M3 18h5M18 5v14m0 0 3-3m-3 3-3-3"/></svg>
+          Sort: <span class="mono">RECENT</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- instrument metric strip -->
+    <div class="metrics">
+      <div class="metric">
+        <span class="micro">Total Cards</span>
+        <span class="val">128</span>
+        <span class="delta">▲ +6 / 7d</span>
+      </div>
+      <div class="metric">
+        <span class="micro">Card Types</span>
+        <span class="val">13<span class="u">schemas</span></span>
+        <span class="delta" style="color:var(--muted)">stable</span>
+      </div>
+      <div class="metric">
+        <span class="micro">RAG Coverage</span>
+        <span class="val">94<span class="u">%</span></span>
+        <span class="delta">▲ embedded</span>
+      </div>
+      <div class="metric">
+        <span class="micro">Last Indexed</span>
+        <span class="val">02<span class="u">min ago</span></span>
+        <span class="delta" style="color:var(--muted)">pg-boss ok</span>
+      </div>
+    </div>
+
+    <!-- CARD GRID — 8 spec sheets -->
+    <div class="grid">
+
+      <!-- 1 · Charter -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-guideline)"></span>
+          <span class="micro">GUIDELINE · AK-GUI-0000037</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">Cosmos AI Engineering Charter v1.5</h3></div>
+          <p class="card-excerpt">6 Pillars, 13 principles, Self-Proof template, Anti-Loop rules — the universal engineering charter for every CAL AI.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-05-17</dd>
+            <dt>Tags</dt><dd>charter · rules</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-GUI-0000037</span>
+          <div class="tags"><span class="tag">charter</span><span class="tag">rules</span></div>
+        </div>
+      </article>
+
+      <!-- 2 · First-Read role -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-role)"></span>
+          <span class="micro">ROLE · AK-ROL-0000005</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">First-Read — Personal Layer</h3></div>
+          <p class="card-excerpt">Alex + Cosmos AI Lab ecosystem foundation, team identities, safety rules. Read first, every session.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-04-26</dd>
+            <dt>Tags</dt><dd>onboarding · ecosystem</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-ROL-0000005</span>
+          <div class="tags"><span class="tag">onboarding</span></div>
+        </div>
+      </article>
+
+      <!-- 3 · Ra Design Pipeline workflow -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-workflow)"></span>
+          <span class="micro">WORKFLOW · AK-WFL-CAL0001</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">Ra Design Pipeline</h3></div>
+          <p class="card-excerpt">Produce premium visual design by orchestrating AI image-gen + code — art director, not hand-drawer.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-06-28</dd>
+            <dt>Tags</dt><dd>design · image-gen</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-WFL-CAL0001</span>
+          <div class="tags"><span class="tag">design</span><span class="tag">image-gen</span></div>
+        </div>
+      </article>
+
+      <!-- 4 · Model Lookup tool -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-tool)"></span>
+          <span class="micro">TOOL · AK-TOL-0000005</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">Cross-Vendor Model Quick Lookup Index</h3></div>
+          <p class="card-excerpt">34 models across 5 vendors (xAI / Anthropic / OpenAI / Google / Mimo) — filter by modality + tier + use.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-05-19</dd>
+            <dt>Tags</dt><dd>models · registry</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-TOL-0000005</span>
+          <div class="tags"><span class="tag">models</span><span class="tag">registry</span></div>
+        </div>
+      </article>
+
+      <!-- 5 · Phantom Lab code_pattern -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-code_pattern)"></span>
+          <span class="micro">CODE_PATTERN · AK-CDP-000000G</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">Phantom Lab Theme v1.1</h3></div>
+          <p class="card-excerpt">Pure black + single burnt-amber accent, sharp corners, Archivo Black wordmark — CAL default theme.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-05-14</dd>
+            <dt>Tags</dt><dd>theme · brand</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-CDP-000000G</span>
+          <div class="tags"><span class="tag">theme</span><span class="tag">brand</span></div>
+        </div>
+      </article>
+
+      <!-- 6 · Ra Diary -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-diary)"></span>
+          <span class="micro">DIARY · AK-DIA-000000D</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">Ra — Creative &amp; 3D Engineer Diary</h3></div>
+          <p class="card-excerpt">Append-only memory across session compaction — timeline + plan, thin-lens.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-06-28</dd>
+            <dt>Tags</dt><dd>memory · ra</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-DIA-000000D</span>
+          <div class="tags"><span class="tag">memory</span><span class="tag">ra</span></div>
+        </div>
+      </article>
+
+      <!-- 7 · Rodin repo_overview -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-repo_overview)"></span>
+          <span class="micro">REPO_OVERVIEW · AK-RPO-0000063</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">Hyper3D Rodin Gen-2.5</h3></div>
+          <p class="card-excerpt">Image/text → 3D mesh (.glb), server-side, no GPU. Adoption gated on Business plan.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-06-28</dd>
+            <dt>Tags</dt><dd>3d · adopt</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-RPO-0000063</span>
+          <div class="tags"><span class="tag">3d</span><span class="tag">adopt</span></div>
+        </div>
+      </article>
+
+      <!-- 8 · Review Board guideline -->
+      <article class="card">
+        <span class="tick tl"></span><span class="tick br"></span>
+        <div class="card-spec">
+          <span class="tdot" style="--d:var(--t-guideline)"></span>
+          <span class="micro">GUIDELINE · AK-GUI-000003S</span>
+          <span class="ck"><svg class="ico-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <div class="card-body">
+          <div class="card-title-wrap"><h3 class="card-title">HTML Blueprint Review Board Standard</h3></div>
+          <p class="card-excerpt">14 sections, verdict vocabulary, cross-AI review board for every blueprint.</p>
+          <dl class="spec-grid">
+            <dt>Updated</dt><dd>2026-06-20</dd>
+            <dt>Tags</dt><dd>blueprint · governance</dd>
+          </dl>
+        </div>
+        <div class="card-foot">
+          <span class="cardno">AK-GUI-000003S</span>
+          <div class="tags"><span class="tag">blueprint</span><span class="tag">governance</span></div>
+        </div>
+      </article>
+
+    </div><!-- /grid -->
+
+    <!-- ============================================================
+         (D) CARD DETAIL — card #1 opened
+         ============================================================ -->
+    <div class="schem-rule" style="margin-top:40px">
+      <span class="micro">§ CARD / DETAIL</span>
+      <span class="line"></span>
+      <span class="micro">SPEC SHEET</span>
+    </div>
+
+    <section class="detail">
+      <span class="tick tl"></span><span class="tick tr"></span>
+      <span class="tick bl"></span><span class="tick br"></span>
+
+      <div class="detail-bar">
+        <span class="tdot" style="--d:var(--t-guideline)"></span>
+        <span class="micro">GUIDELINE</span>
+        <span class="detail-state">
+          <svg class="ico-sm" viewBox="0 0 24 24" style="width:11px;height:11px"><path d="M20 6 9 17l-5-5"/></svg>
+          ACTIVE
+        </span>
+        <span class="cardno mono">AK-GUI-0000037</span>
+      </div>
+
+      <div class="detail-grid">
+        <!-- main -->
+        <div class="detail-main">
+          <h2 class="detail-title disp">Cosmos AI Engineering Charter v1.5</h2>
+
+          <div class="detail-meta">
+            <div class="dm"><span class="micro">Updated</span><span class="v">2026-05-17</span></div>
+            <div class="dm"><span class="micro">Owner</span><span class="v">Mythos</span></div>
+            <div class="dm"><span class="micro">Visibility</span><span class="v ok">public</span></div>
+            <div class="dm"><span class="micro">Schema</span><span class="v">v2.1</span></div>
+          </div>
+
+          <div class="detail-body">
+            <p><span class="lead">The Charter is the single source of engineering truth for every AI in the Cosmos AI Lab.</span> It encodes six Pillars and thirteen operating principles that govern how each agent reads context, plans, ships, and proves its own work — so a session run by Orion, Mythos, or Ra produces the same disciplined output against the same standard.</p>
+            <p class="pull">“One task, one branch, one PR — and a Self-Proof that a stranger could verify.”</p>
+            <p>Core mechanisms include the Self-Proof template (a seven-line attestation closing every change), the Anti-Loop rules (stop after fifteen minutes on the same failing approach, escalate rather than spin), and the Pre-Flight Gate that blocks new work on a red baseline. Version 1.5 folds in §3.8 Repo Execution Safety and the RAG-pack convention for distributing this card across the fleet.</p>
+          </div>
+
+          <div class="detail-tags">
+            <span class="tag">charter</span>
+            <span class="tag">rules</span>
+            <span class="tag">six-pillars</span>
+            <span class="tag">self-proof</span>
+            <span class="tag">anti-loop</span>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary">
+              <svg class="ico-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              Open
+            </button>
+            <button class="btn">
+              <svg class="ico-sm" viewBox="0 0 24 24"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg>
+              Remix
+            </button>
+            <button class="btn">
+              <svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M3 9h18M12 14v4M9 18h6"/></svg>
+              Add to Collection
+            </button>
+            <button class="btn">
+              <svg class="ico-sm" viewBox="0 0 24 24"><path d="M7 8h6M7 12h8M7 16h4"/><path d="M5 3h11l3 3v15a0 0 0 0 1 0 0H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" opacity=".0"/><rect x="4" y="3" width="16" height="18" rx="1.5"/></svg>
+              Cite
+            </button>
+          </div>
+        </div>
+
+        <!-- side -->
+        <aside class="detail-side">
+          <div class="side-block">
+            <span class="micro">Contents</span>
+            <nav class="toc">
+              <a class="cur"><span class="n">01</span> Six Pillars</a>
+              <a><span class="n">02</span> 13 Principles</a>
+              <a><span class="n">03</span> Self-Proof</a>
+              <a><span class="n">04</span> Anti-Loop</a>
+              <a><span class="n">05</span> Git Workflow</a>
+            </nav>
+          </div>
+
+          <div class="side-block">
+            <span class="micro">Related</span>
+            <div class="related">
+              <a class="rel">
+                <span class="tdot" style="--d:var(--t-role)"></span>
+                <span style="min-width:0"><span class="rt">First-Read — Personal Layer</span><div class="rn">AK-ROL-0000005</div></span>
+              </a>
+              <a class="rel">
+                <span class="tdot" style="--d:var(--t-guideline)"></span>
+                <span style="min-width:0"><span class="rt">Blueprint Review Board</span><div class="rn">AK-GUI-000003S</div></span>
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         (E) HEMERA
+         ============================================================ -->
+    <div class="hemera-wrap">
+      <div class="hemera">
+        <div class="hemera-ico">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><path d="M19 14l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6.6-1.6z"/></svg>
+        </div>
+        <div class="hemera-text">
+          <div class="micro">Ask Hemera · AI Librarian</div>
+          <div class="hemera-input">
+            <input type="text" placeholder="Ask Hemera anything about the library…" aria-label="Ask Hemera">
+          </div>
+        </div>
+        <button class="hemera-send" aria-label="Send">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="hemera-hint">
+        <button class="hpill">⌕ find all guideline cards</button>
+        <button class="hpill">⌕ what changed this week</button>
+        <button class="hpill">⌕ summarize the Charter</button>
+        <button class="hpill">⌕ cards tagged 3d</button>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div class="foot">
+      <span class="micro">AKASHIC LIBRARY · COSMOS AI LAB · KNOWLEDGE OPERATING SYSTEM</span>
+      <span class="foot-coords">LAT 0.00 · LON 0.00 · IDX 128/128 · BLUEPRINT</span>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     THEME TOGGLE
+     ============================================================ -->
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn  = document.getElementById('themeToggle');
+  var ico  = document.getElementById('themeIco');
+
+  var SUN  = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+
+  function paint(t){
+    // sun shown in dark (click → light); moon shown in light (click → dark)
+    ico.innerHTML = (t === 'dark') ? SUN : MOON;
+  }
+
+  function apply(t){
+    root.setAttribute('data-theme', t);
+    paint(t);
+  }
+
+  // init from storage or default dark
+  var saved = null;
+  try { saved = localStorage.getItem('ak-theme'); } catch(e){}
+  var initial = (saved === 'light' || saved === 'dark') ? saved
+              : (root.getAttribute('data-theme') || 'dark');
+  apply(initial);
+
+  btn.addEventListener('click', function(){
+    var next = (root.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+    apply(next);
+    try { localStorage.setItem('ak-theme', next); } catch(e){}
+  });
+
+  // honor external data-theme changes (render harness sets it directly)
+  new MutationObserver(function(){
+    paint(root.getAttribute('data-theme') || 'dark');
+  }).observe(root, { attributes:true, attributeFilter:['data-theme'] });
+
+  // cosmetic: type filter chips toggle
+  document.querySelectorAll('.tchip').forEach(function(c){
+    c.addEventListener('click', function(){ c.classList.toggle('on'); });
+  });
+})();
+</script>
+</body>
+</html>
