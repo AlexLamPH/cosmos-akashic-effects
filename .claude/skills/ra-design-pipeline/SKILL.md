@@ -99,6 +99,34 @@ Verified models — **probe again if "Model not exist" (DashScope renames often)
 - International endpoint: `https://dashscope-intl.aliyuncs.com`. (China host `dashscope.aliyuncs.com` exposes more models, incl. `wanx2.1-imageedit`, if ever needed.)
 - Sizes (t2i): `1024*1024`, `768*1152` (portrait card), `1152*768`, `720*1280`.
 
+## Tools — gpt-image-2 (OpenAI) ⭐ added 2026-06-29 — image-REFERENCE + in-image TEXT
+
+> **Why this is a big upgrade** (Alex provisioned the OpenAI key 2026-06-29): DashScope Wanxiang is
+> text→image ONLY and **garbles text**. OpenAI **`gpt-image-2`** does the two things Wanxiang can't:
+> (1) **conditions on REFERENCE images** (pass 2–3 sources: a style ref + the CAL logo, etc.), and
+> (2) **renders clean TEXT inside the image** (e.g. "COSMOS AI LAB" baked in, no code overlay). This
+> is exactly why a teammate using it out-produced the Wanxiang-only pipeline. Proven end-to-end
+> 2026-06-29 (CAL-in-Microsoft-Build-style poster from Alex's reference image + CAL logo).
+
+- **Auth/env:** `OPENAI_API_KEY` (Bearer). Alex-provisioned, credit-limited. **NEVER commit the key** —
+  this session it lived in `scratchpad/openai.env` (read via `grep '^OPENAI_API_KEY=' openai.env | cut -d= -f2-`,
+  never echo). For persistence across sessions Alex adds it to the Environment config.
+- **Model:** `gpt-image-2`. Base `https://api.openai.com/v1`. Returns **`b64_json`** (decode → PNG; no
+  URL option). Sizes: `1024x1024`, `1536x1024`, `1024x1536`. Quality: `low|medium|high`.
+- **TEXT → IMAGE:** `POST /v1/images/generations`, JSON `{model, prompt, size, quality}`.
+- **REFERENCE → IMAGE (the killer feature):** `POST /v1/images/edits` multipart —
+  `-F model=gpt-image-2 -F "image[]=@style_ref.png" -F "image[]=@cal_logo.png" -F size=1024x1536 -F quality=high -F prompt=...`
+  Up to ~2–3 input images; the prompt names them ("use the FIRST image as the style reference, the
+  SECOND as the logo to place").
+- **🔑 The winning combo (Alex 2026-06-29):** **reference image(s) + prompt + code** >> prompt + code
+  alone. Generate the look + text with gpt-image-2 conditioned on real references, THEN still composite
+  in code for pixel-exact brand bits (real logo PNG, precise layout) when needed. Hybrid = best.
+- **Reference files gotcha:** chat-pasted **inline** images are NOT saved to disk → can't feed the API.
+  Ask Alex to **@-attach** the reference as a file (lands in `~/.claude/uploads/...`), then pass it.
+- **Akashic cards:** `AK-TOL-0000007` (OpenAI vendor card — models/endpoints/auth) · `AK-RPO-000004T`
+  ("Awesome GPT Image 2 API and Prompts" — 535+ prompts; Alex forked `AlexLamPH/awesome-gpt-image-2-API-and-Prompts`).
+- **Cost:** ~a few cents per high-quality image (the 2026-06-29 tests were ~$0.0x each).
+
 ## Premium design checklist (distilled from pro references)
 
 Pro banners/cards share a SYSTEM, not luck:
